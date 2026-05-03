@@ -12,6 +12,7 @@ import productsRouter from "./products";
 import favoritesRouter from "./favorites";
 import notificationsRouter from "./notifications";
 import settingsRouter from "./settings";
+import adminUsersRouter from "./admin-users";
 
 const router: IRouter = Router();
 
@@ -28,5 +29,6 @@ router.use(productsRouter);
 router.use(favoritesRouter);
 router.use(notificationsRouter);
 router.use(settingsRouter);
+router.use(adminUsersRouter);
 
 export default router;

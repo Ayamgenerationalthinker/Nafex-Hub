@@ -5,9 +5,32 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Search, CheckCircle2, XCircle, Shield, Loader2, Upload, Image as ImageIcon } from "lucide-react";
+import { Search, CheckCircle2, XCircle, Shield, Loader2, Upload, Image as ImageIcon, Users, Building2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebounce } from "@/hooks/use-debounce";
+
+type AdminUser = { id: number; name: string; email: string; role: string; createdAt: string };
+
+async function fetchAdminUsers(search: string, token: string): Promise<AdminUser[]> {
+  const params = search ? `?search=${encodeURIComponent(search)}` : "";
+  const res = await fetch(`/api/admin/users${params}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) return [];
+  return res.json();
+}
+
+async function updateUserRole(id: number, role: string, token: string): Promise<void> {
+  const res = await fetch(`/api/admin/users/${id}/role`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ role }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Failed to update role");
+  }
+}
 
 async function fetchSettings(): Promise<Record<string, string>> {
   const res = await fetch("/api/settings");
@@ -31,14 +54,45 @@ export default function Admin() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  const [activeTab, setActiveTab] = useState<"businesses" | "users">("businesses");
+
   const [currentLogo, setCurrentLogo] = useState<string | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [userSearch, setUserSearch] = useState("");
+  const debouncedUserSearch = useDebounce(userSearch, 300);
+  const [roleUpdating, setRoleUpdating] = useState<number | null>(null);
+
   useEffect(() => {
     fetchSettings().then(s => { if (s.logo) setCurrentLogo(s.logo); });
   }, []);
+
+  useEffect(() => {
+    if (activeTab !== "users") return;
+    const token = localStorage.getItem("nafex_token") ?? "";
+    setUsersLoading(true);
+    fetchAdminUsers(debouncedUserSearch, token)
+      .then(setUsers)
+      .finally(() => setUsersLoading(false));
+  }, [activeTab, debouncedUserSearch]);
+
+  const handleRoleChange = async (userId: number, newRole: string) => {
+    const token = localStorage.getItem("nafex_token") ?? "";
+    setRoleUpdating(userId);
+    try {
+      await updateUserRole(userId, newRole, token);
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+      toast({ title: newRole === "admin" ? "Admin access granted" : "Role updated" });
+    } catch (e: any) {
+      toast({ title: e.message ?? "Failed to update role", variant: "destructive" });
+    } finally {
+      setRoleUpdating(null);
+    }
+  };
 
   const { data: businesses, isLoading } = useGetAdminBusinesses({
     search: debouncedSearch || undefined,
@@ -102,10 +156,38 @@ export default function Admin() {
         </div>
         <div>
           <h1 className="font-serif text-2xl md:text-3xl font-bold text-foreground">Admin Panel</h1>
-          <p className="text-sm text-muted-foreground">Manage and verify business listings</p>
+          <p className="text-sm text-muted-foreground">Manage users, verify businesses, and configure the platform</p>
         </div>
       </div>
 
+      {/* Tab switcher */}
+      <div className="flex gap-1 bg-muted/50 p-1 rounded-xl w-fit border">
+        <button
+          onClick={() => setActiveTab("businesses")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            activeTab === "businesses"
+              ? "bg-background shadow-sm text-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Building2 className="w-4 h-4" />
+          Businesses
+        </button>
+        <button
+          onClick={() => setActiveTab("users")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            activeTab === "users"
+              ? "bg-background shadow-sm text-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          Users
+        </button>
+      </div>
+
+      {activeTab === "businesses" && (
+      <div className="space-y-8">
       {/* Logo Upload Section */}
       <div className="bg-card rounded-xl border p-6 space-y-4">
         <div className="flex items-center gap-2">
@@ -306,6 +388,115 @@ export default function Admin() {
           </div>
         )}
       </div>
+      </div>
+      )}
+
+      {activeTab === "users" && (
+        <div className="space-y-4">
+          {/* User search */}
+          <div className="bg-card rounded-xl border p-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                placeholder="Search users by name or email..."
+                value={userSearch}
+                onChange={(e) => setUserSearch(e.target.value)}
+                className="pl-9 h-10"
+              />
+            </div>
+          </div>
+
+          {/* Users table */}
+          <div className="bg-card rounded-xl border overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/30">
+                    <th className="text-left font-semibold text-muted-foreground p-4">User</th>
+                    <th className="text-left font-semibold text-muted-foreground p-4 hidden sm:table-cell">Email</th>
+                    <th className="text-left font-semibold text-muted-foreground p-4">Role</th>
+                    <th className="text-right font-semibold text-muted-foreground p-4">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {usersLoading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <tr key={i} className="border-b last:border-b-0">
+                        <td className="p-4"><Skeleton className="h-5 w-36" /></td>
+                        <td className="p-4 hidden sm:table-cell"><Skeleton className="h-5 w-44" /></td>
+                        <td className="p-4"><Skeleton className="h-6 w-20 rounded-full" /></td>
+                        <td className="p-4 text-right"><Skeleton className="h-8 w-28 ml-auto" /></td>
+                      </tr>
+                    ))
+                  ) : users.length ? (
+                    users.map((user) => (
+                      <tr key={user.id} className="border-b last:border-b-0 hover:bg-muted/20 transition-colors">
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <span className="font-bold text-primary text-xs">{user.name.charAt(0).toUpperCase()}</span>
+                            </div>
+                            <span className="font-medium text-foreground">{user.name}</span>
+                          </div>
+                        </td>
+                        <td className="p-4 hidden sm:table-cell text-muted-foreground text-xs">{user.email}</td>
+                        <td className="p-4">
+                          {user.role === "admin" ? (
+                            <Badge className="bg-primary/15 text-primary border-primary/30 gap-1 text-xs">
+                              <Shield className="w-3 h-3" /> Admin
+                            </Badge>
+                          ) : user.role === "business_owner" ? (
+                            <Badge variant="outline" className="text-xs gap-1">
+                              <Building2 className="w-3 h-3" /> Business
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-muted-foreground text-xs gap-1">
+                              <Users className="w-3 h-3" /> User
+                            </Badge>
+                          )}
+                        </td>
+                        <td className="p-4 text-right">
+                          {user.role === "admin" ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRoleChange(user.id, "user")}
+                              disabled={roleUpdating === user.id}
+                              className="text-destructive border-destructive/30 hover:bg-destructive/10 text-xs"
+                            >
+                              {roleUpdating === user.id ? <Loader2 className="w-3 h-3 animate-spin" /> : "Revoke Admin"}
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              onClick={() => handleRoleChange(user.id, "admin")}
+                              disabled={roleUpdating === user.id}
+                              className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs gap-1"
+                            >
+                              {roleUpdating === user.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Shield className="w-3 h-3" /> Make Admin</>}
+                            </Button>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="p-12 text-center text-muted-foreground">
+                        No users found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            {users.length > 0 && (
+              <div className="px-4 py-3 border-t bg-muted/20 text-xs text-muted-foreground">
+                {users.length} user{users.length !== 1 ? "s" : ""} · {users.filter(u => u.role === "admin").length} admin{users.filter(u => u.role === "admin").length !== 1 ? "s" : ""}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
