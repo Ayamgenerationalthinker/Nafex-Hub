@@ -44,7 +44,7 @@ router.get("/admin/users", requireAuth, async (req: AuthRequest, res): Promise<v
 router.put("/admin/users/:id/role", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   if (!adminOnly(req, res)) return;
 
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
 
   const body = z

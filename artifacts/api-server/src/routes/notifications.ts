@@ -34,7 +34,7 @@ router.get("/notifications/unread-count", requireAuth, async (req: AuthRequest, 
 
 // PATCH /notifications/:id/read
 router.patch("/notifications/:id/read", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
 
   await db

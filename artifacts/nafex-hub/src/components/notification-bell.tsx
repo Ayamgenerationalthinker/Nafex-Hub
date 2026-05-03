@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useGetNotifications, useGetNotificationUnreadCount, useMarkNotificationRead, useMarkAllNotificationsRead } from "@workspace/api-client-react";
+import { useGetNotifications, getGetNotificationsQueryKey, useGetNotificationUnreadCount, getGetNotificationUnreadCountQueryKey, useMarkNotificationRead, useMarkAllNotificationsRead } from "@workspace/api-client-react";
 import { Bell, MessageCircle, ShoppingBag, Star } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -27,10 +27,10 @@ export function NotificationBell() {
   const token = localStorage.getItem("nafex_token");
 
   const { data: countData, refetch: refetchCount } = useGetNotificationUnreadCount({
-    query: { enabled: !!token, refetchInterval: 15000 },
+    query: { enabled: !!token, refetchInterval: 15000, queryKey: getGetNotificationUnreadCountQueryKey() },
   });
   const { data: notifications, refetch: refetchList } = useGetNotifications({
-    query: { enabled: !!token && open },
+    query: { enabled: !!token && open, queryKey: getGetNotificationsQueryKey() },
   });
 
   const { mutate: markRead } = useMarkNotificationRead({
