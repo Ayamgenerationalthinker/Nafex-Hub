@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Search, CheckCircle2, XCircle, Shield, Loader2, Upload, Image as ImageIcon, Users, Building2 } from "lucide-react";
+import { Search, CheckCircle2, XCircle, Shield, Loader2, Upload, Image as ImageIcon, Users, Building2, Clock, UserCheck, UserX, Settings } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebounce } from "@/hooks/use-debounce";
 
@@ -18,6 +18,46 @@ async function fetchAdminUsers(search: string, token: string): Promise<AdminUser
   });
   if (!res.ok) return [];
   return res.json();
+}
+
+type ActivityLog = {
+  id: number;
+  adminId: number;
+  adminName: string;
+  action: string;
+  targetType: string;
+  targetId: string | null;
+  details: Record<string, unknown> | null;
+  createdAt: string;
+};
+
+async function fetchActivity(token: string): Promise<ActivityLog[]> {
+  const res = await fetch("/api/admin/activity?limit=100", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) return [];
+  return res.json();
+}
+
+function actionLabel(action: string): { label: string; icon: React.ReactNode; color: string } {
+  switch (action) {
+    case "grant_admin":    return { label: "Granted admin", icon: <UserCheck className="w-4 h-4" />, color: "text-primary" };
+    case "revoke_admin":   return { label: "Revoked admin", icon: <UserX className="w-4 h-4" />, color: "text-destructive" };
+    case "verify_business":   return { label: "Verified business", icon: <CheckCircle2 className="w-4 h-4" />, color: "text-green-600" };
+    case "unverify_business": return { label: "Unverified business", icon: <XCircle className="w-4 h-4" />, color: "text-orange-500" };
+    case "update_setting": return { label: "Updated setting", icon: <Settings className="w-4 h-4" />, color: "text-muted-foreground" };
+    default: return { label: action, icon: <Clock className="w-4 h-4" />, color: "text-muted-foreground" };
+  }
+}
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
 }
 
 async function updateUserRole(id: number, role: string, token: string): Promise<void> {
@@ -54,7 +94,7 @@ export default function Admin() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const [activeTab, setActiveTab] = useState<"businesses" | "users">("businesses");
+  const [activeTab, setActiveTab] = useState<"businesses" | "users" | "activity">("businesses");
 
   const [currentLogo, setCurrentLogo] = useState<string | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -66,6 +106,9 @@ export default function Admin() {
   const [userSearch, setUserSearch] = useState("");
   const debouncedUserSearch = useDebounce(userSearch, 300);
   const [roleUpdating, setRoleUpdating] = useState<number | null>(null);
+
+  const [activity, setActivity] = useState<ActivityLog[]>([]);
+  const [activityLoading, setActivityLoading] = useState(false);
 
   useEffect(() => {
     fetchSettings().then(s => { if (s.logo) setCurrentLogo(s.logo); });
@@ -79,6 +122,15 @@ export default function Admin() {
       .then(setUsers)
       .finally(() => setUsersLoading(false));
   }, [activeTab, debouncedUserSearch]);
+
+  useEffect(() => {
+    if (activeTab !== "activity") return;
+    const token = localStorage.getItem("nafex_token") ?? "";
+    setActivityLoading(true);
+    fetchActivity(token)
+      .then(setActivity)
+      .finally(() => setActivityLoading(false));
+  }, [activeTab]);
 
   const handleRoleChange = async (userId: number, newRole: string) => {
     const token = localStorage.getItem("nafex_token") ?? "";
@@ -183,6 +235,17 @@ export default function Admin() {
         >
           <Users className="w-4 h-4" />
           Users
+        </button>
+        <button
+          onClick={() => setActiveTab("activity")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            activeTab === "activity"
+              ? "bg-background shadow-sm text-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Clock className="w-4 h-4" />
+          Activity
         </button>
       </div>
 
@@ -492,6 +555,90 @@ export default function Admin() {
             {users.length > 0 && (
               <div className="px-4 py-3 border-t bg-muted/20 text-xs text-muted-foreground">
                 {users.length} user{users.length !== 1 ? "s" : ""} · {users.filter(u => u.role === "admin").length} admin{users.filter(u => u.role === "admin").length !== 1 ? "s" : ""}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === "activity" && (
+        <div className="space-y-4">
+          <div className="bg-card rounded-xl border overflow-hidden shadow-sm">
+            <div className="flex items-center justify-between px-5 py-4 border-b bg-muted/20">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-muted-foreground" />
+                <span className="font-semibold text-sm text-foreground">Admin Activity Log</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs gap-1 text-muted-foreground"
+                onClick={() => {
+                  const token = localStorage.getItem("nafex_token") ?? "";
+                  setActivityLoading(true);
+                  fetchActivity(token).then(setActivity).finally(() => setActivityLoading(false));
+                }}
+              >
+                {activityLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                Refresh
+              </Button>
+            </div>
+
+            {activityLoading ? (
+              <div className="divide-y">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="flex items-start gap-4 px-5 py-4">
+                    <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
+                    <div className="flex-1 space-y-1.5">
+                      <Skeleton className="h-4 w-48" />
+                      <Skeleton className="h-3 w-32" />
+                    </div>
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                ))}
+              </div>
+            ) : activity.length ? (
+              <div className="divide-y">
+                {activity.map((entry) => {
+                  const { label, icon, color } = actionLabel(entry.action);
+                  const detail = entry.details as any;
+                  const subtitle =
+                    detail?.businessName
+                      ? `Business: ${detail.businessName}`
+                      : detail?.targetName
+                      ? `User: ${detail.targetName}`
+                      : detail?.key
+                      ? `Setting: ${detail.key}`
+                      : entry.targetType;
+                  return (
+                    <div key={entry.id} className="flex items-start gap-4 px-5 py-4 hover:bg-muted/20 transition-colors">
+                      <div className={`w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0 ${color}`}>
+                        {icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-medium text-sm text-foreground">{entry.adminName}</span>
+                          <span className={`text-sm ${color}`}>{label}</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-0.5 truncate">{subtitle}</div>
+                      </div>
+                      <div className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0 mt-0.5">
+                        {timeAgo(entry.createdAt)}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="py-16 text-center text-muted-foreground text-sm">
+                <Clock className="w-8 h-8 mx-auto mb-3 opacity-30" />
+                No activity recorded yet
+              </div>
+            )}
+
+            {activity.length > 0 && (
+              <div className="px-5 py-3 border-t bg-muted/20 text-xs text-muted-foreground">
+                {activity.length} event{activity.length !== 1 ? "s" : ""} recorded
               </div>
             )}
           </div>

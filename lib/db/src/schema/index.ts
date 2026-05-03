@@ -9,3 +9,4 @@ export * from "./products";
 export * from "./favorites";
 export * from "./notifications";
 export * from "./settings";
+export * from "./admin-activity";
