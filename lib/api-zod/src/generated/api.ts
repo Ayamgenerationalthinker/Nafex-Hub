@@ -529,6 +529,7 @@ export const ListProductsResponseItem = zod.object({
   description: zod.string(),
   price: zod.string(),
   images: zod.array(zod.string()),
+  stock: zod.number().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
   businessName: zod.string().optional(),
@@ -550,6 +551,7 @@ export const GetProductResponse = zod.object({
   description: zod.string(),
   price: zod.string(),
   images: zod.array(zod.string()),
+  stock: zod.number().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
   businessName: zod.string().optional(),
@@ -568,6 +570,7 @@ export const UpdateProductBody = zod.object({
   description: zod.string().optional(),
   price: zod.string(),
   images: zod.array(zod.string()).optional(),
+  stock: zod.number().nullish(),
 });
 
 export const UpdateProductResponse = zod.object({
@@ -577,6 +580,7 @@ export const UpdateProductResponse = zod.object({
   description: zod.string(),
   price: zod.string(),
   images: zod.array(zod.string()),
+  stock: zod.number().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
   businessName: zod.string().optional(),
@@ -595,6 +599,36 @@ export const DeleteProductResponse = zod.object({
 });
 
 /**
+ * @summary Update stock level for a product
+ */
+export const UpdateProductStockParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateProductStockBody = zod.object({
+  stock: zod
+    .number()
+    .nullish()
+    .describe(
+      "null = not tracking, 0 = out of stock, positive = units available",
+    ),
+});
+
+export const UpdateProductStockResponse = zod.object({
+  id: zod.number(),
+  businessId: zod.number(),
+  name: zod.string(),
+  description: zod.string(),
+  price: zod.string(),
+  images: zod.array(zod.string()),
+  stock: zod.number().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+  businessName: zod.string().optional(),
+  businessLogo: zod.string().optional(),
+});
+
+/**
  * @summary Get products for a business
  */
 export const GetBusinessProductsParams = zod.object({
@@ -608,6 +642,7 @@ export const GetBusinessProductsResponseItem = zod.object({
   description: zod.string(),
   price: zod.string(),
   images: zod.array(zod.string()),
+  stock: zod.number().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
   businessName: zod.string().optional(),
@@ -629,6 +664,7 @@ export const CreateProductBody = zod.object({
   description: zod.string().optional(),
   price: zod.string(),
   images: zod.array(zod.string()).optional(),
+  stock: zod.number().nullish(),
 });
 
 /**
@@ -644,6 +680,7 @@ export const GetFavoritesResponse = zod.object({
       description: zod.string(),
       price: zod.string(),
       images: zod.array(zod.string()),
+      stock: zod.number().nullish(),
       createdAt: zod.coerce.date(),
       updatedAt: zod.coerce.date(),
       businessName: zod.string().optional(),

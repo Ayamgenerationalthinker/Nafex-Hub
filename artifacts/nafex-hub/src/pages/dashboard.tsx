@@ -6,6 +6,9 @@ import {
   getGetBusinessAnalyticsQueryKey,
   useGetBusinessOrders,
   useUpdateOrderStatus,
+  useGetBusinessProducts,
+  getGetBusinessProductsQueryKey,
+  useUpdateProductStock,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,6 +36,7 @@ import {
   CheckCircle2,
   XCircle,
   Truck,
+  Boxes,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -73,6 +77,23 @@ export default function Dashboard() {
   );
 
   const { data: orders, refetch: refetchOrders } = useGetBusinessOrders();
+
+  const { data: products, refetch: refetchProducts } = useGetBusinessProducts(
+    businessId,
+    { query: { enabled: !!businessId, queryKey: getGetBusinessProductsQueryKey(businessId) } }
+  );
+
+  const { mutate: updateStock } = useUpdateProductStock({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Stock updated" });
+        refetchProducts();
+      },
+      onError: () => toast({ title: "Failed to update stock", variant: "destructive" }),
+    },
+  });
+
+  const [stockEdits, setStockEdits] = useState<Record<number, string>>({});
 
   const { mutate: updateStatus } = useUpdateOrderStatus({
     mutation: {
@@ -132,6 +153,7 @@ export default function Dashboard() {
         <TabsList className="mb-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="inventory">Inventory</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
@@ -255,6 +277,81 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
             ))
+          )}
+        </TabsContent>
+
+        {/* ── Inventory Tab ── */}
+        <TabsContent value="inventory" className="space-y-4">
+          {!businessId ? (
+            <div className="text-center py-16 text-muted-foreground">List your business to manage inventory</div>
+          ) : !products || products.length === 0 ? (
+            <div className="text-center py-16 text-muted-foreground">
+              <Boxes className="w-12 h-12 mx-auto mb-4 opacity-30" />
+              <p>No products yet. Add products to start tracking inventory.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Enter a number to set available units, or leave blank to mark as untracked. Set to 0 to show "Out of Stock".
+              </p>
+              {products.map((product) => {
+                const currentStock = product.stock;
+                const editVal = stockEdits[product.id] !== undefined
+                  ? stockEdits[product.id]
+                  : (currentStock !== null && currentStock !== undefined ? String(currentStock) : "");
+                return (
+                  <Card key={product.id} className="border-border/50">
+                    <CardContent className="py-3 px-4 flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center">
+                        {product.images?.[0] ? (
+                          <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <Package className="w-4 h-4 text-muted-foreground opacity-30" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{product.name}</p>
+                        <p className="text-xs text-muted-foreground">GHS {Number(product.price).toFixed(2)}</p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {currentStock === null || currentStock === undefined ? (
+                          <span className="text-xs text-muted-foreground hidden sm:block">untracked</span>
+                        ) : currentStock === 0 ? (
+                          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700 hidden sm:block">Out of Stock</span>
+                        ) : (
+                          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 hidden sm:block">{currentStock} in stock</span>
+                        )}
+                        <input
+                          type="number"
+                          min="0"
+                          placeholder="—"
+                          value={editVal}
+                          onChange={(e) => setStockEdits((prev) => ({ ...prev, [product.id]: e.target.value }))}
+                          className="w-20 h-8 px-2 text-sm border border-border rounded-md bg-background text-center focus:outline-none focus:ring-1 focus:ring-primary"
+                        />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 px-3 text-xs"
+                          onClick={() => {
+                            const val = editVal.trim();
+                            const stock = val === "" ? null : Math.max(0, parseInt(val, 10));
+                            updateStock({ id: product.id, data: { stock } });
+                            setStockEdits((prev) => {
+                              const next = { ...prev };
+                              delete next[product.id];
+                              return next;
+                            });
+                          }}
+                        >
+                          Save
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
           )}
         </TabsContent>
 

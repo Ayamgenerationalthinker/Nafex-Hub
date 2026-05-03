@@ -51,6 +51,7 @@ import type {
   UnreadCountResponse,
   UpdateBusinessBody,
   UpdateOrderStatusBody,
+  UpdateStockBody,
   User,
   VerifyBusinessBody,
 } from "./api.schemas";
@@ -2656,6 +2657,93 @@ export const useDeleteProduct = <
   TContext
 > => {
   return useMutation(getDeleteProductMutationOptions(options));
+};
+
+/**
+ * @summary Update stock level for a product
+ */
+export const getUpdateProductStockUrl = (id: number) => {
+  return `/api/products/${id}/stock`;
+};
+
+export const updateProductStock = async (
+  id: number,
+  updateStockBody: UpdateStockBody,
+  options?: RequestInit,
+): Promise<Product> => {
+  return customFetch<Product>(getUpdateProductStockUrl(id), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateStockBody),
+  });
+};
+
+export const getUpdateProductStockMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateProductStock>>,
+    TError,
+    { id: number; data: BodyType<UpdateStockBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateProductStock>>,
+  TError,
+  { id: number; data: BodyType<UpdateStockBody> },
+  TContext
+> => {
+  const mutationKey = ["updateProductStock"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateProductStock>>,
+    { id: number; data: BodyType<UpdateStockBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateProductStock(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateProductStockMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateProductStock>>
+>;
+export type UpdateProductStockMutationBody = BodyType<UpdateStockBody>;
+export type UpdateProductStockMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Update stock level for a product
+ */
+export const useUpdateProductStock = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateProductStock>>,
+    TError,
+    { id: number; data: BodyType<UpdateStockBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateProductStock>>,
+  TError,
+  { id: number; data: BodyType<UpdateStockBody> },
+  TContext
+> => {
+  return useMutation(getUpdateProductStockMutationOptions(options));
 };
 
 /**

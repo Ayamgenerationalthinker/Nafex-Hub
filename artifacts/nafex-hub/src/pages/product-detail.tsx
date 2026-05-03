@@ -105,6 +105,17 @@ export default function ProductDetail() {
           <div>
             <h1 className="font-serif text-2xl font-bold text-foreground">{product.name}</h1>
             <p className="text-3xl font-bold text-primary mt-2">GHS {Number(product.price).toFixed(2)}</p>
+            {product.stock !== null && product.stock !== undefined && (
+              <span className={`inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full mt-2 ${
+                product.stock === 0
+                  ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                  : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+              }`}>
+                {product.stock === 0
+                  ? "Out of Stock"
+                  : `In Stock · ${product.stock} unit${product.stock !== 1 ? "s" : ""} available`}
+              </span>
+            )}
           </div>
 
           {product.description && (
