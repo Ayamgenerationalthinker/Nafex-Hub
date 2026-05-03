@@ -170,10 +170,25 @@ paths:
     get:
       operationId: getFeaturedBusinesses
       tags: [businesses]
-      summary: Get featured/verified businesses for homepage
+      summary: Get homepage_section featured businesses
       responses:
         "200":
           description: Featured businesses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Business"
+
+  /businesses/featured-top:
+    get:
+      operationId: getFeaturedTopBusinesses
+      tags: [businesses]
+      summary: Get homepage_top featured businesses
+      responses:
+        "200":
+          description: Top placement businesses
           content:
             application/json:
               schema:
@@ -1169,6 +1184,14 @@ components:
           type: boolean
         isFeatured:
           type: boolean
+        featuredType:
+          type: string
+          nullable: true
+          enum: [homepage_top, homepage_section, search_boost]
+        featuredUntil:
+          type: string
+          format: date-time
+          nullable: true
         createdAt:
           type: string
           format: date-time

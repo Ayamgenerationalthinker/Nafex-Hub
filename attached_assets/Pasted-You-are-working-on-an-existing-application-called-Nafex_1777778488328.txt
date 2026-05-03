@@ -1,0 +1,123 @@
+You are working on an existing application called Nafex Hub.
+
+⚠️ CRITICAL RULES:
+
+* DO NOT modify or redesign existing sections
+* ADD a new section exactly as specified
+* USE the EXACT existing images already in the project (DO NOT replace or generate new ones)
+* Maintain current UI style, colors, spacing, and typography
+
+---
+
+## 🎯 OBJECTIVE
+
+Recreate the “Why Choose Nafex Hub” section and the “Grow Your Business” CTA section EXACTLY as designed, including proper image usage and layout balance.
+
+---
+
+## 🧱 SECTION 1: WHY CHOOSE NAFEX HUB
+
+### Title:
+
+"Why Choose Nafex Hub?"
+
+### Layout:
+
+* 4 evenly spaced items in a row (responsive on mobile)
+* Each item contains:
+
+  * Circular icon background
+  * Icon centered
+  * Title below
+  * Short description
+
+---
+
+### ITEMS CONTENT:
+
+1. Verified & Trusted
+   "All businesses are carefully verified for trust and quality"
+
+2. Quality Selection
+   "Discover top fashion brands and curated collections"
+
+3. Easy Shopping
+   "Browse, connect, and shop with ease"
+
+4. Promote Your Business
+   "Grow your brand and reach more customers"
+
+---
+
+### DESIGN:
+
+* Dark circular icon backgrounds
+* Gold/yellow icons
+* Center-aligned text
+* Equal spacing between items
+
+---
+
+## 🧱 SECTION 2: CTA (GROW YOUR BUSINESS)
+
+### Layout:
+
+* Two-column responsive grid
+
+LEFT SIDE:
+
+* Background: gold/yellow tone
+* Title:
+  "Grow Your Business with Nafex Hub"
+* Subtitle:
+  "Join for Free & Reach More Customers"
+* Button:
+  "Get Listed Now"
+
+Button action:
+
+* Redirect to signup/onboarding page
+
+---
+
+RIGHT SIDE:
+
+* USE the EXACT image already available in the project (shopping woman image)
+* DO NOT change, replace, or regenerate image
+* Image should:
+
+  * fit container perfectly
+  * have rounded corners
+  * maintain aspect ratio
+  * align vertically with text section
+
+---
+
+## 📱 RESPONSIVENESS
+
+* On mobile:
+
+  * Stack sections vertically
+  * Image goes below text
+  * Maintain spacing and readability
+
+---
+
+## 🎨 UI REQUIREMENTS
+
+* Match Nafex Hub color system (dark + gold)
+* Use existing typography
+* Maintain consistent padding and margins
+* Smooth hover effect on button
+
+---
+
+## 🚀 OUTPUT REQUIREMENTS
+
+* Pixel-clean section similar to design
+* Proper image rendering (no distortion)
+* Fully responsive layout
+* Button working correctly
+* No breaking changes to existing UI
+
+Focus on visual accuracy, balance, and professional layout.

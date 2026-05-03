@@ -77,6 +77,10 @@ export const GetBusinessesResponseItem = zod.object({
   images: zod.array(zod.string()),
   isVerified: zod.boolean(),
   isFeatured: zod.boolean(),
+  featuredType: zod
+    .enum(["homepage_top", "homepage_section", "search_boost"])
+    .nullish(),
+  featuredUntil: zod.coerce.date().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -96,7 +100,7 @@ export const CreateBusinessBody = zod.object({
 });
 
 /**
- * @summary Get featured/verified businesses for homepage
+ * @summary Get homepage_section featured businesses
  */
 export const GetFeaturedBusinessesResponseItem = zod.object({
   id: zod.number(),
@@ -110,11 +114,41 @@ export const GetFeaturedBusinessesResponseItem = zod.object({
   images: zod.array(zod.string()),
   isVerified: zod.boolean(),
   isFeatured: zod.boolean(),
+  featuredType: zod
+    .enum(["homepage_top", "homepage_section", "search_boost"])
+    .nullish(),
+  featuredUntil: zod.coerce.date().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
 export const GetFeaturedBusinessesResponse = zod.array(
   GetFeaturedBusinessesResponseItem,
+);
+
+/**
+ * @summary Get homepage_top featured businesses
+ */
+export const GetFeaturedTopBusinessesResponseItem = zod.object({
+  id: zod.number(),
+  ownerId: zod.number().nullish(),
+  name: zod.string(),
+  category: zod.string(),
+  description: zod.string(),
+  location: zod.string(),
+  phone: zod.string(),
+  logo: zod.string().nullish(),
+  images: zod.array(zod.string()),
+  isVerified: zod.boolean(),
+  isFeatured: zod.boolean(),
+  featuredType: zod
+    .enum(["homepage_top", "homepage_section", "search_boost"])
+    .nullish(),
+  featuredUntil: zod.coerce.date().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const GetFeaturedTopBusinessesResponse = zod.array(
+  GetFeaturedTopBusinessesResponseItem,
 );
 
 /**
@@ -136,6 +170,10 @@ export const GetBusinessResponse = zod.object({
   images: zod.array(zod.string()),
   isVerified: zod.boolean(),
   isFeatured: zod.boolean(),
+  featuredType: zod
+    .enum(["homepage_top", "homepage_section", "search_boost"])
+    .nullish(),
+  featuredUntil: zod.coerce.date().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -169,6 +207,10 @@ export const UpdateBusinessResponse = zod.object({
   images: zod.array(zod.string()),
   isVerified: zod.boolean(),
   isFeatured: zod.boolean(),
+  featuredType: zod
+    .enum(["homepage_top", "homepage_section", "search_boost"])
+    .nullish(),
+  featuredUntil: zod.coerce.date().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -203,6 +245,10 @@ export const VerifyBusinessResponse = zod.object({
   images: zod.array(zod.string()),
   isVerified: zod.boolean(),
   isFeatured: zod.boolean(),
+  featuredType: zod
+    .enum(["homepage_top", "homepage_section", "search_boost"])
+    .nullish(),
+  featuredUntil: zod.coerce.date().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -247,6 +293,10 @@ export const GetAdminBusinessesResponseItem = zod.object({
   images: zod.array(zod.string()),
   isVerified: zod.boolean(),
   isFeatured: zod.boolean(),
+  featuredType: zod
+    .enum(["homepage_top", "homepage_section", "search_boost"])
+    .nullish(),
+  featuredUntil: zod.coerce.date().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });

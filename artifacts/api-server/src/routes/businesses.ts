@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, businessesTable, reviewsTable, ordersTable } from "@workspace/db";
-import { eq, ilike, and, SQL, sql, desc } from "drizzle-orm";
+import { eq, ilike, and, or, isNull, SQL, sql, desc, gt } from "drizzle-orm";
 import { z } from "zod";
 import {
   CreateBusinessBody,
@@ -31,11 +31,24 @@ const bizWithStats = {
   images: businessesTable.images,
   isVerified: businessesTable.isVerified,
   isFeatured: businessesTable.isFeatured,
+  featuredType: businessesTable.featuredType,
+  featuredUntil: businessesTable.featuredUntil,
   createdAt: businessesTable.createdAt,
   updatedAt: businessesTable.updatedAt,
   avgRating: sql<number>`coalesce(round(avg(${reviewsTable.rating})::numeric,1),0)::float`,
   reviewCount: sql<number>`count(distinct ${reviewsTable.id})::int`,
 };
+
+// Reusable expiry check: isFeatured=true AND (featuredUntil IS NULL OR featuredUntil > now)
+function featuredActiveCondition() {
+  return and(
+    eq(businessesTable.isFeatured, true),
+    or(
+      isNull(businessesTable.featuredUntil),
+      gt(businessesTable.featuredUntil, sql`now()`)
+    )
+  );
+}
 
 router.get("/businesses", async (req, res): Promise<void> => {
   const query = GetBusinessesQueryParams.safeParse(req.query);
@@ -51,21 +64,45 @@ router.get("/businesses", async (req, res): Promise<void> => {
   if (category && category !== "All") conditions.push(eq(businessesTable.category, category));
   if (verified === "true") conditions.push(eq(businessesTable.isVerified, true));
 
+  // Sort search_boost + active featured businesses first
+  const searchBoostSort = sql`case when ${businessesTable.isFeatured} = true and ${businessesTable.featuredType} = 'search_boost' and (${businessesTable.featuredUntil} is null or ${businessesTable.featuredUntil} > now()) then 0 else 1 end`;
   const businesses =
     conditions.length > 0
       ? await db.select().from(businessesTable).where(and(...conditions))
-      : await db.select().from(businessesTable);
+          .orderBy(searchBoostSort, desc(businessesTable.createdAt))
+      : await db.select().from(businessesTable)
+          .orderBy(searchBoostSort, desc(businessesTable.createdAt));
 
   res.json(businesses);
 });
 
-// Featured brands (admin-curated isFeatured=true)
+// Featured brands — homepage_section type, with expiry
 router.get("/businesses/featured", async (_req, res): Promise<void> => {
   const businesses = await db
     .select()
     .from(businessesTable)
-    .where(eq(businessesTable.isFeatured, true))
+    .where(
+      and(
+        featuredActiveCondition(),
+        eq(businessesTable.featuredType, "homepage_section")
+      )
+    )
     .limit(8);
+  res.json(businesses);
+});
+
+// Featured top — homepage_top type, with expiry
+router.get("/businesses/featured-top", async (_req, res): Promise<void> => {
+  const businesses = await db
+    .select()
+    .from(businessesTable)
+    .where(
+      and(
+        featuredActiveCondition(),
+        eq(businessesTable.featuredType, "homepage_top")
+      )
+    )
+    .limit(6);
   res.json(businesses);
 });
 
@@ -248,7 +285,7 @@ router.delete("/admin/business/:id", requireAuth, async (req: AuthRequest, res):
   res.sendStatus(204);
 });
 
-// Admin: toggle isFeatured
+// Admin: set featured status, type and expiry
 router.patch("/admin/businesses/:id/featured", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   if (req.user?.role !== "admin") {
     res.status(403).json({ error: "Admin only" });
@@ -261,15 +298,32 @@ router.patch("/admin/businesses/:id/featured", requireAuth, async (req: AuthRequ
     return;
   }
 
-  const body = z.object({ isFeatured: z.boolean() }).safeParse(req.body);
+  const body = z.object({
+    isFeatured: z.boolean(),
+    featuredType: z.enum(["homepage_top", "homepage_section", "search_boost"]).optional().nullable(),
+    featuredUntil: z.string().datetime().optional().nullable(),
+  }).safeParse(req.body);
+
   if (!body.success) {
     res.status(400).json({ error: "isFeatured required" });
     return;
   }
 
+  const updateData: Record<string, unknown> = { isFeatured: body.data.isFeatured };
+  if (!body.data.isFeatured) {
+    // Clear featured fields when disabling
+    updateData.featuredType = null;
+    updateData.featuredUntil = null;
+  } else {
+    if (body.data.featuredType !== undefined) updateData.featuredType = body.data.featuredType;
+    if (body.data.featuredUntil !== undefined) {
+      updateData.featuredUntil = body.data.featuredUntil ? new Date(body.data.featuredUntil) : null;
+    }
+  }
+
   const [business] = await db
     .update(businessesTable)
-    .set({ isFeatured: body.data.isFeatured })
+    .set(updateData)
     .where(eq(businessesTable.id, params.data.id))
     .returning();
 
@@ -284,7 +338,7 @@ router.patch("/admin/businesses/:id/featured", requireAuth, async (req: AuthRequ
     action: body.data.isFeatured ? "feature_business" : "unfeature_business",
     targetType: "business",
     targetId: String(business.id),
-    details: { businessName: business.name },
+    details: { businessName: business.name, featuredType: body.data.featuredType, featuredUntil: body.data.featuredUntil },
   });
 
   res.json(business);

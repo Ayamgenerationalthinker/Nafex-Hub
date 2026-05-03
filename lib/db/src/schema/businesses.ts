@@ -21,6 +21,8 @@ export const businessesTable = pgTable("businesses", {
   images: text("images").array().notNull().default([]),
   isVerified: boolean("is_verified").notNull().default(false),
   isFeatured: boolean("is_featured").notNull().default(false),
+  featuredType: text("featured_type"), // "homepage_top" | "homepage_section" | "search_boost"
+  featuredUntil: timestamp("featured_until", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

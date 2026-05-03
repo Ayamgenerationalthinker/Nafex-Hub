@@ -1,23 +1,29 @@
 import { Link } from "wouter";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, TrendingUp, MessageCircle, Star } from "lucide-react";
+import { MapPin, TrendingUp, MessageCircle, Star, Crown } from "lucide-react";
 import type { Business } from "@workspace/api-client-react";
 
 type BrandCardProps = {
   business: Business & { avgRating?: number | null; reviewCount?: number };
   isTopSeller?: boolean;
   isTrending?: boolean;
+  isFeaturedTop?: boolean;
 };
 
-export function BrandCard({ business, isTopSeller, isTrending }: BrandCardProps) {
+export function BrandCard({ business, isTopSeller, isTrending, isFeaturedTop }: BrandCardProps) {
   const coverImage = business.images?.[0] || business.logo;
   const whatsappUrl = `https://wa.me/${business.phone.replace(/\D/g, "")}`;
   const avgRating = (business as { avgRating?: number | null }).avgRating;
   const reviewCount = (business as { reviewCount?: number }).reviewCount ?? 0;
 
+  const showFeaturedBadge = business.isFeatured && !isTopSeller && !isTrending;
+
   return (
-    <Card className="overflow-hidden group flex flex-col h-full hover-elevate transition-all duration-300 border-border/50 hover:border-primary/30" data-testid={`card-brand-${business.id}`}>
+    <Card
+      className={`overflow-hidden group flex flex-col h-full hover-elevate transition-all duration-300 border-border/50 hover:border-primary/30 ${isFeaturedTop ? "ring-1 ring-primary/30 shadow-md shadow-primary/10" : ""}`}
+      data-testid={`card-brand-${business.id}`}
+    >
       <div className="aspect-[4/3] w-full overflow-hidden bg-muted relative">
         {coverImage ? (
           <img
@@ -40,17 +46,22 @@ export function BrandCard({ business, isTopSeller, isTrending }: BrandCardProps)
           <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm hover:bg-background/90 text-xs font-medium">
             {business.category}
           </Badge>
-          {isTopSeller && (
+          {isFeaturedTop && (
+            <Badge className="bg-primary hover:bg-primary text-primary-foreground text-xs font-bold flex items-center gap-1">
+              <Crown className="w-3 h-3" /> Top Pick
+            </Badge>
+          )}
+          {isTopSeller && !isFeaturedTop && (
             <Badge className="bg-amber-500 hover:bg-amber-500 text-white text-xs font-semibold flex items-center gap-1">
               <TrendingUp className="w-3 h-3" /> Top Seller
             </Badge>
           )}
-          {isTrending && !isTopSeller && (
+          {isTrending && !isTopSeller && !isFeaturedTop && (
             <Badge className="bg-rose-500 hover:bg-rose-500 text-white text-xs font-semibold flex items-center gap-1">
               <TrendingUp className="w-3 h-3" /> Trending
             </Badge>
           )}
-          {business.isFeatured && !isTopSeller && !isTrending && (
+          {showFeaturedBadge && !isFeaturedTop && (
             <Badge className="bg-primary hover:bg-primary text-primary-foreground text-xs font-semibold flex items-center gap-1">
               ★ Featured
             </Badge>

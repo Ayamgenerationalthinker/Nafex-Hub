@@ -1,9 +1,9 @@
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { useGetStatsSummary, useGetFeaturedBusinesses } from "@workspace/api-client-react";
+import { useGetStatsSummary, useGetFeaturedBusinesses, useGetFeaturedTopBusinesses } from "@workspace/api-client-react";
 import { BrandCard } from "@/components/brand-card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Store, TrendingUp, ShieldCheck, Tag, Star, Sparkles, MessageCircle } from "lucide-react";
+import { ArrowRight, Store, TrendingUp, ShieldCheck, Tag, Star, Sparkles, MessageCircle, Crown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Business } from "@workspace/api-client-react";
 
@@ -51,14 +51,51 @@ function SectionSkeleton({ count = 4 }: { count?: number }) {
 
 export default function Home() {
   const { data: stats, isLoading: statsLoading } = useGetStatsSummary();
+  const { data: featuredTopBrands, isLoading: featuredTopLoading } = useGetFeaturedTopBusinesses();
   const { data: featuredBrands, isLoading: featuredLoading } = useGetFeaturedBusinesses();
   const { data: topBrands, isLoading: topLoading } = useBrandSection("/api/businesses/top");
   const { data: trendingBrands, isLoading: trendingLoading } = useBrandSection("/api/businesses/trending");
   const { data: verifiedSellers, isLoading: verifiedLoading } = useBrandSection("/api/businesses/verified");
   const { data: services } = useServices();
 
+  const hasFeaturedTop = featuredTopLoading || (featuredTopBrands && featuredTopBrands.length > 0);
+  const hasFeaturedSection = featuredLoading || (featuredBrands && featuredBrands.length > 0);
+
   return (
     <div className="flex flex-col min-h-screen">
+      {/* ── Homepage Top Placement ── */}
+      {hasFeaturedTop && (
+        <section className="bg-gradient-to-r from-primary/10 via-primary/5 to-background border-b border-primary/20">
+          <div className="container mx-auto px-4 md:px-8 py-6 md:py-8">
+            <div className="flex items-center gap-2 mb-4">
+              <Crown className="w-4 h-4 text-primary" />
+              <span className="text-xs font-bold uppercase tracking-widest text-primary">Top Placement</span>
+            </div>
+            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-none -mx-1 px-1">
+              {featuredTopLoading ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex-shrink-0 w-72 space-y-3">
+                    <Skeleton className="h-[200px] w-full rounded-xl" />
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                ))
+              ) : (
+                featuredTopBrands?.map((brand, i) => (
+                  <div
+                    key={brand.id}
+                    className="flex-shrink-0 w-[280px] animate-in fade-in slide-in-from-right-4 fill-mode-both"
+                    style={{ animationDelay: `${i * 80}ms` }}
+                  >
+                    <BrandCard business={brand} isFeaturedTop />
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Hero Section */}
       <section className="relative bg-secondary text-secondary-foreground overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-secondary via-secondary/98 to-secondary/90 z-0" />
@@ -137,39 +174,45 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Brands (admin-curated) */}
-      <section className="py-20 md:py-28 px-4 md:px-8 container mx-auto">
-        <div className="flex items-end justify-between mb-10 md:mb-16">
-          <div className="space-y-3 max-w-2xl">
-            <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground">Featured Collections</h2>
-            <p className="text-muted-foreground text-lg">Handpicked brands shaping the future of Ghanaian fashion.</p>
-          </div>
-          <Link href="/explore" className="hidden md:flex items-center text-primary font-medium hover:underline gap-1" data-testid="link-view-all">
-            View all <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-          {featuredLoading ? (
-            <SectionSkeleton count={4} />
-          ) : featuredBrands?.length ? (
-            featuredBrands.map((brand, i) => (
-              <div key={brand.id} className="animate-in fade-in slide-in-from-bottom-8 fill-mode-both" style={{ animationDelay: `${i * 100}ms` }}>
-                <BrandCard business={brand} />
+      {/* Featured Section (homepage_section) */}
+      {hasFeaturedSection && (
+        <section className="py-20 md:py-28 px-4 md:px-8 container mx-auto">
+          <div className="flex items-end justify-between mb-10 md:mb-16">
+            <div className="space-y-3 max-w-2xl">
+              <div className="flex items-center gap-2">
+                <Star className="w-4 h-4 text-primary fill-primary" />
+                <span className="text-xs font-bold uppercase tracking-widest text-primary">Admin Curated</span>
               </div>
-            ))
-          ) : (
-            <div className="col-span-full py-12 text-center text-muted-foreground bg-muted/30 rounded-xl border border-dashed">
-              No featured brands available yet.
+              <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground">Featured Collections</h2>
+              <p className="text-muted-foreground text-lg">Handpicked brands shaping the future of Ghanaian fashion.</p>
             </div>
-          )}
-        </div>
-        <div className="mt-8 flex justify-center md:hidden">
-          <Link href="/explore">
-            <Button variant="outline" className="w-full" data-testid="btn-mobile-view-all">View All Brands</Button>
-          </Link>
-        </div>
-      </section>
+            <Link href="/explore" className="hidden md:flex items-center text-primary font-medium hover:underline gap-1" data-testid="link-view-all">
+              View all <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+            {featuredLoading ? (
+              <SectionSkeleton count={4} />
+            ) : featuredBrands?.length ? (
+              featuredBrands.map((brand, i) => (
+                <div key={brand.id} className="animate-in fade-in slide-in-from-bottom-8 fill-mode-both" style={{ animationDelay: `${i * 100}ms` }}>
+                  <BrandCard business={brand} />
+                </div>
+              ))
+            ) : (
+              <div className="col-span-full py-12 text-center text-muted-foreground bg-muted/30 rounded-xl border border-dashed">
+                No featured brands available yet.
+              </div>
+            )}
+          </div>
+          <div className="mt-8 flex justify-center md:hidden">
+            <Link href="/explore">
+              <Button variant="outline" className="w-full" data-testid="btn-mobile-view-all">View All Brands</Button>
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* Top Verified Brands */}
       {(topLoading || (topBrands && topBrands.length > 0)) && (
