@@ -3,7 +3,8 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag } from "lucide-react";
+import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart } from "lucide-react";
+import { NotificationBell } from "@/components/notification-bell";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -31,9 +32,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5" data-testid="link-home" onClick={closeMenu}>
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-serif font-bold text-xl">
-              N
-            </div>
+            <img src="/nafex-logo-mark.png" alt="Nafex" className="w-8 h-8 object-contain" />
             <span className="font-serif font-bold text-xl tracking-tight">
               Nafex <span className="text-primary">Hub</span>
             </span>
@@ -54,15 +53,25 @@ export function Layout({ children }: { children: React.ReactNode }) {
             ))}
 
             {user ? (
-              <Button
-                variant="ghost"
-                onClick={logout}
-                className="text-secondary-foreground/80 hover:text-primary hover:bg-white/10"
-                data-testid="btn-logout"
-              >
-                <LogOut className="w-4 h-4 mr-1.5" />
-                Logout
-              </Button>
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/favorites"
+                  className={`flex items-center justify-center w-9 h-9 rounded-full hover:bg-white/10 transition-colors ${location === "/favorites" ? "text-primary" : "text-secondary-foreground/80 hover:text-primary"}`}
+                  title="Favorites"
+                >
+                  <Heart className="w-5 h-5" />
+                </Link>
+                <NotificationBell />
+                <Button
+                  variant="ghost"
+                  onClick={logout}
+                  className="text-secondary-foreground/80 hover:text-primary hover:bg-white/10"
+                  data-testid="btn-logout"
+                >
+                  <LogOut className="w-4 h-4 mr-1.5" />
+                  Logout
+                </Button>
+              </div>
             ) : (
               <>
                 <Link
@@ -85,7 +94,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </nav>
 
           {/* Mobile hamburger */}
-          <div className="flex md:hidden items-center gap-3">
+          <div className="flex md:hidden items-center gap-2">
+            {user && <NotificationBell />}
             {!user && (
               <Link href="/register">
                 <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-xs h-8 px-3">
@@ -109,9 +119,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 {/* Drawer header */}
                 <div className="flex items-center justify-between px-6 h-16 border-b border-secondary-foreground/10">
                   <Link href="/" className="flex items-center gap-2" onClick={closeMenu}>
-                    <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-serif font-bold text-lg">
-                      N
-                    </div>
+                    <img src="/nafex-logo-mark.png" alt="Nafex" className="w-7 h-7 object-contain" />
                     <span className="font-serif font-bold text-lg">
                       Nafex <span className="text-primary">Hub</span>
                     </span>
@@ -179,6 +187,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       >
                         <ShoppingBag className="w-4 h-4" />
                         Orders
+                      </Link>
+                      <Link
+                        href="/favorites"
+                        onClick={closeMenu}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                          location === "/favorites"
+                            ? "bg-primary/20 text-primary"
+                            : "text-secondary-foreground/80 hover:bg-white/8 hover:text-primary"
+                        }`}
+                      >
+                        <Heart className="w-4 h-4" />
+                        Favorites
                       </Link>
                       <Link
                         href="/list"

@@ -1,10 +1,10 @@
 import { Link } from "wouter";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, MapPin } from "lucide-react";
+import { CheckCircle2, MapPin, TrendingUp } from "lucide-react";
 import type { Business } from "@workspace/api-client-react";
 
-export function BrandCard({ business }: { business: Business }) {
+export function BrandCard({ business, isTopSeller }: { business: Business; isTopSeller?: boolean }) {
   const coverImage = business.images?.[0] || business.logo;
   
   return (
@@ -24,13 +24,19 @@ export function BrandCard({ business }: { business: Business }) {
         )}
         {business.logo && (
           <div className="absolute bottom-4 left-4 w-12 h-12 rounded-full border-2 border-background overflow-hidden bg-background shadow-md">
-            <img src={business.logo} alt={`${business.name} logo`} className="w-full h-full object-cover" />
+            <img src={business.logo} alt={`${business.name} logo`} className="w-full h-full object-cover" loading="lazy" />
           </div>
         )}
-        <div className="absolute top-4 right-4">
+        <div className="absolute top-4 right-4 flex flex-col items-end gap-1.5">
           <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm hover:bg-background/90 text-xs font-medium">
             {business.category}
           </Badge>
+          {isTopSeller && (
+            <Badge className="bg-amber-500 hover:bg-amber-500 text-white text-xs font-semibold flex items-center gap-1">
+              <TrendingUp className="w-3 h-3" />
+              Top Seller
+            </Badge>
+          )}
         </div>
       </div>
       <CardHeader className="p-5 pb-2 flex-none">
@@ -39,7 +45,7 @@ export function BrandCard({ business }: { business: Business }) {
             {business.name}
           </h3>
           {business.isVerified && (
-            <div className="flex items-center text-primary" title="Verified Brand">
+            <div className="flex items-center text-primary" title="Verified Seller">
               <CheckCircle2 className="w-5 h-5 fill-primary text-primary-foreground" />
             </div>
           )}
@@ -48,6 +54,9 @@ export function BrandCard({ business }: { business: Business }) {
           <MapPin className="w-3.5 h-3.5" />
           <span className="line-clamp-1">{business.location}</span>
         </div>
+        {business.isVerified && (
+          <p className="text-[10px] text-primary/70 mt-0.5 font-medium">✓ Verified Seller</p>
+        )}
       </CardHeader>
       <CardContent className="p-5 pt-2 flex-grow">
         <p className="text-sm text-muted-foreground line-clamp-2" data-testid={`text-brand-desc-${business.id}`}>

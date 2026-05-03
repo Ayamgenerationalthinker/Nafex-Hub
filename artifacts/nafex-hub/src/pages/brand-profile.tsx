@@ -7,6 +7,8 @@ import {
   useCreateReview,
   useCreateOrGetConversation,
   useTrackEvent,
+  useGetBusinessProducts,
+  useToggleFavorite,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +23,8 @@ import {
   Star,
   Send,
   ShoppingBag,
+  Heart,
+  Package,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import OrderModal from "@/components/order-modal";
@@ -80,6 +84,11 @@ export default function BrandProfile() {
 
   const { mutate: trackEvent } = useTrackEvent();
   const { mutate: startConversation } = useCreateOrGetConversation();
+  const { mutate: toggleFav } = useToggleFavorite({
+    mutation: { onSuccess: (d) => toast({ title: d.favorited ? "Added to favorites" : "Removed from favorites" }) },
+  });
+
+  const { data: products } = useGetBusinessProducts(id, { query: { enabled: !!id } });
   const { mutate: createReview, isPending: submittingReview } = useCreateReview({
     mutation: {
       onSuccess: () => {
@@ -244,6 +253,17 @@ export default function BrandProfile() {
           </div>
 
           <div className="flex flex-wrap gap-2">
+            {token && (
+              <Button
+                size="lg"
+                variant="outline"
+                className="gap-2 border-border/50"
+                onClick={() => toggleFav({ data: { businessId: business.id } })}
+                title="Save to favorites"
+              >
+                <Heart className="w-4 h-4" />
+              </Button>
+            )}
             <Button
               size="lg"
               variant="outline"
@@ -319,6 +339,55 @@ export default function BrandProfile() {
                 </div>
               )}
             </div>
+
+            {/* Products Section */}
+            {products && products.length > 0 && (
+              <div className="space-y-5">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-serif text-2xl font-bold text-foreground">
+                    Products
+                    <span className="text-muted-foreground text-lg font-normal ml-2">({products.length})</span>
+                  </h2>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {products.map((product) => (
+                    <div
+                      key={product.id}
+                      className="group relative rounded-xl border border-border/50 overflow-hidden cursor-pointer hover:border-primary/40 transition-colors bg-card"
+                      onClick={() => setLocation(`/product/${product.id}`)}
+                    >
+                      <div className="aspect-square overflow-hidden bg-muted">
+                        {product.images?.[0] ? (
+                          <img
+                            src={product.images[0]}
+                            alt={product.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Package className="w-8 h-8 text-muted-foreground opacity-30" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-3">
+                        <p className="text-sm font-medium text-foreground truncate">{product.name}</p>
+                        <p className="text-sm font-bold text-primary mt-0.5">GHS {Number(product.price).toFixed(2)}</p>
+                      </div>
+                      {token && (
+                        <button
+                          className="absolute top-2 right-2 w-7 h-7 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-colors"
+                          onClick={(e) => { e.stopPropagation(); toggleFav({ data: { productId: product.id } }); }}
+                          title="Save to favorites"
+                        >
+                          <Heart className="w-3.5 h-3.5 text-muted-foreground hover:text-red-500 transition-colors" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Reviews Section */}
             <div className="space-y-6">

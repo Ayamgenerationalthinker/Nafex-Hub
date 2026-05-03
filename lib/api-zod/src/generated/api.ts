@@ -507,3 +507,194 @@ export const GetDashboardStatsResponse = zod.object({
   averageRating: zod.number(),
   profileViews: zod.number(),
 });
+
+/**
+ * @summary List products with optional search
+ */
+export const ListProductsQueryParams = zod.object({
+  search: zod.coerce.string().optional(),
+  page: zod.coerce.number().optional(),
+});
+
+export const ListProductsResponseItem = zod.object({
+  id: zod.number(),
+  businessId: zod.number(),
+  name: zod.string(),
+  description: zod.string(),
+  price: zod.string(),
+  images: zod.array(zod.string()),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+  businessName: zod.string().optional(),
+  businessLogo: zod.string().optional(),
+});
+export const ListProductsResponse = zod.array(ListProductsResponseItem);
+
+/**
+ * @summary Get product by ID
+ */
+export const GetProductParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetProductResponse = zod.object({
+  id: zod.number(),
+  businessId: zod.number(),
+  name: zod.string(),
+  description: zod.string(),
+  price: zod.string(),
+  images: zod.array(zod.string()),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+  businessName: zod.string().optional(),
+  businessLogo: zod.string().optional(),
+});
+
+/**
+ * @summary Update a product
+ */
+export const UpdateProductParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateProductBody = zod.object({
+  name: zod.string(),
+  description: zod.string().optional(),
+  price: zod.string(),
+  images: zod.array(zod.string()).optional(),
+});
+
+export const UpdateProductResponse = zod.object({
+  id: zod.number(),
+  businessId: zod.number(),
+  name: zod.string(),
+  description: zod.string(),
+  price: zod.string(),
+  images: zod.array(zod.string()),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+  businessName: zod.string().optional(),
+  businessLogo: zod.string().optional(),
+});
+
+/**
+ * @summary Delete a product
+ */
+export const DeleteProductParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteProductResponse = zod.object({
+  ok: zod.boolean(),
+});
+
+/**
+ * @summary Get products for a business
+ */
+export const GetBusinessProductsParams = zod.object({
+  businessId: zod.coerce.number(),
+});
+
+export const GetBusinessProductsResponseItem = zod.object({
+  id: zod.number(),
+  businessId: zod.number(),
+  name: zod.string(),
+  description: zod.string(),
+  price: zod.string(),
+  images: zod.array(zod.string()),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+  businessName: zod.string().optional(),
+  businessLogo: zod.string().optional(),
+});
+export const GetBusinessProductsResponse = zod.array(
+  GetBusinessProductsResponseItem,
+);
+
+/**
+ * @summary Create a product for a business
+ */
+export const CreateProductParams = zod.object({
+  businessId: zod.coerce.number(),
+});
+
+export const CreateProductBody = zod.object({
+  name: zod.string(),
+  description: zod.string().optional(),
+  price: zod.string(),
+  images: zod.array(zod.string()).optional(),
+});
+
+/**
+ * @summary Get current user's favorites
+ */
+export const GetFavoritesResponse = zod.object({
+  businesses: zod.array(zod.record(zod.string(), zod.unknown())),
+  products: zod.array(
+    zod.object({
+      id: zod.number(),
+      businessId: zod.number(),
+      name: zod.string(),
+      description: zod.string(),
+      price: zod.string(),
+      images: zod.array(zod.string()),
+      createdAt: zod.coerce.date(),
+      updatedAt: zod.coerce.date(),
+      businessName: zod.string().optional(),
+      businessLogo: zod.string().optional(),
+    }),
+  ),
+});
+
+/**
+ * @summary Toggle a favorite (add or remove)
+ */
+export const ToggleFavoriteBody = zod.object({
+  businessId: zod.number().nullish(),
+  productId: zod.number().nullish(),
+});
+
+export const ToggleFavoriteResponse = zod.object({
+  favorited: zod.boolean(),
+  id: zod.number(),
+});
+
+/**
+ * @summary Get current user's notifications
+ */
+export const GetNotificationsResponseItem = zod.object({
+  id: zod.number(),
+  userId: zod.number(),
+  type: zod.enum(["message", "order_update", "review"]),
+  title: zod.string(),
+  body: zod.string(),
+  isRead: zod.boolean(),
+  relatedId: zod.number().nullish(),
+  createdAt: zod.coerce.date(),
+});
+export const GetNotificationsResponse = zod.array(GetNotificationsResponseItem);
+
+/**
+ * @summary Get unread notification count
+ */
+export const GetNotificationUnreadCountResponse = zod.object({
+  count: zod.number(),
+});
+
+/**
+ * @summary Mark a notification as read
+ */
+export const MarkNotificationReadParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const MarkNotificationReadResponse = zod.object({
+  ok: zod.boolean(),
+});
+
+/**
+ * @summary Mark all notifications as read
+ */
+export const MarkAllNotificationsReadResponse = zod.object({
+  ok: zod.boolean(),
+});

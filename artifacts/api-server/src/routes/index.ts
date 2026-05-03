@@ -8,6 +8,9 @@ import messagesRouter from "./messages";
 import ordersRouter from "./orders";
 import analyticsRouter from "./analytics";
 import dashboardRouter from "./dashboard";
+import productsRouter from "./products";
+import favoritesRouter from "./favorites";
+import notificationsRouter from "./notifications";
 
 const router: IRouter = Router();
 
@@ -20,5 +23,8 @@ router.use(messagesRouter);
 router.use(ordersRouter);
 router.use(analyticsRouter);
 router.use(dashboardRouter);
+router.use(productsRouter);
+router.use(favoritesRouter);
+router.use(notificationsRouter);
 
 export default router;

@@ -254,6 +254,70 @@ export interface DashboardStats {
   profileViews: number;
 }
 
+export interface Product {
+  id: number;
+  businessId: number;
+  name: string;
+  description: string;
+  price: string;
+  images: string[];
+  createdAt: string;
+  updatedAt: string;
+  businessName?: string;
+  businessLogo?: string;
+}
+
+export interface CreateProductBody {
+  name: string;
+  description?: string;
+  price: string;
+  images?: string[];
+}
+
+export interface Favorite {
+  id: number;
+  userId: number;
+  businessId?: number | null;
+  productId?: number | null;
+  createdAt: string;
+}
+
+export interface FavoriteToggleBody {
+  businessId?: number | null;
+  productId?: number | null;
+}
+
+export type FavoritesResponseBusinessesItem = { [key: string]: unknown };
+
+export interface FavoritesResponse {
+  businesses: FavoritesResponseBusinessesItem[];
+  products: Product[];
+}
+
+export type NotificationType =
+  (typeof NotificationType)[keyof typeof NotificationType];
+
+export const NotificationType = {
+  message: "message",
+  order_update: "order_update",
+  review: "review",
+} as const;
+
+export interface Notification {
+  id: number;
+  userId: number;
+  type: NotificationType;
+  title: string;
+  body: string;
+  isRead: boolean;
+  relatedId?: number | null;
+  createdAt: string;
+}
+
+export interface UnreadCountResponse {
+  count: number;
+}
+
 export type GetBusinessesParams = {
   search?: string;
   category?: string;
@@ -266,4 +330,14 @@ export type GetAdminBusinessesParams = {
   search?: string;
   category?: string;
   verified?: string;
+};
+
+export type ListProductsParams = {
+  search?: string;
+  page?: number;
+};
+
+export type ToggleFavorite200 = {
+  favorited: boolean;
+  id: number;
 };
