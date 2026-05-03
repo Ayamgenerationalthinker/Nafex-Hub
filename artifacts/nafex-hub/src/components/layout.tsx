@@ -1,84 +1,254 @@
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus } from "lucide-react";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { user, logout } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const closeMenu = () => setMobileOpen(false);
+
+  const navLinks = [
+    { href: "/explore", label: "Explore Brands" },
+    ...(user ? [
+      { href: "/list", label: "List Business" },
+      ...(user.role === "admin" ? [{ href: "/admin", label: "Admin" }] : []),
+    ] : []),
+  ];
 
   return (
     <div className="min-h-[100dvh] flex flex-col w-full bg-background text-foreground font-sans">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      {/* ── Header (dark charcoal matches reference design) ── */}
+      <header className="sticky top-0 z-50 w-full bg-secondary text-secondary-foreground shadow-md">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-8">
-          <Link href="/" className="flex items-center gap-2" data-testid="link-home">
+
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2.5" data-testid="link-home" onClick={closeMenu}>
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-serif font-bold text-xl">
               N
             </div>
-            <span className="font-serif font-bold text-xl tracking-tight text-foreground">
-              Nafex Hub
+            <span className="font-serif font-bold text-xl tracking-tight">
+              Nafex <span className="text-primary">Hub</span>
             </span>
           </Link>
+
+          {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-6">
-            <Link
-              href="/explore"
-              className={`text-sm font-medium transition-colors hover:text-primary ${location === '/explore' ? 'text-primary' : 'text-muted-foreground'}`}
-              data-testid="nav-explore"
-            >
-              Explore Brands
-            </Link>
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`text-sm font-medium transition-colors hover:text-primary ${
+                  location === link.href ? "text-primary" : "text-secondary-foreground/80"
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+
             {user ? (
-              <>
-                <Link
-                  href="/list"
-                  className={`text-sm font-medium transition-colors hover:text-primary ${location === '/list' ? 'text-primary' : 'text-muted-foreground'}`}
-                  data-testid="nav-list"
-                >
-                  List Business
-                </Link>
-                {user.role === 'admin' && (
-                  <Link
-                    href="/admin"
-                    className={`text-sm font-medium transition-colors hover:text-primary ${location === '/admin' ? 'text-primary' : 'text-muted-foreground'}`}
-                    data-testid="nav-admin"
-                  >
-                    Admin
-                  </Link>
-                )}
-                <Button variant="ghost" onClick={logout} data-testid="btn-logout">
-                  Logout
-                </Button>
-              </>
+              <Button
+                variant="ghost"
+                onClick={logout}
+                className="text-secondary-foreground/80 hover:text-primary hover:bg-white/10"
+                data-testid="btn-logout"
+              >
+                <LogOut className="w-4 h-4 mr-1.5" />
+                Logout
+              </Button>
             ) : (
               <>
                 <Link
                   href="/login"
-                  className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                  className="text-sm font-medium text-secondary-foreground/80 hover:text-primary transition-colors"
                   data-testid="nav-login"
                 >
                   Login
                 </Link>
                 <Link href="/register">
-                  <Button data-testid="nav-register">Join Nafex</Button>
+                  <Button
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
+                    data-testid="nav-register"
+                  >
+                    Sign Up
+                  </Button>
                 </Link>
               </>
             )}
           </nav>
+
+          {/* Mobile hamburger */}
+          <div className="flex md:hidden items-center gap-3">
+            {!user && (
+              <Link href="/register">
+                <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-xs h-8 px-3">
+                  Sign Up
+                </Button>
+              </Link>
+            )}
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-secondary-foreground hover:bg-white/10 hover:text-primary"
+                  aria-label="Open menu"
+                  data-testid="btn-menu"
+                >
+                  <Menu className="w-6 h-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-72 bg-secondary text-secondary-foreground border-secondary-foreground/10 p-0">
+                {/* Drawer header */}
+                <div className="flex items-center justify-between px-6 h-16 border-b border-secondary-foreground/10">
+                  <Link href="/" className="flex items-center gap-2" onClick={closeMenu}>
+                    <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-serif font-bold text-lg">
+                      N
+                    </div>
+                    <span className="font-serif font-bold text-lg">
+                      Nafex <span className="text-primary">Hub</span>
+                    </span>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={closeMenu}
+                    className="text-secondary-foreground/60 hover:text-primary hover:bg-white/10"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+
+                {/* Drawer nav links */}
+                <nav className="flex flex-col px-4 py-4 gap-1">
+                  <Link
+                    href="/explore"
+                    onClick={closeMenu}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                      location === "/explore"
+                        ? "bg-primary/20 text-primary"
+                        : "text-secondary-foreground/80 hover:bg-white/8 hover:text-primary"
+                    }`}
+                    data-testid="mobile-nav-explore"
+                  >
+                    <Store className="w-4 h-4" />
+                    Explore Brands
+                  </Link>
+
+                  {user && (
+                    <Link
+                      href="/list"
+                      onClick={closeMenu}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                        location === "/list"
+                          ? "bg-primary/20 text-primary"
+                          : "text-secondary-foreground/80 hover:bg-white/8 hover:text-primary"
+                      }`}
+                      data-testid="mobile-nav-list"
+                    >
+                      <Store className="w-4 h-4" />
+                      List Business
+                    </Link>
+                  )}
+
+                  {user?.role === "admin" && (
+                    <Link
+                      href="/admin"
+                      onClick={closeMenu}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                        location === "/admin"
+                          ? "bg-primary/20 text-primary"
+                          : "text-secondary-foreground/80 hover:bg-white/8 hover:text-primary"
+                      }`}
+                      data-testid="mobile-nav-admin"
+                    >
+                      <Shield className="w-4 h-4" />
+                      Admin Panel
+                    </Link>
+                  )}
+
+                  <div className="my-3 border-t border-secondary-foreground/10" />
+
+                  {user ? (
+                    <button
+                      onClick={() => { logout(); closeMenu(); }}
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-secondary-foreground/80 hover:bg-white/8 hover:text-primary transition-colors text-left w-full"
+                      data-testid="mobile-btn-logout"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Logout
+                    </button>
+                  ) : (
+                    <>
+                      <Link
+                        href="/login"
+                        onClick={closeMenu}
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-secondary-foreground/80 hover:bg-white/8 hover:text-primary transition-colors"
+                        data-testid="mobile-nav-login"
+                      >
+                        <LogIn className="w-4 h-4" />
+                        Login
+                      </Link>
+                      <Link
+                        href="/register"
+                        onClick={closeMenu}
+                        className="flex items-center justify-center gap-2 mt-2 px-4 py-3 rounded-lg text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                        data-testid="mobile-nav-register"
+                      >
+                        <UserPlus className="w-4 h-4" />
+                        Create Account
+                      </Link>
+                    </>
+                  )}
+                </nav>
+
+                {/* User info at bottom */}
+                {user && (
+                  <div className="absolute bottom-0 left-0 right-0 px-6 py-5 border-t border-secondary-foreground/10">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center">
+                        <span className="font-serif font-bold text-primary text-sm">
+                          {user.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-medium text-sm truncate">{user.name}</div>
+                        <div className="text-xs text-secondary-foreground/50 capitalize">{user.role.replace("_", " ")}</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </SheetContent>
+            </Sheet>
+          </div>
+
         </div>
       </header>
+
       <main className="flex-1 flex flex-col w-full">
         {children}
       </main>
-      <footer className="border-t bg-card mt-auto">
-        <div className="container mx-auto px-4 md:px-8 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
+
+      <footer className="border-t bg-secondary text-secondary-foreground">
+        <div className="container mx-auto px-4 md:px-8 py-10 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-serif font-bold text-sm">
+            <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-serif font-bold text-sm">
               N
             </div>
-            <span className="font-serif font-bold text-lg text-foreground">Nafex Hub</span>
+            <span className="font-serif font-bold text-lg">Nafex <span className="text-primary">Hub</span></span>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-secondary-foreground/60">
             Ghana's premier digital fashion marketplace.
           </p>
+          <div className="flex gap-6 text-sm text-secondary-foreground/60">
+            <Link href="/explore" className="hover:text-primary transition-colors">Explore</Link>
+            <Link href="/list" className="hover:text-primary transition-colors">List Business</Link>
+            <Link href="/login" className="hover:text-primary transition-colors">Login</Link>
+          </div>
         </div>
       </footer>
     </div>

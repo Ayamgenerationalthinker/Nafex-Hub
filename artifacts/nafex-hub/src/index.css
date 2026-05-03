@@ -57,97 +57,48 @@
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  /* Warm off-white */
-  --background: 40 33% 98%;
-  /* Deep forest green */
-  --foreground: 151 29% 14%;
-  --border: 40 16% 85%;
+  /* White / cream body */
+  --background: 0 0% 98%;
+  /* Dark charcoal text */
+  --foreground: 0 0% 10%;
+
+  --border: 0 0% 88%;
+  --input: 0 0% 88%;
+  --ring: 43 81% 46%;
+
   --card: 0 0% 100%;
-  --card-foreground: 151 29% 14%;
-  --card-border: 40 16% 89%;
-  --sidebar: 40 33% 98%;
-  --sidebar-foreground: 151 29% 14%;
-  --sidebar-border: 40 16% 89%;
-  --sidebar-primary: 43 81% 46%;
-  --sidebar-primary-foreground: 151 29% 14%;
-  --sidebar-accent: 40 16% 89%;
-  --sidebar-accent-foreground: 151 29% 14%;
-  --sidebar-ring: 43 81% 46%;
+  --card-foreground: 0 0% 10%;
+  --card-border: 0 0% 90%;
+
   --popover: 0 0% 100%;
-  --popover-foreground: 151 29% 14%;
-  --popover-border: 40 16% 89%;
-  
-  /* Gold/Amber */
+  --popover-foreground: 0 0% 10%;
+  --popover-border: 0 0% 90%;
+
+  /* Gold / Amber — matches the reference #C9A220 */
   --primary: 43 81% 46%;
-  --primary-foreground: 151 29% 14%;
-  
-  /* Forest Green */
-  --secondary: 148 27% 24%;
-  --secondary-foreground: 0 0% 100%;
-  
-  /* Muted earth tones */
-  --muted: 40 16% 89%;
-  --muted-foreground: 40 10% 45%;
-  
-  /* Accent */
-  --accent: 40 16% 89%;
-  --accent-foreground: 151 29% 14%;
-  
-  /* Destructive */
+  --primary-foreground: 0 0% 10%;
+
+  /* Dark charcoal — used for the header/hero sections */
+  --secondary: 0 0% 11%;
+  --secondary-foreground: 0 0% 98%;
+
+  /* Light neutral muted */
+  --muted: 0 0% 94%;
+  --muted-foreground: 0 0% 45%;
+
+  --accent: 0 0% 94%;
+  --accent-foreground: 0 0% 10%;
+
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  
-  --input: 40 16% 85%;
-  --ring: 43 81% 46%;
 
   --radius: 0.5rem;
 
-  --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-  --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --secondary-border: hsl(from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --muted-border: hsl(from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-}
-
-.dark {
-  --button-outline: rgba(255,255,255, .10);
-  --badge-outline: rgba(255,255,255, .05);
-  --opaque-button-border-intensity: 9;
-  --elevate-1: rgba(255,255,255, .04);
-  --elevate-2: rgba(255,255,255, .09);
-
-  /* Deep forest green background */
-  --background: 151 29% 10%;
-  --foreground: 40 33% 98%;
-  --border: 151 20% 20%;
-  --card: 151 29% 12%;
-  --card-foreground: 40 33% 98%;
-  --card-border: 151 20% 20%;
-  --sidebar: 151 29% 10%;
-  --sidebar-foreground: 40 33% 98%;
-  --sidebar-border: 151 20% 20%;
-  --sidebar-primary: 43 81% 46%;
-  --sidebar-primary-foreground: 151 29% 10%;
-  --sidebar-accent: 151 20% 20%;
-  --sidebar-accent-foreground: 40 33% 98%;
-  --sidebar-ring: 43 81% 46%;
-  --popover: 151 29% 12%;
-  --popover-foreground: 40 33% 98%;
-  --popover-border: 151 20% 20%;
-  --primary: 43 81% 46%;
-  --primary-foreground: 151 29% 10%;
-  --secondary: 148 27% 24%;
-  --secondary-foreground: 0 0% 100%;
-  --muted: 151 20% 20%;
-  --muted-foreground: 40 10% 65%;
-  --accent: 151 20% 20%;
-  --accent-foreground: 40 33% 98%;
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 100%;
-  --input: 151 20% 20%;
-  --ring: 43 81% 46%;
 }
 
 @layer base {
