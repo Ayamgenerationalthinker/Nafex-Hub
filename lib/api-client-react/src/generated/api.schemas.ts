@@ -3,10 +3,14 @@
  * Do not edit manually.
  * Api
  * Nafex Hub API - Fashion marketplace platform for Ghana
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 export interface HealthStatus {
   status: string;
+}
+
+export interface OkResponse {
+  ok: boolean;
 }
 
 export interface ErrorResponse {
@@ -108,6 +112,146 @@ export interface StatsSummary {
   verifiedBusinesses: number;
   totalCategories: number;
   featuredBrands: number;
+}
+
+export interface Review {
+  id: number;
+  userId: number;
+  businessId: number;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  userName?: string;
+}
+
+export interface CreateReviewBody {
+  businessId: number;
+  rating: number;
+  comment: string;
+}
+
+export interface ConversationWithDetails {
+  id: number;
+  userId: number;
+  businessId: number;
+  createdAt: string;
+  updatedAt: string;
+  businessName?: string;
+  /** @nullable */
+  businessLogo?: string | null;
+  /** @nullable */
+  lastMessage?: string | null;
+}
+
+export interface CreateConversationBody {
+  businessId: number;
+}
+
+export interface Message {
+  id: number;
+  conversationId: number;
+  senderId: number;
+  text: string;
+  createdAt: string;
+}
+
+export interface SendMessageBody {
+  text: string;
+}
+
+export interface OrderItem {
+  name: string;
+  quantity: number;
+  price: number;
+}
+
+export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus];
+
+export const OrderStatus = {
+  pending: "pending",
+  confirmed: "confirmed",
+  shipped: "shipped",
+  delivered: "delivered",
+  cancelled: "cancelled",
+} as const;
+
+export interface Order {
+  id: number;
+  userId: number;
+  businessId: number;
+  items: OrderItem[];
+  totalPrice: number;
+  status: OrderStatus;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type OrderWithBusiness = Order & {
+  businessName?: string;
+  /** @nullable */
+  businessLogo?: string | null;
+};
+
+export interface CreateOrderBody {
+  businessId: number;
+  items: OrderItem[];
+  totalPrice: number;
+  notes?: string;
+}
+
+export type UpdateOrderStatusBodyStatus =
+  (typeof UpdateOrderStatusBodyStatus)[keyof typeof UpdateOrderStatusBodyStatus];
+
+export const UpdateOrderStatusBodyStatus = {
+  pending: "pending",
+  confirmed: "confirmed",
+  shipped: "shipped",
+  delivered: "delivered",
+  cancelled: "cancelled",
+} as const;
+
+export interface UpdateOrderStatusBody {
+  status: UpdateOrderStatusBodyStatus;
+}
+
+export type TrackEventBodyType =
+  (typeof TrackEventBodyType)[keyof typeof TrackEventBodyType];
+
+export const TrackEventBodyType = {
+  view: "view",
+  message: "message",
+  order: "order",
+} as const;
+
+export interface TrackEventBody {
+  businessId: number;
+  type: TrackEventBodyType;
+}
+
+export interface DailyStatPoint {
+  date: string;
+  views: number;
+  messages: number;
+  orders: number;
+}
+
+export interface BusinessAnalytics {
+  totalViews: number;
+  totalMessages: number;
+  totalOrders: number;
+  conversionRate: number;
+  dailyStats: DailyStatPoint[];
+}
+
+export interface DashboardStats {
+  totalOrders: number;
+  pendingOrders: number;
+  totalMessages: number;
+  totalReviews: number;
+  averageRating: number;
+  profileViews: number;
 }
 
 export type GetBusinessesParams = {

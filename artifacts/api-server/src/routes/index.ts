@@ -3,6 +3,11 @@ import healthRouter from "./health";
 import authRouter from "./auth";
 import businessesRouter from "./businesses";
 import statsRouter from "./stats";
+import reviewsRouter from "./reviews";
+import messagesRouter from "./messages";
+import ordersRouter from "./orders";
+import analyticsRouter from "./analytics";
+import dashboardRouter from "./dashboard";
 
 const router: IRouter = Router();
 
@@ -10,5 +15,10 @@ router.use(healthRouter);
 router.use(authRouter);
 router.use(businessesRouter);
 router.use(statsRouter);
+router.use(reviewsRouter);
+router.use(messagesRouter);
+router.use(ordersRouter);
+router.use(analyticsRouter);
+router.use(dashboardRouter);
 
 export default router;

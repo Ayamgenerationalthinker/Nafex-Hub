@@ -2,31 +2,30 @@ openapi: 3.1.0
 info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
-  version: 0.1.0
+  version: 0.2.0
   description: Nafex Hub API - Fashion marketplace platform for Ghana
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
-    description: Health operations
   - name: auth
-    description: Authentication operations
   - name: businesses
-    description: Business listing operations
   - name: categories
-    description: Category operations
   - name: admin
-    description: Admin operations
   - name: stats
-    description: Statistics and summaries
+  - name: reviews
+  - name: messages
+  - name: orders
+  - name: analytics
+  - name: dashboard
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -289,7 +288,7 @@ paths:
       summary: Get all categories with counts
       responses:
         "200":
-          description: List of categories with business counts
+          description: List of categories
           content:
             application/json:
               schema:
@@ -338,6 +337,287 @@ paths:
                 items:
                   $ref: "#/components/schemas/Business"
 
+  # ── Reviews ────────────────────────────────────────────────
+
+  /businesses/{id}/reviews:
+    get:
+      operationId: getBusinessReviews
+      tags: [reviews]
+      summary: Get reviews for a business
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Review"
+
+  /reviews:
+    post:
+      operationId: createReview
+      tags: [reviews]
+      summary: Create a review for a business
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReviewBody"
+      responses:
+        "201":
+          description: Review created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ── Conversations / Messages ───────────────────────────────
+
+  /conversations:
+    get:
+      operationId: getConversations
+      tags: [messages]
+      summary: Get all conversations for the current user
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConversationWithDetails"
+    post:
+      operationId: createOrGetConversation
+      tags: [messages]
+      summary: Start or retrieve a conversation with a business
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateConversationBody"
+      responses:
+        "200":
+          description: Conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationWithDetails"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /conversations/{id}/messages:
+    get:
+      operationId: getMessages
+      tags: [messages]
+      summary: Get messages in a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+    post:
+      operationId: sendMessage
+      tags: [messages]
+      summary: Send a message in a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageBody"
+      responses:
+        "201":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ── Orders ────────────────────────────────────────────────
+
+  /orders:
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Place an order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderBody"
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /orders/user:
+    get:
+      operationId: getUserOrders
+      tags: [orders]
+      summary: Get orders for the current user
+      responses:
+        "200":
+          description: User orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrderWithBusiness"
+
+  /orders/business:
+    get:
+      operationId: getBusinessOrders
+      tags: [orders]
+      summary: Get orders for the current business owner
+      responses:
+        "200":
+          description: Business orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrderWithBusiness"
+
+  /orders/{id}/status:
+    patch:
+      operationId: updateOrderStatus
+      tags: [orders]
+      summary: Update order status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrderStatusBody"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ── Analytics ────────────────────────────────────────────
+
+  /analytics/track:
+    post:
+      operationId: trackEvent
+      tags: [analytics]
+      summary: Track an analytics event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TrackEventBody"
+      responses:
+        "201":
+          description: Event tracked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+
+  /analytics/business/{businessId}:
+    get:
+      operationId: getBusinessAnalytics
+      tags: [analytics]
+      summary: Get analytics for a business
+      parameters:
+        - name: businessId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Business analytics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessAnalytics"
+
+  # ── Dashboard ────────────────────────────────────────────
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get seller dashboard statistics
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
 components:
   schemas:
     HealthStatus:
@@ -347,6 +627,14 @@ components:
           type: string
       required:
         - status
+
+    OkResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+      required:
+        - ok
 
     ErrorResponse:
       type: object
@@ -541,3 +829,279 @@ components:
         - verifiedBusinesses
         - totalCategories
         - featuredBrands
+
+    # ── Reviews ──────────────────────────────────
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        businessId:
+          type: integer
+        rating:
+          type: integer
+        comment:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        userName:
+          type: string
+      required:
+        - id
+        - userId
+        - businessId
+        - rating
+        - comment
+        - createdAt
+
+    CreateReviewBody:
+      type: object
+      properties:
+        businessId:
+          type: integer
+        rating:
+          type: integer
+        comment:
+          type: string
+      required:
+        - businessId
+        - rating
+        - comment
+
+    # ── Conversations / Messages ──────────────────
+
+    ConversationWithDetails:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        businessId:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        businessName:
+          type: string
+        businessLogo:
+          type: ["string", "null"]
+        lastMessage:
+          type: ["string", "null"]
+      required:
+        - id
+        - userId
+        - businessId
+        - createdAt
+        - updatedAt
+
+    CreateConversationBody:
+      type: object
+      properties:
+        businessId:
+          type: integer
+      required:
+        - businessId
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+        conversationId:
+          type: integer
+        senderId:
+          type: integer
+        text:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - conversationId
+        - senderId
+        - text
+        - createdAt
+
+    SendMessageBody:
+      type: object
+      properties:
+        text:
+          type: string
+      required:
+        - text
+
+    # ── Orders ──────────────────────────────────
+
+    OrderItem:
+      type: object
+      properties:
+        name:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: integer
+      required:
+        - name
+        - quantity
+        - price
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        businessId:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        totalPrice:
+          type: integer
+        status:
+          type: string
+          enum: [pending, confirmed, shipped, delivered, cancelled]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - businessId
+        - items
+        - totalPrice
+        - status
+        - createdAt
+        - updatedAt
+
+    OrderWithBusiness:
+      allOf:
+        - $ref: "#/components/schemas/Order"
+        - type: object
+          properties:
+            businessName:
+              type: string
+            businessLogo:
+              type: ["string", "null"]
+
+    CreateOrderBody:
+      type: object
+      properties:
+        businessId:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        totalPrice:
+          type: integer
+        notes:
+          type: string
+      required:
+        - businessId
+        - items
+        - totalPrice
+
+    UpdateOrderStatusBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, confirmed, shipped, delivered, cancelled]
+      required:
+        - status
+
+    # ── Analytics ──────────────────────────────────
+
+    TrackEventBody:
+      type: object
+      properties:
+        businessId:
+          type: integer
+        type:
+          type: string
+          enum: [view, message, order]
+      required:
+        - businessId
+        - type
+
+    DailyStatPoint:
+      type: object
+      properties:
+        date:
+          type: string
+        views:
+          type: integer
+        messages:
+          type: integer
+        orders:
+          type: integer
+      required:
+        - date
+        - views
+        - messages
+        - orders
+
+    BusinessAnalytics:
+      type: object
+      properties:
+        totalViews:
+          type: integer
+        totalMessages:
+          type: integer
+        totalOrders:
+          type: integer
+        conversionRate:
+          type: number
+        dailyStats:
+          type: array
+          items:
+            $ref: "#/components/schemas/DailyStatPoint"
+      required:
+        - totalViews
+        - totalMessages
+        - totalOrders
+        - conversionRate
+        - dailyStats
+
+    # ── Dashboard ──────────────────────────────────
+
+    DashboardStats:
+      type: object
+      properties:
+        totalOrders:
+          type: integer
+        pendingOrders:
+          type: integer
+        totalMessages:
+          type: integer
+        totalReviews:
+          type: integer
+        averageRating:
+          type: number
+        profileViews:
+          type: integer
+      required:
+        - totalOrders
+        - pendingOrders
+        - totalMessages
+        - totalReviews
+        - averageRating
+        - profileViews

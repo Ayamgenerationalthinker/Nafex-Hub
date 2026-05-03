@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus } from "lucide-react";
+import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag } from "lucide-react";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -15,6 +15,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const navLinks = [
     { href: "/explore", label: "Explore Brands" },
     ...(user ? [
+      { href: "/dashboard", label: "Dashboard" },
+      { href: "/inbox", label: "Inbox" },
+      { href: "/orders", label: "Orders" },
       { href: "/list", label: "List Business" },
       ...(user.role === "admin" ? [{ href: "/admin", label: "Admin" }] : []),
     ] : []),
@@ -140,19 +143,57 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   </Link>
 
                   {user && (
-                    <Link
-                      href="/list"
-                      onClick={closeMenu}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                        location === "/list"
-                          ? "bg-primary/20 text-primary"
-                          : "text-secondary-foreground/80 hover:bg-white/8 hover:text-primary"
-                      }`}
-                      data-testid="mobile-nav-list"
-                    >
-                      <Store className="w-4 h-4" />
-                      List Business
-                    </Link>
+                    <>
+                      <Link
+                        href="/dashboard"
+                        onClick={closeMenu}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                          location === "/dashboard"
+                            ? "bg-primary/20 text-primary"
+                            : "text-secondary-foreground/80 hover:bg-white/8 hover:text-primary"
+                        }`}
+                      >
+                        <LayoutDashboard className="w-4 h-4" />
+                        Dashboard
+                      </Link>
+                      <Link
+                        href="/inbox"
+                        onClick={closeMenu}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                          location === "/inbox"
+                            ? "bg-primary/20 text-primary"
+                            : "text-secondary-foreground/80 hover:bg-white/8 hover:text-primary"
+                        }`}
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        Inbox
+                      </Link>
+                      <Link
+                        href="/orders"
+                        onClick={closeMenu}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                          location === "/orders"
+                            ? "bg-primary/20 text-primary"
+                            : "text-secondary-foreground/80 hover:bg-white/8 hover:text-primary"
+                        }`}
+                      >
+                        <ShoppingBag className="w-4 h-4" />
+                        Orders
+                      </Link>
+                      <Link
+                        href="/list"
+                        onClick={closeMenu}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                          location === "/list"
+                            ? "bg-primary/20 text-primary"
+                            : "text-secondary-foreground/80 hover:bg-white/8 hover:text-primary"
+                        }`}
+                        data-testid="mobile-nav-list"
+                      >
+                        <Store className="w-4 h-4" />
+                        List Business
+                      </Link>
+                    </>
                   )}
 
                   {user?.role === "admin" && (

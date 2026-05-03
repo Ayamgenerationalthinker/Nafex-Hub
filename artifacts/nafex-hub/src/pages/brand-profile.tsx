@@ -1,18 +1,107 @@
+import { useState, useEffect } from "react";
 import { useRoute, useLocation } from "wouter";
-import { useGetBusiness, getGetBusinessQueryKey } from "@workspace/api-client-react";
+import {
+  useGetBusiness,
+  getGetBusinessQueryKey,
+  useGetBusinessReviews,
+  useCreateReview,
+  useCreateOrGetConversation,
+  useTrackEvent,
+} from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, MapPin, Phone, ArrowLeft, MessageCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  CheckCircle2,
+  MapPin,
+  Phone,
+  ArrowLeft,
+  MessageCircle,
+  Star,
+  Send,
+  ShoppingBag,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import OrderModal from "@/components/order-modal";
+
+function StarRating({
+  value,
+  onChange,
+  readonly = false,
+  size = "md",
+}: {
+  value: number;
+  onChange?: (v: number) => void;
+  readonly?: boolean;
+  size?: "sm" | "md";
+}) {
+  const [hover, setHover] = useState(0);
+  const sz = size === "sm" ? "w-4 h-4" : "w-6 h-6";
+  return (
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          disabled={readonly}
+          onClick={() => onChange?.(star)}
+          onMouseEnter={() => !readonly && setHover(star)}
+          onMouseLeave={() => !readonly && setHover(0)}
+          className={`${readonly ? "cursor-default" : "cursor-pointer"} transition-colors`}
+        >
+          <Star
+            className={`${sz} ${
+              star <= (hover || value)
+                ? "fill-yellow-400 text-yellow-400"
+                : "text-muted-foreground/40"
+            }`}
+          />
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export default function BrandProfile() {
   const [match, params] = useRoute("/brand/:id");
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+
   const id = params?.id ? parseInt(params.id, 10) : 0;
 
   const { data: business, isLoading, isError } = useGetBusiness(id, {
     query: { enabled: !!id, queryKey: getGetBusinessQueryKey(id) },
   });
+
+  const { data: reviews, refetch: refetchReviews } = useGetBusinessReviews(id, {
+    query: { enabled: !!id },
+  });
+
+  const { mutate: trackEvent } = useTrackEvent();
+  const { mutate: startConversation } = useCreateOrGetConversation();
+  const { mutate: createReview, isPending: submittingReview } = useCreateReview({
+    mutation: {
+      onSuccess: () => {
+        setReviewText("");
+        setReviewRating(0);
+        refetchReviews();
+        toast({ title: "Review submitted!" });
+      },
+      onError: () => toast({ title: "Failed to submit review", variant: "destructive" }),
+    },
+  });
+
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewText, setReviewText] = useState("");
+  const [showOrderModal, setShowOrderModal] = useState(false);
+
+  // Track profile view on mount
+  useEffect(() => {
+    if (id) {
+      trackEvent({ data: { businessId: id, type: "view" } });
+    }
+  }, [id]);
 
   if (isLoading) {
     return (
@@ -48,16 +137,50 @@ export default function BrandProfile() {
 
   const whatsappUrl = `https://wa.me/${business.phone.replace(/\D/g, "")}`;
 
+  const avgRating =
+    reviews && reviews.length > 0
+      ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
+      : 0;
+
+  const token = localStorage.getItem("nafex_token");
+
+  const handleInboxMessage = () => {
+    if (!token) {
+      setLocation("/login");
+      return;
+    }
+    startConversation(
+      { data: { businessId: business.id } },
+      {
+        onSuccess: () => {
+          trackEvent({ data: { businessId: business.id, type: "message" } });
+          setLocation("/inbox");
+        },
+        onError: () => setLocation("/inbox"),
+      }
+    );
+  };
+
+  const handleSubmitReview = () => {
+    if (!token) {
+      setLocation("/login");
+      return;
+    }
+    if (!reviewRating) {
+      toast({ title: "Please select a star rating", variant: "destructive" });
+      return;
+    }
+    createReview({
+      data: { businessId: business.id, rating: reviewRating, comment: reviewText },
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header Banner */}
       <div className="w-full h-64 md:h-80 bg-secondary/30 relative overflow-hidden">
         {business.images?.[0] ? (
-          <img
-            src={business.images[0]}
-            alt={business.name}
-            className="w-full h-full object-cover"
-          />
+          <img src={business.images[0]} alt={business.name} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/30">
             <span className="font-serif text-8xl text-primary/20">{business.name.charAt(0)}</span>
@@ -105,20 +228,49 @@ export default function BrandProfile() {
                   </div>
                 )}
               </div>
-              <Badge variant="outline" className="mt-1 text-xs font-medium" data-testid="text-business-category">
-                {business.category}
-              </Badge>
+              <div className="flex items-center gap-3 mt-1 flex-wrap">
+                <Badge variant="outline" className="text-xs font-medium" data-testid="text-business-category">
+                  {business.category}
+                </Badge>
+                {reviews && reviews.length > 0 && (
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                    <span className="font-medium text-foreground">{avgRating.toFixed(1)}</span>
+                    <span>({reviews.length} review{reviews.length !== 1 ? "s" : ""})</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-          <Button
-            size="lg"
-            className="bg-green-600 hover:bg-green-700 text-white gap-2 shadow-lg"
-            onClick={() => window.open(whatsappUrl, "_blank")}
-            data-testid="btn-whatsapp"
-          >
-            <MessageCircle className="w-5 h-5" />
-            Contact on WhatsApp
-          </Button>
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              size="lg"
+              variant="outline"
+              className="gap-2 border-primary/30"
+              onClick={handleInboxMessage}
+            >
+              <MessageCircle className="w-4 h-4" />
+              Message
+            </Button>
+            <Button
+              size="lg"
+              className="gap-2"
+              onClick={() => setShowOrderModal(true)}
+            >
+              <ShoppingBag className="w-4 h-4" />
+              Place Order
+            </Button>
+            <Button
+              size="lg"
+              className="bg-green-600 hover:bg-green-700 text-white gap-2 shadow-lg"
+              onClick={() => window.open(whatsappUrl, "_blank")}
+              data-testid="btn-whatsapp"
+            >
+              <MessageCircle className="w-5 h-5" />
+              WhatsApp
+            </Button>
+          </div>
         </div>
 
         {/* Info Row */}
@@ -140,37 +292,118 @@ export default function BrandProfile() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-10">
-          {/* Collection Grid */}
-          <div className="md:col-span-2 space-y-6">
-            <h2 className="font-serif text-2xl font-bold text-foreground">Our Collection</h2>
-            {business.images && business.images.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4">
-                {business.images.map((img, i) => (
-                  <div
-                    key={i}
-                    className="aspect-square overflow-hidden rounded-xl bg-muted group"
-                    data-testid={`img-collection-${i}`}
-                  >
-                    <img
-                      src={img}
-                      alt={`${business.name} collection ${i + 1}`}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
+          {/* Left: Collection + Reviews */}
+          <div className="md:col-span-2 space-y-10">
+            {/* Collection Grid */}
+            <div className="space-y-6">
+              <h2 className="font-serif text-2xl font-bold text-foreground">Our Collection</h2>
+              {business.images && business.images.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4">
+                  {business.images.map((img, i) => (
+                    <div
+                      key={i}
+                      className="aspect-square overflow-hidden rounded-xl bg-muted group"
+                      data-testid={`img-collection-${i}`}
+                    >
+                      <img
+                        src={img}
+                        alt={`${business.name} collection ${i + 1}`}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="aspect-video rounded-2xl bg-muted/30 border-2 border-dashed flex items-center justify-center text-muted-foreground">
+                  No collection images yet
+                </div>
+              )}
+            </div>
+
+            {/* Reviews Section */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="font-serif text-2xl font-bold text-foreground">
+                  Reviews
+                  {reviews && reviews.length > 0 && (
+                    <span className="text-muted-foreground text-lg font-normal ml-2">({reviews.length})</span>
+                  )}
+                </h2>
+                {reviews && reviews.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <StarRating value={Math.round(avgRating)} readonly size="sm" />
+                    <span className="font-semibold text-foreground">{avgRating.toFixed(1)}</span>
                   </div>
-                ))}
+                )}
               </div>
-            ) : (
-              <div className="aspect-video rounded-2xl bg-muted/30 border-2 border-dashed flex items-center justify-center text-muted-foreground">
-                No collection images yet
+
+              {/* Write Review */}
+              <div className="bg-card border border-border/50 rounded-2xl p-5 space-y-3">
+                <p className="text-sm font-medium text-foreground">Leave a Review</p>
+                <StarRating value={reviewRating} onChange={setReviewRating} />
+                <Textarea
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  placeholder="Share your experience with this brand…"
+                  className="text-sm resize-none"
+                  rows={3}
+                />
+                <Button
+                  size="sm"
+                  onClick={handleSubmitReview}
+                  disabled={submittingReview || !reviewRating}
+                  className="gap-2"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  Submit Review
+                </Button>
               </div>
-            )}
+
+              {/* Existing Reviews */}
+              {reviews && reviews.length > 0 ? (
+                <div className="space-y-4">
+                  {reviews.map((review) => (
+                    <div key={review.id} className="bg-card border border-border/50 rounded-2xl p-5 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                            {(review.userName ?? "U").charAt(0).toUpperCase()}
+                          </div>
+                          <span className="text-sm font-medium text-foreground">
+                            {review.userName ?? "Anonymous"}
+                          </span>
+                        </div>
+                        <StarRating value={review.rating} readonly size="sm" />
+                      </div>
+                      {review.comment && (
+                        <p className="text-sm text-muted-foreground leading-relaxed">{review.comment}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground/60">
+                        {new Date(review.createdAt).toLocaleDateString("en-GH", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground text-sm">
+                  No reviews yet. Be the first to review this brand!
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* About Section */}
+          {/* Right: About + Get in Touch */}
           <div className="space-y-6">
             <div className="bg-card rounded-2xl border p-6 space-y-4">
               <h2 className="font-serif text-xl font-bold text-foreground">About</h2>
-              <p className="text-muted-foreground leading-relaxed text-sm" data-testid="text-business-description">
+              <p
+                className="text-muted-foreground leading-relaxed text-sm"
+                data-testid="text-business-description"
+              >
                 {business.description}
               </p>
             </div>
@@ -180,6 +413,14 @@ export default function BrandProfile() {
               <p className="text-sm text-muted-foreground">
                 Reach out directly to {business.name} for inquiries, orders, and collaborations.
               </p>
+              <Button
+                className="w-full gap-2"
+                variant="outline"
+                onClick={handleInboxMessage}
+              >
+                <MessageCircle className="w-4 h-4" />
+                Send Message
+              </Button>
               <Button
                 className="w-full bg-green-600 hover:bg-green-700 text-white gap-2"
                 onClick={() => window.open(whatsappUrl, "_blank")}
@@ -192,6 +433,15 @@ export default function BrandProfile() {
           </div>
         </div>
       </div>
+
+      {/* Order Modal */}
+      {showOrderModal && (
+        <OrderModal
+          businessId={business.id}
+          businessName={business.name}
+          onClose={() => setShowOrderModal(false)}
+        />
+      )}
     </div>
   );
 }
