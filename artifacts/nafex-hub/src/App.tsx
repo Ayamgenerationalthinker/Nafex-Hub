@@ -17,6 +17,10 @@ import Inbox from "@/pages/inbox";
 import Orders from "@/pages/orders";
 import ProductDetail from "@/pages/product-detail";
 import Favorites from "@/pages/favorites";
+import AdminDashboard from "@/pages/admin-dashboard";
+import AdminBusinessesPage from "@/pages/admin-businesses-page";
+import AdminAnalytics from "@/pages/admin-analytics";
+import AdminSettingsPage from "@/pages/admin-settings-page";
 
 const queryClient = new QueryClient();
 
@@ -25,23 +29,34 @@ setAuthTokenGetter(() => localStorage.getItem("nafex_token"));
 
 function Router() {
   return (
-    <Layout>
-      <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/explore" component={Explore} />
-        <Route path="/brand/:id" component={BrandProfile} />
-        <Route path="/list" component={ListBusiness} />
-        <Route path="/admin" component={Admin} />
-        <Route path="/login" component={Login} />
-        <Route path="/register" component={Register} />
-        <Route path="/dashboard" component={Dashboard} />
-        <Route path="/inbox" component={Inbox} />
-        <Route path="/orders" component={Orders} />
-        <Route path="/product/:id" component={ProductDetail} />
-        <Route path="/favorites" component={Favorites} />
-        <Route component={NotFound} />
-      </Switch>
-    </Layout>
+    <Switch>
+      {/* Admin sub-routes — use their own full-page layout (no navbar/footer) */}
+      <Route path="/admin/dashboard" component={AdminDashboard} />
+      <Route path="/admin/businesses" component={AdminBusinessesPage} />
+      <Route path="/admin/analytics" component={AdminAnalytics} />
+      <Route path="/admin/settings" component={AdminSettingsPage} />
+
+      {/* All other routes wrapped in the main site Layout */}
+      <Route>
+        <Layout>
+          <Switch>
+            <Route path="/" component={Home} />
+            <Route path="/explore" component={Explore} />
+            <Route path="/brand/:id" component={BrandProfile} />
+            <Route path="/list" component={ListBusiness} />
+            <Route path="/admin" component={Admin} />
+            <Route path="/login" component={Login} />
+            <Route path="/register" component={Register} />
+            <Route path="/dashboard" component={Dashboard} />
+            <Route path="/inbox" component={Inbox} />
+            <Route path="/orders" component={Orders} />
+            <Route path="/product/:id" component={ProductDetail} />
+            <Route path="/favorites" component={Favorites} />
+            <Route component={NotFound} />
+          </Switch>
+        </Layout>
+      </Route>
+    </Switch>
   );
 }
 
