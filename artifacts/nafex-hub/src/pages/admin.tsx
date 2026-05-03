@@ -5,10 +5,21 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Search, CheckCircle2, XCircle, Shield, Loader2, Upload, Image as ImageIcon, Users, Building2, Clock, UserCheck, UserX, Settings, MessageCircle, Instagram, Facebook, Mail, Phone } from "lucide-react";
+import { Search, CheckCircle2, XCircle, Shield, Loader2, Upload, Image as ImageIcon, Users, Building2, Clock, UserCheck, UserX, Settings, MessageCircle, Instagram, Facebook, Mail, Phone, Trash2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebounce } from "@/hooks/use-debounce";
 import { invalidateSettingsCache } from "@/hooks/use-site-settings";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type AdminUser = { id: number; name: string; email: string; role: string; createdAt: string };
 
@@ -110,6 +121,8 @@ export default function Admin() {
 
   const [activity, setActivity] = useState<ActivityLog[]>([]);
   const [activityLoading, setActivityLoading] = useState(false);
+
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const [contactSettings, setContactSettings] = useState({ whatsappNumber: "", instagramLink: "", facebookLink: "", email: "" });
   const [contactSettingsLoaded, setContactSettingsLoaded] = useState(false);
@@ -217,6 +230,26 @@ export default function Admin() {
         },
       }
     );
+  };
+
+  const handleDelete = async (id: number) => {
+    const token = localStorage.getItem("nafex_token") ?? "";
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/admin/business/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Delete failed");
+      queryClient.invalidateQueries({ queryKey: getGetAdminBusinessesQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getGetBusinessesQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getGetFeaturedBusinessesQueryKey() });
+      toast({ title: "Business deleted" });
+    } catch {
+      toast({ title: "Failed to delete business", variant: "destructive" });
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -465,28 +498,64 @@ export default function Admin() {
                       )}
                     </td>
                     <td className="p-4 text-right">
-                      {business.isVerified ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleVerify(business.id, false)}
-                          disabled={verify.isPending}
-                          className="text-destructive border-destructive/30 hover:bg-destructive/10 text-xs"
-                          data-testid={`btn-unverify-${business.id}`}
-                        >
-                          {verify.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "Revoke"}
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          onClick={() => handleVerify(business.id, true)}
-                          disabled={verify.isPending}
-                          className="bg-green-600 hover:bg-green-700 text-white text-xs"
-                          data-testid={`btn-verify-${business.id}`}
-                        >
-                          {verify.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "Verify"}
-                        </Button>
-                      )}
+                      <div className="flex items-center justify-end gap-2">
+                        {business.isVerified ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleVerify(business.id, false)}
+                            disabled={verify.isPending}
+                            className="text-destructive border-destructive/30 hover:bg-destructive/10 text-xs"
+                            data-testid={`btn-unverify-${business.id}`}
+                          >
+                            {verify.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "Revoke"}
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            onClick={() => handleVerify(business.id, true)}
+                            disabled={verify.isPending}
+                            className="bg-green-600 hover:bg-green-700 text-white text-xs"
+                            data-testid={`btn-verify-${business.id}`}
+                          >
+                            {verify.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "Verify"}
+                          </Button>
+                        )}
+
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={deletingId === business.id}
+                              className="h-8 w-8 p-0 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                              data-testid={`btn-delete-${business.id}`}
+                            >
+                              {deletingId === business.id
+                                ? <Loader2 className="w-3 h-3 animate-spin" />
+                                : <Trash2 className="w-3 h-3" />
+                              }
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete "{business.name}"?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently remove the business and all its data from the platform. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDelete(business.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete Business
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </td>
                   </tr>
                 ))
