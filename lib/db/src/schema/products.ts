@@ -9,6 +9,7 @@ export const productsTable = pgTable("products", {
   description: text("description").notNull().default(""),
   price: numeric("price", { precision: 10, scale: 2 }).notNull(),
   images: text("images").array().notNull().default([]),
+  stock: integer("stock"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });

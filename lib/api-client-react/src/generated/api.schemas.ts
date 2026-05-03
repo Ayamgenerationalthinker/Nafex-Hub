@@ -262,6 +262,7 @@ export interface Product {
   description: string;
   price: string;
   images: string[];
+  stock?: number | null;
   createdAt: string;
   updatedAt: string;
   businessName?: string;
@@ -273,6 +274,12 @@ export interface CreateProductBody {
   description?: string;
   price: string;
   images?: string[];
+  stock?: number | null;
+}
+
+export interface UpdateStockBody {
+  /** null = not tracking, 0 = out of stock, positive = units available */
+  stock?: number | null;
 }
 
 export interface Favorite {

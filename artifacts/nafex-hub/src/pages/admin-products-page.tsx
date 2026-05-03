@@ -25,6 +25,7 @@ type AdminProduct = {
   description: string;
   price: string;
   images: string[];
+  stock: number | null;
   businessId: number;
   businessName: string | null;
   businessLogo: string | null;
@@ -117,11 +118,12 @@ export default function AdminProductsPage() {
         {/* Table */}
         <div className="bg-card border border-border rounded-xl overflow-hidden">
           {/* Header */}
-          <div className="grid grid-cols-[auto_2fr_1fr_1fr_auto] gap-4 px-5 py-3 border-b border-border bg-muted/30">
+          <div className="grid grid-cols-[auto_2fr_1fr_1fr_auto_auto] gap-4 px-5 py-3 border-b border-border bg-muted/30">
             <span className="w-10" />
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Product</span>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Business</span>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Price</span>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Stock</span>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Action</span>
           </div>
 
@@ -150,7 +152,7 @@ export default function AdminProductsPage() {
               {products.map(product => (
                 <div
                   key={product.id}
-                  className="grid grid-cols-[auto_2fr_1fr_1fr_auto] gap-4 px-5 py-4 items-center hover:bg-muted/20 transition-colors"
+                  className="grid grid-cols-[auto_2fr_1fr_1fr_auto_auto] gap-4 px-5 py-4 items-center hover:bg-muted/20 transition-colors"
                 >
                   {/* Thumbnail */}
                   <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center">
@@ -195,6 +197,19 @@ export default function AdminProductsPage() {
                   <span className="text-sm font-semibold text-foreground">
                     GH₵{Number(product.price).toLocaleString("en-GH", { minimumFractionDigits: 2 })}
                   </span>
+
+                  {/* Stock */}
+                  {product.stock === null || product.stock === undefined ? (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  ) : product.stock === 0 ? (
+                    <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700">
+                      Out of Stock
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                      {product.stock} in stock
+                    </span>
+                  )}
 
                   {/* Delete */}
                   <AlertDialog>

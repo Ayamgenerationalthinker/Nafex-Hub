@@ -15,6 +15,11 @@ const CreateBody = z.object({
   description: z.string().default(""),
   price: z.string().regex(/^\d+(\.\d{1,2})?$/),
   images: z.array(z.string()).default([]),
+  stock: z.number().int().min(0).nullable().optional(),
+});
+
+const UpdateStockBody = z.object({
+  stock: z.number().int().min(0).nullable(),
 });
 
 // GET /admin/products - admin view of all products with business info, search + pagination
@@ -44,6 +49,7 @@ router.get("/admin/products", requireAuth, async (req: AuthRequest, res): Promis
       description: productsTable.description,
       price: productsTable.price,
       images: productsTable.images,
+      stock: productsTable.stock,
       createdAt: productsTable.createdAt,
       businessName: businessesTable.name,
       businessLogo: businessesTable.logo,
@@ -113,6 +119,7 @@ router.get("/products", async (req, res): Promise<void> => {
       description: productsTable.description,
       price: productsTable.price,
       images: productsTable.images,
+      stock: productsTable.stock,
       createdAt: productsTable.createdAt,
       updatedAt: productsTable.updatedAt,
       businessName: businessesTable.name,
@@ -155,6 +162,7 @@ router.get("/products/:id", optionalAuth, async (req: AuthRequest, res): Promise
       description: productsTable.description,
       price: productsTable.price,
       images: productsTable.images,
+      stock: productsTable.stock,
       createdAt: productsTable.createdAt,
       updatedAt: productsTable.updatedAt,
       businessName: businessesTable.name,
@@ -232,6 +240,40 @@ router.put("/products/:id", requireAuth, async (req: AuthRequest, res): Promise<
   const [updated] = await db
     .update(productsTable)
     .set({ ...req.body, updatedAt: new Date() })
+    .where(eq(productsTable.id, params.data.id))
+    .returning();
+
+  res.json(updated);
+});
+
+// PATCH /products/:id/stock
+router.patch("/products/:id/stock", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const params = IdParam.safeParse(req.params);
+  if (!params.success) { res.status(404).json({ error: "Not found" }); return; }
+
+  const parsed = UpdateStockBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "stock must be a non-negative integer or null" }); return; }
+
+  const [existing] = await db
+    .select({ businessId: productsTable.businessId })
+    .from(productsTable)
+    .where(eq(productsTable.id, params.data.id));
+
+  if (!existing) { res.status(404).json({ error: "Not found" }); return; }
+
+  const [biz] = await db
+    .select()
+    .from(businessesTable)
+    .where(eq(businessesTable.id, existing.businessId));
+
+  if (!biz || biz.ownerId !== req.userId) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+
+  const [updated] = await db
+    .update(productsTable)
+    .set({ stock: parsed.data.stock, updatedAt: new Date() })
     .where(eq(productsTable.id, params.data.id))
     .returning();
 
