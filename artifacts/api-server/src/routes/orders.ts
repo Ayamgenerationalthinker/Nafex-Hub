@@ -3,6 +3,7 @@ import { db, ordersTable, businessesTable, notificationsTable } from "@workspace
 import { eq, desc } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
+import { sendAdminEmail } from "../lib/mailer";
 
 const router: IRouter = Router();
 
@@ -61,6 +62,11 @@ router.post("/orders", requireAuth, async (req: AuthRequest, res): Promise<void>
       status: "pending",
     })
     .returning();
+
+  sendAdminEmail(
+    "New Order Placed",
+    `A new order has been placed on Nafex Hub.\n\nOrder ID: ${order.id}\nBusiness ID: ${order.businessId}\nTotal: GHS ${(order.totalPrice / 100).toFixed(2)}\nItems: ${parsed.data.items.length}\nDate: ${new Date().toUTCString()}`
+  );
 
   res.status(201).json(order);
 });

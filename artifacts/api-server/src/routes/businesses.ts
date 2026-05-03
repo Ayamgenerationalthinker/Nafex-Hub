@@ -13,6 +13,7 @@ import {
 } from "@workspace/api-zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
 import { logAdminAction } from "../lib/log-admin-action";
+import { sendAdminEmail } from "../lib/mailer";
 
 const router: IRouter = Router();
 
@@ -81,6 +82,11 @@ router.post("/businesses", async (req, res): Promise<void> => {
       images: parsed.data.images ?? [],
     })
     .returning();
+
+  sendAdminEmail(
+    "New Business Onboarded",
+    `A new business has been added to Nafex Hub and may need verification.\n\nBusiness: ${business.name}\nCategory: ${business.category}\nLocation: ${business.location}\nDate: ${new Date().toUTCString()}`
+  );
 
   res.status(201).json(business);
 });

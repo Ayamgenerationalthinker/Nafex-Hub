@@ -3,6 +3,7 @@ import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { RegisterBody, LoginBody } from "@workspace/api-zod";
 import crypto from "crypto";
+import { sendAdminEmail } from "../lib/mailer";
 
 const router: IRouter = Router();
 
@@ -36,6 +37,11 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     .returning();
 
   const token = generateToken(user.id);
+
+  sendAdminEmail(
+    "New User Signup",
+    `A new user has registered on Nafex Hub.\n\nName: ${user.name}\nEmail: ${user.email}\nRole: ${user.role}\nDate: ${new Date().toUTCString()}`
+  );
 
   res.status(201).json({
     user: {
