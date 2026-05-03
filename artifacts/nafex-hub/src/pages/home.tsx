@@ -19,7 +19,7 @@ export default function Home() {
         <div className="relative z-10 container mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center gap-8 md:gap-0 py-20 md:py-28 lg:py-32">
           {/* Left: text */}
           <div className="flex-1 space-y-7 text-center md:text-left animate-in fade-in slide-in-from-bottom-8 duration-700">
-            <Badge className="bg-black text-primary border border-primary/60 hover:bg-black/80 w-fit mx-auto md:mx-0 px-4 py-1.5 text-sm font-semibold tracking-wide">
+            <Badge className="bg-primary text-primary-foreground hover:bg-primary/90 border-0 w-fit mx-auto md:mx-0 px-4 py-1.5 text-sm font-semibold tracking-wide">
               Ghana's Premier Digital Fashion District
             </Badge>
             <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-balance leading-[1.1]">
