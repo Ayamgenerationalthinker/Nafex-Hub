@@ -11,6 +11,8 @@ import {
   VerifyBusinessBody,
   VerifyBusinessParams,
 } from "@workspace/api-zod";
+import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
+import { logAdminAction } from "../lib/log-admin-action";
 
 const router: IRouter = Router();
 
@@ -130,7 +132,7 @@ router.delete("/businesses/:id", async (req, res): Promise<void> => {
   res.sendStatus(204);
 });
 
-router.patch("/businesses/:id/verify", async (req, res): Promise<void> => {
+router.patch("/businesses/:id/verify", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   const params = VerifyBusinessParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -152,6 +154,17 @@ router.patch("/businesses/:id/verify", async (req, res): Promise<void> => {
   if (!business) {
     res.status(404).json({ error: "Business not found" });
     return;
+  }
+
+  if (req.user?.role === "admin") {
+    await logAdminAction({
+      adminId: req.user.id,
+      adminName: req.user.name,
+      action: parsed.data.isVerified ? "verify_business" : "unverify_business",
+      targetType: "business",
+      targetId: String(business.id),
+      details: { businessName: business.name },
+    });
   }
 
   res.json(business);
