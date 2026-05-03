@@ -32,7 +32,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5" data-testid="link-home" onClick={closeMenu}>
-            <img src="/nafex-logo-mark.png" alt="Nafex" className="w-8 h-8 object-contain" />
+            <img src="/nafex-verified-badge.png" alt="Nafex Hub" className="w-9 h-9 object-contain" />
             <span className="font-serif font-bold text-xl tracking-tight">
               Nafex <span className="text-primary">Hub</span>
             </span>

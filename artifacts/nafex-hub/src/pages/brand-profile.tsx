@@ -232,9 +232,12 @@ export default function BrandProfile() {
                   {business.name}
                 </h1>
                 {business.isVerified && (
-                  <div className="flex items-center gap-1 text-primary" title="Verified Brand">
-                    <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 fill-primary text-primary-foreground" />
-                  </div>
+                  <img
+                    src="/nafex-verified-badge.png"
+                    alt="Nafex Verified"
+                    className="w-8 h-8 md:w-10 md:h-10 object-contain flex-shrink-0"
+                    title="Nafex Hub Verified Seller"
+                  />
                 )}
               </div>
               <div className="flex items-center gap-3 mt-1 flex-wrap">
@@ -304,9 +307,9 @@ export default function BrandProfile() {
             <span data-testid="text-business-phone">{business.phone}</span>
           </div>
           {business.isVerified && (
-            <div className="flex items-center gap-2 text-primary text-sm bg-primary/10 rounded-full px-4 py-2 font-medium">
-              <CheckCircle2 className="w-4 h-4" />
-              Verified Brand
+            <div className="flex items-center gap-2 text-sm bg-primary/10 rounded-full pl-2 pr-4 py-1 font-medium text-primary">
+              <img src="/nafex-verified-badge.png" alt="Verified" className="w-7 h-7 object-contain" />
+              Nafex Verified
             </div>
           )}
         </div>

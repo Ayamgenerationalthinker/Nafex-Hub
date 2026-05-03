@@ -13,31 +13,46 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
-      <section className="relative bg-secondary text-secondary-foreground overflow-hidden py-24 md:py-32 lg:py-40 flex flex-col items-center text-center px-4">
-        <div className="absolute inset-0 opacity-10 bg-[url('https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center mix-blend-overlay"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-secondary/80 to-secondary/95"></div>
-        
-        <div className="relative z-10 max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
-          <Badge className="bg-primary/20 text-primary-foreground hover:bg-primary/30 border-primary/30 mx-auto w-fit mb-4">
-            Ghana's Premier Digital Fashion District
-          </Badge>
-          <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-balance leading-[1.1]">
-            Discover Trusted Fashion Brands in Ghana
-          </h1>
-          <p className="text-lg md:text-xl text-secondary-foreground/80 max-w-2xl mx-auto font-medium">
-            From deep kente greens to warm earth tones, explore a curated marketplace of authentic Ghanaian fashion creators and designers.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            <Link href="/explore">
-              <Button size="lg" className="text-base h-14 px-8 w-full sm:w-auto gap-2" data-testid="btn-hero-explore">
-                Explore Brands <ArrowRight className="w-5 h-5" />
-              </Button>
-            </Link>
-            <Link href="/list">
-              <Button size="lg" variant="outline" className="text-base h-14 px-8 w-full sm:w-auto border-secondary-foreground/20 text-secondary-foreground hover:bg-secondary-foreground/10 gap-2" data-testid="btn-hero-list">
-                <Store className="w-5 h-5" /> List Your Business
-              </Button>
-            </Link>
+      <section className="relative bg-secondary text-secondary-foreground overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-secondary via-secondary/98 to-secondary/90 z-0" />
+
+        <div className="relative z-10 container mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center gap-8 md:gap-0 py-20 md:py-28 lg:py-32">
+          {/* Left: text */}
+          <div className="flex-1 space-y-7 text-center md:text-left animate-in fade-in slide-in-from-bottom-8 duration-700">
+            <Badge className="bg-primary/20 text-primary-foreground hover:bg-primary/30 border-primary/30 w-fit mx-auto md:mx-0">
+              Ghana's Premier Digital Fashion District
+            </Badge>
+            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-balance leading-[1.1]">
+              Discover Trusted Fashion Brands in Ghana
+            </h1>
+            <p className="text-lg md:text-xl text-secondary-foreground/80 max-w-xl font-medium mx-auto md:mx-0">
+              From deep kente greens to warm earth tones, explore a curated marketplace of authentic Ghanaian fashion creators and designers.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center md:items-start justify-center md:justify-start gap-4 pt-2">
+              <Link href="/explore">
+                <Button size="lg" className="text-base h-14 px-8 w-full sm:w-auto gap-2" data-testid="btn-hero-explore">
+                  Explore Brands <ArrowRight className="w-5 h-5" />
+                </Button>
+              </Link>
+              <Link href="/list">
+                <Button size="lg" variant="outline" className="text-base h-14 px-8 w-full sm:w-auto border-secondary-foreground/20 text-secondary-foreground hover:bg-secondary-foreground/10 gap-2" data-testid="btn-hero-list">
+                  <Store className="w-5 h-5" /> List Your Business
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          {/* Right: hero image */}
+          <div className="flex-1 flex justify-center md:justify-end animate-in fade-in slide-in-from-right-8 duration-700 delay-200">
+            <div className="relative w-72 md:w-[380px] lg:w-[440px] xl:w-[480px]">
+              <div className="absolute inset-0 rounded-3xl bg-primary/20 blur-3xl scale-90 opacity-60" />
+              <img
+                src="/hero-shopping.png"
+                alt="Woman shopping with colorful bags"
+                className="relative z-10 w-full h-auto object-cover object-top rounded-3xl shadow-2xl drop-shadow-[0_20px_40px_rgba(0,0,0,0.5)]"
+                loading="eager"
+              />
+            </div>
           </div>
         </div>
       </section>
