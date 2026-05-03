@@ -1,14 +1,46 @@
 import { Link } from "wouter";
-import { useGetStatsSummary, useGetCategories, useGetFeaturedBusinesses } from "@workspace/api-client-react";
+import { useQuery } from "@tanstack/react-query";
+import { useGetStatsSummary, useGetFeaturedBusinesses } from "@workspace/api-client-react";
 import { BrandCard } from "@/components/brand-card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Store, TrendingUp, ShieldCheck, Tag } from "lucide-react";
+import { ArrowRight, Store, TrendingUp, ShieldCheck, Tag, Star } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { Business } from "@workspace/api-client-react";
+
+type BusinessWithStats = Business & { avgRating: number; reviewCount: number };
+
+function useBrandSection(path: string) {
+  return useQuery<BusinessWithStats[]>({
+    queryKey: [path],
+    queryFn: async () => {
+      const res = await fetch(path);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    staleTime: 60_000,
+  });
+}
+
+function SectionSkeleton({ count = 4 }: { count?: number }) {
+  return (
+    <>
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="flex flex-col space-y-3">
+          <Skeleton className="h-[220px] w-full rounded-xl" />
+          <Skeleton className="h-5 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
+        </div>
+      ))}
+    </>
+  );
+}
 
 export default function Home() {
   const { data: stats, isLoading: statsLoading } = useGetStatsSummary();
-  const { data: categories, isLoading: categoriesLoading } = useGetCategories();
   const { data: featuredBrands, isLoading: featuredLoading } = useGetFeaturedBusinesses();
+  const { data: topBrands, isLoading: topLoading } = useBrandSection("/api/businesses/top");
+  const { data: trendingBrands, isLoading: trendingLoading } = useBrandSection("/api/businesses/trending");
+  const { data: verifiedSellers, isLoading: verifiedLoading } = useBrandSection("/api/businesses/verified");
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -90,7 +122,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Brands */}
+      {/* Featured Brands (admin-curated) */}
       <section className="py-20 md:py-28 px-4 md:px-8 container mx-auto">
         <div className="flex items-end justify-between mb-10 md:mb-16">
           <div className="space-y-3 max-w-2xl">
@@ -104,13 +136,7 @@ export default function Home() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
           {featuredLoading ? (
-            Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex flex-col space-y-3">
-                <Skeleton className="h-[250px] w-full rounded-xl" />
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-              </div>
-            ))
+            <SectionSkeleton count={4} />
           ) : featuredBrands?.length ? (
             featuredBrands.map((brand, i) => (
               <div key={brand.id} className="animate-in fade-in slide-in-from-bottom-8 fill-mode-both" style={{ animationDelay: `${i * 100}ms` }}>
@@ -129,6 +155,133 @@ export default function Home() {
           </Link>
         </div>
       </section>
+
+      {/* Top Verified Brands */}
+      {(topLoading || (topBrands && topBrands.length > 0)) && (
+        <section className="py-16 md:py-20 bg-muted/30 border-y border-border">
+          <div className="container mx-auto px-4 md:px-8">
+            <div className="flex items-end justify-between mb-8">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-primary" />
+                  <span className="text-xs font-semibold uppercase tracking-widest text-primary">Verified</span>
+                </div>
+                <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground">Top Verified Brands in Ghana</h2>
+                <p className="text-muted-foreground">The most trusted sellers on our platform, ranked by customer activity.</p>
+              </div>
+              <Link href="/explore?verified=true" className="hidden md:flex items-center text-primary font-medium hover:underline gap-1 text-sm flex-shrink-0">
+                See all <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            <div className="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-none -mx-4 px-4">
+              {topLoading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex-shrink-0 w-72 space-y-3">
+                    <Skeleton className="h-[220px] w-full rounded-xl" />
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                ))
+              ) : (
+                topBrands?.map((brand, i) => (
+                  <div
+                    key={brand.id}
+                    className="flex-shrink-0 w-[280px] snap-start animate-in fade-in slide-in-from-right-4 fill-mode-both"
+                    style={{ animationDelay: `${i * 80}ms` }}
+                  >
+                    <BrandCard business={brand} isTopSeller={i < 3} />
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Trending Now */}
+      {(trendingLoading || (trendingBrands && trendingBrands.length > 0)) && (
+        <section className="py-16 md:py-20 px-4 md:px-8 container mx-auto">
+          <div className="flex items-end justify-between mb-8">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-rose-500" />
+                <span className="text-xs font-semibold uppercase tracking-widest text-rose-500">Hot Right Now</span>
+              </div>
+              <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground">Trending Now</h2>
+              <p className="text-muted-foreground">Brands gaining momentum from recent customer activity.</p>
+            </div>
+            <Link href="/explore" className="hidden md:flex items-center text-primary font-medium hover:underline gap-1 text-sm flex-shrink-0">
+              Explore all <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {trendingLoading ? (
+              <SectionSkeleton count={4} />
+            ) : (
+              trendingBrands?.map((brand, i) => (
+                <div
+                  key={brand.id}
+                  className="animate-in fade-in slide-in-from-bottom-6 fill-mode-both"
+                  style={{ animationDelay: `${i * 80}ms` }}
+                >
+                  <BrandCard business={brand} isTrending />
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Verified Sellers */}
+      {(verifiedLoading || (verifiedSellers && verifiedSellers.length > 0)) && (
+        <section className="py-16 md:py-20 bg-muted/20 border-y border-border">
+          <div className="container mx-auto px-4 md:px-8">
+            <div className="flex items-end justify-between mb-8">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
+                  <span className="text-xs font-semibold uppercase tracking-widest text-amber-600">Top Rated</span>
+                </div>
+                <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground">Verified Sellers</h2>
+                <p className="text-muted-foreground">Businesses that have earned the Nafex Hub Verified badge.</p>
+              </div>
+              <Link href="/explore?verified=true" className="hidden md:flex items-center text-primary font-medium hover:underline gap-1 text-sm flex-shrink-0">
+                View all <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            <div className="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-none -mx-4 px-4">
+              {verifiedLoading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex-shrink-0 w-72 space-y-3">
+                    <Skeleton className="h-[220px] w-full rounded-xl" />
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                ))
+              ) : (
+                verifiedSellers?.map((brand, i) => (
+                  <div
+                    key={brand.id}
+                    className="flex-shrink-0 w-[280px] snap-start animate-in fade-in slide-in-from-right-4 fill-mode-both"
+                    style={{ animationDelay: `${i * 60}ms` }}
+                  >
+                    <BrandCard business={brand} />
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="mt-6 flex justify-center md:hidden">
+              <Link href="/explore?verified=true">
+                <Button variant="outline">Browse Verified Sellers</Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* CTA Section */}
       <section className="py-24 bg-primary text-primary-foreground px-4 text-center relative overflow-hidden">

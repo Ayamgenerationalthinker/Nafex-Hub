@@ -33,11 +33,16 @@ router.get("/stats/summary", async (_req, res): Promise<void> => {
     .from(businessesTable)
     .groupBy(businessesTable.category);
 
+  const [featuredResult] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(businessesTable)
+    .where(eq(businessesTable.isFeatured, true));
+
   res.json({
     totalBusinesses: totalResult?.count ?? 0,
     verifiedBusinesses: verifiedResult?.count ?? 0,
     totalCategories: categoriesResult.length,
-    featuredBrands: verifiedResult?.count ?? 0,
+    featuredBrands: featuredResult?.count ?? 0,
   });
 });
 

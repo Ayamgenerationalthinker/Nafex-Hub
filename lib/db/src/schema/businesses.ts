@@ -20,6 +20,7 @@ export const businessesTable = pgTable("businesses", {
   logo: text("logo"),
   images: text("images").array().notNull().default([]),
   isVerified: boolean("is_verified").notNull().default(false),
+  isFeatured: boolean("is_featured").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
