@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import {
   useGetDashboardStats,
   useGetBusinessAnalytics,
+  getGetBusinessAnalyticsQueryKey,
   useGetBusinessOrders,
   useUpdateOrderStatus,
 } from "@workspace/api-client-react";
@@ -68,7 +69,7 @@ export default function Dashboard() {
 
   const { data: analytics, isLoading: analyticsLoading } = useGetBusinessAnalytics(
     businessId,
-    { query: { enabled: !!businessId } }
+    { query: { enabled: !!businessId, queryKey: getGetBusinessAnalyticsQueryKey(businessId) } }
   );
 
   const { data: orders, refetch: refetchOrders } = useGetBusinessOrders();

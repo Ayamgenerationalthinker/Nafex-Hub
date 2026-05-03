@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import {
   useGetConversations,
   useGetMessages,
+  getGetMessagesQueryKey,
   useSendMessage,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
@@ -30,7 +31,7 @@ export default function Inbox() {
 
   const { data: messages, isLoading: msgsLoading, refetch: refetchMessages } = useGetMessages(
     selectedConvId ?? 0,
-    { query: { enabled: !!selectedConvId, refetchInterval: 5000 } }
+    { query: { enabled: !!selectedConvId, refetchInterval: 5000, queryKey: getGetMessagesQueryKey(selectedConvId ?? 0) } }
   );
 
   const { mutate: sendMessage, isPending: sending } = useSendMessage({

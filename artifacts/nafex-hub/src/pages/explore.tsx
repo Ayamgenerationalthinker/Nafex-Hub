@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useGetBusinesses, useGetCategories, useListProducts } from "@workspace/api-client-react";
+import { useGetBusinesses, useGetCategories, useListProducts, getListProductsQueryKey } from "@workspace/api-client-react";
 import { BrandCard } from "@/components/brand-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ export default function Explore() {
   // Search products too when there's a search query
   const { data: matchedProducts } = useListProducts(
     { search: debouncedSearch || undefined },
-    { query: { enabled: !!debouncedSearch } }
+    { query: { enabled: !!debouncedSearch, queryKey: getListProductsQueryKey({ search: debouncedSearch || undefined }) } }
   );
 
   const { data: categories } = useGetCategories();

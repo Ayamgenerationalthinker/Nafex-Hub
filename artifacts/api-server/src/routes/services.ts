@@ -79,7 +79,7 @@ router.put("/admin/services/:id", requireAuth, async (req: AuthRequest, res): Pr
     return;
   }
 
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) {
     res.status(400).json({ error: "Invalid id" });
     return;
@@ -127,7 +127,7 @@ router.patch("/admin/services/:id/toggle", requireAuth, async (req: AuthRequest,
     return;
   }
 
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) {
     res.status(400).json({ error: "Invalid id" });
     return;
@@ -164,7 +164,7 @@ router.delete("/admin/services/:id", requireAuth, async (req: AuthRequest, res):
     return;
   }
 
-  const id = parseInt(req.params.id);
+  const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) {
     res.status(400).json({ error: "Invalid id" });
     return;

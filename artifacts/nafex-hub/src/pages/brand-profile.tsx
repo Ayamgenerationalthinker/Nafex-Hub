@@ -4,10 +4,12 @@ import {
   useGetBusiness,
   getGetBusinessQueryKey,
   useGetBusinessReviews,
+  getGetBusinessReviewsQueryKey,
   useCreateReview,
   useCreateOrGetConversation,
   useTrackEvent,
   useGetBusinessProducts,
+  getGetBusinessProductsQueryKey,
   useToggleFavorite,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
@@ -79,7 +81,7 @@ export default function BrandProfile() {
   });
 
   const { data: reviews, refetch: refetchReviews } = useGetBusinessReviews(id, {
-    query: { enabled: !!id },
+    query: { enabled: !!id, queryKey: getGetBusinessReviewsQueryKey(id) },
   });
 
   const { mutate: trackEvent } = useTrackEvent();
@@ -88,7 +90,7 @@ export default function BrandProfile() {
     mutation: { onSuccess: (d) => toast({ title: d.favorited ? "Added to favorites" : "Removed from favorites" }) },
   });
 
-  const { data: products } = useGetBusinessProducts(id, { query: { enabled: !!id } });
+  const { data: products } = useGetBusinessProducts(id, { query: { enabled: !!id, queryKey: getGetBusinessProductsQueryKey(id) } });
   const { mutate: createReview, isPending: submittingReview } = useCreateReview({
     mutation: {
       onSuccess: () => {

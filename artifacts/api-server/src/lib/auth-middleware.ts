@@ -2,9 +2,17 @@ import { Request, Response, NextFunction } from "express";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
+export type AuthUser = {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+};
+
 export interface AuthRequest extends Request {
   userId?: number;
   userRole?: string;
+  user?: AuthUser;
 }
 
 export async function requireAuth(
@@ -37,6 +45,7 @@ export async function requireAuth(
 
   req.userId = user.id;
   req.userRole = user.role;
+  req.user = { id: user.id, name: user.name, email: user.email, role: user.role };
   next();
 }
 

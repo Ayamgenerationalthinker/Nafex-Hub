@@ -30,7 +30,7 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
     const data = await res.json();
     cache = { ...DEFAULTS, ...data };
     listeners.forEach(fn => fn(cache!));
-    return cache;
+    return cache!;
   } catch {
     return DEFAULTS;
   }
