@@ -3,12 +3,11 @@
  * Do not edit manually.
  * Api
  * Nafex Hub API - Fashion marketplace platform for Ghana
- * OpenAPI spec version: 0.1.0
+ * OpenAPI spec version: 0.2.0
  */
 import * as zod from "zod";
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
@@ -248,3 +247,263 @@ export const GetAdminBusinessesResponseItem = zod.object({
 export const GetAdminBusinessesResponse = zod.array(
   GetAdminBusinessesResponseItem,
 );
+
+/**
+ * @summary Get reviews for a business
+ */
+export const GetBusinessReviewsParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetBusinessReviewsResponseItem = zod.object({
+  id: zod.number(),
+  userId: zod.number(),
+  businessId: zod.number(),
+  rating: zod.number(),
+  comment: zod.string(),
+  createdAt: zod.coerce.date(),
+  userName: zod.string().optional(),
+});
+export const GetBusinessReviewsResponse = zod.array(
+  GetBusinessReviewsResponseItem,
+);
+
+/**
+ * @summary Create a review for a business
+ */
+export const CreateReviewBody = zod.object({
+  businessId: zod.number(),
+  rating: zod.number(),
+  comment: zod.string(),
+});
+
+/**
+ * @summary Get all conversations for the current user
+ */
+export const GetConversationsResponseItem = zod.object({
+  id: zod.number(),
+  userId: zod.number(),
+  businessId: zod.number(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+  businessName: zod.string().optional(),
+  businessLogo: zod.string().nullish(),
+  lastMessage: zod.string().nullish(),
+});
+export const GetConversationsResponse = zod.array(GetConversationsResponseItem);
+
+/**
+ * @summary Start or retrieve a conversation with a business
+ */
+export const CreateOrGetConversationBody = zod.object({
+  businessId: zod.number(),
+});
+
+export const CreateOrGetConversationResponse = zod.object({
+  id: zod.number(),
+  userId: zod.number(),
+  businessId: zod.number(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+  businessName: zod.string().optional(),
+  businessLogo: zod.string().nullish(),
+  lastMessage: zod.string().nullish(),
+});
+
+/**
+ * @summary Get messages in a conversation
+ */
+export const GetMessagesParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetMessagesResponseItem = zod.object({
+  id: zod.number(),
+  conversationId: zod.number(),
+  senderId: zod.number(),
+  text: zod.string(),
+  createdAt: zod.coerce.date(),
+});
+export const GetMessagesResponse = zod.array(GetMessagesResponseItem);
+
+/**
+ * @summary Send a message in a conversation
+ */
+export const SendMessageParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const SendMessageBody = zod.object({
+  text: zod.string(),
+});
+
+/**
+ * @summary Place an order
+ */
+export const CreateOrderBody = zod.object({
+  businessId: zod.number(),
+  items: zod.array(
+    zod.object({
+      name: zod.string(),
+      quantity: zod.number(),
+      price: zod.number(),
+    }),
+  ),
+  totalPrice: zod.number(),
+  notes: zod.string().optional(),
+});
+
+/**
+ * @summary Get orders for the current user
+ */
+export const GetUserOrdersResponseItem = zod
+  .object({
+    id: zod.number(),
+    userId: zod.number(),
+    businessId: zod.number(),
+    items: zod.array(
+      zod.object({
+        name: zod.string(),
+        quantity: zod.number(),
+        price: zod.number(),
+      }),
+    ),
+    totalPrice: zod.number(),
+    status: zod.enum([
+      "pending",
+      "confirmed",
+      "shipped",
+      "delivered",
+      "cancelled",
+    ]),
+    notes: zod.string().nullish(),
+    createdAt: zod.coerce.date(),
+    updatedAt: zod.coerce.date(),
+  })
+  .and(
+    zod.object({
+      businessName: zod.string().optional(),
+      businessLogo: zod.string().nullish(),
+    }),
+  );
+export const GetUserOrdersResponse = zod.array(GetUserOrdersResponseItem);
+
+/**
+ * @summary Get orders for the current business owner
+ */
+export const GetBusinessOrdersResponseItem = zod
+  .object({
+    id: zod.number(),
+    userId: zod.number(),
+    businessId: zod.number(),
+    items: zod.array(
+      zod.object({
+        name: zod.string(),
+        quantity: zod.number(),
+        price: zod.number(),
+      }),
+    ),
+    totalPrice: zod.number(),
+    status: zod.enum([
+      "pending",
+      "confirmed",
+      "shipped",
+      "delivered",
+      "cancelled",
+    ]),
+    notes: zod.string().nullish(),
+    createdAt: zod.coerce.date(),
+    updatedAt: zod.coerce.date(),
+  })
+  .and(
+    zod.object({
+      businessName: zod.string().optional(),
+      businessLogo: zod.string().nullish(),
+    }),
+  );
+export const GetBusinessOrdersResponse = zod.array(
+  GetBusinessOrdersResponseItem,
+);
+
+/**
+ * @summary Update order status
+ */
+export const UpdateOrderStatusParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateOrderStatusBody = zod.object({
+  status: zod.enum([
+    "pending",
+    "confirmed",
+    "shipped",
+    "delivered",
+    "cancelled",
+  ]),
+});
+
+export const UpdateOrderStatusResponse = zod.object({
+  id: zod.number(),
+  userId: zod.number(),
+  businessId: zod.number(),
+  items: zod.array(
+    zod.object({
+      name: zod.string(),
+      quantity: zod.number(),
+      price: zod.number(),
+    }),
+  ),
+  totalPrice: zod.number(),
+  status: zod.enum([
+    "pending",
+    "confirmed",
+    "shipped",
+    "delivered",
+    "cancelled",
+  ]),
+  notes: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Track an analytics event
+ */
+export const TrackEventBody = zod.object({
+  businessId: zod.number(),
+  type: zod.enum(["view", "message", "order"]),
+});
+
+/**
+ * @summary Get analytics for a business
+ */
+export const GetBusinessAnalyticsParams = zod.object({
+  businessId: zod.coerce.number(),
+});
+
+export const GetBusinessAnalyticsResponse = zod.object({
+  totalViews: zod.number(),
+  totalMessages: zod.number(),
+  totalOrders: zod.number(),
+  conversionRate: zod.number(),
+  dailyStats: zod.array(
+    zod.object({
+      date: zod.string(),
+      views: zod.number(),
+      messages: zod.number(),
+      orders: zod.number(),
+    }),
+  ),
+});
+
+/**
+ * @summary Get seller dashboard statistics
+ */
+export const GetDashboardStatsResponse = zod.object({
+  totalOrders: zod.number(),
+  pendingOrders: zod.number(),
+  totalMessages: zod.number(),
+  totalReviews: zod.number(),
+  averageRating: zod.number(),
+  profileViews: zod.number(),
+});

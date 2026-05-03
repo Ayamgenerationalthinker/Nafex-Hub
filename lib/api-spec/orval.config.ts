@@ -48,11 +48,11 @@ export default defineConfig({
       },
     },
     output: {
-      workspace: apiZodSrc,
+      // Use direct target path (no workspace) so orval does NOT generate a barrel index.ts
+      target: path.resolve(apiZodSrc, "generated", "api.ts"),
       client: "zod",
-      target: "generated",
-      mode: "split",
-      clean: true,
+      mode: "single",
+      clean: false,
       prettier: true,
       override: {
         zod: {

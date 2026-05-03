@@ -12,6 +12,9 @@ import ListBusiness from "@/pages/list-business";
 import Admin from "@/pages/admin";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
+import Dashboard from "@/pages/dashboard";
+import Inbox from "@/pages/inbox";
+import Orders from "@/pages/orders";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +32,9 @@ function Router() {
         <Route path="/admin" component={Admin} />
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
+        <Route path="/dashboard" component={Dashboard} />
+        <Route path="/inbox" component={Inbox} />
+        <Route path="/orders" component={Orders} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

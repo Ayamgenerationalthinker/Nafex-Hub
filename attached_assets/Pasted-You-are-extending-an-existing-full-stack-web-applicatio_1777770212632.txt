@@ -1,0 +1,233 @@
+You are extending an existing full-stack web application called **Nafex Hub** (fashion marketplace for Ghana).
+
+⚠️ CRITICAL RULES:
+
+* DO NOT redesign or alter the existing UI
+* DO NOT change layout, colors, spacing, or structure
+* ONLY extend functionality and add new components where needed
+* Maintain current design system and styling (Tailwind CSS)
+
+---
+
+## 🎯 OBJECTIVE
+
+Upgrade the platform by implementing the following advanced marketplace features:
+
+4. In-app messaging
+5. Reviews & ratings
+6. Order & delivery system
+7. Payments integration
+8. Seller dashboard
+9. Performance optimization (speed + mobile)
+
+---
+
+## 🧱 TECH STACK (keep consistent)
+
+* Frontend: Next.js (React)
+* Styling: Tailwind CSS
+* Backend: Next.js API routes
+* Database: MongoDB (Mongoose)
+
+---
+
+## 💬 4. IN-APP MESSAGING SYSTEM
+
+### Features:
+
+* User can message a business directly inside the platform
+* Real-time or near real-time chat (use polling or WebSockets if possible)
+
+### Backend:
+
+Create:
+
+* Conversation model
+* Message model
+
+Conversation:
+
+* id
+* participants (userId, businessId)
+
+Message:
+
+* id
+* conversationId
+* senderId
+* text
+* timestamp
+
+### API:
+
+* POST /api/messages/send
+* GET /api/messages/:conversationId
+
+### Frontend:
+
+* Chat UI component (simple, clean)
+* “Message Seller” button on brand page
+* Inbox page for users
+
+---
+
+## ⭐ 5. REVIEWS & RATINGS
+
+### Features:
+
+* Users can rate businesses (1–5 stars)
+* Leave written reviews
+
+### Database:
+
+Review:
+
+* id
+* userId
+* businessId
+* rating
+* comment
+* createdAt
+
+### API:
+
+* POST /api/reviews
+* GET /api/reviews/:businessId
+
+### Frontend:
+
+* Display average rating on business profile
+* Show list of reviews
+* Add review form
+
+---
+
+## 📦 6. ORDER & DELIVERY SYSTEM (BASIC VERSION)
+
+### Features:
+
+* User can place an order request
+* Business can update status
+
+### Order Model:
+
+* id
+* userId
+* businessId
+* items[]
+* totalPrice
+* status (pending, confirmed, shipped, delivered)
+
+### API:
+
+* POST /api/orders
+* GET /api/orders/user
+* GET /api/orders/business
+* PUT /api/orders/:id/status
+
+### Frontend:
+
+* “Place Order” button
+* Order summary page
+* Order status display
+
+---
+
+## 💰 7. PAYMENTS INTEGRATION
+
+### Requirements:
+
+* Integrate Mobile Money (Ghana priority)
+* Integrate card payments (Stripe or similar)
+
+### Features:
+
+* Secure checkout flow
+* Payment status tracking
+
+### Backend:
+
+* Payment model:
+
+  * id
+  * orderId
+  * amount
+  * status
+  * method
+
+### API:
+
+* POST /api/payments/initialize
+* POST /api/payments/verify
+
+---
+
+## 📊 8. SELLER DASHBOARD
+
+### Features:
+
+* Business owners can:
+
+  * Add/edit products
+  * View orders
+  * See messages
+  * Track performance (basic stats)
+
+### Pages:
+
+* /dashboard
+* /dashboard/products
+* /dashboard/orders
+* /dashboard/messages
+
+### UI:
+
+* Sidebar layout
+* Clean, minimal design consistent with existing UI
+
+---
+
+## ⚡ 9. PERFORMANCE & MOBILE OPTIMIZATION
+
+### Implement:
+
+* Lazy loading images
+* API response optimization
+* Pagination for lists
+* Mobile responsiveness improvements
+* Reduce unnecessary re-renders
+
+---
+
+## 🗄️ DATABASE ADDITIONS
+
+Add new collections:
+
+* conversations
+* messages
+* reviews
+* orders
+* payments
+
+Ensure proper indexing for performance.
+
+---
+
+## 🔐 SECURITY
+
+* Protect routes (auth required where needed)
+* Validate all inputs
+* Prevent unauthorized access to dashboards
+
+---
+
+## 🚀 OUTPUT REQUIREMENTS
+
+* Fully integrated into existing Nafex Hub app
+* Clean folder structure
+* Reusable components
+* Working APIs
+* No UI breakage
+* Ready to run in Replit
+
+Focus on functionality, scalability, and clean integration.
