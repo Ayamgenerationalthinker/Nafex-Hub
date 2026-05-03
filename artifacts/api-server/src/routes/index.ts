@@ -11,6 +11,7 @@ import dashboardRouter from "./dashboard";
 import productsRouter from "./products";
 import favoritesRouter from "./favorites";
 import notificationsRouter from "./notifications";
+import settingsRouter from "./settings";
 
 const router: IRouter = Router();
 
@@ -26,5 +27,6 @@ router.use(dashboardRouter);
 router.use(productsRouter);
 router.use(favoritesRouter);
 router.use(notificationsRouter);
+router.use(settingsRouter);
 
 export default router;

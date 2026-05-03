@@ -1,13 +1,28 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useGetAdminBusinesses, useVerifyBusiness, getGetAdminBusinessesQueryKey, getGetBusinessesQueryKey, getGetFeaturedBusinessesQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Search, CheckCircle2, XCircle, Shield, Loader2 } from "lucide-react";
+import { Search, CheckCircle2, XCircle, Shield, Loader2, Upload, Image as ImageIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebounce } from "@/hooks/use-debounce";
+
+async function fetchSettings(): Promise<Record<string, string>> {
+  const res = await fetch("/api/settings");
+  if (!res.ok) return {};
+  return res.json();
+}
+
+async function saveLogoSetting(base64: string, token: string): Promise<void> {
+  const res = await fetch("/api/admin/settings", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ key: "logo", value: base64 }),
+  });
+  if (!res.ok) throw new Error("Failed to save logo");
+}
 
 export default function Admin() {
   const [search, setSearch] = useState("");
@@ -15,6 +30,15 @@ export default function Admin() {
   const [filter, setFilter] = useState<string>("all");
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  const [currentLogo, setCurrentLogo] = useState<string | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    fetchSettings().then(s => { if (s.logo) setCurrentLogo(s.logo); });
+  }, []);
 
   const { data: businesses, isLoading } = useGetAdminBusinesses({
     search: debouncedSearch || undefined,
@@ -45,6 +69,31 @@ export default function Admin() {
     );
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setLogoPreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleLogoSave = async () => {
+    if (!logoPreview) return;
+    const token = localStorage.getItem("nafex_token");
+    if (!token) return;
+    setUploadingLogo(true);
+    try {
+      await saveLogoSetting(logoPreview, token);
+      setCurrentLogo(logoPreview);
+      setLogoPreview(null);
+      toast({ title: "Logo updated successfully" });
+    } catch {
+      toast({ title: "Failed to update logo", variant: "destructive" });
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-10 max-w-6xl space-y-8">
       <div className="flex items-center gap-3">
@@ -54,6 +103,67 @@ export default function Admin() {
         <div>
           <h1 className="font-serif text-2xl md:text-3xl font-bold text-foreground">Admin Panel</h1>
           <p className="text-sm text-muted-foreground">Manage and verify business listings</p>
+        </div>
+      </div>
+
+      {/* Logo Upload Section */}
+      <div className="bg-card rounded-xl border p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <ImageIcon className="w-5 h-5 text-primary" />
+          <h2 className="font-semibold text-foreground">Site Logo</h2>
+        </div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-xl border border-border bg-muted/30 flex items-center justify-center overflow-hidden">
+              {(logoPreview || currentLogo) ? (
+                <img src={logoPreview ?? currentLogo!} alt="Current logo" className="w-full h-full object-contain" />
+              ) : (
+                <ImageIcon className="w-7 h-7 text-muted-foreground" />
+              )}
+            </div>
+            <div className="text-sm">
+              <p className="font-medium text-foreground">{currentLogo ? "Current logo" : "No logo uploaded"}</p>
+              <p className="text-muted-foreground text-xs mt-0.5">PNG, JPG, SVG (max 2 MB)</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/svg+xml,image/webp"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="w-4 h-4" />
+              Choose Image
+            </Button>
+            {logoPreview && (
+              <>
+                <Button
+                  size="sm"
+                  className="gap-2"
+                  onClick={handleLogoSave}
+                  disabled={uploadingLogo}
+                >
+                  {uploadingLogo ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  Save Logo
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => { setLogoPreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                >
+                  Cancel
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
