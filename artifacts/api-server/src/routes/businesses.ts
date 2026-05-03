@@ -138,6 +138,40 @@ router.delete("/businesses/:id", async (req, res): Promise<void> => {
   res.sendStatus(204);
 });
 
+router.delete("/admin/business/:id", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  if (req.user?.role !== "admin") {
+    res.status(403).json({ error: "Admin only" });
+    return;
+  }
+
+  const params = DeleteBusinessParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const [business] = await db
+    .delete(businessesTable)
+    .where(eq(businessesTable.id, params.data.id))
+    .returning();
+
+  if (!business) {
+    res.status(404).json({ error: "Business not found" });
+    return;
+  }
+
+  await logAdminAction({
+    adminId: req.user!.id,
+    adminName: req.user!.name,
+    action: "delete_business",
+    targetType: "business",
+    targetId: String(business.id),
+    details: { businessName: business.name },
+  });
+
+  res.sendStatus(204);
+});
+
 router.patch("/businesses/:id/verify", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   const params = VerifyBusinessParams.safeParse(req.params);
   if (!params.success) {

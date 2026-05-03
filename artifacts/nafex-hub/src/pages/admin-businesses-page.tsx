@@ -6,7 +6,18 @@ import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, CheckCircle2, XCircle, Loader2, Building2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Search, CheckCircle2, XCircle, Loader2, Building2, Trash2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebounce } from "@/hooks/use-debounce";
 
@@ -14,6 +25,7 @@ export default function AdminBusinessesPage() {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
   const [filter, setFilter] = useState<"all" | "verified" | "unverified">("all");
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -37,6 +49,26 @@ export default function AdminBusinessesPage() {
         onError: () => toast({ title: "Action failed", variant: "destructive" }),
       }
     );
+  };
+
+  const handleDelete = async (id: number) => {
+    const token = localStorage.getItem("nafex_token") ?? "";
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/admin/business/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Delete failed");
+      queryClient.invalidateQueries({ queryKey: getGetAdminBusinessesQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getGetBusinessesQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getGetFeaturedBusinessesQueryKey() });
+      toast({ title: "Business deleted" });
+    } catch {
+      toast({ title: "Failed to delete business", variant: "destructive" });
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   return (
@@ -79,7 +111,7 @@ export default function AdminBusinessesPage() {
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Business</span>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Category</span>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Status</span>
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Action</span>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Actions</span>
           </div>
 
           {isLoading ? (
@@ -89,7 +121,7 @@ export default function AdminBusinessesPage() {
                   <Skeleton className="h-4 w-40" />
                   <Skeleton className="h-4 w-24" />
                   <Skeleton className="h-5 w-20 rounded-full" />
-                  <Skeleton className="h-8 w-20 rounded-lg" />
+                  <Skeleton className="h-8 w-32 rounded-lg" />
                 </div>
               ))}
             </div>
@@ -127,15 +159,51 @@ export default function AdminBusinessesPage() {
                       </Badge>
                     )}
                   </div>
-                  <Button
-                    variant={biz.isVerified ? "outline" : "default"}
-                    size="sm"
-                    onClick={() => handleVerify(biz.id, !biz.isVerified)}
-                    disabled={verify.isPending}
-                    className="h-8 text-xs"
-                  >
-                    {verify.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : biz.isVerified ? "Revoke" : "Verify"}
-                  </Button>
+                  {/* Actions: Verify/Revoke + Delete */}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant={biz.isVerified ? "outline" : "default"}
+                      size="sm"
+                      onClick={() => handleVerify(biz.id, !biz.isVerified)}
+                      disabled={verify.isPending}
+                      className="h-8 text-xs"
+                    >
+                      {verify.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : biz.isVerified ? "Revoke" : "Verify"}
+                    </Button>
+
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={deletingId === biz.id}
+                          className="h-8 w-8 p-0 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          {deletingId === biz.id
+                            ? <Loader2 className="w-3 h-3 animate-spin" />
+                            : <Trash2 className="w-3 h-3" />
+                          }
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete "{biz.name}"?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will permanently remove the business and all its data from the platform. This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDelete(biz.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete Business
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
               ))}
             </div>
