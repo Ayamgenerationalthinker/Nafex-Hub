@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Search, CheckCircle2, XCircle, Shield, Loader2, Upload, Image as ImageIcon, Users, Building2, Clock, UserCheck, UserX, Settings } from "lucide-react";
+import { Search, CheckCircle2, XCircle, Shield, Loader2, Upload, Image as ImageIcon, Users, Building2, Clock, UserCheck, UserX, Settings, MessageCircle, Instagram, Facebook, Mail, Phone } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebounce } from "@/hooks/use-debounce";
+import { invalidateSettingsCache } from "@/hooks/use-site-settings";
 
 type AdminUser = { id: number; name: string; email: string; role: string; createdAt: string };
 
@@ -94,7 +95,7 @@ export default function Admin() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const [activeTab, setActiveTab] = useState<"businesses" | "users" | "activity">("businesses");
+  const [activeTab, setActiveTab] = useState<"businesses" | "users" | "activity" | "settings">("businesses");
 
   const [currentLogo, setCurrentLogo] = useState<string | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -109,6 +110,10 @@ export default function Admin() {
 
   const [activity, setActivity] = useState<ActivityLog[]>([]);
   const [activityLoading, setActivityLoading] = useState(false);
+
+  const [contactSettings, setContactSettings] = useState({ whatsappNumber: "", instagramLink: "", facebookLink: "", email: "" });
+  const [contactSettingsLoaded, setContactSettingsLoaded] = useState(false);
+  const [savingContact, setSavingContact] = useState(false);
 
   useEffect(() => {
     fetchSettings().then(s => { if (s.logo) setCurrentLogo(s.logo); });
@@ -131,6 +136,45 @@ export default function Admin() {
       .then(setActivity)
       .finally(() => setActivityLoading(false));
   }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== "settings" || contactSettingsLoaded) return;
+    fetch("/api/settings")
+      .then(r => r.ok ? r.json() : {})
+      .then((s: Record<string, string>) => {
+        setContactSettings({
+          whatsappNumber: s.whatsappNumber ?? "",
+          instagramLink: s.instagramLink ?? "",
+          facebookLink: s.facebookLink ?? "",
+          email: s.email ?? "",
+        });
+        setContactSettingsLoaded(true);
+      })
+      .catch(() => setContactSettingsLoaded(true));
+  }, [activeTab, contactSettingsLoaded]);
+
+  const handleSaveContactSettings = async () => {
+    const token = localStorage.getItem("nafex_token") ?? "";
+    setSavingContact(true);
+    try {
+      const entries = Object.entries(contactSettings) as [string, string][];
+      await Promise.all(
+        entries.map(([key, value]) =>
+          fetch("/api/admin/settings", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ key, value: value || " " }),
+          })
+        )
+      );
+      invalidateSettingsCache();
+      toast({ title: "Contact settings saved" });
+    } catch {
+      toast({ title: "Failed to save settings", variant: "destructive" });
+    } finally {
+      setSavingContact(false);
+    }
+  };
 
   const handleRoleChange = async (userId: number, newRole: string) => {
     const token = localStorage.getItem("nafex_token") ?? "";
@@ -246,6 +290,17 @@ export default function Admin() {
         >
           <Clock className="w-4 h-4" />
           Activity
+        </button>
+        <button
+          onClick={() => setActiveTab("settings")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            activeTab === "settings"
+              ? "bg-background shadow-sm text-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Settings className="w-4 h-4" />
+          Settings
         </button>
       </div>
 
@@ -641,6 +696,90 @@ export default function Admin() {
                 {activity.length} event{activity.length !== 1 ? "s" : ""} recorded
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === "settings" && (
+        <div className="space-y-6">
+          {/* Contact & Social Settings */}
+          <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+            <div className="px-6 py-5 border-b bg-muted/20 flex items-center gap-2">
+              <Settings className="w-4 h-4 text-muted-foreground" />
+              <h2 className="font-semibold text-foreground text-sm">Contact &amp; Social Links</h2>
+            </div>
+            <div className="p-6 space-y-5">
+              <p className="text-sm text-muted-foreground">These values appear in the site footer and contact sections. Leave blank to hide.</p>
+
+              {/* WhatsApp */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-green-600" />
+                  WhatsApp Number
+                </label>
+                <Input
+                  placeholder="+233 24 000 0000"
+                  value={contactSettings.whatsappNumber}
+                  onChange={e => setContactSettings(s => ({ ...s, whatsappNumber: e.target.value }))}
+                  className="h-11"
+                />
+                <p className="text-xs text-muted-foreground">Include country code, e.g. +233241234567</p>
+              </div>
+
+              {/* Instagram */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                  <Instagram className="w-4 h-4 text-pink-500" />
+                  Instagram Link
+                </label>
+                <Input
+                  placeholder="https://instagram.com/nafexhub"
+                  value={contactSettings.instagramLink}
+                  onChange={e => setContactSettings(s => ({ ...s, instagramLink: e.target.value }))}
+                  className="h-11"
+                />
+              </div>
+
+              {/* Facebook */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                  <Facebook className="w-4 h-4 text-blue-500" />
+                  Facebook Link
+                </label>
+                <Input
+                  placeholder="https://facebook.com/nafexhub"
+                  value={contactSettings.facebookLink}
+                  onChange={e => setContactSettings(s => ({ ...s, facebookLink: e.target.value }))}
+                  className="h-11"
+                />
+              </div>
+
+              {/* Email */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-primary" />
+                  Contact Email
+                </label>
+                <Input
+                  placeholder="hello@nafexhub.com"
+                  type="email"
+                  value={contactSettings.email}
+                  onChange={e => setContactSettings(s => ({ ...s, email: e.target.value }))}
+                  className="h-11"
+                />
+              </div>
+
+              <div className="pt-2">
+                <Button
+                  onClick={handleSaveContactSettings}
+                  disabled={savingContact}
+                  className="gap-2 h-11 px-6"
+                >
+                  {savingContact ? <Loader2 className="w-4 h-4 animate-spin" /> : <Settings className="w-4 h-4" />}
+                  Save Settings
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       )}
