@@ -562,7 +562,7 @@ export const useCreateBusiness = <
 };
 
 /**
- * @summary Get featured/verified businesses for homepage
+ * @summary Get homepage_section featured businesses
  */
 export const getGetFeaturedBusinessesUrl = () => {
   return `/api/businesses/featured`;
@@ -613,7 +613,7 @@ export type GetFeaturedBusinessesQueryResult = NonNullable<
 export type GetFeaturedBusinessesQueryError = ErrorType<unknown>;
 
 /**
- * @summary Get featured/verified businesses for homepage
+ * @summary Get homepage_section featured businesses
  */
 
 export function useGetFeaturedBusinesses<
@@ -628,6 +628,82 @@ export function useGetFeaturedBusinesses<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getGetFeaturedBusinessesQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get homepage_top featured businesses
+ */
+export const getGetFeaturedTopBusinessesUrl = () => {
+  return `/api/businesses/featured-top`;
+};
+
+export const getFeaturedTopBusinesses = async (
+  options?: RequestInit,
+): Promise<Business[]> => {
+  return customFetch<Business[]>(getGetFeaturedTopBusinessesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetFeaturedTopBusinessesQueryKey = () => {
+  return [`/api/businesses/featured-top`] as const;
+};
+
+export const getGetFeaturedTopBusinessesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getFeaturedTopBusinesses>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getFeaturedTopBusinesses>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetFeaturedTopBusinessesQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getFeaturedTopBusinesses>>
+  > = ({ signal }) => getFeaturedTopBusinesses({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getFeaturedTopBusinesses>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetFeaturedTopBusinessesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getFeaturedTopBusinesses>>
+>;
+export type GetFeaturedTopBusinessesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get homepage_top featured businesses
+ */
+
+export function useGetFeaturedTopBusinesses<
+  TData = Awaited<ReturnType<typeof getFeaturedTopBusinesses>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getFeaturedTopBusinesses>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetFeaturedTopBusinessesQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

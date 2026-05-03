@@ -59,6 +59,16 @@ export interface LoginBody {
   password: string;
 }
 
+export type BusinessFeaturedType =
+  | (typeof BusinessFeaturedType)[keyof typeof BusinessFeaturedType]
+  | null;
+
+export const BusinessFeaturedType = {
+  homepage_top: "homepage_top",
+  homepage_section: "homepage_section",
+  search_boost: "search_boost",
+} as const;
+
 export interface Business {
   id: number;
   /** @nullable */
@@ -73,6 +83,8 @@ export interface Business {
   images: string[];
   isVerified: boolean;
   isFeatured: boolean;
+  featuredType?: BusinessFeaturedType;
+  featuredUntil?: string | null;
   createdAt: string;
   updatedAt: string;
 }
