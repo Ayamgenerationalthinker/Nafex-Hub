@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, conversationsTable, messagesTable, businessesTable } from "@workspace/db";
+import { db, conversationsTable, messagesTable, businessesTable, notificationsTable } from "@workspace/db";
 import { eq, and, desc } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
@@ -183,6 +183,21 @@ router.post("/conversations/:id/messages", requireAuth, async (req: AuthRequest,
     .update(conversationsTable)
     .set({ updatedAt: new Date() })
     .where(eq(conversationsTable.id, params.data.id));
+
+  // Notify the other party (if sender is user, notify business owner; if business owner, notify user)
+  try {
+    const notifyUserId = conv.userId === req.userId ? null : conv.userId;
+    if (notifyUserId) {
+      await db.insert(notificationsTable).values({
+        userId: notifyUserId,
+        type: "message",
+        title: "New message",
+        body: parsed.data.text.slice(0, 100),
+        relatedId: params.data.id,
+        isRead: false,
+      });
+    }
+  } catch {}
 
   res.status(201).json(message);
 });

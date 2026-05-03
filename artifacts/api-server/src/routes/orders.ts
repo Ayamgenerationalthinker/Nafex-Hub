@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, ordersTable, businessesTable } from "@workspace/db";
+import { db, ordersTable, businessesTable, notificationsTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
@@ -128,6 +128,18 @@ router.patch("/orders/:id/status", requireAuth, async (req: AuthRequest, res): P
     res.status(404).json({ error: "Order not found" });
     return;
   }
+
+  // Notify the customer about their order status change
+  try {
+    await db.insert(notificationsTable).values({
+      userId: order.userId,
+      type: "order_update",
+      title: `Order #${order.id} ${parsed.data.status}`,
+      body: `Your order status has been updated to "${parsed.data.status}".`,
+      relatedId: order.id,
+      isRead: false,
+    });
+  } catch {}
 
   res.json(order);
 });

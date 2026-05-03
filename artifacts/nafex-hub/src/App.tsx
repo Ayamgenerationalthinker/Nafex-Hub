@@ -15,6 +15,8 @@ import Register from "@/pages/register";
 import Dashboard from "@/pages/dashboard";
 import Inbox from "@/pages/inbox";
 import Orders from "@/pages/orders";
+import ProductDetail from "@/pages/product-detail";
+import Favorites from "@/pages/favorites";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +37,8 @@ function Router() {
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/inbox" component={Inbox} />
         <Route path="/orders" component={Orders} />
+        <Route path="/product/:id" component={ProductDetail} />
+        <Route path="/favorites" component={Favorites} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

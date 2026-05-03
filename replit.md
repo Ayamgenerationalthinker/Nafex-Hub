@@ -44,12 +44,17 @@ Ghana's premier digital fashion marketplace. Allows fashion businesses to list t
 - `messages` — id, conversationId, senderId, text, createdAt
 - `orders` — id, userId, businessId, items (jsonb), totalPrice (cents), status, notes, createdAt/updatedAt
 - `analytics_events` — id, businessId, userId, type (view/message/order), createdAt
+- `products` — id, businessId, name, description, price (numeric), images (text[]), category, inStock, createdAt/updatedAt
+- `favorites` — id, userId, businessId (nullable), productId (nullable), createdAt
+- `notifications` — id, userId, type (message/order_update/review), title, body, isRead, createdAt
 
 ## Frontend Pages
 
 - `/` — Homepage with hero, stats, featured brands, CTA
-- `/explore` — Browse all brands with search + category filter
-- `/brand/:id` — Brand profile: collection gallery, reviews section, message/order buttons, analytics tracking
+- `/explore` — Browse all brands with search (brands + products), category filter, pagination (8/page), Top Seller / Verified Seller trust badges
+- `/brand/:id` — Brand profile: collection gallery, products grid, reviews, message/order/favorite buttons, analytics tracking
+- `/product/:id` — Product detail page with images, price, description, add-to-favorites
+- `/favorites` — Saved brands and products
 - `/list` — Form to list a new business
 - `/admin` — Admin panel to verify/unverify businesses
 - `/login` — Login form
@@ -99,6 +104,24 @@ Ghana's premier digital fashion marketplace. Allows fashion businesses to list t
 - `GET /api/orders/business` — Orders for user's business (auth required)
 - `PATCH /api/orders/:id/status` — Update order status (auth required)
 
+### Products
+- `GET /api/products` — List products (search, category, businessId filters)
+- `GET /api/businesses/:businessId/products` — Products for a specific business
+- `GET /api/products/:id` — Single product
+- `POST /api/products` — Create product (auth required, business owner)
+- `PUT /api/products/:id` — Update product (auth required)
+- `DELETE /api/products/:id` — Delete product (auth required)
+
+### Favorites
+- `GET /api/favorites` — User's favorited brands and products (auth required)
+- `POST /api/favorites/toggle` — Toggle favorite (add/remove) for a business or product (auth required)
+
+### Notifications
+- `GET /api/notifications` — User's notifications (auth required)
+- `GET /api/notifications/unread-count` — Unread count (auth required, polls every 15s)
+- `PATCH /api/notifications/:id/read` — Mark one notification read (auth required)
+- `PATCH /api/notifications/read-all` — Mark all notifications read (auth required)
+
 ### Analytics
 - `POST /api/analytics/track` — Track view/message/order event (optional auth)
 - `GET /api/analytics/business/:businessId` — 30-day analytics for a business
@@ -120,6 +143,8 @@ Ghana's premier digital fashion marketplace. Allows fashion businesses to list t
 - **Orval barrel file**: `lib/api-zod` uses direct target path (no workspace) to avoid orval generating a broken barrel file. `lib/api-zod/src/index.ts` must export only `./generated/api`
 - **dashboard/stats** returns an extra `businessId` field (not in OpenAPI spec) used by the frontend to query analytics
 - Analytics tracking fires on every brand profile page load (view event), message start, and order creation
+- Notifications are triggered automatically: on new message (message type) and on order status change (order_update type)
+- Top Seller badge: shown on the first 3 verified businesses in explore results
 
 ## Seeded Data
 
