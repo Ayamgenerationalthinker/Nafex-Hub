@@ -8,3 +8,4 @@ export * from "./analytics";
 export * from "./products";
 export * from "./favorites";
 export * from "./notifications";
+export * from "./settings";

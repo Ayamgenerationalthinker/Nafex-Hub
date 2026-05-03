@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -6,10 +6,20 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart } from "lucide-react";
 import { NotificationBell } from "@/components/notification-bell";
 
+const FALLBACK_LOGO = "/nafex-verified-badge.png";
+
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [siteLogo, setSiteLogo] = useState<string>(FALLBACK_LOGO);
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then(r => r.ok ? r.json() : {})
+      .then((s: Record<string, string>) => { if (s.logo) setSiteLogo(s.logo); })
+      .catch(() => {});
+  }, []);
 
   const closeMenu = () => setMobileOpen(false);
 
@@ -32,7 +42,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5" data-testid="link-home" onClick={closeMenu}>
-            <img src="/nafex-verified-badge.png" alt="Nafex Hub" className="w-9 h-9 object-contain" />
+            <img src={siteLogo} alt="Nafex Hub" className="w-9 h-9 object-contain" />
             <span className="font-serif font-bold text-xl tracking-tight">
               Nafex <span className="text-primary">Hub</span>
             </span>
