@@ -1,0 +1,170 @@
+Build a full-stack web application called **Nafex Hub**, a fashion marketplace platform for Ghana.
+
+⚠️ CRITICAL INSTRUCTIONS:
+
+* Recreate the UI EXACTLY based on the provided reference design image
+* DO NOT change layout, colors, spacing, typography, or visual structure
+* DO NOT replace or modify any images
+* Maintain pixel-accurate alignment and styling
+* Focus on clean, reusable components
+
+---
+
+## 🧱 TECH STACK
+
+Use:
+
+* Frontend: Next.js (React)
+* Styling: Tailwind CSS
+* Backend: Next.js API routes (or Express if needed)
+* Database: MongoDB (with Mongoose)
+
+---
+
+## 🌐 FRONTEND STRUCTURE
+
+Create these pages:
+
+### 1. Homepage (/)
+
+* Hero section:
+
+  * Headline: “Discover Trusted Fashion Brands in Ghana”
+  * Subtext
+  * Buttons: “Explore Brands”, “List Your Business”
+  * Right-aligned hero image
+* Featured Brands:
+
+  * Grid of brand cards (image + name)
+* Why Choose Nafex Hub:
+
+  * 4 feature icons with labels
+* CTA section:
+
+  * “Grow Your Business with Nafex Hub”
+
+---
+
+### 2. Explore Page (/explore)
+
+* Search bar
+* Category filters:
+
+  * All, Clothing, Footwear, Accessories
+* Brand list:
+
+  * Logo
+  * Name
+  * Short description
+  * Verified badge
+  * “View Profile” button
+
+---
+
+### 3. Brand Profile Page (/brand/[id])
+
+* Logo + Name + Verified badge
+* Location + Phone
+* “Our Collection” image grid
+* About section
+* “Contact on WhatsApp” button
+
+---
+
+## ⚙️ BACKEND FEATURES
+
+### Authentication
+
+* User signup/login
+* Roles: user, business owner, admin
+
+### Business Listings
+
+* Create, edit, delete listings
+* Fields:
+
+  * name
+  * category
+  * description
+  * location
+  * phone
+  * logo
+  * images[]
+  * isVerified
+
+### Search & Filter
+
+* Search by name
+* Filter by category
+
+### Admin Panel
+
+* Approve/verify businesses
+
+---
+
+## 🗄️ DATABASE MODELS
+
+Users:
+
+* id
+* name
+* email
+* password
+* role
+
+Businesses:
+
+* id
+* ownerId
+* name
+* category
+* description
+* location
+* phone
+* logo
+* images[]
+* isVerified
+
+---
+
+## 🔌 API ROUTES
+
+* POST /api/auth/register
+* POST /api/auth/login
+* GET /api/businesses
+* POST /api/businesses
+* GET /api/businesses/:id
+* PUT /api/businesses/:id
+* DELETE /api/businesses/:id
+
+---
+
+## 🎯 FUNCTIONAL BEHAVIOR
+
+* “Explore Brands” → navigates to /explore
+* “View Profile” → opens dynamic brand page
+* “List Your Business” → opens form → saves to DB
+* WhatsApp button → opens chat using phone number
+
+---
+
+## 🎨 UI RULES (VERY IMPORTANT)
+
+* Match the reference design EXACTLY
+* Use Tailwind for spacing and layout precision
+* Keep consistent font sizes and margins
+* Maintain clean card layouts and alignment
+* Ensure responsiveness (mobile + desktop)
+
+---
+
+## 🚀 OUTPUT REQUIREMENTS
+
+* Fully working frontend + backend
+* Clean folder structure
+* Environment variables for database
+* Ready to run in Replit
+* Include instructions to start the app
+
+DO NOT redesign anything. Focus on exact replication + functionality.
