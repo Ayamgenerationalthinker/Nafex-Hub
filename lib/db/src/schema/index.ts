@@ -11,3 +11,4 @@ export * from "./notifications";
 export * from "./settings";
 export * from "./admin-activity";
 export * from "./services";
+export * from "./collections";

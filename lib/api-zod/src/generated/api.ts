@@ -525,6 +525,7 @@ export const ListProductsQueryParams = zod.object({
 export const ListProductsResponseItem = zod.object({
   id: zod.number(),
   businessId: zod.number(),
+  collectionId: zod.number().nullish(),
   name: zod.string(),
   description: zod.string(),
   price: zod.string(),
@@ -547,6 +548,7 @@ export const GetProductParams = zod.object({
 export const GetProductResponse = zod.object({
   id: zod.number(),
   businessId: zod.number(),
+  collectionId: zod.number().nullish(),
   name: zod.string(),
   description: zod.string(),
   price: zod.string(),
@@ -571,11 +573,13 @@ export const UpdateProductBody = zod.object({
   price: zod.string(),
   images: zod.array(zod.string()).optional(),
   stock: zod.number().nullish(),
+  collectionId: zod.number().nullish(),
 });
 
 export const UpdateProductResponse = zod.object({
   id: zod.number(),
   businessId: zod.number(),
+  collectionId: zod.number().nullish(),
   name: zod.string(),
   description: zod.string(),
   price: zod.string(),
@@ -599,6 +603,32 @@ export const DeleteProductResponse = zod.object({
 });
 
 /**
+ * @summary Assign or remove a product from a collection
+ */
+export const UpdateProductCollectionParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateProductCollectionBody = zod.object({
+  collectionId: zod.number().nullable(),
+});
+
+export const UpdateProductCollectionResponse = zod.object({
+  id: zod.number(),
+  businessId: zod.number(),
+  collectionId: zod.number().nullish(),
+  name: zod.string(),
+  description: zod.string(),
+  price: zod.string(),
+  images: zod.array(zod.string()),
+  stock: zod.number().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+  businessName: zod.string().optional(),
+  businessLogo: zod.string().optional(),
+});
+
+/**
  * @summary Update stock level for a product
  */
 export const UpdateProductStockParams = zod.object({
@@ -617,6 +647,7 @@ export const UpdateProductStockBody = zod.object({
 export const UpdateProductStockResponse = zod.object({
   id: zod.number(),
   businessId: zod.number(),
+  collectionId: zod.number().nullish(),
   name: zod.string(),
   description: zod.string(),
   price: zod.string(),
@@ -638,6 +669,7 @@ export const GetBusinessProductsParams = zod.object({
 export const GetBusinessProductsResponseItem = zod.object({
   id: zod.number(),
   businessId: zod.number(),
+  collectionId: zod.number().nullish(),
   name: zod.string(),
   description: zod.string(),
   price: zod.string(),
@@ -665,6 +697,7 @@ export const CreateProductBody = zod.object({
   price: zod.string(),
   images: zod.array(zod.string()).optional(),
   stock: zod.number().nullish(),
+  collectionId: zod.number().nullish(),
 });
 
 /**
@@ -676,6 +709,7 @@ export const GetFavoritesResponse = zod.object({
     zod.object({
       id: zod.number(),
       businessId: zod.number(),
+      collectionId: zod.number().nullish(),
       name: zod.string(),
       description: zod.string(),
       price: zod.string(),
@@ -739,5 +773,82 @@ export const MarkNotificationReadResponse = zod.object({
  * @summary Mark all notifications as read
  */
 export const MarkAllNotificationsReadResponse = zod.object({
+  ok: zod.boolean(),
+});
+
+/**
+ * @summary List collections for a business (with products)
+ */
+export const GetCollectionsQueryParams = zod.object({
+  businessId: zod.coerce.number(),
+});
+
+export const GetCollectionsResponseItem = zod
+  .object({
+    id: zod.number(),
+    businessId: zod.number(),
+    name: zod.string(),
+    description: zod.string().nullish(),
+    createdAt: zod.coerce.date(),
+  })
+  .and(
+    zod.object({
+      products: zod.array(
+        zod.object({
+          id: zod.number(),
+          businessId: zod.number(),
+          collectionId: zod.number().nullish(),
+          name: zod.string(),
+          description: zod.string(),
+          price: zod.string(),
+          images: zod.array(zod.string()),
+          stock: zod.number().nullish(),
+          createdAt: zod.coerce.date(),
+          updatedAt: zod.coerce.date(),
+          businessName: zod.string().optional(),
+          businessLogo: zod.string().optional(),
+        }),
+      ),
+    }),
+  );
+export const GetCollectionsResponse = zod.array(GetCollectionsResponseItem);
+
+/**
+ * @summary Create a new collection
+ */
+export const CreateCollectionBody = zod.object({
+  businessId: zod.number(),
+  name: zod.string(),
+  description: zod.string().nullish(),
+});
+
+/**
+ * @summary Update a collection
+ */
+export const UpdateCollectionParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateCollectionBody = zod.object({
+  name: zod.string().optional(),
+  description: zod.string().nullish(),
+});
+
+export const UpdateCollectionResponse = zod.object({
+  id: zod.number(),
+  businessId: zod.number(),
+  name: zod.string(),
+  description: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete a collection
+ */
+export const DeleteCollectionParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteCollectionResponse = zod.object({
   ok: zod.boolean(),
 });

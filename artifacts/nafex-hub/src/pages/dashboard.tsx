@@ -9,11 +9,21 @@ import {
   useGetBusinessProducts,
   getGetBusinessProductsQueryKey,
   useUpdateProductStock,
+  useGetCollections,
+  getGetCollectionsQueryKey,
+  useCreateCollection,
+  useUpdateCollection,
+  useDeleteCollection,
+  useUpdateProductCollection,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   BarChart,
   Bar,
@@ -37,6 +47,13 @@ import {
   XCircle,
   Truck,
   Boxes,
+  FolderOpen,
+  Plus,
+  Pencil,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+  Loader2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -94,6 +111,62 @@ export default function Dashboard() {
   });
 
   const [stockEdits, setStockEdits] = useState<Record<number, string>>({});
+
+  // ── Collections ──
+  const [showCreateCollection, setShowCreateCollection] = useState(false);
+  const [newColName, setNewColName] = useState("");
+  const [newColDesc, setNewColDesc] = useState("");
+  const [editingCol, setEditingCol] = useState<{ id: number; name: string; description: string | null } | null>(null);
+  const [expandedColId, setExpandedColId] = useState<number | null>(null);
+
+  const { data: collections, refetch: refetchCollections } = useGetCollections(
+    { businessId },
+    { query: { enabled: !!businessId, queryKey: getGetCollectionsQueryKey({ businessId }) } }
+  );
+
+  const { mutate: createCollection, isPending: creatingCollection } = useCreateCollection({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Collection created" });
+        setShowCreateCollection(false);
+        setNewColName("");
+        setNewColDesc("");
+        refetchCollections();
+      },
+      onError: () => toast({ title: "Failed to create collection", variant: "destructive" }),
+    },
+  });
+
+  const { mutate: updateCollection, isPending: updatingCollection } = useUpdateCollection({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Collection updated" });
+        setEditingCol(null);
+        refetchCollections();
+      },
+      onError: () => toast({ title: "Failed to update collection", variant: "destructive" }),
+    },
+  });
+
+  const { mutate: deleteCollection } = useDeleteCollection({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Collection deleted" });
+        refetchCollections();
+      },
+      onError: () => toast({ title: "Failed to delete collection", variant: "destructive" }),
+    },
+  });
+
+  const { mutate: assignCollection } = useUpdateProductCollection({
+    mutation: {
+      onSuccess: () => {
+        refetchCollections();
+        refetchProducts();
+      },
+      onError: () => toast({ title: "Failed to update assignment", variant: "destructive" }),
+    },
+  });
 
   const { mutate: updateStatus } = useUpdateOrderStatus({
     mutation: {
@@ -154,6 +227,7 @@ export default function Dashboard() {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
           <TabsTrigger value="inventory">Inventory</TabsTrigger>
+          <TabsTrigger value="collections">Collections</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
@@ -351,6 +425,153 @@ export default function Dashboard() {
                   </Card>
                 );
               })}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* ── Collections Tab ── */}
+        <TabsContent value="collections" className="space-y-4">
+          {!businessId ? (
+            <div className="text-center py-16 text-muted-foreground">List your business to manage collections</div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">Organize your products into themed collections visible on your brand page.</p>
+                <Button size="sm" className="gap-2" onClick={() => setShowCreateCollection(true)}>
+                  <Plus className="w-4 h-4" />
+                  New Collection
+                </Button>
+              </div>
+
+              {/* Create Dialog */}
+              <Dialog open={showCreateCollection} onOpenChange={setShowCreateCollection}>
+                <DialogContent>
+                  <DialogHeader><DialogTitle>New Collection</DialogTitle></DialogHeader>
+                  <div className="space-y-3 py-2">
+                    <div>
+                      <Label htmlFor="col-name">Name *</Label>
+                      <Input id="col-name" placeholder="e.g. Summer Vibes" value={newColName} onChange={(e) => setNewColName(e.target.value)} className="mt-1" />
+                    </div>
+                    <div>
+                      <Label htmlFor="col-desc">Description</Label>
+                      <Textarea id="col-desc" placeholder="Optional description…" value={newColDesc} onChange={(e) => setNewColDesc(e.target.value)} className="mt-1" rows={2} />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => { setShowCreateCollection(false); setNewColName(""); setNewColDesc(""); }}>Cancel</Button>
+                    <Button
+                      disabled={!newColName.trim() || creatingCollection}
+                      onClick={() => createCollection({ data: { businessId, name: newColName.trim(), description: newColDesc.trim() || undefined } })}
+                    >
+                      {creatingCollection ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}Create
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Edit Dialog */}
+              <Dialog open={!!editingCol} onOpenChange={(o) => { if (!o) setEditingCol(null); }}>
+                <DialogContent>
+                  <DialogHeader><DialogTitle>Edit Collection</DialogTitle></DialogHeader>
+                  <div className="space-y-3 py-2">
+                    <div>
+                      <Label>Name *</Label>
+                      <Input value={editingCol?.name ?? ""} onChange={(e) => setEditingCol((p) => p ? { ...p, name: e.target.value } : p)} className="mt-1" />
+                    </div>
+                    <div>
+                      <Label>Description</Label>
+                      <Textarea value={editingCol?.description ?? ""} onChange={(e) => setEditingCol((p) => p ? { ...p, description: e.target.value } : p)} className="mt-1" rows={2} />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setEditingCol(null)}>Cancel</Button>
+                    <Button
+                      disabled={!editingCol?.name.trim() || updatingCollection}
+                      onClick={() => editingCol && updateCollection({ id: editingCol.id, data: { name: editingCol.name.trim(), description: editingCol.description || null } })}
+                    >
+                      {updatingCollection ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}Save
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Collections list */}
+              {!collections || collections.length === 0 ? (
+                <div className="text-center py-16 text-muted-foreground border-2 border-dashed rounded-xl">
+                  <FolderOpen className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                  <p className="font-medium">No collections yet</p>
+                  <p className="text-xs mt-1">Create a collection to group your products</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {collections.map((col) => (
+                    <Card key={col.id} className="border-border/50">
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <FolderOpen className="w-4 h-4 text-primary flex-shrink-0" />
+                              <p className="font-semibold text-foreground truncate">{col.name}</p>
+                              <span className="text-xs text-muted-foreground flex-shrink-0">
+                                {col.products.length} product{col.products.length !== 1 ? "s" : ""}
+                              </span>
+                            </div>
+                            {col.description && (
+                              <p className="text-xs text-muted-foreground mt-1 ml-6">{col.description}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Edit" onClick={() => setEditingCol({ id: col.id, name: col.name, description: col.description ?? null })}>
+                              <Pencil className="w-3 h-3" />
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive hover:text-destructive" title="Delete" onClick={() => deleteCollection({ id: col.id })}>
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-7 px-2 gap-1 text-xs" onClick={() => setExpandedColId(expandedColId === col.id ? null : col.id)}>
+                              Products
+                              {expandedColId === col.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                            </Button>
+                          </div>
+                        </div>
+
+                        {expandedColId === col.id && (
+                          <div className="border-t border-border/50 pt-3">
+                            {!products || products.length === 0 ? (
+                              <p className="text-sm text-muted-foreground text-center py-3">No products yet. Add products first.</p>
+                            ) : (
+                              <div className="space-y-1">
+                                <p className="text-xs text-muted-foreground mb-2">Check products to add them to this collection.</p>
+                                {products.map((product) => {
+                                  const isInCol = product.collectionId === col.id;
+                                  return (
+                                    <label key={product.id} className="flex items-center gap-3 cursor-pointer hover:bg-muted/50 rounded-lg px-2 py-1.5 transition-colors">
+                                      <input
+                                        type="checkbox"
+                                        className="h-4 w-4 rounded border-border accent-primary"
+                                        checked={isInCol}
+                                        onChange={() => assignCollection({ id: product.id, data: { collectionId: isInCol ? null : col.id } })}
+                                      />
+                                      <div className="w-8 h-8 rounded overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center">
+                                        {product.images?.[0] ? (
+                                          <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                          <Package className="w-3.5 h-3.5 text-muted-foreground opacity-40" />
+                                        )}
+                                      </div>
+                                      <span className="flex-1 text-sm text-foreground truncate">{product.name}</span>
+                                      <span className="text-xs text-muted-foreground flex-shrink-0">GHS {Number(product.price).toFixed(2)}</span>
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </TabsContent>

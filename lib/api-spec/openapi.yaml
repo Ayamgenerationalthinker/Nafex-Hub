@@ -22,6 +22,7 @@ tags:
   - name: products
   - name: favorites
   - name: notifications
+  - name: collections
 
 paths:
   /healthz:
@@ -716,6 +717,39 @@ paths:
               schema:
                 $ref: "#/components/schemas/OkResponse"
 
+  /products/{id}/collection:
+    patch:
+      operationId: updateProductCollection
+      tags: [products]
+      summary: Assign or remove a product from a collection
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProductCollectionBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /products/{id}/stock:
     patch:
       operationId: updateProductStock
@@ -916,6 +950,110 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/OkResponse"
+
+  /collections:
+    get:
+      operationId: getCollections
+      tags: [collections]
+      summary: List collections for a business (with products)
+      parameters:
+        - in: query
+          name: businessId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of collections with products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CollectionWithProducts"
+    post:
+      operationId: createCollection
+      tags: [collections]
+      summary: Create a new collection
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCollectionBody"
+      responses:
+        "201":
+          description: Collection created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Collection"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /collections/{id}:
+    put:
+      operationId: updateCollection
+      tags: [collections]
+      summary: Update a collection
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCollectionBody"
+      responses:
+        "200":
+          description: Collection updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Collection"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteCollection
+      tags: [collections]
+      summary: Delete a collection
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
 components:
   schemas:
@@ -1418,6 +1556,9 @@ components:
           type: integer
         businessId:
           type: integer
+        collectionId:
+          type: integer
+          nullable: true
         name:
           type: string
         description:
@@ -1467,9 +1608,21 @@ components:
         stock:
           type: integer
           nullable: true
+        collectionId:
+          type: integer
+          nullable: true
       required:
         - name
         - price
+
+    UpdateProductCollectionBody:
+      type: object
+      properties:
+        collectionId:
+          type: integer
+          nullable: true
+      required:
+        - collectionId
 
     UpdateStockBody:
       type: object
@@ -1568,3 +1721,61 @@ components:
           type: integer
       required:
         - count
+
+    # ── Collections ──────────────────────────────────
+
+    Collection:
+      type: object
+      properties:
+        id:
+          type: integer
+        businessId:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - businessId
+        - name
+        - createdAt
+
+    CollectionWithProducts:
+      allOf:
+        - $ref: "#/components/schemas/Collection"
+        - type: object
+          properties:
+            products:
+              type: array
+              items:
+                $ref: "#/components/schemas/Product"
+          required:
+            - products
+
+    CreateCollectionBody:
+      type: object
+      properties:
+        businessId:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+      required:
+        - businessId
+        - name
+
+    UpdateCollectionBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true

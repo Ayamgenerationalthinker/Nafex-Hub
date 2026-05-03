@@ -11,6 +11,8 @@ import {
   useGetBusinessProducts,
   getGetBusinessProductsQueryKey,
   useToggleFavorite,
+  useGetCollections,
+  getGetCollectionsQueryKey,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -91,6 +93,7 @@ export default function BrandProfile() {
   });
 
   const { data: products } = useGetBusinessProducts(id, { query: { enabled: !!id, queryKey: getGetBusinessProductsQueryKey(id) } });
+  const { data: collections } = useGetCollections({ businessId: id }, { query: { enabled: !!id, queryKey: getGetCollectionsQueryKey({ businessId: id }) } });
   const { mutate: createReview, isPending: submittingReview } = useCreateReview({
     mutation: {
       onSuccess: () => {
@@ -344,6 +347,53 @@ export default function BrandProfile() {
                 </div>
               )}
             </div>
+
+            {/* Collections Section */}
+            {collections && collections.filter((c) => c.products.length > 0).length > 0 && (
+              <div className="space-y-6">
+                <h2 className="font-serif text-2xl font-bold text-foreground">Collections</h2>
+                {collections
+                  .filter((col) => col.products.length > 0)
+                  .map((col) => (
+                    <div key={col.id} className="space-y-3">
+                      <div>
+                        <h3 className="font-semibold text-lg text-foreground">{col.name}</h3>
+                        {col.description && (
+                          <p className="text-sm text-muted-foreground mt-0.5">{col.description}</p>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {col.products.map((product) => (
+                          <div
+                            key={product.id}
+                            className="group relative rounded-xl border border-border/50 overflow-hidden cursor-pointer hover:border-primary/40 transition-colors bg-card"
+                            onClick={() => setLocation(`/product/${product.id}`)}
+                          >
+                            <div className="aspect-square overflow-hidden bg-muted">
+                              {product.images?.[0] ? (
+                                <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <Package className="w-8 h-8 text-muted-foreground opacity-30" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="p-3">
+                              <p className="text-sm font-medium text-foreground truncate">{product.name}</p>
+                              <p className="text-sm font-bold text-primary mt-0.5">GHS {Number(product.price).toFixed(2)}</p>
+                              {product.stock !== null && product.stock !== undefined && (
+                                <span className={`inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded-full mt-1 ${product.stock === 0 ? "bg-red-100 text-red-600" : "bg-green-100 text-green-700"}`}>
+                                  {product.stock === 0 ? "Out of Stock" : "In Stock"}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
 
             {/* Products Section */}
             {products && products.length > 0 && (
