@@ -1,8 +1,9 @@
 import { Router, type IRouter } from "express";
 import { db, productsTable, businessesTable, favoritesTable } from "@workspace/db";
-import { eq, ilike, or, sql } from "drizzle-orm";
+import { desc, eq, ilike, sql } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, optionalAuth, type AuthRequest } from "../lib/auth-middleware";
+import { logAdminAction } from "../lib/log-admin-action";
 
 const router: IRouter = Router();
 
@@ -14,6 +15,87 @@ const CreateBody = z.object({
   description: z.string().default(""),
   price: z.string().regex(/^\d+(\.\d{1,2})?$/),
   images: z.array(z.string()).default([]),
+});
+
+// GET /admin/products - admin view of all products with business info, search + pagination
+router.get("/admin/products", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  if (req.user?.role !== "admin") {
+    res.status(403).json({ error: "Admin only" });
+    return;
+  }
+
+  const search = typeof req.query.search === "string" ? req.query.search : undefined;
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = 20;
+  const offset = (page - 1) * limit;
+
+  const where = search ? ilike(productsTable.name, `%${search}%`) : undefined;
+
+  const [{ count }] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(productsTable)
+    .where(where);
+
+  const rows = await db
+    .select({
+      id: productsTable.id,
+      businessId: productsTable.businessId,
+      name: productsTable.name,
+      description: productsTable.description,
+      price: productsTable.price,
+      images: productsTable.images,
+      createdAt: productsTable.createdAt,
+      businessName: businessesTable.name,
+      businessLogo: businessesTable.logo,
+    })
+    .from(productsTable)
+    .leftJoin(businessesTable, eq(productsTable.businessId, businessesTable.id))
+    .where(where)
+    .orderBy(desc(productsTable.createdAt))
+    .limit(limit)
+    .offset(offset);
+
+  res.json({
+    products: rows,
+    total: count,
+    page,
+    pages: Math.max(1, Math.ceil(count / limit)),
+  });
+});
+
+// DELETE /admin/product/:id - admin force-remove any product
+router.delete("/admin/product/:id", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  if (req.user?.role !== "admin") {
+    res.status(403).json({ error: "Admin only" });
+    return;
+  }
+
+  const params = IdParam.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
+
+  const [product] = await db
+    .delete(productsTable)
+    .where(eq(productsTable.id, params.data.id))
+    .returning();
+
+  if (!product) {
+    res.status(404).json({ error: "Product not found" });
+    return;
+  }
+
+  await logAdminAction({
+    adminId: req.user!.id,
+    adminName: req.user!.name,
+    action: "delete_product",
+    targetType: "product",
+    targetId: String(product.id),
+    details: { productName: product.name, businessId: product.businessId },
+  });
+
+  res.sendStatus(204);
 });
 
 // GET /products - list all with optional search

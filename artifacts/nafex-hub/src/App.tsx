@@ -21,6 +21,7 @@ import AdminDashboard from "@/pages/admin-dashboard";
 import AdminBusinessesPage from "@/pages/admin-businesses-page";
 import AdminAnalytics from "@/pages/admin-analytics";
 import AdminSettingsPage from "@/pages/admin-settings-page";
+import AdminProductsPage from "@/pages/admin-products-page";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ function Router() {
       <Route path="/admin/businesses" component={AdminBusinessesPage} />
       <Route path="/admin/analytics" component={AdminAnalytics} />
       <Route path="/admin/settings" component={AdminSettingsPage} />
+      <Route path="/admin/products" component={AdminProductsPage} />
 
       {/* All other routes wrapped in the main site Layout */}
       <Route>
