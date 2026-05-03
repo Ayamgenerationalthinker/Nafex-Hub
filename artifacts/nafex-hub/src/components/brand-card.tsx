@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, MapPin, TrendingUp } from "lucide-react";
+import { MapPin, TrendingUp } from "lucide-react";
 import type { Business } from "@workspace/api-client-react";
 
 export function BrandCard({ business, isTopSeller }: { business: Business; isTopSeller?: boolean }) {
@@ -45,18 +45,18 @@ export function BrandCard({ business, isTopSeller }: { business: Business; isTop
             {business.name}
           </h3>
           {business.isVerified && (
-            <div className="flex items-center text-primary" title="Verified Seller">
-              <CheckCircle2 className="w-5 h-5 fill-primary text-primary-foreground" />
-            </div>
+            <img
+              src="/nafex-verified-badge.png"
+              alt="Nafex Verified"
+              className="w-8 h-8 object-contain flex-shrink-0"
+              title="Nafex Hub Verified Seller"
+            />
           )}
         </div>
         <div className="flex items-center text-muted-foreground text-sm mt-1 gap-1">
           <MapPin className="w-3.5 h-3.5" />
           <span className="line-clamp-1">{business.location}</span>
         </div>
-        {business.isVerified && (
-          <p className="text-[10px] text-primary/70 mt-0.5 font-medium">✓ Verified Seller</p>
-        )}
       </CardHeader>
       <CardContent className="p-5 pt-2 flex-grow">
         <p className="text-sm text-muted-foreground line-clamp-2" data-testid={`text-brand-desc-${business.id}`}>
