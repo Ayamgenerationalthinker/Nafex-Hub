@@ -1,7 +1,8 @@
 import { Router, type IRouter } from "express";
-import { db, businessesTable } from "@workspace/db";
+import { db, businessesTable, usersTable, ordersTable, conversationsTable } from "@workspace/db";
 import { eq, sql, ilike, and, SQL } from "drizzle-orm";
 import { GetAdminBusinessesQueryParams } from "@workspace/api-zod";
+import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
 
 const router: IRouter = Router();
 
@@ -37,6 +38,29 @@ router.get("/stats/summary", async (_req, res): Promise<void> => {
     verifiedBusinesses: verifiedResult?.count ?? 0,
     totalCategories: categoriesResult.length,
     featuredBrands: verifiedResult?.count ?? 0,
+  });
+});
+
+router.get("/admin/stats", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  if (req.user?.role !== "admin") {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+
+  const [[usersResult], [totalBiz], [verifiedBiz], [ordersResult], [convResult]] = await Promise.all([
+    db.select({ count: sql<number>`count(*)::int` }).from(usersTable),
+    db.select({ count: sql<number>`count(*)::int` }).from(businessesTable),
+    db.select({ count: sql<number>`count(*)::int` }).from(businessesTable).where(eq(businessesTable.isVerified, true)),
+    db.select({ count: sql<number>`count(*)::int` }).from(ordersTable),
+    db.select({ count: sql<number>`count(*)::int` }).from(conversationsTable),
+  ]);
+
+  res.json({
+    totalUsers: usersResult?.count ?? 0,
+    totalBusinesses: totalBiz?.count ?? 0,
+    verifiedBusinesses: verifiedBiz?.count ?? 0,
+    totalOrders: ordersResult?.count ?? 0,
+    totalMessages: convResult?.count ?? 0,
   });
 });
 
