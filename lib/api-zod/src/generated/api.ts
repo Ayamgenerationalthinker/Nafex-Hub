@@ -76,6 +76,7 @@ export const GetBusinessesResponseItem = zod.object({
   logo: zod.string().nullish(),
   images: zod.array(zod.string()),
   isVerified: zod.boolean(),
+  isFeatured: zod.boolean(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -108,6 +109,7 @@ export const GetFeaturedBusinessesResponseItem = zod.object({
   logo: zod.string().nullish(),
   images: zod.array(zod.string()),
   isVerified: zod.boolean(),
+  isFeatured: zod.boolean(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -133,6 +135,7 @@ export const GetBusinessResponse = zod.object({
   logo: zod.string().nullish(),
   images: zod.array(zod.string()),
   isVerified: zod.boolean(),
+  isFeatured: zod.boolean(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -165,6 +168,7 @@ export const UpdateBusinessResponse = zod.object({
   logo: zod.string().nullish(),
   images: zod.array(zod.string()),
   isVerified: zod.boolean(),
+  isFeatured: zod.boolean(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -198,6 +202,7 @@ export const VerifyBusinessResponse = zod.object({
   logo: zod.string().nullish(),
   images: zod.array(zod.string()),
   isVerified: zod.boolean(),
+  isFeatured: zod.boolean(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -241,6 +246,7 @@ export const GetAdminBusinessesResponseItem = zod.object({
   logo: zod.string().nullish(),
   images: zod.array(zod.string()),
   isVerified: zod.boolean(),
+  isFeatured: zod.boolean(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });

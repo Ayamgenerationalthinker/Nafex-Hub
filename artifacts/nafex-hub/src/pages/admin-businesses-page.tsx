@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Search, CheckCircle2, XCircle, Loader2, Building2, Trash2 } from "lucide-react";
+import { Search, CheckCircle2, XCircle, Loader2, Building2, Trash2, Star } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebounce } from "@/hooks/use-debounce";
 
@@ -26,6 +26,7 @@ export default function AdminBusinessesPage() {
   const debouncedSearch = useDebounce(search, 300);
   const [filter, setFilter] = useState<"all" | "verified" | "unverified">("all");
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [featuringId, setFeaturingId] = useState<number | null>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -36,19 +37,45 @@ export default function AdminBusinessesPage() {
 
   const verify = useVerifyBusiness();
 
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: getGetAdminBusinessesQueryKey() });
+    queryClient.invalidateQueries({ queryKey: getGetBusinessesQueryKey() });
+    queryClient.invalidateQueries({ queryKey: getGetFeaturedBusinessesQueryKey() });
+    queryClient.invalidateQueries({ queryKey: ["/api/businesses/top"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/businesses/trending"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/businesses/verified"] });
+  };
+
   const handleVerify = (id: number, isVerified: boolean) => {
     verify.mutate(
       { id, data: { isVerified } },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getGetAdminBusinessesQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getGetBusinessesQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getGetFeaturedBusinessesQueryKey() });
+          invalidateAll();
           toast({ title: isVerified ? "Business verified" : "Verification removed" });
         },
         onError: () => toast({ title: "Action failed", variant: "destructive" }),
       }
     );
+  };
+
+  const handleFeature = async (id: number, isFeatured: boolean) => {
+    const token = localStorage.getItem("nafex_token") ?? "";
+    setFeaturingId(id);
+    try {
+      const res = await fetch(`/api/admin/businesses/${id}/featured`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ isFeatured }),
+      });
+      if (!res.ok) throw new Error("Failed");
+      invalidateAll();
+      toast({ title: isFeatured ? "Business added to Featured" : "Removed from Featured" });
+    } catch {
+      toast({ title: "Action failed", variant: "destructive" });
+    } finally {
+      setFeaturingId(null);
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -60,9 +87,7 @@ export default function AdminBusinessesPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Delete failed");
-      queryClient.invalidateQueries({ queryKey: getGetAdminBusinessesQueryKey() });
-      queryClient.invalidateQueries({ queryKey: getGetBusinessesQueryKey() });
-      queryClient.invalidateQueries({ queryKey: getGetFeaturedBusinessesQueryKey() });
+      invalidateAll();
       toast({ title: "Business deleted" });
     } catch {
       toast({ title: "Failed to delete business", variant: "destructive" });
@@ -76,7 +101,7 @@ export default function AdminBusinessesPage() {
       <div className="space-y-5 max-w-5xl">
         <div>
           <h2 className="text-xl font-bold text-foreground">Businesses</h2>
-          <p className="text-sm text-muted-foreground mt-1">Manage and verify business listings</p>
+          <p className="text-sm text-muted-foreground mt-1">Manage, verify, and feature business listings</p>
         </div>
 
         {/* Search + filter */}
@@ -121,7 +146,7 @@ export default function AdminBusinessesPage() {
                   <Skeleton className="h-4 w-40" />
                   <Skeleton className="h-4 w-24" />
                   <Skeleton className="h-5 w-20 rounded-full" />
-                  <Skeleton className="h-8 w-32 rounded-lg" />
+                  <Skeleton className="h-8 w-40 rounded-lg" />
                 </div>
               ))}
             </div>
@@ -143,7 +168,12 @@ export default function AdminBusinessesPage() {
                       </div>
                     )}
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{biz.name}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-medium text-foreground truncate">{biz.name}</p>
+                        {biz.isFeatured && (
+                          <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 flex-shrink-0" />
+                        )}
+                      </div>
                       <p className="text-xs text-muted-foreground truncate">{biz.location}</p>
                     </div>
                   </div>
@@ -159,18 +189,36 @@ export default function AdminBusinessesPage() {
                       </Badge>
                     )}
                   </div>
-                  {/* Actions: Verify/Revoke + Delete */}
-                  <div className="flex items-center gap-2">
+
+                  {/* Actions: Verify · Feature · Delete */}
+                  <div className="flex items-center gap-1.5">
+                    {/* Verify / Revoke */}
                     <Button
                       variant={biz.isVerified ? "outline" : "default"}
                       size="sm"
                       onClick={() => handleVerify(biz.id, !biz.isVerified)}
                       disabled={verify.isPending}
-                      className="h-8 text-xs"
+                      className="h-8 text-xs px-2.5"
                     >
                       {verify.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : biz.isVerified ? "Revoke" : "Verify"}
                     </Button>
 
+                    {/* Feature / Unfeature */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleFeature(biz.id, !biz.isFeatured)}
+                      disabled={featuringId === biz.id}
+                      title={biz.isFeatured ? "Remove from featured" : "Add to featured"}
+                      className={`h-8 w-8 p-0 ${biz.isFeatured ? "text-amber-500 border-amber-400/40 hover:bg-amber-50" : "text-muted-foreground hover:text-amber-500 hover:border-amber-400/40"}`}
+                    >
+                      {featuringId === biz.id
+                        ? <Loader2 className="w-3 h-3 animate-spin" />
+                        : <Star className={`w-3.5 h-3.5 ${biz.isFeatured ? "fill-amber-400" : ""}`} />
+                      }
+                    </Button>
+
+                    {/* Delete */}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button

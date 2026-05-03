@@ -1,19 +1,28 @@
 import { Link } from "wouter";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, TrendingUp } from "lucide-react";
+import { MapPin, TrendingUp, MessageCircle, Star } from "lucide-react";
 import type { Business } from "@workspace/api-client-react";
 
-export function BrandCard({ business, isTopSeller }: { business: Business; isTopSeller?: boolean }) {
+type BrandCardProps = {
+  business: Business & { avgRating?: number | null; reviewCount?: number };
+  isTopSeller?: boolean;
+  isTrending?: boolean;
+};
+
+export function BrandCard({ business, isTopSeller, isTrending }: BrandCardProps) {
   const coverImage = business.images?.[0] || business.logo;
-  
+  const whatsappUrl = `https://wa.me/${business.phone.replace(/\D/g, "")}`;
+  const avgRating = (business as { avgRating?: number | null }).avgRating;
+  const reviewCount = (business as { reviewCount?: number }).reviewCount ?? 0;
+
   return (
     <Card className="overflow-hidden group flex flex-col h-full hover-elevate transition-all duration-300 border-border/50 hover:border-primary/30" data-testid={`card-brand-${business.id}`}>
       <div className="aspect-[4/3] w-full overflow-hidden bg-muted relative">
         {coverImage ? (
-          <img 
-            src={coverImage} 
-            alt={business.name} 
+          <img
+            src={coverImage}
+            alt={business.name}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />
@@ -33,12 +42,22 @@ export function BrandCard({ business, isTopSeller }: { business: Business; isTop
           </Badge>
           {isTopSeller && (
             <Badge className="bg-amber-500 hover:bg-amber-500 text-white text-xs font-semibold flex items-center gap-1">
-              <TrendingUp className="w-3 h-3" />
-              Top Seller
+              <TrendingUp className="w-3 h-3" /> Top Seller
+            </Badge>
+          )}
+          {isTrending && !isTopSeller && (
+            <Badge className="bg-rose-500 hover:bg-rose-500 text-white text-xs font-semibold flex items-center gap-1">
+              <TrendingUp className="w-3 h-3" /> Trending
+            </Badge>
+          )}
+          {business.isFeatured && !isTopSeller && !isTrending && (
+            <Badge className="bg-primary hover:bg-primary text-primary-foreground text-xs font-semibold flex items-center gap-1">
+              ★ Featured
             </Badge>
           )}
         </div>
       </div>
+
       <CardHeader className="p-5 pb-2 flex-none">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-serif text-xl font-bold leading-tight line-clamp-1 group-hover:text-primary transition-colors" data-testid={`text-brand-name-${business.id}`}>
@@ -53,17 +72,30 @@ export function BrandCard({ business, isTopSeller }: { business: Business; isTop
             />
           )}
         </div>
-        <div className="flex items-center text-muted-foreground text-sm mt-1 gap-1">
-          <MapPin className="w-3.5 h-3.5" />
-          <span className="line-clamp-1">{business.location}</span>
+        <div className="flex items-center justify-between mt-1">
+          <div className="flex items-center text-muted-foreground text-sm gap-1">
+            <MapPin className="w-3.5 h-3.5" />
+            <span className="line-clamp-1">{business.location}</span>
+          </div>
+          {avgRating != null && avgRating > 0 && (
+            <div className="flex items-center gap-1 text-xs">
+              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+              <span className="font-semibold text-foreground">{Number(avgRating).toFixed(1)}</span>
+              {reviewCount > 0 && (
+                <span className="text-muted-foreground">({reviewCount})</span>
+              )}
+            </div>
+          )}
         </div>
       </CardHeader>
+
       <CardContent className="p-5 pt-2 flex-grow">
         <p className="text-sm text-muted-foreground line-clamp-2" data-testid={`text-brand-desc-${business.id}`}>
           {business.description}
         </p>
       </CardContent>
-      <CardFooter className="p-5 pt-0 mt-auto flex-none">
+
+      <CardFooter className="p-5 pt-0 mt-auto flex-none flex flex-col gap-2">
         <Link
           href={`/brand/${business.id}`}
           className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 group-hover:border-primary/50 group-hover:bg-primary/5"
@@ -71,6 +103,18 @@ export function BrandCard({ business, isTopSeller }: { business: Business; isTop
         >
           View Profile
         </Link>
+        {business.phone && (
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium h-10 px-4 py-2 bg-green-600 hover:bg-green-700 text-white transition-colors"
+            data-testid={`link-whatsapp-${business.id}`}
+          >
+            <MessageCircle className="w-4 h-4" />
+            Chat on WhatsApp
+          </a>
+        )}
       </CardFooter>
     </Card>
   );

@@ -72,6 +72,7 @@ export interface Business {
   logo?: string | null;
   images: string[];
   isVerified: boolean;
+  isFeatured: boolean;
   createdAt: string;
   updatedAt: string;
 }
