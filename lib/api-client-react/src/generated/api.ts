@@ -21,8 +21,11 @@ import type {
   Business,
   BusinessAnalytics,
   CategoryCount,
+  Collection,
+  CollectionWithProducts,
   ConversationWithDetails,
   CreateBusinessBody,
+  CreateCollectionBody,
   CreateConversationBody,
   CreateOrderBody,
   CreateProductBody,
@@ -33,6 +36,7 @@ import type {
   FavoritesResponse,
   GetAdminBusinessesParams,
   GetBusinessesParams,
+  GetCollectionsParams,
   HealthStatus,
   ListProductsParams,
   LoginBody,
@@ -50,7 +54,9 @@ import type {
   TrackEventBody,
   UnreadCountResponse,
   UpdateBusinessBody,
+  UpdateCollectionBody,
   UpdateOrderStatusBody,
+  UpdateProductCollectionBody,
   UpdateStockBody,
   User,
   VerifyBusinessBody,
@@ -2660,6 +2666,94 @@ export const useDeleteProduct = <
 };
 
 /**
+ * @summary Assign or remove a product from a collection
+ */
+export const getUpdateProductCollectionUrl = (id: number) => {
+  return `/api/products/${id}/collection`;
+};
+
+export const updateProductCollection = async (
+  id: number,
+  updateProductCollectionBody: UpdateProductCollectionBody,
+  options?: RequestInit,
+): Promise<Product> => {
+  return customFetch<Product>(getUpdateProductCollectionUrl(id), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateProductCollectionBody),
+  });
+};
+
+export const getUpdateProductCollectionMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateProductCollection>>,
+    TError,
+    { id: number; data: BodyType<UpdateProductCollectionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateProductCollection>>,
+  TError,
+  { id: number; data: BodyType<UpdateProductCollectionBody> },
+  TContext
+> => {
+  const mutationKey = ["updateProductCollection"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateProductCollection>>,
+    { id: number; data: BodyType<UpdateProductCollectionBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateProductCollection(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateProductCollectionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateProductCollection>>
+>;
+export type UpdateProductCollectionMutationBody =
+  BodyType<UpdateProductCollectionBody>;
+export type UpdateProductCollectionMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Assign or remove a product from a collection
+ */
+export const useUpdateProductCollection = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateProductCollection>>,
+    TError,
+    { id: number; data: BodyType<UpdateProductCollectionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateProductCollection>>,
+  TError,
+  { id: number; data: BodyType<UpdateProductCollectionBody> },
+  TContext
+> => {
+  return useMutation(getUpdateProductCollectionMutationOptions(options));
+};
+
+/**
  * @summary Update stock level for a product
  */
 export const getUpdateProductStockUrl = (id: number) => {
@@ -3397,4 +3491,355 @@ export const useMarkAllNotificationsRead = <
   TContext
 > => {
   return useMutation(getMarkAllNotificationsReadMutationOptions(options));
+};
+
+/**
+ * @summary List collections for a business (with products)
+ */
+export const getGetCollectionsUrl = (params: GetCollectionsParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/collections?${stringifiedParams}`
+    : `/api/collections`;
+};
+
+export const getCollections = async (
+  params: GetCollectionsParams,
+  options?: RequestInit,
+): Promise<CollectionWithProducts[]> => {
+  return customFetch<CollectionWithProducts[]>(getGetCollectionsUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetCollectionsQueryKey = (params?: GetCollectionsParams) => {
+  return [`/api/collections`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetCollectionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCollections>>,
+  TError = ErrorType<unknown>,
+>(
+  params: GetCollectionsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getCollections>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetCollectionsQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getCollections>>> = ({
+    signal,
+  }) => getCollections(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCollections>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetCollectionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCollections>>
+>;
+export type GetCollectionsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List collections for a business (with products)
+ */
+
+export function useGetCollections<
+  TData = Awaited<ReturnType<typeof getCollections>>,
+  TError = ErrorType<unknown>,
+>(
+  params: GetCollectionsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getCollections>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetCollectionsQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a new collection
+ */
+export const getCreateCollectionUrl = () => {
+  return `/api/collections`;
+};
+
+export const createCollection = async (
+  createCollectionBody: CreateCollectionBody,
+  options?: RequestInit,
+): Promise<Collection> => {
+  return customFetch<Collection>(getCreateCollectionUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createCollectionBody),
+  });
+};
+
+export const getCreateCollectionMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createCollection>>,
+    TError,
+    { data: BodyType<CreateCollectionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createCollection>>,
+  TError,
+  { data: BodyType<CreateCollectionBody> },
+  TContext
+> => {
+  const mutationKey = ["createCollection"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createCollection>>,
+    { data: BodyType<CreateCollectionBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createCollection(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateCollectionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createCollection>>
+>;
+export type CreateCollectionMutationBody = BodyType<CreateCollectionBody>;
+export type CreateCollectionMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Create a new collection
+ */
+export const useCreateCollection = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createCollection>>,
+    TError,
+    { data: BodyType<CreateCollectionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createCollection>>,
+  TError,
+  { data: BodyType<CreateCollectionBody> },
+  TContext
+> => {
+  return useMutation(getCreateCollectionMutationOptions(options));
+};
+
+/**
+ * @summary Update a collection
+ */
+export const getUpdateCollectionUrl = (id: number) => {
+  return `/api/collections/${id}`;
+};
+
+export const updateCollection = async (
+  id: number,
+  updateCollectionBody: UpdateCollectionBody,
+  options?: RequestInit,
+): Promise<Collection> => {
+  return customFetch<Collection>(getUpdateCollectionUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateCollectionBody),
+  });
+};
+
+export const getUpdateCollectionMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateCollection>>,
+    TError,
+    { id: number; data: BodyType<UpdateCollectionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateCollection>>,
+  TError,
+  { id: number; data: BodyType<UpdateCollectionBody> },
+  TContext
+> => {
+  const mutationKey = ["updateCollection"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateCollection>>,
+    { id: number; data: BodyType<UpdateCollectionBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateCollection(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateCollectionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateCollection>>
+>;
+export type UpdateCollectionMutationBody = BodyType<UpdateCollectionBody>;
+export type UpdateCollectionMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Update a collection
+ */
+export const useUpdateCollection = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateCollection>>,
+    TError,
+    { id: number; data: BodyType<UpdateCollectionBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateCollection>>,
+  TError,
+  { id: number; data: BodyType<UpdateCollectionBody> },
+  TContext
+> => {
+  return useMutation(getUpdateCollectionMutationOptions(options));
+};
+
+/**
+ * @summary Delete a collection
+ */
+export const getDeleteCollectionUrl = (id: number) => {
+  return `/api/collections/${id}`;
+};
+
+export const deleteCollection = async (
+  id: number,
+  options?: RequestInit,
+): Promise<OkResponse> => {
+  return customFetch<OkResponse>(getDeleteCollectionUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteCollectionMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteCollection>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteCollection>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteCollection"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteCollection>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteCollection(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteCollectionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteCollection>>
+>;
+
+export type DeleteCollectionMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Delete a collection
+ */
+export const useDeleteCollection = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteCollection>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteCollection>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteCollectionMutationOptions(options));
 };

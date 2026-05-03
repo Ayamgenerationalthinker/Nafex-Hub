@@ -15,6 +15,7 @@ import settingsRouter from "./settings";
 import adminUsersRouter from "./admin-users";
 import adminActivityRouter from "./admin-activity";
 import servicesRouter from "./services";
+import collectionsRouter from "./collections";
 
 const router: IRouter = Router();
 
@@ -34,5 +35,6 @@ router.use(settingsRouter);
 router.use(adminUsersRouter);
 router.use(adminActivityRouter);
 router.use(servicesRouter);
+router.use(collectionsRouter);
 
 export default router;

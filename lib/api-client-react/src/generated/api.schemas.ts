@@ -258,6 +258,7 @@ export interface DashboardStats {
 export interface Product {
   id: number;
   businessId: number;
+  collectionId?: number | null;
   name: string;
   description: string;
   price: string;
@@ -275,6 +276,11 @@ export interface CreateProductBody {
   price: string;
   images?: string[];
   stock?: number | null;
+  collectionId?: number | null;
+}
+
+export interface UpdateProductCollectionBody {
+  collectionId: number | null;
 }
 
 export interface UpdateStockBody {
@@ -326,6 +332,29 @@ export interface UnreadCountResponse {
   count: number;
 }
 
+export interface Collection {
+  id: number;
+  businessId: number;
+  name: string;
+  description?: string | null;
+  createdAt: string;
+}
+
+export type CollectionWithProducts = Collection & {
+  products: Product[];
+};
+
+export interface CreateCollectionBody {
+  businessId: number;
+  name: string;
+  description?: string | null;
+}
+
+export interface UpdateCollectionBody {
+  name?: string;
+  description?: string | null;
+}
+
 export type GetBusinessesParams = {
   search?: string;
   category?: string;
@@ -348,4 +377,8 @@ export type ListProductsParams = {
 export type ToggleFavorite200 = {
   favorited: boolean;
   id: number;
+};
+
+export type GetCollectionsParams = {
+  businessId: number;
 };

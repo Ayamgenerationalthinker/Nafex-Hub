@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, productsTable, businessesTable, favoritesTable } from "@workspace/db";
+import { db, productsTable, businessesTable, favoritesTable, collectionsTable } from "@workspace/db";
 import { desc, eq, ilike, sql } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, optionalAuth, type AuthRequest } from "../lib/auth-middleware";
@@ -16,6 +16,7 @@ const CreateBody = z.object({
   price: z.string().regex(/^\d+(\.\d{1,2})?$/),
   images: z.array(z.string()).default([]),
   stock: z.number().int().min(0).nullable().optional(),
+  collectionId: z.number().int().positive().nullable().optional(),
 });
 
 const UpdateStockBody = z.object({
@@ -115,6 +116,7 @@ router.get("/products", async (req, res): Promise<void> => {
     .select({
       id: productsTable.id,
       businessId: productsTable.businessId,
+      collectionId: productsTable.collectionId,
       name: productsTable.name,
       description: productsTable.description,
       price: productsTable.price,
@@ -158,6 +160,7 @@ router.get("/products/:id", optionalAuth, async (req: AuthRequest, res): Promise
     .select({
       id: productsTable.id,
       businessId: productsTable.businessId,
+      collectionId: productsTable.collectionId,
       name: productsTable.name,
       description: productsTable.description,
       price: productsTable.price,
@@ -240,6 +243,52 @@ router.put("/products/:id", requireAuth, async (req: AuthRequest, res): Promise<
   const [updated] = await db
     .update(productsTable)
     .set({ ...req.body, updatedAt: new Date() })
+    .where(eq(productsTable.id, params.data.id))
+    .returning();
+
+  res.json(updated);
+});
+
+// PATCH /products/:id/collection
+router.patch("/products/:id/collection", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const params = IdParam.safeParse(req.params);
+  if (!params.success) { res.status(404).json({ error: "Not found" }); return; }
+
+  const body = z.object({ collectionId: z.number().int().positive().nullable() }).safeParse(req.body);
+  if (!body.success) { res.status(400).json({ error: "collectionId must be a positive integer or null" }); return; }
+
+  const [existing] = await db
+    .select({ businessId: productsTable.businessId })
+    .from(productsTable)
+    .where(eq(productsTable.id, params.data.id));
+
+  if (!existing) { res.status(404).json({ error: "Not found" }); return; }
+
+  const [biz] = await db
+    .select()
+    .from(businessesTable)
+    .where(eq(businessesTable.id, existing.businessId));
+
+  if (!biz || biz.ownerId !== req.userId) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+
+  // If assigning a collection, verify it belongs to the same business
+  if (body.data.collectionId !== null) {
+    const [col] = await db
+      .select({ businessId: collectionsTable.businessId })
+      .from(collectionsTable)
+      .where(eq(collectionsTable.id, body.data.collectionId));
+    if (!col || col.businessId !== existing.businessId) {
+      res.status(400).json({ error: "Collection not found or belongs to a different business" });
+      return;
+    }
+  }
+
+  const [updated] = await db
+    .update(productsTable)
+    .set({ collectionId: body.data.collectionId, updatedAt: new Date() })
     .where(eq(productsTable.id, params.data.id))
     .returning();
 
