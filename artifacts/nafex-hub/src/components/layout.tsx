@@ -3,8 +3,9 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart } from "lucide-react";
+import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail } from "lucide-react";
 import { NotificationBell } from "@/components/notification-bell";
+import { useSiteSettings } from "@/hooks/use-site-settings";
 
 const FALLBACK_LOGO = "/nafex-verified-badge.png";
 
@@ -13,13 +14,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [siteLogo, setSiteLogo] = useState<string>(FALLBACK_LOGO);
+  const siteSettings = useSiteSettings();
 
   useEffect(() => {
-    fetch("/api/settings")
-      .then(r => r.ok ? r.json() : {})
-      .then((s: Record<string, string>) => { if (s.logo) setSiteLogo(s.logo); })
-      .catch(() => {});
-  }, []);
+    if (siteSettings.logo) setSiteLogo(siteSettings.logo);
+  }, [siteSettings.logo]);
 
   const closeMenu = () => setMobileOpen(false);
 
@@ -315,10 +314,53 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <p className="text-sm text-secondary-foreground/60">
             Ghana's premier digital fashion marketplace.
           </p>
-          <div className="flex gap-6 text-sm text-secondary-foreground/60">
-            <Link href="/explore" className="hover:text-primary transition-colors">Explore</Link>
-            <Link href="/list" className="hover:text-primary transition-colors">List Business</Link>
-            <Link href="/login" className="hover:text-primary transition-colors">Login</Link>
+          <div className="flex items-center gap-4">
+            {siteSettings.whatsappNumber?.trim() && (
+              <a
+                href={`https://wa.me/${siteSettings.whatsappNumber.replace(/\D/g, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-secondary-foreground/60 hover:text-green-400 transition-colors"
+                title="WhatsApp"
+              >
+                <Phone className="w-5 h-5" />
+              </a>
+            )}
+            {siteSettings.instagramLink?.trim() && (
+              <a
+                href={siteSettings.instagramLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-secondary-foreground/60 hover:text-pink-400 transition-colors"
+                title="Instagram"
+              >
+                <Instagram className="w-5 h-5" />
+              </a>
+            )}
+            {siteSettings.facebookLink?.trim() && (
+              <a
+                href={siteSettings.facebookLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-secondary-foreground/60 hover:text-blue-400 transition-colors"
+                title="Facebook"
+              >
+                <Facebook className="w-5 h-5" />
+              </a>
+            )}
+            {siteSettings.email?.trim() && (
+              <a
+                href={`mailto:${siteSettings.email}`}
+                className="text-secondary-foreground/60 hover:text-primary transition-colors"
+                title="Email"
+              >
+                <Mail className="w-5 h-5" />
+              </a>
+            )}
+            <div className="h-4 w-px bg-secondary-foreground/20 mx-1" />
+            <Link href="/explore" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">Explore</Link>
+            <Link href="/list" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">List Business</Link>
+            <Link href="/login" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">Login</Link>
           </div>
         </div>
       </footer>
