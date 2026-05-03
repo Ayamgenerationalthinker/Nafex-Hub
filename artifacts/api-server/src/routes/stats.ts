@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
-import { db, businessesTable, usersTable, ordersTable, conversationsTable } from "@workspace/db";
-import { eq, sql, ilike, and, SQL } from "drizzle-orm";
+import { db, businessesTable, usersTable, ordersTable, conversationsTable, analyticsEventsTable } from "@workspace/db";
+import { eq, sql, ilike, and, or, isNull, gt, SQL } from "drizzle-orm";
 import { GetAdminBusinessesQueryParams } from "@workspace/api-zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
 
@@ -90,6 +90,78 @@ router.get("/admin/businesses", async (req, res): Promise<void> => {
       : await db.select().from(businessesTable);
 
   res.json(businesses);
+});
+
+// Admin: featured ads performance — active placements + 30-day engagement
+router.get("/admin/featured-analytics", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  if (req.user?.role !== "admin") {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+
+  // Fetch all currently isFeatured businesses (including expired ones for the table)
+  const featuredBizRows = await db
+    .select({
+      id: businessesTable.id,
+      name: businessesTable.name,
+      logo: businessesTable.logo,
+      featuredType: businessesTable.featuredType,
+      featuredUntil: businessesTable.featuredUntil,
+    })
+    .from(businessesTable)
+    .where(eq(businessesTable.isFeatured, true));
+
+  if (!featuredBizRows.length) {
+    res.json({ summary: [], businesses: [] });
+    return;
+  }
+
+  const since = new Date();
+  since.setDate(since.getDate() - 30);
+
+  // Fetch analytics events for these businesses in last 30 days
+  const bizIds = featuredBizRows.map(b => b.id);
+  const events = await db
+    .select({
+      businessId: analyticsEventsTable.businessId,
+      type: analyticsEventsTable.type,
+    })
+    .from(analyticsEventsTable)
+    .where(
+      and(
+        sql`${analyticsEventsTable.businessId} = ANY(${sql`ARRAY[${sql.join(bizIds.map(id => sql`${id}`), sql`, `)}]::int[]`})`,
+        gt(analyticsEventsTable.createdAt, since)
+      )
+    );
+
+  // Aggregate per business
+  const statsMap = new Map<number, { views: number; messages: number; orders: number }>();
+  for (const biz of featuredBizRows) statsMap.set(biz.id, { views: 0, messages: 0, orders: 0 });
+  for (const ev of events) {
+    const s = statsMap.get(ev.businessId);
+    if (!s) continue;
+    if (ev.type === "view") s.views++;
+    else if (ev.type === "message") s.messages++;
+    else if (ev.type === "order") s.orders++;
+  }
+
+  const businesses = featuredBizRows.map(biz => ({
+    ...biz,
+    featuredUntil: biz.featuredUntil ? biz.featuredUntil.toISOString() : null,
+    ...(statsMap.get(biz.id) ?? { views: 0, messages: 0, orders: 0 }),
+  }));
+
+  // Summary counts — only active (not expired)
+  const now = new Date();
+  const activeTypes = ["homepage_top", "homepage_section", "search_boost"] as const;
+  const summary = activeTypes.map(type => ({
+    type,
+    count: featuredBizRows.filter(b =>
+      b.featuredType === type && (!b.featuredUntil || b.featuredUntil > now)
+    ).length,
+  }));
+
+  res.json({ summary, businesses });
 });
 
 export default router;
