@@ -22,6 +22,8 @@ import AdminBusinessesPage from "@/pages/admin-businesses-page";
 import AdminAnalytics from "@/pages/admin-analytics";
 import AdminSettingsPage from "@/pages/admin-settings-page";
 import AdminProductsPage from "@/pages/admin-products-page";
+import AdminServicesPage from "@/pages/admin-services-page";
+import ServicesPage from "@/pages/services-page";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +39,7 @@ function Router() {
       <Route path="/admin/analytics" component={AdminAnalytics} />
       <Route path="/admin/settings" component={AdminSettingsPage} />
       <Route path="/admin/products" component={AdminProductsPage} />
+      <Route path="/admin/services" component={AdminServicesPage} />
 
       {/* All other routes wrapped in the main site Layout */}
       <Route>
@@ -54,6 +57,7 @@ function Router() {
             <Route path="/orders" component={Orders} />
             <Route path="/product/:id" component={ProductDetail} />
             <Route path="/favorites" component={Favorites} />
+            <Route path="/services" component={ServicesPage} />
             <Route component={NotFound} />
           </Switch>
         </Layout>

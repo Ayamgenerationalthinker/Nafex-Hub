@@ -1,12 +1,13 @@
 import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { LayoutDashboard, Building2, BarChart2, Settings, LogOut, ChevronRight, Shield, Package } from "lucide-react";
+import { LayoutDashboard, Building2, BarChart2, Settings, LogOut, ChevronRight, Shield, Package, Sparkles } from "lucide-react";
 
 const NAV_ITEMS = [
   { path: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { path: "/admin/businesses", label: "Businesses", icon: Building2 },
   { path: "/admin/products", label: "Products", icon: Package },
+  { path: "/admin/services", label: "Services", icon: Sparkles },
   { path: "/admin/analytics", label: "Analytics", icon: BarChart2 },
   { path: "/admin/settings", label: "Settings", icon: Settings },
 ];

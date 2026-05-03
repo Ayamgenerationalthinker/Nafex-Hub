@@ -3,11 +3,25 @@ import { useQuery } from "@tanstack/react-query";
 import { useGetStatsSummary, useGetFeaturedBusinesses } from "@workspace/api-client-react";
 import { BrandCard } from "@/components/brand-card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Store, TrendingUp, ShieldCheck, Tag, Star } from "lucide-react";
+import { ArrowRight, Store, TrendingUp, ShieldCheck, Tag, Star, Sparkles, MessageCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Business } from "@workspace/api-client-react";
 
 type BusinessWithStats = Business & { avgRating: number; reviewCount: number };
+
+type Service = { id: number; title: string; description: string; image: string | null; isActive: boolean };
+
+function useServices() {
+  return useQuery<Service[]>({
+    queryKey: ["/api/services"],
+    queryFn: async () => {
+      const res = await fetch("/api/services");
+      if (!res.ok) return [];
+      return res.json();
+    },
+    staleTime: 120_000,
+  });
+}
 
 function useBrandSection(path: string) {
   return useQuery<BusinessWithStats[]>({
@@ -41,6 +55,7 @@ export default function Home() {
   const { data: topBrands, isLoading: topLoading } = useBrandSection("/api/businesses/top");
   const { data: trendingBrands, isLoading: trendingLoading } = useBrandSection("/api/businesses/trending");
   const { data: verifiedSellers, isLoading: verifiedLoading } = useBrandSection("/api/businesses/verified");
+  const { data: services } = useServices();
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -279,6 +294,83 @@ export default function Home() {
                 <Button variant="outline">Browse Verified Sellers</Button>
               </Link>
             </div>
+          </div>
+        </section>
+      )}
+
+      {/* Nafex Creative Services */}
+      {services && services.length > 0 && (
+        <section className="py-16 md:py-20 px-4 md:px-8 bg-background">
+          <div className="container mx-auto max-w-6xl">
+            <div className="flex items-end justify-between mb-8">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  <span className="text-xs font-semibold uppercase tracking-widest text-primary">Our Services</span>
+                </div>
+                <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground">Nafex Creative Services</h2>
+                <p className="text-muted-foreground">Professional creative solutions for your fashion business.</p>
+              </div>
+              <Link href="/services" className="hidden md:flex items-center text-primary font-medium hover:underline gap-1 text-sm flex-shrink-0">
+                View all <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {services.slice(0, 3).map((service, i) => {
+                const waMsg = encodeURIComponent("Hello, I'm interested in your services on Nafex Hub");
+                const waUrl = `https://wa.me/?text=${waMsg}`;
+                return (
+                  <div
+                    key={service.id}
+                    className="bg-card border border-border rounded-2xl overflow-hidden flex flex-col hover:border-primary/40 hover:shadow-md transition-all duration-300 group animate-in fade-in slide-in-from-bottom-6 fill-mode-both"
+                    style={{ animationDelay: `${i * 100}ms` }}
+                  >
+                    {service.image ? (
+                      <div className="aspect-video w-full overflow-hidden bg-muted">
+                        <img
+                          src={service.image}
+                          alt={service.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          loading="lazy"
+                        />
+                      </div>
+                    ) : (
+                      <div className="aspect-video w-full bg-gradient-to-br from-primary/10 via-primary/5 to-muted flex items-center justify-center">
+                        <Sparkles className="w-10 h-10 text-primary/30" />
+                      </div>
+                    )}
+                    <div className="p-5 flex flex-col flex-1">
+                      <h3 className="font-serif text-lg font-bold mb-1.5 group-hover:text-primary transition-colors line-clamp-1">
+                        {service.title}
+                      </h3>
+                      <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2 flex-1">
+                        {service.description}
+                      </p>
+                      <a
+                        href={waUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-4 inline-flex items-center justify-center gap-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-medium h-9 px-4 transition-colors"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        Contact via WhatsApp
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {services.length > 3 && (
+              <div className="mt-6 flex justify-center">
+                <Link href="/services">
+                  <Button variant="outline" className="gap-2">
+                    View All Services <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         </section>
       )}

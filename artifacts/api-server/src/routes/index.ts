@@ -14,6 +14,7 @@ import notificationsRouter from "./notifications";
 import settingsRouter from "./settings";
 import adminUsersRouter from "./admin-users";
 import adminActivityRouter from "./admin-activity";
+import servicesRouter from "./services";
 
 const router: IRouter = Router();
 
@@ -32,5 +33,6 @@ router.use(notificationsRouter);
 router.use(settingsRouter);
 router.use(adminUsersRouter);
 router.use(adminActivityRouter);
+router.use(servicesRouter);
 
 export default router;
