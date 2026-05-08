@@ -51,7 +51,6 @@ export function parseToken(token: string): { userId: number; expiresAt: number }
     const userId = parseInt(parts[0], 10);
     const expiresAt = parseInt(parts[1], 10);
     if (isNaN(userId) || isNaN(expiresAt)) return null;
-    // Check expiry
     if (Date.now() > expiresAt) return null;
     return { userId, expiresAt };
   } catch {
@@ -72,6 +71,12 @@ router.post("/auth/register", authLimiter, async (req, res): Promise<void> => {
   const passwordError = validatePasswordStrength(password);
   if (passwordError) {
     res.status(400).json({ error: passwordError });
+    return;
+  }
+
+  // Block anyone from self-assigning admin role
+  if (role === "admin") {
+    res.status(403).json({ error: "Admin accounts cannot be created through registration" });
     return;
   }
 

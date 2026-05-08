@@ -15,7 +15,7 @@ const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  role: z.enum(["user", "business_owner", "admin"]).default("user"),
+  role: z.enum(["user", "business_owner"]).default("user"),
 });
 
 type RegisterForm = z.infer<typeof registerSchema>;
@@ -119,7 +119,6 @@ export default function Register() {
                       <SelectContent>
                         <SelectItem value="user">Shopper</SelectItem>
                         <SelectItem value="business_owner">Business Owner</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
