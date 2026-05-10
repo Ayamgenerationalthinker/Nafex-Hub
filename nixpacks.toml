@@ -1,0 +1,12 @@
+[phases.install]
+cmds = ["pnpm install --no-frozen-lockfile"]
+
+[phases.build]
+cmds = [
+  "pnpm run typecheck:libs",
+  "pnpm --filter @workspace/nafex-hub run build",
+  "pnpm --filter @workspace/api-server run build"
+]
+
+[start]
+cmd = "node artifacts/api-server/dist/index.js"
