@@ -8,8 +8,8 @@ WORKDIR /app
 # Copy everything
 COPY . .
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+# Install dependencies (skip preinstall script)
+RUN npm_config_user_agent=pnpm/0.0.0 pnpm install --frozen-lockfile
 
 # Approve bcrypt build scripts
 RUN pnpm approve-builds --force || true
