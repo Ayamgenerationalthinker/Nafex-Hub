@@ -8,8 +8,11 @@ WORKDIR /app
 # Copy everything
 COPY . .
 
-# Install dependencies (skip preinstall script)
-RUN npm_config_user_agent=pnpm/0.0.0 pnpm install --frozen-lockfile
+# Remove the preinstall script temporarily and install
+RUN node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('package.json')); delete pkg.scripts.preinstall; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
 
 # Approve bcrypt build scripts
 RUN pnpm approve-builds --force || true
