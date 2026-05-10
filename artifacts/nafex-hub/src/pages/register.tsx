@@ -14,7 +14,11 @@ import { Loader2 } from "lucide-react";
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number"),
   role: z.enum(["user", "business_owner"]).default("user"),
 });
 
@@ -98,7 +102,7 @@ export default function Register() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="At least 6 characters" {...field} data-testid="input-password" className="h-12" />
+                      <Input type="password" placeholder="Min 8 chars, 1 uppercase, 1 number" {...field} data-testid="input-password" className="h-12" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
