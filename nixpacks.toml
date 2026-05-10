@@ -1,5 +1,7 @@
 [variables]
 NODE_VERSION = "20"
+NODE_ENV = "production"
+REPL_ID = ""
 
 [phases.install]
 cmds = ["pnpm install --no-frozen-lockfile"]
