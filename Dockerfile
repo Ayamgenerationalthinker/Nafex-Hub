@@ -11,12 +11,14 @@ COPY . .
 # Remove the preinstall script
 RUN node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('package.json')); delete pkg.scripts.preinstall; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
 
-# Install dependencies without frozen lockfile
-RUN pnpm install --no-frozen-lockfile
+# Approve build scripts for bcrypt and esbuild before installing
+RUN pnpm config set allow-scripts bcrypt,esbuild || true
 
-# Approve bcrypt build scripts
-RUN pnpm approve-builds --force || true
-RUN pnpm rebuild bcrypt
+# Install dependencies
+RUN pnpm install --no-frozen-lockfile --ignore-scripts
+
+# Rebuild native modules that need scripts
+RUN pnpm rebuild bcrypt esbuild
 
 # Build shared libs first
 RUN pnpm run typecheck:libs
