@@ -14,4 +14,4 @@ cmds = [
 ]
 
 [start]
-cmd = "node artifacts/api-server/dist/index.js"
+cmd = "node artifacts/api-server/dist/index.mjs"
