@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { ImageUpload } from "@/components/image-upload";
 import { Loader2, Store } from "lucide-react";
 
 const listBusinessSchema = z.object({
@@ -18,7 +20,6 @@ const listBusinessSchema = z.object({
   description: z.string().min(20, "Description must be at least 20 characters"),
   location: z.string().min(2, "Location is required"),
   phone: z.string().min(8, "Please enter a valid phone number"),
-  logo: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
 });
 
 type ListBusinessForm = z.infer<typeof listBusinessSchema>;
@@ -28,6 +29,8 @@ export default function ListBusiness() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const createBusiness = useCreateBusiness();
+  const [logoImages, setLogoImages] = useState<string[]>([]);
+  const [bannerImages, setBannerImages] = useState<string[]>([]);
 
   const form = useForm<ListBusinessForm>({
     resolver: zodResolver(listBusinessSchema),
@@ -37,7 +40,6 @@ export default function ListBusiness() {
       description: "",
       location: "",
       phone: "",
-      logo: "",
     },
   });
 
@@ -46,8 +48,8 @@ export default function ListBusiness() {
       {
         data: {
           ...values,
-          logo: values.logo || null,
-          images: [],
+          logo: logoImages[0] ?? null,
+          images: bannerImages,
         },
       },
       {
@@ -73,7 +75,6 @@ export default function ListBusiness() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Page Header */}
       <div className="bg-secondary/20 border-b py-12 px-4">
         <div className="container mx-auto max-w-3xl text-center space-y-4">
           <div className="inline-flex w-14 h-14 rounded-2xl bg-primary items-center justify-center shadow-lg mx-auto">
@@ -98,7 +99,7 @@ export default function ListBusiness() {
                     <FormItem>
                       <FormLabel>Business Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. Kente Palace" {...field} data-testid="input-name" className="h-12" />
+                        <Input placeholder="e.g. Kente Palace" {...field} className="h-12" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -112,7 +113,7 @@ export default function ListBusiness() {
                       <FormLabel>Category</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger className="h-12" data-testid="select-category">
+                          <SelectTrigger className="h-12">
                             <SelectValue placeholder="Select a category" />
                           </SelectTrigger>
                         </FormControl>
@@ -138,7 +139,6 @@ export default function ListBusiness() {
                       <Textarea
                         placeholder="Describe your business, products, and what makes you unique..."
                         {...field}
-                        data-testid="input-description"
                         className="min-h-[120px] resize-none"
                       />
                     </FormControl>
@@ -156,7 +156,7 @@ export default function ListBusiness() {
                     <FormItem>
                       <FormLabel>Location</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. Accra, Ghana" {...field} data-testid="input-location" className="h-12" />
+                        <Input placeholder="e.g. Accra, Ghana" {...field} className="h-12" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -169,7 +169,7 @@ export default function ListBusiness() {
                     <FormItem>
                       <FormLabel>Phone (WhatsApp)</FormLabel>
                       <FormControl>
-                        <Input placeholder="+233 24 000 0000" {...field} data-testid="input-phone" className="h-12" />
+                        <Input placeholder="+233 24 000 0000" {...field} className="h-12" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -177,26 +177,26 @@ export default function ListBusiness() {
                 />
               </div>
 
-              <FormField
-                control={form.control}
-                name="logo"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Logo URL (optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="https://example.com/logo.png" {...field} data-testid="input-logo" className="h-12" />
-                    </FormControl>
-                    <FormDescription>Direct link to your business logo image</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
+              {/* Logo Upload */}
+              <ImageUpload
+                value={logoImages}
+                onChange={setLogoImages}
+                maxImages={1}
+                label="Business Logo (optional)"
+              />
+
+              {/* Banner/Store Images Upload */}
+              <ImageUpload
+                value={bannerImages}
+                onChange={setBannerImages}
+                maxImages={5}
+                label="Store Images (optional) — shown on your brand page"
               />
 
               <Button
                 type="submit"
                 className="w-full h-12 text-base font-semibold"
                 disabled={createBusiness.isPending}
-                data-testid="btn-submit"
               >
                 {createBusiness.isPending ? (
                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Submitting...</>

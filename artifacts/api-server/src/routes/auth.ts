@@ -9,7 +9,6 @@ import { sendAdminEmail } from "../lib/mailer";
 
 const router: IRouter = Router();
 
-// Rate limiter — max 10 attempts per 15 minutes per IP
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
@@ -67,20 +66,17 @@ router.post("/auth/register", authLimiter, async (req, res): Promise<void> => {
 
   const { name, email, password, role } = parsed.data;
 
-  // Password strength check
   const passwordError = validatePasswordStrength(password);
   if (passwordError) {
     res.status(400).json({ error: passwordError });
     return;
   }
 
-  // Block anyone from self-assigning admin role
   if (role === "admin") {
     res.status(403).json({ error: "Admin accounts cannot be created through registration" });
     return;
   }
 
-  // Normalize email to lowercase
   const normalizedEmail = email.toLowerCase().trim();
 
   const existing = await db
@@ -134,7 +130,6 @@ router.post("/auth/login", authLimiter, async (req, res): Promise<void> => {
     .from(usersTable)
     .where(eq(usersTable.email, normalizedEmail));
 
-  // Verify password — check both in one step to prevent timing attacks
   const passwordValid = user ? await verifyPassword(password, user.password) : false;
 
   if (!user || !passwordValid) {

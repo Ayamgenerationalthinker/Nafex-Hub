@@ -16,6 +16,7 @@ import adminUsersRouter from "./admin-users";
 import adminActivityRouter from "./admin-activity";
 import servicesRouter from "./services";
 import collectionsRouter from "./collections";
+import uploadRouter from "./upload";
 
 const router: IRouter = Router();
 
@@ -36,5 +37,6 @@ router.use(adminUsersRouter);
 router.use(adminActivityRouter);
 router.use(servicesRouter);
 router.use(collectionsRouter);
+router.use(uploadRouter);
 
 export default router;
