@@ -7,6 +7,10 @@ import { sendAdminEmail } from "../lib/mailer";
 
 const router: IRouter = Router();
 
+function generateOtp(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
 const OrderItemSchema = z.object({
   name: z.string(),
   quantity: z.number().int().positive(),
@@ -25,7 +29,15 @@ const OrderParams = z.object({
 });
 
 const UpdateStatusBody = z.object({
-  status: z.enum(["pending", "confirmed", "shipped", "delivered", "cancelled"]),
+  status: z.enum(["pending", "confirmed", "packed", "out_for_delivery", "delivered", "cancelled"]),
+});
+
+const PayBody = z.object({
+  reference: z.string().min(1).max(100),
+});
+
+const ConfirmDeliveryBody = z.object({
+  otp: z.string().length(6),
 });
 
 async function attachBusinessDetails(orders: typeof ordersTable.$inferSelect[]) {
@@ -44,6 +56,7 @@ async function attachBusinessDetails(orders: typeof ordersTable.$inferSelect[]) 
   );
 }
 
+// Create order
 router.post("/orders", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   const parsed = CreateOrderBody.safeParse(req.body);
   if (!parsed.success) {
@@ -60,6 +73,7 @@ router.post("/orders", requireAuth, async (req: AuthRequest, res): Promise<void>
       totalPrice: parsed.data.totalPrice,
       notes: parsed.data.notes,
       status: "pending",
+      paymentStatus: "unpaid",
     })
     .returning();
 
@@ -71,6 +85,47 @@ router.post("/orders", requireAuth, async (req: AuthRequest, res): Promise<void>
   res.status(201).json(order);
 });
 
+// Buyer: submit mobile money payment reference → lock escrow
+router.post("/orders/:id/pay", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const params = OrderParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid order id" }); return; }
+
+  const parsed = PayBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "reference is required" }); return; }
+
+  const [existing] = await db.select().from(ordersTable).where(eq(ordersTable.id, params.data.id));
+  if (!existing) { res.status(404).json({ error: "Order not found" }); return; }
+  if (existing.userId !== req.userId) { res.status(403).json({ error: "Not your order" }); return; }
+  if (existing.paymentStatus !== "unpaid") { res.status(409).json({ error: "Payment already recorded" }); return; }
+
+  const [updated] = await db
+    .update(ordersTable)
+    .set({ paymentStatus: "in_escrow", paymentReference: parsed.data.reference, updatedAt: new Date() })
+    .where(eq(ordersTable.id, params.data.id))
+    .returning();
+
+  // Notify the seller's business owner
+  try {
+    const [business] = await db
+      .select({ ownerId: businessesTable.ownerId, name: businessesTable.name })
+      .from(businessesTable)
+      .where(eq(businessesTable.id, existing.businessId));
+    if (business && business.ownerId !== null) {
+      await db.insert(notificationsTable).values({
+        userId: business.ownerId,
+        type: "order_update",
+        title: `Payment received for Order #${existing.id}`,
+        body: `The buyer has submitted a mobile money reference for Order #${existing.id}. Funds are now in escrow.`,
+        relatedId: existing.id,
+        isRead: false,
+      });
+    }
+  } catch {}
+
+  res.json(updated);
+});
+
+// Buyer orders
 router.get("/orders/user", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   const orders = await db
     .select()
@@ -82,17 +137,14 @@ router.get("/orders/user", requireAuth, async (req: AuthRequest, res): Promise<v
   res.json(withDetails);
 });
 
+// Seller orders
 router.get("/orders/business", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  // Get the business(es) owned by this user
   const businesses = await db
     .select({ id: businessesTable.id })
     .from(businessesTable)
     .where(eq(businessesTable.ownerId, req.userId!));
 
-  if (businesses.length === 0) {
-    res.json([]);
-    return;
-  }
+  if (businesses.length === 0) { res.json([]); return; }
 
   const businessIds = businesses.map((b) => b.id);
   const allOrders: typeof ordersTable.$inferSelect[] = [];
@@ -111,37 +163,66 @@ router.get("/orders/business", requireAuth, async (req: AuthRequest, res): Promi
   res.json(withDetails);
 });
 
+// Seller: update order status
 router.patch("/orders/:id/status", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   const params = OrderParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+
+  const parsed = UpdateStatusBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+
+  // Verify the user owns the business for this order
+  const [existing] = await db.select().from(ordersTable).where(eq(ordersTable.id, params.data.id));
+  if (!existing) { res.status(404).json({ error: "Order not found" }); return; }
+
+  const [business] = await db
+    .select({ ownerId: businessesTable.ownerId })
+    .from(businessesTable)
+    .where(eq(businessesTable.id, existing.businessId));
+
+  if (!business || business.ownerId !== req.userId) {
+    res.status(403).json({ error: "Not your order" });
     return;
   }
 
-  const parsed = UpdateStatusBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
+  const updateFields: Partial<typeof ordersTable.$inferInsert> & { updatedAt: Date; deliveryOtp?: string | null; deliveryOtpExpiry?: Date | null } = {
+    status: parsed.data.status,
+    updatedAt: new Date(),
+  };
+
+  // Auto-generate OTP when dispatching for delivery
+  if (parsed.data.status === "out_for_delivery") {
+    const otp = generateOtp();
+    const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+    updateFields.deliveryOtp = otp;
+    updateFields.deliveryOtpExpiry = expiry;
   }
 
   const [order] = await db
     .update(ordersTable)
-    .set({ status: parsed.data.status, updatedAt: new Date() })
+    .set(updateFields)
     .where(eq(ordersTable.id, params.data.id))
     .returning();
 
-  if (!order) {
-    res.status(404).json({ error: "Order not found" });
-    return;
-  }
-
-  // Notify the customer about their order status change
+  // Notify the customer
   try {
+    const statusLabels: Record<string, string> = {
+      confirmed: "confirmed",
+      packed: "packed and ready",
+      out_for_delivery: "out for delivery",
+      delivered: "delivered",
+      cancelled: "cancelled",
+    };
+    const label = statusLabels[parsed.data.status] ?? parsed.data.status;
+    let body = `Your order status has been updated to "${label}".`;
+    if (parsed.data.status === "out_for_delivery" && updateFields.deliveryOtp) {
+      body = `Your order is out for delivery! Your delivery OTP is: ${updateFields.deliveryOtp}. Share this code with your delivery person to confirm receipt.`;
+    }
     await db.insert(notificationsTable).values({
       userId: order.userId,
       type: "order_update",
-      title: `Order #${order.id} ${parsed.data.status}`,
-      body: `Your order status has been updated to "${parsed.data.status}".`,
+      title: `Order #${order.id} is ${label}`,
+      body,
       relatedId: order.id,
       isRead: false,
     });
@@ -150,17 +231,77 @@ router.patch("/orders/:id/status", requireAuth, async (req: AuthRequest, res): P
   res.json(order);
 });
 
-// GET /orders/business/clients — unique buyers who ordered from this seller's business
+// Seller: confirm delivery by OTP → mark delivered + release escrow
+router.post("/orders/:id/confirm-delivery", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const params = OrderParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid order id" }); return; }
+
+  const parsed = ConfirmDeliveryBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "A 6-digit OTP is required" }); return; }
+
+  const [existing] = await db.select().from(ordersTable).where(eq(ordersTable.id, params.data.id));
+  if (!existing) { res.status(404).json({ error: "Order not found" }); return; }
+
+  // Verify seller owns the business
+  const [business] = await db
+    .select({ ownerId: businessesTable.ownerId })
+    .from(businessesTable)
+    .where(eq(businessesTable.id, existing.businessId));
+  if (!business || business.ownerId !== req.userId) {
+    res.status(403).json({ error: "Not your order" });
+    return;
+  }
+
+  if (existing.status !== "out_for_delivery") {
+    res.status(409).json({ error: "Order is not out for delivery" });
+    return;
+  }
+
+  if (!existing.deliveryOtp || existing.deliveryOtp !== parsed.data.otp) {
+    res.status(400).json({ error: "Invalid OTP" });
+    return;
+  }
+
+  if (existing.deliveryOtpExpiry && existing.deliveryOtpExpiry < new Date()) {
+    res.status(400).json({ error: "OTP has expired. Please regenerate by re-dispatching the order." });
+    return;
+  }
+
+  const [order] = await db
+    .update(ordersTable)
+    .set({
+      status: "delivered",
+      paymentStatus: existing.paymentStatus === "in_escrow" ? "released" : existing.paymentStatus,
+      deliveryOtp: null,
+      deliveryOtpExpiry: null,
+      updatedAt: new Date(),
+    })
+    .where(eq(ordersTable.id, params.data.id))
+    .returning();
+
+  // Notify buyer: delivered + escrow released
+  try {
+    await db.insert(notificationsTable).values({
+      userId: order.userId,
+      type: "order_update",
+      title: `Order #${order.id} Delivered!`,
+      body: `Your order has been delivered and confirmed. ${existing.paymentStatus === "in_escrow" ? "Escrow funds have been released to the seller." : ""}`,
+      relatedId: order.id,
+      isRead: false,
+    });
+  } catch {}
+
+  res.json(order);
+});
+
+// Seller clients
 router.get("/orders/business/clients", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   const [business] = await db
     .select({ id: businessesTable.id })
     .from(businessesTable)
     .where(eq(businessesTable.ownerId, req.userId!));
 
-  if (!business) {
-    res.json([]);
-    return;
-  }
+  if (!business) { res.json([]); return; }
 
   const orders = await db
     .select({

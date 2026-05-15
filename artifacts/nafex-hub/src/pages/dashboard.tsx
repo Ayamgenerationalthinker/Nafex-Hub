@@ -57,24 +57,40 @@ import {
   Loader2,
   Users,
   Tag,
+  Box,
+  MapPin,
+  ShieldCheck,
+  KeyRound,
+  AlertCircle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/image-upload";
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-800",
-  confirmed: "bg-blue-100 text-blue-800",
-  shipped: "bg-purple-100 text-purple-800",
-  delivered: "bg-green-100 text-green-800",
-  cancelled: "bg-red-100 text-red-800",
+  pending:          "bg-yellow-100 text-yellow-800",
+  confirmed:        "bg-blue-100 text-blue-800",
+  packed:           "bg-orange-100 text-orange-800",
+  out_for_delivery: "bg-indigo-100 text-indigo-800",
+  shipped:          "bg-purple-100 text-purple-800",
+  delivered:        "bg-green-100 text-green-800",
+  cancelled:        "bg-red-100 text-red-800",
 };
 
 const STATUS_ICONS: Record<string, React.ReactNode> = {
-  pending: <Clock className="w-3 h-3" />,
-  confirmed: <CheckCircle2 className="w-3 h-3" />,
-  shipped: <Truck className="w-3 h-3" />,
-  delivered: <Package className="w-3 h-3" />,
-  cancelled: <XCircle className="w-3 h-3" />,
+  pending:          <Clock className="w-3 h-3" />,
+  confirmed:        <CheckCircle2 className="w-3 h-3" />,
+  packed:           <Box className="w-3 h-3" />,
+  out_for_delivery: <Truck className="w-3 h-3" />,
+  shipped:          <Truck className="w-3 h-3" />,
+  delivered:        <Package className="w-3 h-3" />,
+  cancelled:        <XCircle className="w-3 h-3" />,
+};
+
+const PAYMENT_BADGE: Record<string, { label: string; color: string }> = {
+  unpaid:    { label: "Unpaid",     color: "bg-gray-100 text-gray-600" },
+  in_escrow: { label: "In Escrow",  color: "bg-amber-100 text-amber-700" },
+  released:  { label: "Released",   color: "bg-green-100 text-green-700" },
+  refunded:  { label: "Refunded",   color: "bg-red-100 text-red-600" },
 };
 
 export default function Dashboard() {
@@ -199,8 +215,42 @@ export default function Dashboard() {
         toast({ title: "Order status updated" });
         refetchOrders();
       },
+      onError: () => toast({ title: "Failed to update status", variant: "destructive" }),
     },
   });
+
+  // ── OTP Delivery Confirmation ──
+  const [otpInput, setOtpInput] = useState<Record<number, string>>({});
+  const [otpLoading, setOtpLoading] = useState<number | null>(null);
+  const [showOtpForm, setShowOtpForm] = useState<Record<number, boolean>>({});
+
+  async function confirmDelivery(orderId: number) {
+    const otp = otpInput[orderId]?.trim();
+    if (!otp || otp.length !== 6) {
+      toast({ title: "Enter the 6-digit OTP from the buyer", variant: "destructive" });
+      return;
+    }
+    setOtpLoading(orderId);
+    try {
+      const t = localStorage.getItem("nafex_token");
+      const res = await fetch(`/api/orders/${orderId}/confirm-delivery`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` },
+        body: JSON.stringify({ otp }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error ?? "Confirmation failed");
+      }
+      toast({ title: "Delivery confirmed!", description: "Order marked as delivered and escrow released." });
+      setShowOtpForm((p) => ({ ...p, [orderId]: false }));
+      refetchOrders();
+    } catch (e: unknown) {
+      toast({ title: "Error", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setOtpLoading(null);
+    }
+  }
 
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -439,52 +489,119 @@ export default function Dashboard() {
               <p>No orders yet</p>
             </div>
           ) : (
-            orders.map((order) => (
-              <Card key={order.id} className="border-border/50">
-                <CardContent className="pt-5 pb-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-foreground text-sm">Order #{order.id}</span>
-                        <span
-                          className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[order.status]}`}
-                        >
-                          {STATUS_ICONS[order.status]}
-                          {order.status}
-                        </span>
+            (orders as (typeof orders[0] & { paymentStatus?: string; paymentReference?: string | null })[]).map((order) => {
+              const payBadge = PAYMENT_BADGE[order.paymentStatus ?? "unpaid"] ?? PAYMENT_BADGE.unpaid;
+              const isFinal = order.status === "delivered" || order.status === "cancelled";
+              const SELLER_FLOW: { key: string; label: string; nextStatus: string }[] = [
+                { key: "pending",          label: "Confirm Order",       nextStatus: "confirmed" },
+                { key: "confirmed",        label: "Mark Packed",         nextStatus: "packed" },
+                { key: "packed",           label: "Out for Delivery",    nextStatus: "out_for_delivery" },
+              ];
+              const nextAction = SELLER_FLOW.find((f) => f.key === order.status);
+
+              return (
+                <Card key={order.id} className="border-border/50">
+                  <CardContent className="pt-5 pb-4 space-y-3">
+                    {/* Header row */}
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold text-foreground text-sm">Order #{order.id}</span>
+                          <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[order.status]}`}>
+                            {STATUS_ICONS[order.status]}
+                            {order.status.replace(/_/g, " ")}
+                          </span>
+                          <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${payBadge.color}`}>
+                            <ShieldCheck className="w-3 h-3" /> {payBadge.label}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {(order.items as { name: string; quantity: number; price: number }[])
+                            .map((i) => `${i.name} ×${i.quantity}`)
+                            .join(", ")}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          GHS {((order.totalPrice ?? 0) / 100).toFixed(2)} · {new Date(order.createdAt).toLocaleDateString()}
+                        </p>
+                        {order.paymentReference && (
+                          <p className="text-xs text-amber-700 font-medium">
+                            MoMo Ref: {order.paymentReference}
+                          </p>
+                        )}
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        {(order.items as { name: string; quantity: number; price: number }[])
-                          .map((i) => `${i.name} x${i.quantity}`)
-                          .join(", ")}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        GHS {((order.totalPrice ?? 0) / 100).toFixed(2)} ·{" "}
-                        {new Date(order.createdAt).toLocaleDateString()}
-                      </p>
+
+                      {/* Action buttons */}
+                      {!isFinal && (
+                        <div className="flex flex-wrap gap-2 flex-shrink-0">
+                          {nextAction && (
+                            <Button
+                              size="sm"
+                              className="text-xs h-7"
+                              onClick={() => updateStatus({ id: order.id, data: { status: nextAction.nextStatus as "confirmed" | "packed" | "out_for_delivery" } })}
+                            >
+                              {nextAction.label}
+                            </Button>
+                          )}
+                          {order.status === "out_for_delivery" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs h-7 border-green-400 text-green-700 hover:bg-green-50 gap-1"
+                              onClick={() => setShowOtpForm((p) => ({ ...p, [order.id]: !p[order.id] }))}
+                            >
+                              <KeyRound className="w-3 h-3" /> Confirm Delivery (OTP)
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-xs h-7 text-red-500 hover:text-red-600 hover:bg-red-50"
+                            onClick={() => updateStatus({ id: order.id, data: { status: "cancelled" } })}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {(["confirmed", "shipped", "delivered"] as const).map((s) => (
+
+                    {/* OTP entry form */}
+                    {showOtpForm[order.id] && (
+                      <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                        <KeyRound className="w-4 h-4 text-green-600 flex-shrink-0 mt-1 sm:mt-0" />
+                        <p className="text-xs text-green-700 font-medium flex-shrink-0">Enter buyer's OTP:</p>
+                        <Input
+                          placeholder="6-digit OTP"
+                          maxLength={6}
+                          value={otpInput[order.id] ?? ""}
+                          onChange={(e) => setOtpInput((p) => ({ ...p, [order.id]: e.target.value.replace(/\D/g, "") }))}
+                          className="h-8 text-sm font-mono tracking-widest max-w-[140px]"
+                        />
                         <Button
-                          key={s}
-                          variant="outline"
                           size="sm"
-                          disabled={
-                            order.status === s ||
-                            order.status === "delivered" ||
-                            order.status === "cancelled"
-                          }
-                          className="text-xs h-7"
-                          onClick={() => updateStatus({ id: order.id, data: { status: s } })}
+                          className="h-8 gap-1 bg-green-600 hover:bg-green-700 text-white"
+                          disabled={otpLoading === order.id}
+                          onClick={() => confirmDelivery(order.id)}
                         >
-                          Mark {s}
+                          {otpLoading === order.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
+                          Confirm
                         </Button>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+                        <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setShowOtpForm((p) => ({ ...p, [order.id]: false }))}>
+                          Cancel
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Escrow released banner */}
+                    {order.paymentStatus === "released" && (
+                      <div className="flex items-center gap-2 text-xs text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                        <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0" />
+                        Escrow released — payment has been confirmed and funds are available.
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })
           )}
         </TabsContent>
 
