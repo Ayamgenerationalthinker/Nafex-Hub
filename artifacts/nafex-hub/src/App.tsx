@@ -32,6 +32,7 @@ import SellerSettings from "@/pages/seller-settings";
 import MyShop from "@/pages/my-shop";
 import BuyerSettings from "@/pages/buyer-settings";
 import Help from "@/pages/help";
+import SellerPerformance from "@/pages/seller-performance";
 
 const queryClient = new QueryClient();
 
@@ -89,6 +90,7 @@ function Router() {
             <Route path="/my-shop">{() => <ProtectedRoute component={MyShop} roles={["business_owner"]} to="/explore" />}</Route>
             <Route path="/account/settings">{() => <ProtectedRoute component={BuyerSettings} roles={["user"]} to="/explore" />}</Route>
             <Route path="/help" component={Help} />
+            <Route path="/seller/performance">{() => <ProtectedRoute component={SellerPerformance} roles={["business_owner"]} to="/explore" />}</Route>
             <Route component={NotFound} />
           </Switch>
         </Layout>

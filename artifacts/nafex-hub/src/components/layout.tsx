@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail, Tag, Headphones, Settings, ChevronDown, HelpCircle, User2, ClipboardList, Star, Truck } from "lucide-react";
+import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail, Tag, Headphones, Settings, ChevronDown, HelpCircle, User2, ClipboardList, Star, Truck, TrendingUp } from "lucide-react";
 import { NotificationBell } from "@/components/notification-bell";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 
@@ -58,10 +58,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
     : isBusinessOwner
     ? [
         { href: "/dashboard", label: "Dashboard" },
-        { href: "/my-shop", label: "My Shop" },
         { href: "/inbox", label: "Inbox" },
         { href: "/orders", label: "Orders" },
-        { href: "/seller/settings", label: "Settings" },
       ]
     : user
     ? [
@@ -182,8 +180,57 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   </>
                 )}
 
-                {/* Seller/Admin: simple logout */}
-                {(isBusinessOwner || isAdmin) && (
+                {/* Seller: account dropdown */}
+                {isBusinessOwner && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="gap-1.5 text-secondary-foreground/80 hover:text-primary hover:bg-white/10 px-2" data-testid="btn-user-menu">
+                        <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                          <span className="text-xs font-bold text-primary">{user.name.charAt(0).toUpperCase()}</span>
+                        </div>
+                        <span className="text-sm">Hi, {user.name.split(" ")[0]}</span>
+                        <ChevronDown className="w-3 h-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-52">
+                      <div className="px-3 py-2 border-b border-border/50">
+                        <p className="text-sm font-semibold text-foreground truncate">{user.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                      </div>
+                      <DropdownMenuItem asChild>
+                        <Link href="/my-shop" className="flex items-center gap-2 cursor-pointer">
+                          <Store className="w-4 h-4 text-muted-foreground" /> My Shop
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/seller/performance" className="flex items-center gap-2 cursor-pointer">
+                          <TrendingUp className="w-4 h-4 text-muted-foreground" /> Performance
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/dashboard?tab=feedback" className="flex items-center gap-2 cursor-pointer">
+                          <Star className="w-4 h-4 text-muted-foreground" /> Feedback
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/seller/settings" className="flex items-center gap-2 cursor-pointer">
+                          <Settings className="w-4 h-4 text-muted-foreground" /> Settings
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={logout}
+                        className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
+                        data-testid="btn-logout"
+                      >
+                        <LogOut className="w-4 h-4" /> Log out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+
+                {/* Admin: simple logout */}
+                {isAdmin && (
                   <Button
                     variant="ghost"
                     onClick={logout}
