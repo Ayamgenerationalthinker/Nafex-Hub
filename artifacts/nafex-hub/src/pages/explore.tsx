@@ -55,7 +55,7 @@ export default function Explore() {
   );
 
   const { data: categories } = useGetCategories();
-  const categoryOptions = ["All", ...(categories?.map(c => c.category) || ["Clothing", "Footwear", "Accessories"])];
+  const categoryOptions = ["All", ...(categories?.map(c => c.category) || ["Clothing", "Footwear", "Accessories", "Food & Drinks", "Electronics", "Beauty & Skincare"])];
 
   const topSellerIds = useMemo(() => {
     if (!businesses) return new Set<number>();

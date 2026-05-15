@@ -14,9 +14,86 @@ import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/image-upload";
 import { Loader2, Store } from "lucide-react";
 
+export const ALL_CATEGORIES = [
+  // Fashion & Style
+  "Clothing",
+  "Footwear",
+  "Accessories",
+  "Jewelry & Watches",
+  "Bags & Luggage",
+  "Fabric & Textiles",
+  // Food & Beverages
+  "Food & Drinks",
+  "Groceries & Supermarket",
+  "Restaurants & Chop Bars",
+  "Catering & Events Food",
+  "Beverages & Drinks",
+  "Bakery & Pastries",
+  "Farm Produce",
+  // Electronics & Tech
+  "Electronics",
+  "Phones & Gadgets",
+  "Computers & Laptops",
+  "Home Appliances",
+  "Solar & Power",
+  // Home & Living
+  "Furniture",
+  "Home Decor",
+  "Bedding & Bath",
+  "Kitchen & Cookware",
+  "Building Materials",
+  // Health & Beauty
+  "Beauty & Skincare",
+  "Hair & Wigs",
+  "Health & Wellness",
+  "Pharmacy & Medicine",
+  "Gym & Fitness Equipment",
+  // Services
+  "Cleaning Services",
+  "Laundry & Dry Cleaning",
+  "Construction & Repairs",
+  "Photography & Videography",
+  "Event Planning",
+  "Printing & Branding",
+  "Transport & Logistics",
+  "Security Services",
+  // Automotive
+  "Cars & Vehicles",
+  "Auto Parts & Accessories",
+  "Car Wash & Repairs",
+  // Education
+  "Tutoring & Lessons",
+  "Books & Stationery",
+  "Training & Courses",
+  // Kids & Baby
+  "Baby & Kids",
+  "Toys & Games",
+  "School Supplies",
+  // Sports & Outdoors
+  "Sports & Fitness",
+  "Outdoor & Adventure",
+  // Agriculture
+  "Agriculture & Farming",
+  "Livestock & Poultry",
+  // Arts & Entertainment
+  "Crafts & Handmade",
+  "Art & Collectibles",
+  "Music & Instruments",
+  "Gaming & Consoles",
+  // Travel & Real Estate
+  "Travel & Tours",
+  "Property & Real Estate",
+  // Finance & Other
+  "Financial Services",
+  "Insurance",
+  "Other",
+] as const;
+
+export type BusinessCategory = (typeof ALL_CATEGORIES)[number];
+
 const listBusinessSchema = z.object({
   name: z.string().min(2, "Business name must be at least 2 characters"),
-  category: z.enum(["Clothing", "Footwear", "Accessories"]),
+  category: z.enum(ALL_CATEGORIES),
   description: z.string().min(20, "Description must be at least 20 characters"),
   location: z.string().min(2, "Location is required"),
   phone: z.string().min(8, "Please enter a valid phone number"),
@@ -82,7 +159,7 @@ export default function ListBusiness() {
           </div>
           <h1 className="font-serif text-3xl md:text-4xl font-bold text-foreground">List Your Business</h1>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-            Join Ghana's premier fashion marketplace and reach thousands of customers across the country.
+            Join Nafex Hub and reach thousands of customers across Ghana — whatever you sell.
           </p>
         </div>
       </div>
@@ -117,10 +194,10 @@ export default function ListBusiness() {
                             <SelectValue placeholder="Select a category" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Clothing">Clothing</SelectItem>
-                          <SelectItem value="Footwear">Footwear</SelectItem>
-                          <SelectItem value="Accessories">Accessories</SelectItem>
+                        <SelectContent className="max-h-72">
+                          {ALL_CATEGORIES.map((cat) => (
+                            <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
