@@ -204,10 +204,25 @@ router.post("/businesses", async (req, res): Promise<void> => {
   res.status(201).json(business);
 });
 
-router.put("/businesses/:id", async (req, res): Promise<void> => {
+router.put("/businesses/:id", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   const params = UpdateBusinessParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const [existing] = await db
+    .select({ ownerId: businessesTable.ownerId })
+    .from(businessesTable)
+    .where(eq(businessesTable.id, params.data.id));
+
+  if (!existing) {
+    res.status(404).json({ error: "Business not found" });
+    return;
+  }
+
+  if (existing.ownerId !== req.userId && req.user?.role !== "admin") {
+    res.status(403).json({ error: "Forbidden" });
     return;
   }
 
@@ -222,11 +237,6 @@ router.put("/businesses/:id", async (req, res): Promise<void> => {
     .set(parsed.data)
     .where(eq(businessesTable.id, params.data.id))
     .returning();
-
-  if (!business) {
-    res.status(404).json({ error: "Business not found" });
-    return;
-  }
 
   res.json(business);
 });
