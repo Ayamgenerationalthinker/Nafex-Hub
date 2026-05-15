@@ -1,0 +1,164 @@
+You are working on an existing full-stack application called Nafex Hub.
+
+⚠️ CRITICAL RULES:
+
+* DO NOT break existing features
+* DO NOT redesign UI
+* Extend functionality cleanly
+* Maintain current architecture
+
+---
+
+## 🎯 OBJECTIVE
+
+Implement a complete role-based system, seller dashboard, unlimited product uploads, and admin control system.
+
+---
+
+## 🧱 1. USER ROLES SYSTEM
+
+Update roles:
+
+* "user" (shopper)
+* "seller"
+* "admin" (hidden, not selectable)
+
+---
+
+### AUTH CHANGES:
+
+* Remove "admin" from signup options
+* Only allow:
+
+  * User
+  * Seller
+
+---
+
+## 🧱 2. ADMIN INVITE SYSTEM
+
+Create:
+
+* /admin/invite
+
+Functionality:
+
+* Generate unique invite link
+* Example:
+  /invite/admin?token=XYZ123
+
+When accessed:
+
+* assigns user role = "admin"
+
+---
+
+## 🧱 3. SELLER DASHBOARD
+
+Create route:
+/seller/dashboard
+
+Seller can:
+
+* Add products (UNLIMITED)
+* Create collections
+* View their collections
+* View other sellers’ collections
+* View analytics (views, clicks, messages)
+
+---
+
+## 🧱 4. SHOPPER EXPERIENCE
+
+If role = "user":
+
+Allow only:
+
+* Browse products
+* View collections
+* Contact sellers (WhatsApp)
+* No dashboard access
+
+---
+
+## 🧱 5. ADMIN SUPER CONTROL
+
+Admin dashboard should include:
+
+### Business Control:
+
+* View all sellers
+* View all products
+* View all collections
+
+---
+
+### FEATURE CONTROL:
+
+Admin can:
+
+* Mark as "Top Rated"
+* Mark as "Trending"
+
+Add to Business model:
+
+* isTopRated (Boolean)
+* isTrending (Boolean)
+
+---
+
+## 🧱 6. FRONTEND LOGIC
+
+Homepage sections:
+
+* "Top Rated" → show isTopRated = true
+* "Trending" → show isTrending = true
+
+---
+
+## 🧱 7. ADMIN VIEW-AS FEATURE
+
+Admin can:
+
+* Click "View as Seller"
+* See seller dashboard as that seller
+
+---
+
+## 🧱 8. UNLIMITED PRODUCTS
+
+Remove any product upload limits.
+
+Ensure:
+
+* No max constraint
+* Efficient loading (pagination if needed)
+
+---
+
+## 🔐 SECURITY
+
+* Only admins access admin routes
+* Sellers access seller dashboard only
+* Users cannot access admin/seller routes
+
+---
+
+## 🎨 UI RULES
+
+* Reuse existing UI components
+* Keep layout consistent
+* No redesign
+
+---
+
+## 🚀 OUTPUT REQUIREMENTS
+
+* Fully working role system
+* Seller dashboard functional
+* Admin invite system working
+* Unlimited product uploads
+* Top Rated & Trending controlled by admin
+* No breaking changes
+
+Focus on structure, scalability, and clean role separation.
