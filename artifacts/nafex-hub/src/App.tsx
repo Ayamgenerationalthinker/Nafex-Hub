@@ -28,21 +28,17 @@ import Discounts from "@/pages/discounts";
 
 const queryClient = new QueryClient();
 
-// Connect API client to auth state
 setAuthTokenGetter(() => localStorage.getItem("nafex_token"));
 
 function Router() {
   return (
     <Switch>
-      {/* Admin sub-routes — use their own full-page layout (no navbar/footer) */}
       <Route path="/admin/dashboard" component={AdminDashboard} />
       <Route path="/admin/businesses" component={AdminBusinessesPage} />
       <Route path="/admin/analytics" component={AdminAnalytics} />
       <Route path="/admin/settings" component={AdminSettingsPage} />
       <Route path="/admin/products" component={AdminProductsPage} />
       <Route path="/admin/services" component={AdminServicesPage} />
-
-      {/* All other routes wrapped in the main site Layout */}
       <Route>
         <Layout>
           <Switch>

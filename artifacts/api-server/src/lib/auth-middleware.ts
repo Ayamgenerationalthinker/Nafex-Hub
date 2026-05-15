@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { parseToken } from "../routes/auth";
 
 export type AuthUser = {
   id: number;
@@ -27,17 +28,18 @@ export async function requireAuth(
   }
 
   const token = authHeader.slice(7);
-  let userId: number;
-  try {
-    const decoded = Buffer.from(token, "base64").toString("utf-8");
-    userId = parseInt(decoded.split(":")[0], 10);
-    if (isNaN(userId)) throw new Error("Invalid token");
-  } catch {
-    res.status(401).json({ error: "Invalid token" });
+  const parsed = parseToken(token);
+
+  if (!parsed) {
+    res.status(401).json({ error: "Invalid or expired token. Please log in again." });
     return;
   }
 
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  const [user] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.id, parsed.userId));
+
   if (!user) {
     res.status(401).json({ error: "User not found" });
     return;
@@ -57,13 +59,8 @@ export function optionalAuth(
   const authHeader = req.headers.authorization;
   if (authHeader?.startsWith("Bearer ")) {
     const token = authHeader.slice(7);
-    try {
-      const decoded = Buffer.from(token, "base64").toString("utf-8");
-      const userId = parseInt(decoded.split(":")[0], 10);
-      if (!isNaN(userId)) req.userId = userId;
-    } catch {
-      // ignore
-    }
+    const parsed = parseToken(token);
+    if (parsed) req.userId = parsed.userId;
   }
   next();
 }

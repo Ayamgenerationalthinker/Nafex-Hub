@@ -15,6 +15,7 @@ import {
   useUpdateCollection,
   useDeleteCollection,
   useUpdateProductCollection,
+  useCreateProduct,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -57,6 +58,7 @@ import {
   Users,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { ImageUpload } from "@/components/image-upload";
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -86,7 +88,6 @@ export default function Dashboard() {
 
   const { data: stats, isLoading: statsLoading } = useGetDashboardStats();
 
-  // stats has an extra businessId field added by the backend (not in spec type but present at runtime)
   const businessId = (stats as { businessId?: number } | undefined)?.businessId ?? 0;
 
   const { data: analytics, isLoading: analyticsLoading } = useGetBusinessAnalytics(
@@ -112,6 +113,28 @@ export default function Dashboard() {
   });
 
   const [stockEdits, setStockEdits] = useState<Record<number, string>>({});
+
+  // ── Add Product ──
+  const [showAddProduct, setShowAddProduct] = useState(false);
+  const [newProductName, setNewProductName] = useState("");
+  const [newProductDesc, setNewProductDesc] = useState("");
+  const [newProductPrice, setNewProductPrice] = useState("");
+  const [newProductImages, setNewProductImages] = useState<string[]>([]);
+
+  const { mutate: createProduct, isPending: creatingProduct } = useCreateProduct({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Product added!" });
+        setShowAddProduct(false);
+        setNewProductName("");
+        setNewProductDesc("");
+        setNewProductPrice("");
+        setNewProductImages([]);
+        refetchProducts();
+      },
+      onError: () => toast({ title: "Failed to add product", variant: "destructive" }),
+    },
+  });
 
   // ── Collections ──
   const [showCreateCollection, setShowCreateCollection] = useState(false);
@@ -384,73 +407,153 @@ export default function Dashboard() {
         <TabsContent value="inventory" className="space-y-4">
           {!businessId ? (
             <div className="text-center py-16 text-muted-foreground">List your business to manage inventory</div>
-          ) : !products || products.length === 0 ? (
-            <div className="text-center py-16 text-muted-foreground">
-              <Boxes className="w-12 h-12 mx-auto mb-4 opacity-30" />
-              <p>No products yet. Add products to start tracking inventory.</p>
-            </div>
           ) : (
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Enter a number to set available units, or leave blank to mark as untracked. Set to 0 to show "Out of Stock".
-              </p>
-              {products.map((product) => {
-                const currentStock = product.stock;
-                const editVal = stockEdits[product.id] !== undefined
-                  ? stockEdits[product.id]
-                  : (currentStock !== null && currentStock !== undefined ? String(currentStock) : "");
-                return (
-                  <Card key={product.id} className="border-border/50">
-                    <CardContent className="py-3 px-4 flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center">
-                        {product.images?.[0] ? (
-                          <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <Package className="w-4 h-4 text-muted-foreground opacity-30" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{product.name}</p>
-                        <p className="text-xs text-muted-foreground">GHS {Number(product.price).toFixed(2)}</p>
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        {currentStock === null || currentStock === undefined ? (
-                          <span className="text-xs text-muted-foreground hidden sm:block">untracked</span>
-                        ) : currentStock === 0 ? (
-                          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700 hidden sm:block">Out of Stock</span>
-                        ) : (
-                          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 hidden sm:block">{currentStock} in stock</span>
-                        )}
-                        <input
-                          type="number"
-                          min="0"
-                          placeholder="—"
-                          value={editVal}
-                          onChange={(e) => setStockEdits((prev) => ({ ...prev, [product.id]: e.target.value }))}
-                          className="w-20 h-8 px-2 text-sm border border-border rounded-md bg-background text-center focus:outline-none focus:ring-1 focus:ring-primary"
-                        />
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-8 px-3 text-xs"
-                          onClick={() => {
-                            const val = editVal.trim();
-                            const stock = val === "" ? null : Math.max(0, parseInt(val, 10));
-                            updateStock({ id: product.id, data: { stock } });
-                            setStockEdits((prev) => {
-                              const next = { ...prev };
-                              delete next[product.id];
-                              return next;
-                            });
-                          }}
-                        >
-                          Save
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">Manage your products and stock levels.</p>
+                <Button size="sm" className="gap-2" onClick={() => setShowAddProduct(true)}>
+                  <Plus className="w-4 h-4" /> Add Product
+                </Button>
+              </div>
+
+              {/* Add Product Dialog */}
+              <Dialog open={showAddProduct} onOpenChange={setShowAddProduct}>
+                <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                  <DialogHeader><DialogTitle>Add New Product</DialogTitle></DialogHeader>
+                  <div className="space-y-4 py-2">
+                    <div>
+                      <Label htmlFor="prod-name">Product Name *</Label>
+                      <Input
+                        id="prod-name"
+                        placeholder="e.g. Kente Dress"
+                        value={newProductName}
+                        onChange={(e) => setNewProductName(e.target.value)}
+                        className="mt-1 h-11"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="prod-desc">Description</Label>
+                      <Textarea
+                        id="prod-desc"
+                        placeholder="Describe your product..."
+                        value={newProductDesc}
+                        onChange={(e) => setNewProductDesc(e.target.value)}
+                        className="mt-1"
+                        rows={3}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="prod-price">Price (GHS) *</Label>
+                      <Input
+                        id="prod-price"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={newProductPrice}
+                        onChange={(e) => setNewProductPrice(e.target.value)}
+                        className="mt-1 h-11"
+                      />
+                    </div>
+                    <ImageUpload
+                      value={newProductImages}
+                      onChange={setNewProductImages}
+                      maxImages={5}
+                      label="Product Images"
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setShowAddProduct(false)}>Cancel</Button>
+                    <Button
+                      disabled={!newProductName.trim() || !newProductPrice || creatingProduct}
+                      onClick={() => createProduct({
+                        businessId,
+                        data: {
+                          name: newProductName.trim(),
+                          description: newProductDesc.trim(),
+                          price: parseFloat(newProductPrice).toFixed(2),
+                          images: newProductImages,
+                          businessId,
+                        }
+                      })}
+                    >
+                      {creatingProduct ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
+                      Add Product
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {!products || products.length === 0 ? (
+                <div className="text-center py-16 text-muted-foreground border-2 border-dashed rounded-xl">
+                  <Boxes className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                  <p className="font-medium">No products yet</p>
+                  <p className="text-xs mt-1">Click "Add Product" to add your first product</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Enter a number to set available units, or leave blank to mark as untracked. Set to 0 to show "Out of Stock".
+                  </p>
+                  {products.map((product) => {
+                    const currentStock = product.stock;
+                    const editVal = stockEdits[product.id] !== undefined
+                      ? stockEdits[product.id]
+                      : (currentStock !== null && currentStock !== undefined ? String(currentStock) : "");
+                    return (
+                      <Card key={product.id} className="border-border/50">
+                        <CardContent className="py-3 px-4 flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center">
+                            {product.images?.[0] ? (
+                              <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <Package className="w-4 h-4 text-muted-foreground opacity-30" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">{product.name}</p>
+                            <p className="text-xs text-muted-foreground">GHS {Number(product.price).toFixed(2)}</p>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {currentStock === null || currentStock === undefined ? (
+                              <span className="text-xs text-muted-foreground hidden sm:block">untracked</span>
+                            ) : currentStock === 0 ? (
+                              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700 hidden sm:block">Out of Stock</span>
+                            ) : (
+                              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 hidden sm:block">{currentStock} in stock</span>
+                            )}
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="—"
+                              value={editVal}
+                              onChange={(e) => setStockEdits((prev) => ({ ...prev, [product.id]: e.target.value }))}
+                              className="w-20 h-8 px-2 text-sm border border-border rounded-md bg-background text-center focus:outline-none focus:ring-1 focus:ring-primary"
+                            />
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 px-3 text-xs"
+                              onClick={() => {
+                                const val = editVal.trim();
+                                const stock = val === "" ? null : Math.max(0, parseInt(val, 10));
+                                updateStock({ id: product.id, data: { stock } });
+                                setStockEdits((prev) => {
+                                  const next = { ...prev };
+                                  delete next[product.id];
+                                  return next;
+                                });
+                              }}
+                            >
+                              Save
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </TabsContent>
