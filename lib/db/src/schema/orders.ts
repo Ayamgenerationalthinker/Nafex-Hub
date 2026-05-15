@@ -9,10 +9,18 @@ export const ordersTable = pgTable("orders", {
   items: jsonb("items").notNull().default([]),
   totalPrice: integer("total_price").notNull().default(0),
   status: text("status", {
-    enum: ["pending", "confirmed", "shipped", "delivered", "cancelled"],
+    enum: ["pending", "confirmed", "packed", "out_for_delivery", "delivered", "cancelled"],
   })
     .notNull()
     .default("pending"),
+  paymentStatus: text("payment_status", {
+    enum: ["unpaid", "in_escrow", "released", "refunded"],
+  })
+    .notNull()
+    .default("unpaid"),
+  paymentReference: text("payment_reference"),
+  deliveryOtp: text("delivery_otp"),
+  deliveryOtpExpiry: timestamp("delivery_otp_expiry", { withTimezone: true }),
   notes: text("notes"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),

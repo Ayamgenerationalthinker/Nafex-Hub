@@ -1435,7 +1435,14 @@ components:
           type: integer
         status:
           type: string
-          enum: [pending, confirmed, shipped, delivered, cancelled]
+          enum: [pending, confirmed, packed, out_for_delivery, shipped, delivered, cancelled]
+        paymentStatus:
+          type: string
+          enum: [unpaid, in_escrow, released, refunded]
+        paymentReference:
+          type: ["string", "null"]
+        deliveryOtp:
+          type: ["string", "null"]
         notes:
           type: ["string", "null"]
         createdAt:
@@ -1451,6 +1458,7 @@ components:
         - items
         - totalPrice
         - status
+        - paymentStatus
         - createdAt
         - updatedAt
 
@@ -1487,7 +1495,7 @@ components:
       properties:
         status:
           type: string
-          enum: [pending, confirmed, shipped, delivered, cancelled]
+          enum: [pending, confirmed, packed, out_for_delivery, shipped, delivered, cancelled]
       required:
         - status
 

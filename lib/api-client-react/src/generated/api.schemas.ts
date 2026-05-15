@@ -183,9 +183,21 @@ export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus];
 export const OrderStatus = {
   pending: "pending",
   confirmed: "confirmed",
+  packed: "packed",
+  out_for_delivery: "out_for_delivery",
   shipped: "shipped",
   delivered: "delivered",
   cancelled: "cancelled",
+} as const;
+
+export type OrderPaymentStatus =
+  (typeof OrderPaymentStatus)[keyof typeof OrderPaymentStatus];
+
+export const OrderPaymentStatus = {
+  unpaid: "unpaid",
+  in_escrow: "in_escrow",
+  released: "released",
+  refunded: "refunded",
 } as const;
 
 export interface Order {
@@ -195,6 +207,11 @@ export interface Order {
   items: OrderItem[];
   totalPrice: number;
   status: OrderStatus;
+  paymentStatus: OrderPaymentStatus;
+  /** @nullable */
+  paymentReference?: string | null;
+  /** @nullable */
+  deliveryOtp?: string | null;
   /** @nullable */
   notes?: string | null;
   createdAt: string;
@@ -220,6 +237,8 @@ export type UpdateOrderStatusBodyStatus =
 export const UpdateOrderStatusBodyStatus = {
   pending: "pending",
   confirmed: "confirmed",
+  packed: "packed",
+  out_for_delivery: "out_for_delivery",
   shipped: "shipped",
   delivered: "delivered",
   cancelled: "cancelled",
