@@ -1,9 +1,11 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/layout";
 import { setAuthTokenGetter } from "@workspace/api-client-react";
+import { useAuth } from "@/hooks/use-auth";
+import { useEffect } from "react";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Explore from "@/pages/explore";
@@ -30,32 +32,53 @@ const queryClient = new QueryClient();
 
 setAuthTokenGetter(() => localStorage.getItem("nafex_token"));
 
+function ProtectedRoute({
+  component: C,
+  roles,
+  to = "/login",
+}: {
+  component: React.ComponentType;
+  roles?: Array<"user" | "business_owner" | "admin">;
+  to?: string;
+}) {
+  const { user } = useAuth();
+  const [, nav] = useLocation();
+
+  useEffect(() => {
+    if (!user) nav(to);
+    else if (roles && !roles.includes(user.role)) nav(to);
+  }, [user]);
+
+  if (!user || (roles && !roles.includes(user.role))) return null;
+  return <C />;
+}
+
 function Router() {
   return (
     <Switch>
-      <Route path="/admin/dashboard" component={AdminDashboard} />
-      <Route path="/admin/businesses" component={AdminBusinessesPage} />
-      <Route path="/admin/analytics" component={AdminAnalytics} />
-      <Route path="/admin/settings" component={AdminSettingsPage} />
-      <Route path="/admin/products" component={AdminProductsPage} />
-      <Route path="/admin/services" component={AdminServicesPage} />
+      <Route path="/admin/dashboard">{() => <ProtectedRoute component={AdminDashboard} roles={["admin"]} to="/" />}</Route>
+      <Route path="/admin/businesses">{() => <ProtectedRoute component={AdminBusinessesPage} roles={["admin"]} to="/" />}</Route>
+      <Route path="/admin/analytics">{() => <ProtectedRoute component={AdminAnalytics} roles={["admin"]} to="/" />}</Route>
+      <Route path="/admin/settings">{() => <ProtectedRoute component={AdminSettingsPage} roles={["admin"]} to="/" />}</Route>
+      <Route path="/admin/products">{() => <ProtectedRoute component={AdminProductsPage} roles={["admin"]} to="/" />}</Route>
+      <Route path="/admin/services">{() => <ProtectedRoute component={AdminServicesPage} roles={["admin"]} to="/" />}</Route>
       <Route>
         <Layout>
           <Switch>
             <Route path="/" component={Home} />
             <Route path="/explore" component={Explore} />
             <Route path="/brand/:id" component={BrandProfile} />
-            <Route path="/list" component={ListBusiness} />
-            <Route path="/admin" component={Admin} />
             <Route path="/login" component={Login} />
             <Route path="/register" component={Register} />
-            <Route path="/dashboard" component={Dashboard} />
-            <Route path="/inbox" component={Inbox} />
-            <Route path="/orders" component={Orders} />
-            <Route path="/product/:id" component={ProductDetail} />
-            <Route path="/favorites" component={Favorites} />
             <Route path="/discounts" component={Discounts} />
             <Route path="/services" component={ServicesPage} />
+            <Route path="/product/:id" component={ProductDetail} />
+            <Route path="/dashboard">{() => <ProtectedRoute component={Dashboard} roles={["business_owner", "admin"]} to="/explore" />}</Route>
+            <Route path="/list">{() => <ProtectedRoute component={ListBusiness} roles={["business_owner", "admin"]} to="/explore" />}</Route>
+            <Route path="/admin">{() => <ProtectedRoute component={Admin} roles={["admin"]} to="/" />}</Route>
+            <Route path="/inbox">{() => <ProtectedRoute component={Inbox} />}</Route>
+            <Route path="/orders">{() => <ProtectedRoute component={Orders} />}</Route>
+            <Route path="/favorites">{() => <ProtectedRoute component={Favorites} />}</Route>
             <Route component={NotFound} />
           </Switch>
         </Layout>

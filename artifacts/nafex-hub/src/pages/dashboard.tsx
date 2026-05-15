@@ -56,6 +56,7 @@ import {
   ChevronUp,
   Loader2,
   Users,
+  Tag,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/image-upload";
@@ -227,6 +228,88 @@ export default function Dashboard() {
     }
   }, [activeTab, businessId]);
 
+  // ── Store Settings ──
+  const [bizName, setBizName] = useState("");
+  const [bizPhone, setBizPhone] = useState("");
+  const [bizLocation, setBizLocation] = useState("");
+  const [bizDescription, setBizDescription] = useState("");
+  const [bizLogo, setBizLogo] = useState<string[]>([]);
+  const [bizImages, setBizImages] = useState<string[]>([]);
+  const [bizSettingsLoaded, setBizSettingsLoaded] = useState(false);
+  const [bizSaving, setBizSaving] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === "settings" && businessId && !bizSettingsLoaded) {
+      const t = localStorage.getItem("nafex_token");
+      fetch(`/api/businesses/${businessId}`, {
+        headers: { Authorization: `Bearer ${t}` },
+      })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (data) {
+            setBizName(data.name || "");
+            setBizPhone(data.phone || "");
+            setBizLocation(data.location || "");
+            setBizDescription(data.description || "");
+            setBizLogo(data.logo ? [data.logo] : []);
+            setBizImages(data.images || []);
+            setBizSettingsLoaded(true);
+          }
+        });
+    }
+  }, [activeTab, businessId, bizSettingsLoaded]);
+
+  const saveBizSettings = () => {
+    if (!businessId || bizSaving) return;
+    setBizSaving(true);
+    const t = localStorage.getItem("nafex_token");
+    fetch(`/api/businesses/${businessId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` },
+      body: JSON.stringify({
+        name: bizName,
+        phone: bizPhone,
+        location: bizLocation,
+        description: bizDescription,
+        logo: bizLogo[0] ?? null,
+        images: bizImages,
+      }),
+    })
+      .then((r) => {
+        if (r.ok) toast({ title: "Store settings saved!" });
+        else toast({ title: "Failed to save settings", variant: "destructive" });
+      })
+      .finally(() => setBizSaving(false));
+  };
+
+  // ── Pricing ──
+  const [priceEdits, setPriceEdits] = useState<Record<number, { price: string; discountPrice: string }>>({});
+  const [savingPriceIds, setSavingPriceIds] = useState<Set<number>>(new Set());
+
+  const savePricing = (productId: number) => {
+    const edit = priceEdits[productId];
+    if (!edit) return;
+    const t = localStorage.getItem("nafex_token");
+    setSavingPriceIds((prev) => new Set([...prev, productId]));
+    fetch(`/api/products/${productId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` },
+      body: JSON.stringify({ price: edit.price, discountPrice: edit.discountPrice || null }),
+    })
+      .then((r) => {
+        if (r.ok) {
+          toast({ title: "Price updated!" });
+          refetchProducts();
+          setPriceEdits((prev) => { const next = { ...prev }; delete next[productId]; return next; });
+        } else {
+          toast({ title: "Failed to update price", variant: "destructive" });
+        }
+      })
+      .finally(() =>
+        setSavingPriceIds((prev) => { const next = new Set(prev); next.delete(productId); return next; })
+      );
+  };
+
   const statCards = [
     {
       label: "Total Orders",
@@ -271,13 +354,15 @@ export default function Dashboard() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-6">
+        <TabsList className="mb-6 flex-wrap h-auto gap-1">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
           <TabsTrigger value="inventory">Inventory</TabsTrigger>
           <TabsTrigger value="collections">Collections</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="clients">Clients</TabsTrigger>
+          <TabsTrigger value="pricing">Pricing</TabsTrigger>
+          <TabsTrigger value="settings">Store Settings</TabsTrigger>
         </TabsList>
 
         {/* ── Overview Tab ── */}
@@ -473,7 +558,6 @@ export default function Dashboard() {
                           description: newProductDesc.trim(),
                           price: parseFloat(newProductPrice).toFixed(2),
                           images: newProductImages,
-                          businessId,
                         }
                       })}
                     >
@@ -843,6 +927,154 @@ export default function Dashboard() {
                 </div>
               </CardContent>
             </Card>
+          )}
+        </TabsContent>
+
+        {/* ── Pricing Tab ── */}
+        <TabsContent value="pricing" className="space-y-4">
+          {!businessId ? (
+            <div className="text-center py-16 text-muted-foreground">List your business to manage pricing</div>
+          ) : !products || products.length === 0 ? (
+            <div className="text-center py-16 text-muted-foreground border-2 border-dashed rounded-xl">
+              <Tag className="w-12 h-12 mx-auto mb-4 opacity-30" />
+              <p className="font-medium">No products yet</p>
+              <p className="text-xs mt-1">Add products in the Inventory tab first</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Set the selling price and an optional sale price for each product. Products with a sale price appear in the <strong>Deals</strong> section.
+              </p>
+              <div className="space-y-3">
+                {products.map((product) => {
+                  const p = product as typeof product & { discountPrice?: string | null };
+                  const edit = priceEdits[product.id] ?? {
+                    price: Number(product.price).toFixed(2),
+                    discountPrice: p.discountPrice ? Number(p.discountPrice).toFixed(2) : "",
+                  };
+                  const isSaving = savingPriceIds.has(product.id);
+                  const isDirty = !!priceEdits[product.id];
+                  return (
+                    <Card key={product.id} className="border-border/50">
+                      <CardContent className="py-3 px-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted flex-shrink-0 flex items-center justify-center">
+                              {product.images?.[0] ? (
+                                <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <Package className="w-4 h-4 text-muted-foreground opacity-30" />
+                              )}
+                            </div>
+                            <p className="text-sm font-medium text-foreground truncate">{product.name}</p>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-[11px] text-muted-foreground">Price (GHS)</span>
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={edit.price}
+                                onChange={(e) =>
+                                  setPriceEdits((prev) => ({ ...prev, [product.id]: { ...edit, price: e.target.value } }))
+                                }
+                                className="w-28 h-8 text-sm"
+                              />
+                            </div>
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-[11px] text-muted-foreground">Sale Price (GHS)</span>
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                placeholder="—"
+                                value={edit.discountPrice}
+                                onChange={(e) =>
+                                  setPriceEdits((prev) => ({ ...prev, [product.id]: { ...edit, discountPrice: e.target.value } }))
+                                }
+                                className="w-28 h-8 text-sm"
+                              />
+                            </div>
+                            <Button
+                              size="sm"
+                              variant={isDirty ? "default" : "outline"}
+                              className="h-8 px-3 text-xs self-end"
+                              disabled={isSaving}
+                              onClick={() => savePricing(product.id)}
+                            >
+                              {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : "Save"}
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </TabsContent>
+
+        {/* ── Store Settings Tab ── */}
+        <TabsContent value="settings" className="space-y-6">
+          {!businessId ? (
+            <div className="text-center py-16 text-muted-foreground">List your business first to access store settings</div>
+          ) : (
+            <div className="max-w-2xl space-y-5">
+              <div>
+                <Label htmlFor="biz-name">Store Name</Label>
+                <Input
+                  id="biz-name"
+                  value={bizName}
+                  onChange={(e) => setBizName(e.target.value)}
+                  className="mt-1 h-11"
+                />
+              </div>
+              <div>
+                <Label htmlFor="biz-phone">Phone Number</Label>
+                <Input
+                  id="biz-phone"
+                  value={bizPhone}
+                  onChange={(e) => setBizPhone(e.target.value)}
+                  className="mt-1 h-11"
+                  placeholder="+233..."
+                />
+              </div>
+              <div>
+                <Label htmlFor="biz-location">Location / City</Label>
+                <Input
+                  id="biz-location"
+                  value={bizLocation}
+                  onChange={(e) => setBizLocation(e.target.value)}
+                  className="mt-1 h-11"
+                  placeholder="e.g. Accra, Ghana"
+                />
+              </div>
+              <div>
+                <Label htmlFor="biz-desc">Description</Label>
+                <Textarea
+                  id="biz-desc"
+                  value={bizDescription}
+                  onChange={(e) => setBizDescription(e.target.value)}
+                  className="mt-1"
+                  rows={4}
+                  placeholder="Tell customers about your store..."
+                />
+              </div>
+              <div>
+                <Label className="block mb-2">Store Logo</Label>
+                <ImageUpload value={bizLogo} onChange={setBizLogo} maxImages={1} label="Upload Logo" />
+              </div>
+              <div>
+                <Label className="block mb-2">Banner / Gallery Images</Label>
+                <ImageUpload value={bizImages} onChange={setBizImages} maxImages={6} label="Upload Images" />
+              </div>
+              <Button onClick={saveBizSettings} disabled={bizSaving} className="gap-2">
+                {bizSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                Save Settings
+              </Button>
+            </div>
           )}
         </TabsContent>
       </Tabs>
