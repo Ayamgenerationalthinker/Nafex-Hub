@@ -3,7 +3,8 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail, Tag, Headphones, Settings } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail, Tag, Headphones, Settings, ChevronDown, HelpCircle, User2, ClipboardList, Star, Truck } from "lucide-react";
 import { NotificationBell } from "@/components/notification-bell";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 
@@ -103,35 +104,96 @@ export function Layout({ children }: { children: React.ReactNode }) {
             ))}
 
             {user ? (
-              <div className="flex items-center gap-2">
-                {!isBusinessOwner && !isAdmin && (
-                  <Link
-                    href="/favorites"
-                    className={`flex items-center justify-center w-9 h-9 rounded-full hover:bg-white/10 transition-colors ${location === "/favorites" ? "text-primary" : "text-secondary-foreground/80 hover:text-primary"}`}
-                    title="Favorites"
-                  >
-                    <Heart className="w-5 h-5" />
-                  </Link>
-                )}
-                {!isAdmin && (
-                  <Link
-                    href="/support"
-                    className={`flex items-center justify-center w-9 h-9 rounded-full hover:bg-white/10 transition-colors ${location === "/support" ? "text-primary" : "text-secondary-foreground/80 hover:text-primary"}`}
-                    title="Support Chat"
-                  >
-                    <Headphones className="w-5 h-5" />
-                  </Link>
-                )}
+              <div className="flex items-center gap-1">
                 <NotificationBell />
-                <Button
-                  variant="ghost"
-                  onClick={logout}
-                  className="text-secondary-foreground/80 hover:text-primary hover:bg-white/10"
-                  data-testid="btn-logout"
-                >
-                  <LogOut className="w-4 h-4 mr-1.5" />
-                  Logout
-                </Button>
+
+                {/* Buyer: Help dropdown + user account dropdown */}
+                {!isBusinessOwner && !isAdmin && (
+                  <>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="gap-1 text-secondary-foreground/80 hover:text-primary hover:bg-white/10 px-2">
+                          <HelpCircle className="w-4 h-4" />
+                          <span className="text-sm">Help</span>
+                          <ChevronDown className="w-3 h-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-52">
+                        <DropdownMenuItem asChild>
+                          <Link href="/help" className="flex items-center gap-2 cursor-pointer">
+                            <HelpCircle className="w-4 h-4 text-muted-foreground" /> Help Center
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/orders" className="flex items-center gap-2 cursor-pointer">
+                            <Truck className="w-4 h-4 text-muted-foreground" /> Track My Order
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link href="/support" className="flex items-center gap-2 cursor-pointer">
+                            <MessageCircle className="w-4 h-4 text-muted-foreground" /> Live Chat
+                          </Link>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="gap-1.5 text-secondary-foreground/80 hover:text-primary hover:bg-white/10 px-2" data-testid="btn-user-menu">
+                          <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                            <span className="text-xs font-bold text-primary">{user.name.charAt(0).toUpperCase()}</span>
+                          </div>
+                          <span className="text-sm">Hi, {user.name.split(" ")[0]}</span>
+                          <ChevronDown className="w-3 h-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem asChild>
+                          <Link href="/account/settings" className="flex items-center gap-2 cursor-pointer">
+                            <User2 className="w-4 h-4 text-muted-foreground" /> My Account
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/orders" className="flex items-center gap-2 cursor-pointer">
+                            <ClipboardList className="w-4 h-4 text-muted-foreground" /> Orders
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/inbox" className="flex items-center gap-2 cursor-pointer">
+                            <MessageCircle className="w-4 h-4 text-muted-foreground" /> Inbox
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/favorites" className="flex items-center gap-2 cursor-pointer">
+                            <Heart className="w-4 h-4 text-muted-foreground" /> Wishlist
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={logout}
+                          className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
+                          data-testid="btn-logout"
+                        >
+                          <LogOut className="w-4 h-4" /> Logout
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </>
+                )}
+
+                {/* Seller/Admin: simple logout */}
+                {(isBusinessOwner || isAdmin) && (
+                  <Button
+                    variant="ghost"
+                    onClick={logout}
+                    className="text-secondary-foreground/80 hover:text-primary hover:bg-white/10"
+                    data-testid="btn-logout"
+                  >
+                    <LogOut className="w-4 h-4 mr-1.5" />
+                    Logout
+                  </Button>
+                )}
               </div>
             ) : (
               <>
