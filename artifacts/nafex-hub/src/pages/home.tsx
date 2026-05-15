@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { useGetStatsSummary, useGetFeaturedBusinesses, useGetFeaturedTopBusinesses } from "@workspace/api-client-react";
+import { useGetStatsSummary, useGetFeaturedBusinesses, useGetFeaturedTopBusinesses, useGetBusinesses } from "@workspace/api-client-react";
 import { useAuth } from "@/hooks/use-auth";
 import { BrandCard } from "@/components/brand-card";
 import { Button } from "@/components/ui/button";
@@ -63,6 +63,7 @@ export default function Home() {
   const { data: topBrands, isLoading: topLoading } = useBrandSection("/api/businesses/top");
   const { data: trendingBrands, isLoading: trendingLoading } = useBrandSection("/api/businesses/trending");
   const { data: verifiedSellers, isLoading: verifiedLoading } = useBrandSection("/api/businesses/verified");
+  const { data: allBrands, isLoading: allBrandsLoading } = useGetBusinesses({});
   const { data: services } = useServices();
 
   useEffect(() => {
@@ -454,6 +455,41 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      {/* All Brands */}
+      <section className="py-16 md:py-20 px-4 md:px-8 container mx-auto">
+        <div className="flex items-end justify-between mb-8">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Store className="w-5 h-5 text-primary" />
+              <span className="text-xs font-semibold uppercase tracking-widest text-primary">All Brands</span>
+            </div>
+            <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground">Browse Every Brand on Nafex Hub</h2>
+            <p className="text-muted-foreground">Every business listed on our platform — from fashion to electronics.</p>
+          </div>
+          <Link href="/explore" className="hidden md:flex items-center text-primary font-medium hover:underline gap-1 text-sm flex-shrink-0">
+            View all <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {allBrandsLoading ? (
+            <SectionSkeleton count={8} />
+          ) : allBrands?.length ? (
+            allBrands.map((brand, i) => (
+              <div key={brand.id} className="animate-in fade-in slide-in-from-bottom-6 fill-mode-both" style={{ animationDelay: `${i * 50}ms` }}>
+                <BrandCard business={brand} />
+              </div>
+            ))
+          ) : null}
+        </div>
+        <div className="mt-8 flex justify-center">
+          <Link href="/explore">
+            <Button variant="outline" className="gap-2" data-testid="btn-all-brands">
+              Explore All Brands <ArrowRight className="w-4 h-4" />
+            </Button>
+          </Link>
+        </div>
+      </section>
 
       {/* CTA Section — only shown to guests */}
       {!user && <section className="py-24 bg-primary text-primary-foreground px-4 text-center relative overflow-hidden">

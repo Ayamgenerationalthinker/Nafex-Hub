@@ -4,6 +4,7 @@ import helmet from "helmet";
 import pinoHttp from "pino-http";
 import path from "path";
 import { fileURLToPath } from "url";
+import { mkdirSync } from "fs";
 import router from "./routes";
 import { logger } from "./lib/logger";
 
@@ -17,7 +18,7 @@ app.use(helmet({
       scriptSrc: ["'self'", "'unsafe-inline'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "https:"],
+      imgSrc: ["'self'", "data:", "https:", "blob:"],
       connectSrc: ["'self'"],
     },
   },
@@ -51,6 +52,12 @@ app.use(pinoHttp({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve uploaded images as static files at /api/uploads/
+const uploadsDir = path.resolve(__dirname, "../../uploads");
+mkdirSync(uploadsDir, { recursive: true });
+app.use("/api/uploads", express.static(uploadsDir));
+
 app.use("/api", router);
 
 if (process.env["NODE_ENV"] === "production") {
