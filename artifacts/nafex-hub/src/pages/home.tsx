@@ -67,9 +67,10 @@ export default function Home() {
 
   useEffect(() => {
     if (isSeller) setLocation("/dashboard");
-  }, [isSeller]);
+    if (isAdmin) setLocation("/admin");
+  }, [isSeller, isAdmin]);
 
-  if (isSeller) return null;
+  if (isSeller || isAdmin) return null;
 
   const hasFeaturedTop = featuredTopLoading || (featuredTopBrands && featuredTopBrands.length > 0);
   const hasFeaturedSection = featuredLoading || (featuredBrands && featuredBrands.length > 0);
