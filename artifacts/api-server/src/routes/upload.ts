@@ -1,20 +1,28 @@
 import { Router, type IRouter } from "express";
 import multer from "multer";
-import { v2 as cloudinary } from "cloudinary";
+import path from "path";
+import { fileURLToPath } from "url";
+import { mkdirSync } from "fs";
 import { requireAuth } from "../lib/auth-middleware";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const UPLOADS_DIR = path.resolve(__dirname, "../../uploads");
+mkdirSync(UPLOADS_DIR, { recursive: true });
 
 const router: IRouter = Router();
 
-cloudinary.config({
-  cloud_name: process.env["CLOUDINARY_CLOUD_NAME"],
-  api_key: process.env["CLOUDINARY_API_KEY"],
-  api_secret: process.env["CLOUDINARY_API_SECRET"],
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase() || ".jpg";
+    cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
+  },
 });
 
-// Store file in memory (not disk) so we can stream to Cloudinary
 const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
     if (allowed.includes(file.mimetype)) {
@@ -25,38 +33,13 @@ const upload = multer({
   },
 });
 
-// POST /upload - upload a single image to Cloudinary
-router.post("/upload", requireAuth, upload.single("image"), async (req, res): Promise<void> => {
+router.post("/upload", requireAuth, upload.single("image"), (req, res): void => {
   if (!req.file) {
     res.status(400).json({ error: "No image file provided" });
     return;
   }
-
-  try {
-    // Upload to Cloudinary using a stream
-    const result = await new Promise<{ secure_url: string; public_id: string }>((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
-        {
-          folder: "nafex-hub",
-          transformation: [
-            { width: 1200, height: 1200, crop: "limit" }, // max size
-            { quality: "auto" },                           // auto optimize
-            { fetch_format: "auto" },                      // auto format (webp etc)
-          ],
-        },
-        (error, result) => {
-          if (error || !result) reject(error);
-          else resolve(result);
-        }
-      );
-      stream.end(req.file!.buffer);
-    });
-
-    res.json({ url: result.secure_url, publicId: result.public_id });
-  } catch (err) {
-    console.error("Cloudinary upload error:", err);
-    res.status(500).json({ error: "Failed to upload image" });
-  }
+  const url = `/api/uploads/${req.file.filename}`;
+  res.json({ url, publicId: req.file.filename });
 });
 
 export default router;

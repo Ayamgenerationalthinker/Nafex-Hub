@@ -76,6 +76,7 @@ export default function BrandProfile() {
   const [match, params] = useRoute("/brand/:id");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const id = params?.id ? parseInt(params.id, 10) : 0;
 
@@ -110,6 +111,7 @@ export default function BrandProfile() {
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const [showOrderModal, setShowOrderModal] = useState(false);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
   // Track profile view on mount
   useEffect(() => {
@@ -157,13 +159,11 @@ export default function BrandProfile() {
       ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
       : 0;
 
-  const token = localStorage.getItem("nafex_token");
-  const { user } = useAuth();
   const isSeller = user?.role === "business_owner" || user?.role === "admin";
 
   const handleInboxMessage = () => {
-    if (!token) {
-      setLocation("/login");
+    if (!user) {
+      setShowAuthPrompt(true);
       return;
     }
     startConversation(
@@ -179,8 +179,8 @@ export default function BrandProfile() {
   };
 
   const handleSubmitReview = () => {
-    if (!token) {
-      setLocation("/login");
+    if (!user) {
+      setShowAuthPrompt(true);
       return;
     }
     if (!reviewRating) {
@@ -264,12 +264,12 @@ export default function BrandProfile() {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {!isSeller && token && (
+            {!isSeller && (
               <Button
                 size="lg"
                 variant="outline"
                 className="gap-2 border-border/50"
-                onClick={() => toggleFav({ data: { businessId: business.id } })}
+                onClick={() => user ? toggleFav({ data: { businessId: business.id } }) : setShowAuthPrompt(true)}
                 title="Save to favorites"
               >
                 <Heart className="w-4 h-4" />
@@ -290,7 +290,7 @@ export default function BrandProfile() {
               <Button
                 size="lg"
                 className="gap-2"
-                onClick={() => setShowOrderModal(true)}
+                onClick={() => user ? setShowOrderModal(true) : setShowAuthPrompt(true)}
               >
                 <ShoppingBag className="w-4 h-4" />
                 Place Order
@@ -445,7 +445,7 @@ export default function BrandProfile() {
                           </span>
                         )}
                       </div>
-                      {token && (
+                      {user && (
                         <button
                           className="absolute top-2 right-2 w-7 h-7 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-background transition-colors"
                           onClick={(e) => { e.stopPropagation(); toggleFav({ data: { productId: product.id } }); }}
@@ -581,6 +581,45 @@ export default function BrandProfile() {
           businessName={business.name}
           onClose={() => setShowOrderModal(false)}
         />
+      )}
+
+      {/* Auth Prompt Dialog */}
+      {showAuthPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowAuthPrompt(false)} />
+          <div className="relative bg-background rounded-2xl shadow-2xl border border-border p-8 max-w-sm w-full text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+              <ShoppingBag className="w-7 h-7 text-primary" />
+            </div>
+            <div>
+              <h2 className="font-serif text-xl font-bold text-foreground mb-1.5">Sign in to continue</h2>
+              <p className="text-sm text-muted-foreground">
+                Create a free account or sign in to message, order from, or save this brand.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3">
+              <Button
+                className="w-full"
+                onClick={() => setLocation("/register")}
+              >
+                Create Free Account
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setLocation("/login")}
+              >
+                Sign In
+              </Button>
+            </div>
+            <button
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => setShowAuthPrompt(false)}
+            >
+              Maybe later
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
