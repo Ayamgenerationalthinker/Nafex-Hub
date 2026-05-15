@@ -27,6 +27,7 @@ import AdminProductsPage from "@/pages/admin-products-page";
 import AdminServicesPage from "@/pages/admin-services-page";
 import ServicesPage from "@/pages/services-page";
 import Discounts from "@/pages/discounts";
+import SupportChat from "@/pages/support-chat";
 
 const queryClient = new QueryClient();
 
@@ -79,6 +80,7 @@ function Router() {
             <Route path="/inbox">{() => <ProtectedRoute component={Inbox} />}</Route>
             <Route path="/orders">{() => <ProtectedRoute component={Orders} />}</Route>
             <Route path="/favorites">{() => <ProtectedRoute component={Favorites} />}</Route>
+            <Route path="/support">{() => <ProtectedRoute component={SupportChat} />}</Route>
             <Route component={NotFound} />
           </Switch>
         </Layout>

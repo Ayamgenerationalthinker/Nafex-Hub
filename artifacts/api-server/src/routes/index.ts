@@ -17,6 +17,7 @@ import adminActivityRouter from "./admin-activity";
 import servicesRouter from "./services";
 import collectionsRouter from "./collections";
 import uploadRouter from "./upload";
+import supportRouter from "./support";
 
 const router: IRouter = Router();
 
@@ -38,5 +39,6 @@ router.use(adminActivityRouter);
 router.use(servicesRouter);
 router.use(collectionsRouter);
 router.use(uploadRouter);
+router.use(supportRouter);
 
 export default router;

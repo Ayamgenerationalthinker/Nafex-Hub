@@ -856,6 +856,7 @@ export const GetCollectionsResponseItem = zod
     businessId: zod.number(),
     name: zod.string(),
     description: zod.string().nullish(),
+    coverImage: zod.string().nullish(),
     createdAt: zod.coerce.date(),
   })
   .and(
@@ -887,6 +888,7 @@ export const CreateCollectionBody = zod.object({
   businessId: zod.number(),
   name: zod.string(),
   description: zod.string().nullish(),
+  coverImage: zod.string().nullish(),
 });
 
 /**
@@ -899,6 +901,7 @@ export const UpdateCollectionParams = zod.object({
 export const UpdateCollectionBody = zod.object({
   name: zod.string().optional(),
   description: zod.string().nullish(),
+  coverImage: zod.string().nullish(),
 });
 
 export const UpdateCollectionResponse = zod.object({
@@ -906,6 +909,7 @@ export const UpdateCollectionResponse = zod.object({
   businessId: zod.number(),
   name: zod.string(),
   description: zod.string().nullish(),
+  coverImage: zod.string().nullish(),
   createdAt: zod.coerce.date(),
 });
 

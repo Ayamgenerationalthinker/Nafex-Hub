@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail, Tag } from "lucide-react";
+import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail, Tag, Headphones } from "lucide-react";
 import { NotificationBell } from "@/components/notification-bell";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 
@@ -35,6 +35,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         { href: "/inbox", label: "Inbox", icon: <MessageCircle className="w-4 h-4" /> },
         { href: "/orders", label: "Orders", icon: <ShoppingBag className="w-4 h-4" /> },
         { href: "/list", label: "List Business", icon: <Store className="w-4 h-4" />, testId: "mobile-nav-list" },
+        { href: "/support", label: "Support", icon: <Headphones className="w-4 h-4" /> },
       ]
     : user
     ? [
@@ -43,6 +44,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         { href: "/inbox", label: "Inbox", icon: <MessageCircle className="w-4 h-4" /> },
         { href: "/orders", label: "Orders", icon: <ShoppingBag className="w-4 h-4" /> },
         { href: "/favorites", label: "Favorites", icon: <Heart className="w-4 h-4" /> },
+        { href: "/support", label: "Support", icon: <Headphones className="w-4 h-4" /> },
       ]
     : [
         { href: "/explore", label: "Explore Brands", icon: <Store className="w-4 h-4" />, testId: "mobile-nav-explore" },
@@ -107,6 +109,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     title="Favorites"
                   >
                     <Heart className="w-5 h-5" />
+                  </Link>
+                )}
+                {!isAdmin && (
+                  <Link
+                    href="/support"
+                    className={`flex items-center justify-center w-9 h-9 rounded-full hover:bg-white/10 transition-colors ${location === "/support" ? "text-primary" : "text-secondary-foreground/80 hover:text-primary"}`}
+                    title="Support Chat"
+                  >
+                    <Headphones className="w-5 h-5" />
                   </Link>
                 )}
                 <NotificationBell />

@@ -7,6 +7,7 @@ export const collectionsTable = pgTable("collections", {
   businessId: integer("business_id").notNull(),
   name: text("name").notNull(),
   description: text("description"),
+  coverImage: text("cover_image"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
