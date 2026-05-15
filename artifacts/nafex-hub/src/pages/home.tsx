@@ -103,7 +103,7 @@ export default function Home() {
         <div className="relative z-10 container mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center gap-8 md:gap-0 py-20 md:py-28 lg:py-32">
           {/* Left: text */}
           <div className="flex-1 space-y-7 text-center md:text-left animate-in fade-in slide-in-from-bottom-8 duration-700">
-            <Badge className="bg-transparent border border-white/30 text-white w-fit mx-auto md:mx-0 px-4 py-1.5 text-sm font-medium font-sans tracking-normal hover:bg-transparent">
+            <Badge className="bg-primary border-0 text-white w-fit mx-auto md:mx-0 px-4 py-1.5 text-sm font-medium font-sans tracking-normal hover:bg-primary">
               Ghana's Premier Digital Marketplace
             </Badge>
             <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-balance leading-[1.1] text-white">
