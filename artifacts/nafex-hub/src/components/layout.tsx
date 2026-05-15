@@ -31,11 +31,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
     ? [{ href: "/admin/dashboard", label: "Admin Panel", icon: <Shield className="w-4 h-4" />, testId: "mobile-nav-admin" }]
     : isBusinessOwner
     ? [
-        { href: "/explore", label: "Explore", icon: <Store className="w-4 h-4" />, testId: "mobile-nav-explore" },
         { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
         { href: "/inbox", label: "Inbox", icon: <MessageCircle className="w-4 h-4" /> },
         { href: "/orders", label: "Orders", icon: <ShoppingBag className="w-4 h-4" /> },
-        { href: "/favorites", label: "Favorites", icon: <Heart className="w-4 h-4" /> },
         { href: "/list", label: "List Business", icon: <Store className="w-4 h-4" />, testId: "mobile-nav-list" },
       ]
     : user
@@ -55,7 +53,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
     ? [{ href: "/admin/dashboard", label: "Admin Panel" }]
     : isBusinessOwner
     ? [
-        { href: "/explore", label: "Explore" },
         { href: "/dashboard", label: "Dashboard" },
         { href: "/inbox", label: "Inbox" },
         { href: "/orders", label: "Orders" },
@@ -103,13 +100,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
             {user ? (
               <div className="flex items-center gap-2">
-                <Link
-                  href="/favorites"
-                  className={`flex items-center justify-center w-9 h-9 rounded-full hover:bg-white/10 transition-colors ${location === "/favorites" ? "text-primary" : "text-secondary-foreground/80 hover:text-primary"}`}
-                  title="Favorites"
-                >
-                  <Heart className="w-5 h-5" />
-                </Link>
+                {!isBusinessOwner && !isAdmin && (
+                  <Link
+                    href="/favorites"
+                    className={`flex items-center justify-center w-9 h-9 rounded-full hover:bg-white/10 transition-colors ${location === "/favorites" ? "text-primary" : "text-secondary-foreground/80 hover:text-primary"}`}
+                    title="Favorites"
+                  >
+                    <Heart className="w-5 h-5" />
+                  </Link>
+                )}
                 <NotificationBell />
                 <Button
                   variant="ghost"

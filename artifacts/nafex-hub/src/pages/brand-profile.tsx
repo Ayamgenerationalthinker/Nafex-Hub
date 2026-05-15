@@ -31,6 +31,7 @@ import {
   Package,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import OrderModal from "@/components/order-modal";
 
 function StarRating({
@@ -157,6 +158,8 @@ export default function BrandProfile() {
       : 0;
 
   const token = localStorage.getItem("nafex_token");
+  const { user } = useAuth();
+  const isSeller = user?.role === "business_owner" || user?.role === "admin";
 
   const handleInboxMessage = () => {
     if (!token) {
@@ -261,7 +264,7 @@ export default function BrandProfile() {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {token && (
+            {!isSeller && token && (
               <Button
                 size="lg"
                 variant="outline"
@@ -272,23 +275,27 @@ export default function BrandProfile() {
                 <Heart className="w-4 h-4" />
               </Button>
             )}
-            <Button
-              size="lg"
-              variant="outline"
-              className="gap-2 border-primary/30"
-              onClick={handleInboxMessage}
-            >
-              <MessageCircle className="w-4 h-4" />
-              Message
-            </Button>
-            <Button
-              size="lg"
-              className="gap-2"
-              onClick={() => setShowOrderModal(true)}
-            >
-              <ShoppingBag className="w-4 h-4" />
-              Place Order
-            </Button>
+            {!isSeller && (
+              <Button
+                size="lg"
+                variant="outline"
+                className="gap-2 border-primary/30"
+                onClick={handleInboxMessage}
+              >
+                <MessageCircle className="w-4 h-4" />
+                Message
+              </Button>
+            )}
+            {!isSeller && (
+              <Button
+                size="lg"
+                className="gap-2"
+                onClick={() => setShowOrderModal(true)}
+              >
+                <ShoppingBag className="w-4 h-4" />
+                Place Order
+              </Button>
+            )}
             <Button
               size="lg"
               className="bg-green-600 hover:bg-green-700 text-white gap-2 shadow-lg"
