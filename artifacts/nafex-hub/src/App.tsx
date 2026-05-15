@@ -24,6 +24,7 @@ import AdminSettingsPage from "@/pages/admin-settings-page";
 import AdminProductsPage from "@/pages/admin-products-page";
 import AdminServicesPage from "@/pages/admin-services-page";
 import ServicesPage from "@/pages/services-page";
+import Discounts from "@/pages/discounts";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +58,7 @@ function Router() {
             <Route path="/orders" component={Orders} />
             <Route path="/product/:id" component={ProductDetail} />
             <Route path="/favorites" component={Favorites} />
+            <Route path="/discounts" component={Discounts} />
             <Route path="/services" component={ServicesPage} />
             <Route component={NotFound} />
           </Switch>

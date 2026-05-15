@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, ordersTable, businessesTable, notificationsTable } from "@workspace/db";
+import { db, ordersTable, businessesTable, notificationsTable, usersTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
@@ -148,6 +148,62 @@ router.patch("/orders/:id/status", requireAuth, async (req: AuthRequest, res): P
   } catch {}
 
   res.json(order);
+});
+
+// GET /orders/business/clients — unique buyers who ordered from this seller's business
+router.get("/orders/business/clients", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const [business] = await db
+    .select({ id: businessesTable.id })
+    .from(businessesTable)
+    .where(eq(businessesTable.ownerId, req.userId!));
+
+  if (!business) {
+    res.json([]);
+    return;
+  }
+
+  const orders = await db
+    .select({
+      userId: ordersTable.userId,
+      userName: usersTable.name,
+      userEmail: usersTable.email,
+      totalPrice: ordersTable.totalPrice,
+      status: ordersTable.status,
+      createdAt: ordersTable.createdAt,
+    })
+    .from(ordersTable)
+    .leftJoin(usersTable, eq(ordersTable.userId, usersTable.id))
+    .where(eq(ordersTable.businessId, business.id))
+    .orderBy(desc(ordersTable.createdAt));
+
+  const clientMap = new Map<number, {
+    userId: number;
+    name: string;
+    email: string;
+    orderCount: number;
+    totalSpent: number;
+    lastOrderAt: string;
+  }>();
+
+  for (const order of orders) {
+    const existing = clientMap.get(order.userId);
+    if (existing) {
+      existing.orderCount++;
+      existing.totalSpent += order.totalPrice;
+    } else {
+      clientMap.set(order.userId, {
+        userId: order.userId,
+        name: order.userName ?? "Unknown",
+        email: order.userEmail ?? "",
+        orderCount: 1,
+        totalSpent: order.totalPrice,
+        lastOrderAt: order.createdAt.toISOString(),
+      });
+    }
+  }
+
+  const clients = Array.from(clientMap.values()).sort((a, b) => b.totalSpent - a.totalSpent);
+  res.json(clients);
 });
 
 export default router;
