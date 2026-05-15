@@ -3,13 +3,99 @@ import { useGetBusinesses, useGetCategories, useListProducts, getListProductsQue
 import { BrandCard } from "@/components/brand-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, ChevronLeft, ChevronRight, ShieldCheck, Star, SlidersHorizontal, X } from "lucide-react";
+import { Search, Filter, ChevronLeft, ChevronRight, ShieldCheck, Star, SlidersHorizontal, X, ChevronDown, ChevronUp, Shirt, Footprints, Watch, ShoppingBag, Utensils, Smartphone, Home, Sparkles, Wrench, Car, GraduationCap, Baby, Dumbbell, Leaf, Palette, Plane, DollarSign, Package } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLocation } from "wouter";
 import type { Business } from "@workspace/api-client-react";
+
+const CATEGORY_GROUPS = [
+  {
+    label: "Fashion & Style",
+    icon: <Shirt className="w-5 h-5" />,
+    color: "bg-pink-50 text-pink-600 border-pink-200",
+    categories: ["Clothing", "Footwear", "Accessories", "Jewelry & Watches", "Bags & Luggage", "Fabric & Textiles"],
+  },
+  {
+    label: "Food & Beverages",
+    icon: <Utensils className="w-5 h-5" />,
+    color: "bg-orange-50 text-orange-600 border-orange-200",
+    categories: ["Food & Drinks", "Groceries & Supermarket", "Restaurants & Chop Bars", "Catering & Events Food", "Beverages & Drinks", "Bakery & Pastries", "Farm Produce"],
+  },
+  {
+    label: "Electronics & Tech",
+    icon: <Smartphone className="w-5 h-5" />,
+    color: "bg-blue-50 text-blue-600 border-blue-200",
+    categories: ["Electronics", "Phones & Gadgets", "Computers & Laptops", "Home Appliances", "Solar & Power"],
+  },
+  {
+    label: "Home & Living",
+    icon: <Home className="w-5 h-5" />,
+    color: "bg-teal-50 text-teal-600 border-teal-200",
+    categories: ["Furniture", "Home Decor", "Bedding & Bath", "Kitchen & Cookware", "Building Materials"],
+  },
+  {
+    label: "Health & Beauty",
+    icon: <Sparkles className="w-5 h-5" />,
+    color: "bg-purple-50 text-purple-600 border-purple-200",
+    categories: ["Beauty & Skincare", "Hair & Wigs", "Health & Wellness", "Pharmacy & Medicine", "Gym & Fitness Equipment"],
+  },
+  {
+    label: "Services",
+    icon: <Wrench className="w-5 h-5" />,
+    color: "bg-slate-50 text-slate-600 border-slate-200",
+    categories: ["Cleaning Services", "Laundry & Dry Cleaning", "Construction & Repairs", "Photography & Videography", "Event Planning", "Printing & Branding", "Transport & Logistics", "Security Services"],
+  },
+  {
+    label: "Automotive",
+    icon: <Car className="w-5 h-5" />,
+    color: "bg-gray-50 text-gray-600 border-gray-200",
+    categories: ["Cars & Vehicles", "Auto Parts & Accessories", "Car Wash & Repairs"],
+  },
+  {
+    label: "Education",
+    icon: <GraduationCap className="w-5 h-5" />,
+    color: "bg-indigo-50 text-indigo-600 border-indigo-200",
+    categories: ["Tutoring & Lessons", "Books & Stationery", "Training & Courses"],
+  },
+  {
+    label: "Kids & Baby",
+    icon: <Baby className="w-5 h-5" />,
+    color: "bg-yellow-50 text-yellow-600 border-yellow-200",
+    categories: ["Baby & Kids", "Toys & Games", "School Supplies"],
+  },
+  {
+    label: "Sports & Outdoors",
+    icon: <Dumbbell className="w-5 h-5" />,
+    color: "bg-green-50 text-green-600 border-green-200",
+    categories: ["Sports & Fitness", "Outdoor & Adventure"],
+  },
+  {
+    label: "Agriculture",
+    icon: <Leaf className="w-5 h-5" />,
+    color: "bg-lime-50 text-lime-600 border-lime-200",
+    categories: ["Agriculture & Farming", "Livestock & Poultry"],
+  },
+  {
+    label: "Arts & Entertainment",
+    icon: <Palette className="w-5 h-5" />,
+    color: "bg-rose-50 text-rose-600 border-rose-200",
+    categories: ["Crafts & Handmade", "Art & Collectibles", "Music & Instruments", "Gaming & Consoles"],
+  },
+  {
+    label: "Travel & Real Estate",
+    icon: <Plane className="w-5 h-5" />,
+    color: "bg-sky-50 text-sky-600 border-sky-200",
+    categories: ["Travel & Tours", "Property & Real Estate"],
+  },
+  {
+    label: "Finance & Other",
+    icon: <DollarSign className="w-5 h-5" />,
+    color: "bg-emerald-50 text-emerald-600 border-emerald-200",
+    categories: ["Financial Services", "Insurance", "Other"],
+  },
+];
 
 const PAGE_SIZE = 8;
 
@@ -214,23 +300,75 @@ export default function Explore() {
         </div>
       )}
 
-      {/* Category tabs */}
-      <div className="overflow-x-auto pb-2 hide-scrollbar mb-6">
-        <Tabs value={category} onValueChange={handleCategory}>
-          <TabsList className="h-11 bg-muted/50 p-1">
-            {categoryOptions.map((cat) => (
-              <TabsTrigger
-                key={cat}
-                value={cat}
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2"
-                data-testid={`tab-category-${cat}`}
-              >
-                {cat}
-              </TabsTrigger>
+      {/* Category browser — always visible when no search active, collapsible when category selected */}
+      {!debouncedSearch && (
+        <div className="mb-8">
+          {category !== "All" && (
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-sm text-muted-foreground">Browsing:</span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium border border-primary/20">
+                {category}
+                <button onClick={() => { setCategory("All"); setPage(1); }} className="hover:text-primary/70">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </span>
+            </div>
+          )}
+          <div className="space-y-5">
+            {CATEGORY_GROUPS.map((group) => (
+              <div key={group.label}>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className={`w-7 h-7 rounded-lg flex items-center justify-center border ${group.color}`}>
+                    {group.icon}
+                  </span>
+                  <span className="text-sm font-semibold text-foreground">{group.label}</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {group.categories.map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => handleCategory(cat)}
+                      data-testid={`tab-category-${cat}`}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                        category === cat
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background text-foreground border-border hover:border-primary/40 hover:bg-primary/5"
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
             ))}
-          </TabsList>
-        </Tabs>
-      </div>
+          </div>
+          <div className="mt-4 pt-4 border-t border-border/50">
+            <button
+              onClick={() => handleCategory("All")}
+              className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                category === "All"
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-background text-foreground border-border hover:border-primary/40"
+              }`}
+            >
+              All Categories
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* When searching: show active category filter as chip */}
+      {debouncedSearch && category !== "All" && (
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-sm text-muted-foreground">Category:</span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium border border-primary/20">
+            {category}
+            <button onClick={() => { setCategory("All"); setPage(1); }}>
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </span>
+        </div>
+      )}
 
       {/* Product search results */}
       {debouncedSearch && filteredProducts.length > 0 && (
