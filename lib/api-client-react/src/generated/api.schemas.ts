@@ -59,6 +59,15 @@ export interface LoginBody {
   password: string;
 }
 
+export interface UpdateProfileBody {
+  name: string;
+}
+
+export interface ChangePasswordBody {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export type BusinessFeaturedType =
   | (typeof BusinessFeaturedType)[keyof typeof BusinessFeaturedType]
   | null;
@@ -388,6 +397,14 @@ export interface UpdateCollectionBody {
   description?: string | null;
   coverImage?: string | null;
 }
+
+export type ChangePassword200 = {
+  message: string;
+};
+
+export type DeleteAccount200 = {
+  message: string;
+};
 
 export type GetBusinessesParams = {
   search?: string;

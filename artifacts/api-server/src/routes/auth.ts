@@ -2,10 +2,12 @@ import { Router, type IRouter } from "express";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { RegisterBody, LoginBody } from "@workspace/api-zod";
+import { z } from "zod";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
 import rateLimit from "express-rate-limit";
 import { sendAdminEmail } from "../lib/mailer";
+import { requireAuth } from "../lib/auth-middleware";
 
 const router: IRouter = Router();
 
@@ -183,6 +185,50 @@ router.get("/auth/me", async (req, res): Promise<void> => {
     role: user.role,
     createdAt: user.createdAt,
   });
+});
+
+router.patch("/auth/profile", requireAuth, async (req, res): Promise<void> => {
+  const schema = z.object({ name: z.string().min(1).max(100) });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Name is required" });
+    return;
+  }
+  const userId = (req as { user?: { id: number } }).user!.id;
+  const [updated] = await db
+    .update(usersTable)
+    .set({ name: parsed.data.name })
+    .where(eq(usersTable.id, userId))
+    .returning();
+  res.json({ id: updated.id, name: updated.name, email: updated.email, role: updated.role, createdAt: updated.createdAt });
+});
+
+router.patch("/auth/password", requireAuth, async (req, res): Promise<void> => {
+  const schema = z.object({
+    currentPassword: z.string().min(1),
+    newPassword: z.string().min(8),
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid input" });
+    return;
+  }
+  const userId = (req as { user?: { id: number } }).user!.id;
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const valid = await verifyPassword(parsed.data.currentPassword, user.password);
+  if (!valid) { res.status(400).json({ error: "Current password is incorrect" }); return; }
+  const strengthErr = validatePasswordStrength(parsed.data.newPassword);
+  if (strengthErr) { res.status(400).json({ error: strengthErr }); return; }
+  const hashed = await hashPassword(parsed.data.newPassword);
+  await db.update(usersTable).set({ password: hashed }).where(eq(usersTable.id, userId));
+  res.json({ message: "Password changed successfully" });
+});
+
+router.delete("/auth/account", requireAuth, async (req, res): Promise<void> => {
+  const userId = (req as { user?: { id: number } }).user!.id;
+  await db.delete(usersTable).where(eq(usersTable.id, userId));
+  res.json({ message: "Account deleted" });
 });
 
 export default router;

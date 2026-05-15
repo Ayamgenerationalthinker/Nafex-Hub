@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail, Tag, Headphones } from "lucide-react";
+import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail, Tag, Headphones, Settings } from "lucide-react";
 import { NotificationBell } from "@/components/notification-bell";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 
@@ -32,9 +32,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
     : isBusinessOwner
     ? [
         { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
+        { href: "/my-shop", label: "My Shop", icon: <Store className="w-4 h-4" /> },
         { href: "/inbox", label: "Inbox", icon: <MessageCircle className="w-4 h-4" /> },
         { href: "/orders", label: "Orders", icon: <ShoppingBag className="w-4 h-4" /> },
-        { href: "/list", label: "List Business", icon: <Store className="w-4 h-4" />, testId: "mobile-nav-list" },
+        { href: "/seller/settings", label: "Settings", icon: <Settings className="w-4 h-4" /> },
         { href: "/support", label: "Support", icon: <Headphones className="w-4 h-4" /> },
       ]
     : user
@@ -56,9 +57,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
     : isBusinessOwner
     ? [
         { href: "/dashboard", label: "Dashboard" },
+        { href: "/my-shop", label: "My Shop" },
         { href: "/inbox", label: "Inbox" },
         { href: "/orders", label: "Orders" },
-        { href: "/list", label: "List Business" },
+        { href: "/seller/settings", label: "Settings" },
       ]
     : user
     ? [

@@ -16,6 +16,8 @@ import {
   useDeleteCollection,
   useUpdateProductCollection,
   useCreateProduct,
+  useGetBusinessReviews,
+  getGetBusinessReviewsQueryKey,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -413,6 +415,7 @@ export default function Dashboard() {
           <TabsTrigger value="collections">Collections</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="clients">Clients</TabsTrigger>
+          <TabsTrigger value="feedback">Feedback</TabsTrigger>
           <TabsTrigger value="pricing">Pricing</TabsTrigger>
           <TabsTrigger value="settings">Store Settings</TabsTrigger>
         </TabsList>
@@ -1073,6 +1076,11 @@ export default function Dashboard() {
           )}
         </TabsContent>
 
+        {/* ── Feedback Tab ── */}
+        <TabsContent value="feedback" className="space-y-4">
+          <FeedbackTab businessId={businessId} />
+        </TabsContent>
+
         {/* ── Pricing Tab ── */}
         <TabsContent value="pricing" className="space-y-4">
           {!businessId ? (
@@ -1221,6 +1229,96 @@ export default function Dashboard() {
           )}
         </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+function FeedbackTab({ businessId }: { businessId: number }) {
+  const { data: reviews, isLoading } = useGetBusinessReviews(businessId, {
+    query: { enabled: !!businessId, queryKey: getGetBusinessReviewsQueryKey(businessId) },
+  });
+
+  if (!businessId) {
+    return (
+      <Card>
+        <CardContent className="pt-8 pb-8 text-center text-muted-foreground">
+          <Star className="w-10 h-10 mx-auto mb-3 opacity-20" />
+          <p className="text-sm">No business found. List your business first.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
+      </div>
+    );
+  }
+
+  const avgRating = reviews && reviews.length > 0
+    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+    : null;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 mb-2">
+        <Star className="w-5 h-5 text-primary" />
+        <h2 className="font-semibold text-lg">Customer Feedback</h2>
+        {avgRating && (
+          <span className="ml-auto flex items-center gap-1 text-sm font-semibold text-amber-500">
+            <Star className="w-4 h-4 fill-amber-400 stroke-amber-400" />
+            {avgRating} / 5
+            <span className="text-muted-foreground font-normal ml-1">({reviews!.length} {reviews!.length === 1 ? "review" : "reviews"})</span>
+          </span>
+        )}
+      </div>
+
+      {!reviews || reviews.length === 0 ? (
+        <Card>
+          <CardContent className="pt-10 pb-10 text-center text-muted-foreground">
+            <Star className="w-10 h-10 mx-auto mb-3 opacity-20" />
+            <p className="text-sm font-medium">No reviews yet</p>
+            <p className="text-xs mt-1">When customers leave reviews, they'll appear here.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {reviews.map((review) => (
+            <Card key={review.id} className="border-border/50">
+              <CardContent className="py-4 px-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm font-bold text-primary">
+                        {(review.userName ?? "?").charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm text-foreground">{review.userName ?? "Anonymous"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(review.createdAt).toLocaleDateString("en-GH", { month: "short", day: "numeric", year: "numeric" })}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-0.5 flex-shrink-0">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-4 h-4 ${i < review.rating ? "fill-amber-400 stroke-amber-400" : "stroke-muted-foreground fill-none"}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                {review.comment && (
+                  <p className="mt-3 text-sm text-foreground/80 leading-relaxed pl-12">{review.comment}</p>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

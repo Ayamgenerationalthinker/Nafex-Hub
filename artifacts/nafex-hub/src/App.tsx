@@ -28,6 +28,8 @@ import AdminServicesPage from "@/pages/admin-services-page";
 import ServicesPage from "@/pages/services-page";
 import Discounts from "@/pages/discounts";
 import SupportChat from "@/pages/support-chat";
+import SellerSettings from "@/pages/seller-settings";
+import MyShop from "@/pages/my-shop";
 
 const queryClient = new QueryClient();
 
@@ -81,6 +83,8 @@ function Router() {
             <Route path="/orders">{() => <ProtectedRoute component={Orders} />}</Route>
             <Route path="/favorites">{() => <ProtectedRoute component={Favorites} />}</Route>
             <Route path="/support">{() => <ProtectedRoute component={SupportChat} />}</Route>
+            <Route path="/seller/settings">{() => <ProtectedRoute component={SellerSettings} roles={["business_owner"]} to="/explore" />}</Route>
+            <Route path="/my-shop">{() => <ProtectedRoute component={MyShop} roles={["business_owner"]} to="/explore" />}</Route>
             <Route component={NotFound} />
           </Switch>
         </Layout>
