@@ -1,4 +1,5 @@
-import { Link } from "wouter";
+import { useEffect } from "react";
+import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useGetStatsSummary, useGetFeaturedBusinesses, useGetFeaturedTopBusinesses } from "@workspace/api-client-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -52,8 +53,10 @@ function SectionSkeleton({ count = 4 }: { count?: number }) {
 
 export default function Home() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const isSeller = user?.role === "business_owner";
   const isAdmin = user?.role === "admin";
+
   const { data: stats, isLoading: statsLoading } = useGetStatsSummary();
   const { data: featuredTopBrands, isLoading: featuredTopLoading } = useGetFeaturedTopBusinesses();
   const { data: featuredBrands, isLoading: featuredLoading } = useGetFeaturedBusinesses();
@@ -61,6 +64,12 @@ export default function Home() {
   const { data: trendingBrands, isLoading: trendingLoading } = useBrandSection("/api/businesses/trending");
   const { data: verifiedSellers, isLoading: verifiedLoading } = useBrandSection("/api/businesses/verified");
   const { data: services } = useServices();
+
+  useEffect(() => {
+    if (isSeller) setLocation("/dashboard");
+  }, [isSeller]);
+
+  if (isSeller) return null;
 
   const hasFeaturedTop = featuredTopLoading || (featuredTopBrands && featuredTopBrands.length > 0);
   const hasFeaturedSection = featuredLoading || (featuredBrands && featuredBrands.length > 0);
