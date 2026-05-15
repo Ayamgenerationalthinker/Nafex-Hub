@@ -55,6 +55,40 @@ export const GetMeResponse = zod.object({
 });
 
 /**
+ * @summary Update user profile (name)
+ */
+export const UpdateProfileBody = zod.object({
+  name: zod.string(),
+});
+
+export const UpdateProfileResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  email: zod.string(),
+  role: zod.enum(["user", "business_owner", "admin"]),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Change user password
+ */
+export const ChangePasswordBody = zod.object({
+  currentPassword: zod.string(),
+  newPassword: zod.string(),
+});
+
+export const ChangePasswordResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
+ * @summary Delete user account permanently
+ */
+export const DeleteAccountResponse = zod.object({
+  message: zod.string(),
+});
+
+/**
  * @summary List all businesses
  */
 export const GetBusinessesQueryParams = zod.object({

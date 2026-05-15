@@ -454,8 +454,8 @@ export default function Home() {
         </section>
       )}
 
-      {/* CTA Section */}
-      <section className="py-24 bg-primary text-primary-foreground px-4 text-center relative overflow-hidden">
+      {/* CTA Section — only shown to guests */}
+      {!user && <section className="py-24 bg-primary text-primary-foreground px-4 text-center relative overflow-hidden">
         <div className="absolute inset-0 opacity-10 bg-[url('https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center mix-blend-multiply"></div>
         <div className="container mx-auto relative z-10 max-w-3xl space-y-8">
           <h2 className="font-serif text-4xl md:text-5xl font-bold">Grow Your Business with Nafex Hub</h2>
@@ -468,7 +468,7 @@ export default function Home() {
             </Button>
           </Link>
         </div>
-      </section>
+      </section>}
     </div>
   );
 }
