@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useGetStatsSummary, useGetFeaturedBusinesses, useGetFeaturedTopBusinesses } from "@workspace/api-client-react";
+import { useAuth } from "@/hooks/use-auth";
 import { BrandCard } from "@/components/brand-card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Store, TrendingUp, ShieldCheck, Tag, Star, Sparkles, MessageCircle, Crown } from "lucide-react";
@@ -50,6 +51,9 @@ function SectionSkeleton({ count = 4 }: { count?: number }) {
 }
 
 export default function Home() {
+  const { user } = useAuth();
+  const isSeller = user?.role === "business_owner";
+  const isAdmin = user?.role === "admin";
   const { data: stats, isLoading: statsLoading } = useGetStatsSummary();
   const { data: featuredTopBrands, isLoading: featuredTopLoading } = useGetFeaturedTopBusinesses();
   const { data: featuredBrands, isLoading: featuredLoading } = useGetFeaturedBusinesses();
@@ -113,16 +117,39 @@ export default function Home() {
               From fashion and electronics to home essentials and lifestyle goods, explore a curated marketplace of verified Ghanaian businesses and creators.
             </p>
             <div className="flex flex-col sm:flex-row items-center md:items-start justify-center md:justify-start gap-4 pt-2">
-              <Link href="/explore">
-                <Button size="lg" className="text-base h-14 px-8 w-full sm:w-auto gap-2" data-testid="btn-hero-explore">
-                  Explore Brands <ArrowRight className="w-5 h-5" />
-                </Button>
-              </Link>
-              <Link href="/list">
-                <Button size="lg" variant="outline" className="text-base h-14 px-8 w-full sm:w-auto border-secondary-foreground/20 text-secondary-foreground hover:bg-secondary-foreground/10 gap-2" data-testid="btn-hero-list">
-                  <Store className="w-5 h-5" /> List Your Business
-                </Button>
-              </Link>
+              {isSeller || isAdmin ? (
+                <>
+                  <Link href="/dashboard">
+                    <Button size="lg" className="text-base h-14 px-8 w-full sm:w-auto gap-2" data-testid="btn-hero-dashboard">
+                      Go to Dashboard <ArrowRight className="w-5 h-5" />
+                    </Button>
+                  </Link>
+                  <Link href="/list">
+                    <Button size="lg" variant="outline" className="text-base h-14 px-8 w-full sm:w-auto border-secondary-foreground/20 text-secondary-foreground hover:bg-secondary-foreground/10 gap-2" data-testid="btn-hero-list">
+                      <Store className="w-5 h-5" /> List Your Business
+                    </Button>
+                  </Link>
+                </>
+              ) : user ? (
+                <Link href="/explore">
+                  <Button size="lg" className="text-base h-14 px-8 w-full sm:w-auto gap-2" data-testid="btn-hero-explore">
+                    Explore Brands <ArrowRight className="w-5 h-5" />
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link href="/explore">
+                    <Button size="lg" className="text-base h-14 px-8 w-full sm:w-auto gap-2" data-testid="btn-hero-explore">
+                      Explore Brands <ArrowRight className="w-5 h-5" />
+                    </Button>
+                  </Link>
+                  <Link href="/list">
+                    <Button size="lg" variant="outline" className="text-base h-14 px-8 w-full sm:w-auto border-secondary-foreground/20 text-secondary-foreground hover:bg-secondary-foreground/10 gap-2" data-testid="btn-hero-list">
+                      <Store className="w-5 h-5" /> List Your Business
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 
