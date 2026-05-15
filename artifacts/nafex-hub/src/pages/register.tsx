@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -8,14 +9,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2, ShoppingBag, Store } from "lucide-react";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  role: z.enum(["user", "business_owner", "admin"]).default("user"),
+  role: z.enum(["user", "business_owner"]).default("user"),
 });
 
 type RegisterForm = z.infer<typeof registerSchema>;
@@ -23,8 +23,8 @@ type RegisterForm = z.infer<typeof registerSchema>;
 export default function Register() {
   const [, setLocation] = useLocation();
   const { setAuth } = useAuth();
-  const { toast } = useToast();
   const register = useRegister();
+  const [successInfo, setSuccessInfo] = useState<{ name: string; role: string } | null>(null);
 
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
@@ -37,19 +37,65 @@ export default function Register() {
       {
         onSuccess: (data) => {
           setAuth(data.token, data.user as any);
-          toast({ title: "Account created!", description: `Welcome to Nafex Hub, ${data.user.name}!` });
-          setLocation("/");
+          setSuccessInfo({ name: data.user.name, role: data.user.role });
         },
         onError: (err: any) => {
-          toast({
-            title: "Registration failed",
-            description: err?.data?.error ?? "Something went wrong",
-            variant: "destructive",
+          form.setError("root", {
+            message: err?.data?.error ?? "Something went wrong. Please try again.",
           });
         },
       }
     );
   };
+
+  const handleContinue = () => {
+    if (successInfo?.role === "business_owner") {
+      setLocation("/list");
+    } else {
+      setLocation("/explore");
+    }
+  };
+
+  if (successInfo) {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center px-4 py-16">
+        <div className="w-full max-w-md text-center space-y-6">
+          <div className="flex justify-center">
+            <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
+              <CheckCircle2 className="w-10 h-10 text-green-600" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h1 className="font-serif text-3xl font-bold text-foreground">You're in, {successInfo.name.split(" ")[0]}!</h1>
+            <p className="text-muted-foreground">
+              {successInfo.role === "business_owner"
+                ? "Your business owner account is ready. List your business to start selling on Nafex Hub."
+                : "Your account is ready. Start exploring Ghana's best fashion brands."}
+            </p>
+          </div>
+          <div className="bg-card rounded-2xl border p-6 space-y-3 text-left">
+            <p className="text-sm font-semibold text-foreground">What's next?</p>
+            {successInfo.role === "business_owner" ? (
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-center gap-2"><Store className="w-4 h-4 text-primary flex-shrink-0" /> List your business and add products</li>
+                <li className="flex items-center gap-2"><ShoppingBag className="w-4 h-4 text-primary flex-shrink-0" /> Manage orders from your dashboard</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" /> Get verified for a trust badge</li>
+              </ul>
+            ) : (
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-center gap-2"><Store className="w-4 h-4 text-primary flex-shrink-0" /> Discover verified fashion brands</li>
+                <li className="flex items-center gap-2"><ShoppingBag className="w-4 h-4 text-primary flex-shrink-0" /> Browse deals and discounted products</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" /> Message sellers and place orders</li>
+              </ul>
+            )}
+          </div>
+          <Button className="w-full h-12 text-base font-semibold" onClick={handleContinue}>
+            {successInfo.role === "business_owner" ? "List My Business" : "Explore Brands"}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-16">
@@ -109,7 +155,7 @@ export default function Register() {
                 name="role"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Account Type</FormLabel>
+                    <FormLabel>I want to</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger className="h-12" data-testid="select-role">
@@ -117,15 +163,33 @@ export default function Register() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="user">Shopper</SelectItem>
-                        <SelectItem value="business_owner">Business Owner</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="user">
+                          <div className="flex items-center gap-2">
+                            <ShoppingBag className="w-4 h-4 text-muted-foreground" />
+                            <div>
+                              <div className="font-medium">Shop — I want to buy</div>
+                              <div className="text-xs text-muted-foreground">Browse brands, place orders, get deals</div>
+                            </div>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="business_owner">
+                          <div className="flex items-center gap-2">
+                            <Store className="w-4 h-4 text-muted-foreground" />
+                            <div>
+                              <div className="font-medium">Sell — I have a business</div>
+                              <div className="text-xs text-muted-foreground">List products, manage orders, grow sales</div>
+                            </div>
+                          </div>
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+              {form.formState.errors.root && (
+                <p className="text-sm text-destructive text-center">{form.formState.errors.root.message}</p>
+              )}
               <Button
                 type="submit"
                 className="w-full h-12 text-base font-semibold"

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import {
   useGetDashboardStats,
@@ -54,6 +54,7 @@ import {
   ChevronDown,
   ChevronUp,
   Loader2,
+  Users,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -179,6 +180,30 @@ export default function Dashboard() {
 
   const [activeTab, setActiveTab] = useState("overview");
 
+  type Client = {
+    userId: number;
+    name: string;
+    email: string;
+    orderCount: number;
+    totalSpent: number;
+    lastOrderAt: string;
+  };
+  const [clients, setClients] = useState<Client[]>([]);
+  const [clientsLoading, setClientsLoading] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === "clients" && businessId) {
+      setClientsLoading(true);
+      const t = localStorage.getItem("nafex_token");
+      fetch("/api/orders/business/clients", {
+        headers: { Authorization: `Bearer ${t}` },
+      })
+        .then((r) => (r.ok ? r.json() : []))
+        .then(setClients)
+        .finally(() => setClientsLoading(false));
+    }
+  }, [activeTab, businessId]);
+
   const statCards = [
     {
       label: "Total Orders",
@@ -229,6 +254,7 @@ export default function Dashboard() {
           <TabsTrigger value="inventory">Inventory</TabsTrigger>
           <TabsTrigger value="collections">Collections</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="clients">Clients</TabsTrigger>
         </TabsList>
 
         {/* ── Overview Tab ── */}
@@ -642,6 +668,78 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
             </>
+          )}
+        </TabsContent>
+
+        {/* ── My Clients Tab ── */}
+        <TabsContent value="clients" className="space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Users className="w-5 h-5 text-primary" />
+            <h2 className="font-semibold text-lg">My Clients</h2>
+          </div>
+          <p className="text-sm text-muted-foreground -mt-2">Customers who have placed orders with your business.</p>
+
+          {!businessId ? (
+            <Card>
+              <CardContent className="pt-8 pb-8 text-center text-muted-foreground">
+                <Users className="w-10 h-10 mx-auto mb-3 opacity-20" />
+                <p className="text-sm">No business found. List your business first.</p>
+              </CardContent>
+            </Card>
+          ) : clientsLoading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-14 rounded-xl" />)}
+            </div>
+          ) : clients.length === 0 ? (
+            <Card>
+              <CardContent className="pt-8 pb-8 text-center text-muted-foreground">
+                <Users className="w-10 h-10 mx-auto mb-3 opacity-20" />
+                <p className="text-sm font-medium">No clients yet</p>
+                <p className="text-xs mt-1">When customers place orders, they'll appear here.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left px-4 py-3 text-muted-foreground font-medium">Client</th>
+                        <th className="text-left px-4 py-3 text-muted-foreground font-medium hidden sm:table-cell">Email</th>
+                        <th className="text-center px-4 py-3 text-muted-foreground font-medium">Orders</th>
+                        <th className="text-right px-4 py-3 text-muted-foreground font-medium">Total Spent</th>
+                        <th className="text-right px-4 py-3 text-muted-foreground font-medium hidden md:table-cell">Last Order</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {clients.map((client, idx) => (
+                        <tr key={client.userId} className={`border-b border-border/50 hover:bg-muted/30 transition-colors ${idx === clients.length - 1 ? "border-b-0" : ""}`}>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
+                                <span className="text-xs font-bold text-primary">{client.name.charAt(0).toUpperCase()}</span>
+                              </div>
+                              <span className="font-medium text-foreground">{client.name}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{client.email}</td>
+                          <td className="px-4 py-3 text-center">
+                            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 text-primary font-semibold text-xs">{client.orderCount}</span>
+                          </td>
+                          <td className="px-4 py-3 text-right font-semibold text-foreground">
+                            GHS {(client.totalSpent / 100).toFixed(2)}
+                          </td>
+                          <td className="px-4 py-3 text-right text-muted-foreground text-xs hidden md:table-cell">
+                            {new Date(client.lastOrderAt).toLocaleDateString("en-GH", { month: "short", day: "numeric", year: "numeric" })}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </TabsContent>
       </Tabs>

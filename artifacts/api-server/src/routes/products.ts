@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, productsTable, businessesTable, favoritesTable, collectionsTable } from "@workspace/db";
-import { desc, eq, ilike, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, isNotNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, optionalAuth, type AuthRequest } from "../lib/auth-middleware";
 import { logAdminAction } from "../lib/log-admin-action";
@@ -14,6 +14,7 @@ const CreateBody = z.object({
   name: z.string().min(1),
   description: z.string().default(""),
   price: z.string().regex(/^\d+(\.\d{1,2})?$/),
+  discountPrice: z.string().regex(/^\d+(\.\d{1,2})?$/).nullable().optional(),
   images: z.array(z.string()).default([]),
   stock: z.number().int().min(0).nullable().optional(),
   collectionId: z.number().int().positive().nullable().optional(),
@@ -105,6 +106,35 @@ router.delete("/admin/product/:id", requireAuth, async (req: AuthRequest, res): 
   res.sendStatus(204);
 });
 
+// GET /products/discounted — all products with an active discount price
+router.get("/products/discounted", async (_req, res): Promise<void> => {
+  const rows = await db
+    .select({
+      id: productsTable.id,
+      businessId: productsTable.businessId,
+      name: productsTable.name,
+      description: productsTable.description,
+      price: productsTable.price,
+      discountPrice: productsTable.discountPrice,
+      images: productsTable.images,
+      stock: productsTable.stock,
+      createdAt: productsTable.createdAt,
+      businessName: businessesTable.name,
+      businessLogo: businessesTable.logo,
+    })
+    .from(productsTable)
+    .leftJoin(businessesTable, eq(productsTable.businessId, businessesTable.id))
+    .where(
+      and(
+        isNotNull(productsTable.discountPrice),
+        sql`${productsTable.discountPrice}::numeric < ${productsTable.price}::numeric`
+      )
+    )
+    .orderBy(desc(productsTable.updatedAt));
+
+  res.json(rows);
+});
+
 // GET /products - list all with optional search
 router.get("/products", async (req, res): Promise<void> => {
   const search = typeof req.query.search === "string" ? req.query.search : undefined;
@@ -120,6 +150,7 @@ router.get("/products", async (req, res): Promise<void> => {
       name: productsTable.name,
       description: productsTable.description,
       price: productsTable.price,
+      discountPrice: productsTable.discountPrice,
       images: productsTable.images,
       stock: productsTable.stock,
       createdAt: productsTable.createdAt,
@@ -164,6 +195,7 @@ router.get("/products/:id", optionalAuth, async (req: AuthRequest, res): Promise
       name: productsTable.name,
       description: productsTable.description,
       price: productsTable.price,
+      discountPrice: productsTable.discountPrice,
       images: productsTable.images,
       stock: productsTable.stock,
       createdAt: productsTable.createdAt,

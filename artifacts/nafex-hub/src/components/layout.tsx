@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail } from "lucide-react";
+import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail, Tag } from "lucide-react";
 import { NotificationBell } from "@/components/notification-bell";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 
@@ -22,16 +22,56 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   const closeMenu = () => setMobileOpen(false);
 
-  const navLinks = [
-    { href: "/explore", label: "Explore Brands" },
-    ...(user ? [
-      { href: "/dashboard", label: "Dashboard" },
-      { href: "/inbox", label: "Inbox" },
-      { href: "/orders", label: "Orders" },
-      { href: "/list", label: "List Business" },
-      ...(user.role === "admin" ? [{ href: "/admin", label: "Admin" }] : []),
-    ] : []),
-  ];
+  const isBusinessOwner = user?.role === "business_owner";
+  const isAdmin = user?.role === "admin";
+
+  type MobileNavItem = { href: string; label: string; icon: React.ReactNode; testId?: string };
+
+  const mobileNavItems: MobileNavItem[] = isAdmin
+    ? [{ href: "/admin/dashboard", label: "Admin Panel", icon: <Shield className="w-4 h-4" />, testId: "mobile-nav-admin" }]
+    : isBusinessOwner
+    ? [
+        { href: "/explore", label: "Explore", icon: <Store className="w-4 h-4" />, testId: "mobile-nav-explore" },
+        { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
+        { href: "/inbox", label: "Inbox", icon: <MessageCircle className="w-4 h-4" /> },
+        { href: "/orders", label: "Orders", icon: <ShoppingBag className="w-4 h-4" /> },
+        { href: "/favorites", label: "Favorites", icon: <Heart className="w-4 h-4" /> },
+        { href: "/list", label: "List Business", icon: <Store className="w-4 h-4" />, testId: "mobile-nav-list" },
+      ]
+    : user
+    ? [
+        { href: "/explore", label: "Explore Brands", icon: <Store className="w-4 h-4" />, testId: "mobile-nav-explore" },
+        { href: "/discounts", label: "Deals", icon: <Tag className="w-4 h-4" /> },
+        { href: "/inbox", label: "Inbox", icon: <MessageCircle className="w-4 h-4" /> },
+        { href: "/orders", label: "Orders", icon: <ShoppingBag className="w-4 h-4" /> },
+        { href: "/favorites", label: "Favorites", icon: <Heart className="w-4 h-4" /> },
+      ]
+    : [
+        { href: "/explore", label: "Explore Brands", icon: <Store className="w-4 h-4" />, testId: "mobile-nav-explore" },
+        { href: "/discounts", label: "Deals", icon: <Tag className="w-4 h-4" /> },
+      ];
+
+  const navLinks = isAdmin
+    ? [{ href: "/admin/dashboard", label: "Admin Panel" }]
+    : isBusinessOwner
+    ? [
+        { href: "/explore", label: "Explore" },
+        { href: "/dashboard", label: "Dashboard" },
+        { href: "/inbox", label: "Inbox" },
+        { href: "/orders", label: "Orders" },
+        { href: "/list", label: "List Business" },
+      ]
+    : user
+    ? [
+        { href: "/explore", label: "Explore Brands" },
+        { href: "/discounts", label: "Deals" },
+        { href: "/inbox", label: "Inbox" },
+        { href: "/orders", label: "Orders" },
+      ]
+    : [
+        { href: "/explore", label: "Explore Brands" },
+        { href: "/discounts", label: "Deals" },
+      ];
 
   return (
     <div className="min-h-[100dvh] flex flex-col w-full bg-background text-foreground font-sans">
@@ -145,101 +185,22 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
                 {/* Drawer nav links */}
                 <nav className="flex flex-col px-4 py-4 gap-1">
-                  <Link
-                    href="/explore"
-                    onClick={closeMenu}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                      location === "/explore"
-                        ? "bg-primary/20 text-primary"
-                        : "text-secondary-foreground/80 hover:bg-white/8 hover:text-primary"
-                    }`}
-                    data-testid="mobile-nav-explore"
-                  >
-                    <Store className="w-4 h-4" />
-                    Explore Brands
-                  </Link>
-
-                  {user && (
-                    <>
-                      <Link
-                        href="/dashboard"
-                        onClick={closeMenu}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                          location === "/dashboard"
-                            ? "bg-primary/20 text-primary"
-                            : "text-secondary-foreground/80 hover:bg-white/8 hover:text-primary"
-                        }`}
-                      >
-                        <LayoutDashboard className="w-4 h-4" />
-                        Dashboard
-                      </Link>
-                      <Link
-                        href="/inbox"
-                        onClick={closeMenu}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                          location === "/inbox"
-                            ? "bg-primary/20 text-primary"
-                            : "text-secondary-foreground/80 hover:bg-white/8 hover:text-primary"
-                        }`}
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                        Inbox
-                      </Link>
-                      <Link
-                        href="/orders"
-                        onClick={closeMenu}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                          location === "/orders"
-                            ? "bg-primary/20 text-primary"
-                            : "text-secondary-foreground/80 hover:bg-white/8 hover:text-primary"
-                        }`}
-                      >
-                        <ShoppingBag className="w-4 h-4" />
-                        Orders
-                      </Link>
-                      <Link
-                        href="/favorites"
-                        onClick={closeMenu}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                          location === "/favorites"
-                            ? "bg-primary/20 text-primary"
-                            : "text-secondary-foreground/80 hover:bg-white/8 hover:text-primary"
-                        }`}
-                      >
-                        <Heart className="w-4 h-4" />
-                        Favorites
-                      </Link>
-                      <Link
-                        href="/list"
-                        onClick={closeMenu}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                          location === "/list"
-                            ? "bg-primary/20 text-primary"
-                            : "text-secondary-foreground/80 hover:bg-white/8 hover:text-primary"
-                        }`}
-                        data-testid="mobile-nav-list"
-                      >
-                        <Store className="w-4 h-4" />
-                        List Business
-                      </Link>
-                    </>
-                  )}
-
-                  {user?.role === "admin" && (
+                  {mobileNavItems.map((item) => (
                     <Link
-                      href="/admin"
+                      key={item.href}
+                      href={item.href}
                       onClick={closeMenu}
                       className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                        location === "/admin"
+                        location === item.href
                           ? "bg-primary/20 text-primary"
                           : "text-secondary-foreground/80 hover:bg-white/8 hover:text-primary"
                       }`}
-                      data-testid="mobile-nav-admin"
+                      data-testid={item.testId}
                     >
-                      <Shield className="w-4 h-4" />
-                      Admin Panel
+                      {item.icon}
+                      {item.label}
                     </Link>
-                  )}
+                  ))}
 
                   <div className="my-3 border-t border-secondary-foreground/10" />
 
