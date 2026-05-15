@@ -317,6 +317,11 @@ router.get("/orders/business/clients", requireAuth, async (req: AuthRequest, res
     .where(eq(ordersTable.businessId, business.id))
     .orderBy(desc(ordersTable.createdAt));
 
+  // Only count buyers who have at least one successfully delivered order
+  const deliveredBuyerIds = new Set(
+    orders.filter((o) => o.status === "delivered").map((o) => o.userId)
+  );
+
   const clientMap = new Map<number, {
     userId: number;
     name: string;
@@ -327,6 +332,7 @@ router.get("/orders/business/clients", requireAuth, async (req: AuthRequest, res
   }>();
 
   for (const order of orders) {
+    if (!deliveredBuyerIds.has(order.userId)) continue;
     const existing = clientMap.get(order.userId);
     if (existing) {
       existing.orderCount++;

@@ -157,7 +157,8 @@ export default function Dashboard() {
   const [showCreateCollection, setShowCreateCollection] = useState(false);
   const [newColName, setNewColName] = useState("");
   const [newColDesc, setNewColDesc] = useState("");
-  const [editingCol, setEditingCol] = useState<{ id: number; name: string; description: string | null } | null>(null);
+  const [newColImage, setNewColImage] = useState("");
+  const [editingCol, setEditingCol] = useState<{ id: number; name: string; description: string | null; coverImage: string | null } | null>(null);
   const [expandedColId, setExpandedColId] = useState<number | null>(null);
 
   const { data: collections, refetch: refetchCollections } = useGetCollections(
@@ -172,6 +173,7 @@ export default function Dashboard() {
         setShowCreateCollection(false);
         setNewColName("");
         setNewColDesc("");
+        setNewColImage("");
         refetchCollections();
       },
       onError: () => toast({ title: "Failed to create collection", variant: "destructive" }),
@@ -784,14 +786,23 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <Label htmlFor="col-desc">Description</Label>
-                      <Textarea id="col-desc" placeholder="Optional description…" value={newColDesc} onChange={(e) => setNewColDesc(e.target.value)} className="mt-1" rows={2} />
+                      <Textarea id="col-desc" placeholder="Tell customers what this collection is about…" value={newColDesc} onChange={(e) => setNewColDesc(e.target.value)} className="mt-1" rows={2} />
+                    </div>
+                    <div>
+                      <Label htmlFor="col-img">Cover Image URL</Label>
+                      <Input id="col-img" placeholder="https://example.com/image.jpg" value={newColImage} onChange={(e) => setNewColImage(e.target.value)} className="mt-1" />
+                      {newColImage && (
+                        <div className="mt-2 w-full h-28 rounded-lg overflow-hidden border border-border">
+                          <img src={newColImage} alt="Cover preview" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                        </div>
+                      )}
                     </div>
                   </div>
                   <DialogFooter>
-                    <Button variant="outline" onClick={() => { setShowCreateCollection(false); setNewColName(""); setNewColDesc(""); }}>Cancel</Button>
+                    <Button variant="outline" onClick={() => { setShowCreateCollection(false); setNewColName(""); setNewColDesc(""); setNewColImage(""); }}>Cancel</Button>
                     <Button
                       disabled={!newColName.trim() || creatingCollection}
-                      onClick={() => createCollection({ data: { businessId, name: newColName.trim(), description: newColDesc.trim() || undefined } })}
+                      onClick={() => createCollection({ data: { businessId, name: newColName.trim(), description: newColDesc.trim() || undefined, coverImage: newColImage.trim() || undefined } })}
                     >
                       {creatingCollection ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}Create
                     </Button>
@@ -812,12 +823,21 @@ export default function Dashboard() {
                       <Label>Description</Label>
                       <Textarea value={editingCol?.description ?? ""} onChange={(e) => setEditingCol((p) => p ? { ...p, description: e.target.value } : p)} className="mt-1" rows={2} />
                     </div>
+                    <div>
+                      <Label>Cover Image URL</Label>
+                      <Input value={editingCol?.coverImage ?? ""} onChange={(e) => setEditingCol((p) => p ? { ...p, coverImage: e.target.value || null } : p)} className="mt-1" placeholder="https://example.com/image.jpg" />
+                      {editingCol?.coverImage && (
+                        <div className="mt-2 w-full h-28 rounded-lg overflow-hidden border border-border">
+                          <img src={editingCol.coverImage} alt="Cover preview" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setEditingCol(null)}>Cancel</Button>
                     <Button
                       disabled={!editingCol?.name.trim() || updatingCollection}
-                      onClick={() => editingCol && updateCollection({ id: editingCol.id, data: { name: editingCol.name.trim(), description: editingCol.description || null } })}
+                      onClick={() => editingCol && updateCollection({ id: editingCol.id, data: { name: editingCol.name.trim(), description: editingCol.description || null, coverImage: editingCol.coverImage || null } })}
                     >
                       {updatingCollection ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}Save
                     </Button>
@@ -840,7 +860,13 @@ export default function Dashboard() {
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <FolderOpen className="w-4 h-4 text-primary flex-shrink-0" />
+                              {(col as any).coverImage ? (
+                                <div className="w-8 h-8 rounded-md overflow-hidden flex-shrink-0 border border-border">
+                                  <img src={(col as any).coverImage} alt={col.name} className="w-full h-full object-cover" />
+                                </div>
+                              ) : (
+                                <FolderOpen className="w-4 h-4 text-primary flex-shrink-0" />
+                              )}
                               <p className="font-semibold text-foreground truncate">{col.name}</p>
                               <span className="text-xs text-muted-foreground flex-shrink-0">
                                 {col.products.length} product{col.products.length !== 1 ? "s" : ""}
@@ -851,7 +877,7 @@ export default function Dashboard() {
                             )}
                           </div>
                           <div className="flex items-center gap-1 flex-shrink-0">
-                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Edit" onClick={() => setEditingCol({ id: col.id, name: col.name, description: col.description ?? null })}>
+                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="Edit" onClick={() => setEditingCol({ id: col.id, name: col.name, description: col.description ?? null, coverImage: (col as any).coverImage ?? null })}>
                               <Pencil className="w-3 h-3" />
                             </Button>
                             <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive hover:text-destructive" title="Delete" onClick={() => deleteCollection({ id: col.id })}>

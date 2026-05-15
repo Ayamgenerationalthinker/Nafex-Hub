@@ -1767,6 +1767,9 @@ components:
         description:
           type: string
           nullable: true
+        coverImage:
+          type: string
+          nullable: true
         createdAt:
           type: string
           format: date-time
@@ -1798,6 +1801,9 @@ components:
         description:
           type: string
           nullable: true
+        coverImage:
+          type: string
+          nullable: true
       required:
         - businessId
         - name
@@ -1808,5 +1814,8 @@ components:
         name:
           type: string
         description:
+          type: string
+          nullable: true
+        coverImage:
           type: string
           nullable: true

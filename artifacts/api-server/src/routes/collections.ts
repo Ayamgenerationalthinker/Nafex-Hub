@@ -12,14 +12,15 @@ const CreateBody = z.object({
   businessId: z.coerce.number().int().positive(),
   name: z.string().min(1).max(100),
   description: z.string().max(500).optional(),
+  coverImage: z.string().url().optional().or(z.literal("")),
 });
 
 const UpdateBody = z.object({
   name: z.string().min(1).max(100).optional(),
   description: z.string().max(500).nullable().optional(),
+  coverImage: z.string().url().nullable().optional().or(z.literal("").transform(() => null)),
 });
 
-// Helper: verify caller owns the business that owns the collection
 async function ownsCollection(userId: number, collectionId: number) {
   const [col] = await db
     .select({ businessId: collectionsTable.businessId })
@@ -50,7 +51,6 @@ router.get("/collections", async (req, res): Promise<void> => {
     .where(eq(collectionsTable.businessId, parsed.data))
     .orderBy(asc(collectionsTable.createdAt));
 
-  // Attach products for each collection
   const allProducts = await db
     .select()
     .from(productsTable)
@@ -89,6 +89,7 @@ router.post("/collections", requireAuth, async (req: AuthRequest, res): Promise<
       businessId: parsed.data.businessId,
       name: parsed.data.name,
       description: parsed.data.description ?? null,
+      coverImage: parsed.data.coverImage || null,
     })
     .returning();
 
@@ -120,6 +121,7 @@ router.put("/collections/:id", requireAuth, async (req: AuthRequest, res): Promi
     .set({
       ...(parsed.data.name !== undefined && { name: parsed.data.name }),
       ...(parsed.data.description !== undefined && { description: parsed.data.description }),
+      ...(parsed.data.coverImage !== undefined && { coverImage: parsed.data.coverImage }),
     })
     .where(eq(collectionsTable.id, params.data.id))
     .returning();
@@ -141,7 +143,6 @@ router.delete("/collections/:id", requireAuth, async (req: AuthRequest, res): Pr
     return;
   }
 
-  // Unlink products from this collection before deleting
   await db
     .update(productsTable)
     .set({ collectionId: null })

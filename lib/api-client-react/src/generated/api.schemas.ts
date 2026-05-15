@@ -368,6 +368,7 @@ export interface Collection {
   businessId: number;
   name: string;
   description?: string | null;
+  coverImage?: string | null;
   createdAt: string;
 }
 
@@ -379,11 +380,13 @@ export interface CreateCollectionBody {
   businessId: number;
   name: string;
   description?: string | null;
+  coverImage?: string | null;
 }
 
 export interface UpdateCollectionBody {
   name?: string;
   description?: string | null;
+  coverImage?: string | null;
 }
 
 export type GetBusinessesParams = {
