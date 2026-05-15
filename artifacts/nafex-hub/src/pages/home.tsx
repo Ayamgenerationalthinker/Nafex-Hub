@@ -104,13 +104,13 @@ export default function Home() {
           {/* Left: text */}
           <div className="flex-1 space-y-7 text-center md:text-left animate-in fade-in slide-in-from-bottom-8 duration-700">
             <Badge className="bg-primary text-primary-foreground hover:bg-primary/90 border-0 w-fit mx-auto md:mx-0 px-4 py-1.5 text-sm font-medium font-sans tracking-normal">
-              Ghana's Premier Digital Fashion District
+              Ghana's Premier Digital Marketplace
             </Badge>
             <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-balance leading-[1.1]">
-              Discover Trusted Fashion Brands in Ghana
+              Discover Trusted Sellers Across Ghana
             </h1>
             <p className="text-lg md:text-xl text-secondary-foreground/80 max-w-xl font-medium mx-auto md:mx-0">
-              From deep kente greens to warm earth tones, explore a curated marketplace of authentic Ghanaian fashion creators and designers.
+              From fashion and electronics to home essentials and lifestyle goods, explore a curated marketplace of verified Ghanaian businesses and creators.
             </p>
             <div className="flex flex-col sm:flex-row items-center md:items-start justify-center md:justify-start gap-4 pt-2">
               <Link href="/explore">
