@@ -66,6 +66,16 @@ export function initSocketIO(httpServer: HttpServer): Server {
       socket.to(`conv_${conversationId}`).emit("stop_typing", { conversationId });
     });
 
+    // ── Trade order rooms ──────────────────────────────────────────────────────
+    socket.on("join_trade_order", (orderId: number) => {
+      socket.join(`trade_${orderId}`);
+      logger.info({ userId: socket.data.userId, orderId }, "Joined trade order room");
+    });
+
+    socket.on("leave_trade_order", (orderId: number) => {
+      socket.leave(`trade_${orderId}`);
+    });
+
     socket.on("disconnect", () => {
       logger.info({ userId: socket.data.userId }, "Socket disconnected");
     });
