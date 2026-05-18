@@ -27,6 +27,7 @@ import {
   Timer,
   StickyNote,
   AlertTriangle,
+  ShieldCheck,
 } from "lucide-react";
 
 type TradeRequest = {
@@ -71,6 +72,7 @@ export default function TradeMyRequests() {
   const [quotes, setQuotes] = useState<TradeQuote[]>([]);
   const [quotesLoading, setQuotesLoading] = useState(false);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [acceptingQuoteId, setAcceptingQuoteId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -94,6 +96,36 @@ export default function TradeMyRequests() {
       setQuotes([]);
     } finally {
       setQuotesLoading(false);
+    }
+  };
+
+  const acceptQuote = async (quote: TradeQuote) => {
+    if (!selectedReq) return;
+    setAcceptingQuoteId(quote.id);
+    try {
+      const r = await fetch(`/api/trade/quotes/${quote.id}/accept`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!r.ok) {
+        const err = (await r.json()) as { error?: string };
+        throw new Error(err.error ?? "Failed to accept quote");
+      }
+      const d = (await r.json()) as { order: { id: number } };
+      toast({ title: "Quote accepted!", description: "A trade order has been created. Fund escrow to proceed." });
+      setSelectedReq(null);
+      setQuotes([]);
+      // Refresh requests
+      fetch("/api/trade/my-requests", { headers: { Authorization: `Bearer ${token}` } })
+        .then((r) => r.json())
+        .then((data) => setRequests(data as TradeRequest[]))
+        .catch(() => {});
+      // Navigate to the new order
+      setTimeout(() => { window.location.href = `/trade/order/${d.order.id}`; }, 800);
+    } catch (e: unknown) {
+      toast({ title: "Error", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setAcceptingQuoteId(null);
     }
   };
 
@@ -293,9 +325,22 @@ export default function TradeMyRequests() {
                         <p className="text-xs text-muted-foreground">{q.notes}</p>
                       </div>
                     )}
-                    <div className="flex gap-2 mt-3">
+                    <div className="flex gap-2 mt-3 flex-wrap">
+                      {selectedReq?.status === "pending" && (
+                        <Button
+                          size="sm"
+                          className="gap-1.5 text-xs bg-green-600 hover:bg-green-700"
+                          disabled={acceptingQuoteId === q.id}
+                          onClick={() => acceptQuote(q)}
+                        >
+                          {acceptingQuoteId === q.id
+                            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            : <ShieldCheck className="w-3.5 h-3.5" />}
+                          Accept & Create Order
+                        </Button>
+                      )}
                       <Link href="/inbox">
-                        <Button size="sm" className="gap-1.5 text-xs">
+                        <Button size="sm" variant="outline" className="gap-1.5 text-xs">
                           Message Supplier
                         </Button>
                       </Link>
