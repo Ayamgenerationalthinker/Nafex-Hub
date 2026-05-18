@@ -13,3 +13,7 @@ export * from "./admin-activity";
 export * from "./services";
 export * from "./collections";
 export * from "./support";
+export * from "./riders";
+export * from "./deliveries";
+export * from "./transactions";
+export * from "./disputes";

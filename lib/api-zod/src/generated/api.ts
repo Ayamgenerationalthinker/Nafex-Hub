@@ -957,3 +957,762 @@ export const DeleteCollectionParams = zod.object({
 export const DeleteCollectionResponse = zod.object({
   ok: zod.boolean(),
 });
+
+/**
+ * @summary Create delivery for an order
+ */
+export const CreateDeliveryBody = zod.object({
+  orderId: zod.number(),
+  pickupAddress: zod.string(),
+  deliveryAddress: zod.string(),
+  deliveryZone: zod.string().optional(),
+  notes: zod.string().optional(),
+  estimatedArrival: zod.coerce.date().optional(),
+});
+
+/**
+ * @summary Get delivery fee estimate for a zone
+ */
+export const GetDeliveryFeeEstimateQueryParams = zod.object({
+  zone: zod.coerce.string().optional(),
+});
+
+export const GetDeliveryFeeEstimateResponse = zod.object({
+  zone: zod.string(),
+  fee: zod.number(),
+  currency: zod.string(),
+});
+
+/**
+ * @summary Public delivery tracking by tracking code
+ */
+export const TrackDeliveryParams = zod.object({
+  code: zod.coerce.string(),
+});
+
+export const TrackDeliveryResponse = zod.object({
+  id: zod.number(),
+  orderId: zod.number(),
+  riderId: zod.number().nullish(),
+  trackingCode: zod.string(),
+  status: zod.enum([
+    "created",
+    "assigned",
+    "picked_up",
+    "in_transit",
+    "delivered",
+    "failed",
+    "returned",
+  ]),
+  pickupAddress: zod.string(),
+  deliveryAddress: zod.string(),
+  deliveryZone: zod.string().nullish(),
+  deliveryFee: zod.string(),
+  estimatedArrival: zod.coerce.date().nullish(),
+  notes: zod.string().nullish(),
+  proofImageUrl: zod.string().nullish(),
+  businessName: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+  events: zod.array(
+    zod.object({
+      id: zod.number(),
+      deliveryId: zod.number(),
+      status: zod.string(),
+      note: zod.string().nullish(),
+      location: zod.string().nullish(),
+      createdAt: zod.coerce.date(),
+    }),
+  ),
+  rider: zod
+    .object({
+      id: zod.number(),
+      name: zod.string(),
+      phone: zod.string(),
+      vehicleType: zod.enum(["bike", "car", "van"]),
+      isAvailable: zod.boolean(),
+      isActive: zod.boolean(),
+      rating: zod.string(),
+      totalDeliveries: zod.number(),
+      zone: zod.string().nullish(),
+      createdAt: zod.coerce.date(),
+    })
+    .nullish(),
+});
+
+/**
+ * @summary Get delivery by order ID
+ */
+export const GetDeliveryByOrderParams = zod.object({
+  orderId: zod.coerce.number(),
+});
+
+export const GetDeliveryByOrderResponse = zod.object({
+  id: zod.number(),
+  orderId: zod.number(),
+  riderId: zod.number().nullish(),
+  trackingCode: zod.string(),
+  status: zod.enum([
+    "created",
+    "assigned",
+    "picked_up",
+    "in_transit",
+    "delivered",
+    "failed",
+    "returned",
+  ]),
+  pickupAddress: zod.string(),
+  deliveryAddress: zod.string(),
+  deliveryZone: zod.string().nullish(),
+  deliveryFee: zod.string(),
+  estimatedArrival: zod.coerce.date().nullish(),
+  notes: zod.string().nullish(),
+  proofImageUrl: zod.string().nullish(),
+  businessName: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+  events: zod.array(
+    zod.object({
+      id: zod.number(),
+      deliveryId: zod.number(),
+      status: zod.string(),
+      note: zod.string().nullish(),
+      location: zod.string().nullish(),
+      createdAt: zod.coerce.date(),
+    }),
+  ),
+  rider: zod
+    .object({
+      id: zod.number(),
+      name: zod.string(),
+      phone: zod.string(),
+      vehicleType: zod.enum(["bike", "car", "van"]),
+      isAvailable: zod.boolean(),
+      isActive: zod.boolean(),
+      rating: zod.string(),
+      totalDeliveries: zod.number(),
+      zone: zod.string().nullish(),
+      createdAt: zod.coerce.date(),
+    })
+    .nullish(),
+});
+
+/**
+ * @summary Get single delivery
+ */
+export const GetDeliveryParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetDeliveryResponse = zod.object({
+  id: zod.number(),
+  orderId: zod.number(),
+  riderId: zod.number().nullish(),
+  trackingCode: zod.string(),
+  status: zod.enum([
+    "created",
+    "assigned",
+    "picked_up",
+    "in_transit",
+    "delivered",
+    "failed",
+    "returned",
+  ]),
+  pickupAddress: zod.string(),
+  deliveryAddress: zod.string(),
+  deliveryZone: zod.string().nullish(),
+  deliveryFee: zod.string(),
+  estimatedArrival: zod.coerce.date().nullish(),
+  notes: zod.string().nullish(),
+  proofImageUrl: zod.string().nullish(),
+  businessName: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+  events: zod.array(
+    zod.object({
+      id: zod.number(),
+      deliveryId: zod.number(),
+      status: zod.string(),
+      note: zod.string().nullish(),
+      location: zod.string().nullish(),
+      createdAt: zod.coerce.date(),
+    }),
+  ),
+  rider: zod
+    .object({
+      id: zod.number(),
+      name: zod.string(),
+      phone: zod.string(),
+      vehicleType: zod.enum(["bike", "car", "van"]),
+      isAvailable: zod.boolean(),
+      isActive: zod.boolean(),
+      rating: zod.string(),
+      totalDeliveries: zod.number(),
+      zone: zod.string().nullish(),
+      createdAt: zod.coerce.date(),
+    })
+    .nullish(),
+});
+
+/**
+ * @summary Update delivery status (admin)
+ */
+export const UpdateDeliveryStatusParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateDeliveryStatusBody = zod.object({
+  status: zod.enum([
+    "assigned",
+    "picked_up",
+    "in_transit",
+    "delivered",
+    "failed",
+    "returned",
+  ]),
+  note: zod.string().optional(),
+  location: zod.string().optional(),
+});
+
+export const UpdateDeliveryStatusResponse = zod.object({
+  id: zod.number(),
+  orderId: zod.number(),
+  riderId: zod.number().nullish(),
+  trackingCode: zod.string(),
+  status: zod.enum([
+    "created",
+    "assigned",
+    "picked_up",
+    "in_transit",
+    "delivered",
+    "failed",
+    "returned",
+  ]),
+  pickupAddress: zod.string(),
+  deliveryAddress: zod.string(),
+  deliveryZone: zod.string().nullish(),
+  deliveryFee: zod.string(),
+  estimatedArrival: zod.coerce.date().nullish(),
+  notes: zod.string().nullish(),
+  proofImageUrl: zod.string().nullish(),
+  businessName: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+  events: zod.array(
+    zod.object({
+      id: zod.number(),
+      deliveryId: zod.number(),
+      status: zod.string(),
+      note: zod.string().nullish(),
+      location: zod.string().nullish(),
+      createdAt: zod.coerce.date(),
+    }),
+  ),
+  rider: zod
+    .object({
+      id: zod.number(),
+      name: zod.string(),
+      phone: zod.string(),
+      vehicleType: zod.enum(["bike", "car", "van"]),
+      isAvailable: zod.boolean(),
+      isActive: zod.boolean(),
+      rating: zod.string(),
+      totalDeliveries: zod.number(),
+      zone: zod.string().nullish(),
+      createdAt: zod.coerce.date(),
+    })
+    .nullish(),
+});
+
+/**
+ * @summary Assign a rider to a delivery (admin)
+ */
+export const AssignRiderToDeliveryParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const AssignRiderToDeliveryBody = zod.object({
+  riderId: zod.number(),
+});
+
+export const AssignRiderToDeliveryResponse = zod.object({
+  id: zod.number(),
+  orderId: zod.number(),
+  riderId: zod.number().nullish(),
+  trackingCode: zod.string(),
+  status: zod.enum([
+    "created",
+    "assigned",
+    "picked_up",
+    "in_transit",
+    "delivered",
+    "failed",
+    "returned",
+  ]),
+  pickupAddress: zod.string(),
+  deliveryAddress: zod.string(),
+  deliveryZone: zod.string().nullish(),
+  deliveryFee: zod.string(),
+  estimatedArrival: zod.coerce.date().nullish(),
+  notes: zod.string().nullish(),
+  proofImageUrl: zod.string().nullish(),
+  businessName: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+  events: zod.array(
+    zod.object({
+      id: zod.number(),
+      deliveryId: zod.number(),
+      status: zod.string(),
+      note: zod.string().nullish(),
+      location: zod.string().nullish(),
+      createdAt: zod.coerce.date(),
+    }),
+  ),
+  rider: zod
+    .object({
+      id: zod.number(),
+      name: zod.string(),
+      phone: zod.string(),
+      vehicleType: zod.enum(["bike", "car", "van"]),
+      isAvailable: zod.boolean(),
+      isActive: zod.boolean(),
+      rating: zod.string(),
+      totalDeliveries: zod.number(),
+      zone: zod.string().nullish(),
+      createdAt: zod.coerce.date(),
+    })
+    .nullish(),
+});
+
+/**
+ * @summary List all deliveries (admin)
+ */
+export const GetAdminDeliveriesResponseItem = zod.object({
+  id: zod.number(),
+  orderId: zod.number(),
+  riderId: zod.number().nullish(),
+  trackingCode: zod.string(),
+  status: zod.enum([
+    "created",
+    "assigned",
+    "picked_up",
+    "in_transit",
+    "delivered",
+    "failed",
+    "returned",
+  ]),
+  pickupAddress: zod.string(),
+  deliveryAddress: zod.string(),
+  deliveryZone: zod.string().nullish(),
+  deliveryFee: zod.string(),
+  estimatedArrival: zod.coerce.date().nullish(),
+  notes: zod.string().nullish(),
+  proofImageUrl: zod.string().nullish(),
+  businessName: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+  events: zod.array(
+    zod.object({
+      id: zod.number(),
+      deliveryId: zod.number(),
+      status: zod.string(),
+      note: zod.string().nullish(),
+      location: zod.string().nullish(),
+      createdAt: zod.coerce.date(),
+    }),
+  ),
+  rider: zod
+    .object({
+      id: zod.number(),
+      name: zod.string(),
+      phone: zod.string(),
+      vehicleType: zod.enum(["bike", "car", "van"]),
+      isAvailable: zod.boolean(),
+      isActive: zod.boolean(),
+      rating: zod.string(),
+      totalDeliveries: zod.number(),
+      zone: zod.string().nullish(),
+      createdAt: zod.coerce.date(),
+    })
+    .nullish(),
+});
+export const GetAdminDeliveriesResponse = zod.array(
+  GetAdminDeliveriesResponseItem,
+);
+
+/**
+ * @summary List all riders (admin)
+ */
+export const GetRidersResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  phone: zod.string(),
+  vehicleType: zod.enum(["bike", "car", "van"]),
+  isAvailable: zod.boolean(),
+  isActive: zod.boolean(),
+  rating: zod.string(),
+  totalDeliveries: zod.number(),
+  zone: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+});
+export const GetRidersResponse = zod.array(GetRidersResponseItem);
+
+/**
+ * @summary Create a new rider (admin)
+ */
+export const CreateRiderBody = zod.object({
+  name: zod.string(),
+  phone: zod.string(),
+  vehicleType: zod.enum(["bike", "car", "van"]).optional(),
+  zone: zod.string().optional(),
+});
+
+/**
+ * @summary List available riders (admin)
+ */
+export const GetAvailableRidersResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  phone: zod.string(),
+  vehicleType: zod.enum(["bike", "car", "van"]),
+  isAvailable: zod.boolean(),
+  isActive: zod.boolean(),
+  rating: zod.string(),
+  totalDeliveries: zod.number(),
+  zone: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+});
+export const GetAvailableRidersResponse = zod.array(
+  GetAvailableRidersResponseItem,
+);
+
+/**
+ * @summary Update rider (admin)
+ */
+export const UpdateRiderParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateRiderBody = zod.object({
+  name: zod.string().optional(),
+  phone: zod.string().optional(),
+  vehicleType: zod.enum(["bike", "car", "van"]).optional(),
+  zone: zod.string().optional(),
+  isAvailable: zod.boolean().optional(),
+  isActive: zod.boolean().optional(),
+});
+
+export const UpdateRiderResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  phone: zod.string(),
+  vehicleType: zod.enum(["bike", "car", "van"]),
+  isAvailable: zod.boolean(),
+  isActive: zod.boolean(),
+  rating: zod.string(),
+  totalDeliveries: zod.number(),
+  zone: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Toggle rider availability (admin)
+ */
+export const ToggleRiderAvailabilityParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const ToggleRiderAvailabilityResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  phone: zod.string(),
+  vehicleType: zod.enum(["bike", "car", "van"]),
+  isAvailable: zod.boolean(),
+  isActive: zod.boolean(),
+  rating: zod.string(),
+  totalDeliveries: zod.number(),
+  zone: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Initialize Paystack payment for an order
+ */
+export const InitializePaystackPaymentBody = zod.object({
+  orderId: zod.number(),
+  channel: zod.enum(["card", "mobile_money", "bank"]).optional(),
+  momoPhone: zod.string().optional(),
+  momoNetwork: zod.enum(["MTN", "Vodafone", "AirtelTigo"]).optional(),
+});
+
+export const InitializePaystackPaymentResponse = zod.object({
+  authorizationUrl: zod.string(),
+  accessCode: zod.string(),
+  reference: zod.string(),
+});
+
+/**
+ * @summary Verify Paystack payment and lock escrow
+ */
+export const VerifyPaystackPaymentBody = zod.object({
+  reference: zod.string(),
+  orderId: zod.number(),
+});
+
+export const VerifyPaystackPaymentResponse = zod.object({
+  order: zod.object({}).passthrough(),
+  transaction: zod.object({}).passthrough(),
+});
+
+/**
+ * @summary Get user transaction history
+ */
+export const GetTransactionsResponseItem = zod.object({
+  id: zod.number(),
+  orderId: zod.number().nullish(),
+  userId: zod.number(),
+  type: zod.enum(["payment", "refund", "payout", "fee"]),
+  amount: zod.string(),
+  currency: zod.string(),
+  provider: zod.enum(["paystack", "momo", "manual", "system"]),
+  providerRef: zod.string().nullish(),
+  channel: zod.string().nullish(),
+  status: zod.enum(["pending", "success", "failed", "reversed"]),
+  metadata: zod.unknown().nullish(),
+  createdAt: zod.coerce.date(),
+});
+export const GetTransactionsResponse = zod.array(GetTransactionsResponseItem);
+
+/**
+ * @summary All transactions (admin)
+ */
+export const GetAdminTransactionsResponseItem = zod.object({
+  id: zod.number(),
+  orderId: zod.number().nullish(),
+  userId: zod.number(),
+  type: zod.enum(["payment", "refund", "payout", "fee"]),
+  amount: zod.string(),
+  currency: zod.string(),
+  provider: zod.enum(["paystack", "momo", "manual", "system"]),
+  providerRef: zod.string().nullish(),
+  channel: zod.string().nullish(),
+  status: zod.enum(["pending", "success", "failed", "reversed"]),
+  metadata: zod.unknown().nullish(),
+  createdAt: zod.coerce.date(),
+});
+export const GetAdminTransactionsResponse = zod.array(
+  GetAdminTransactionsResponseItem,
+);
+
+/**
+ * @summary Release escrow payout to seller (admin)
+ */
+export const ReleasePayoutParams = zod.object({
+  orderId: zod.coerce.number(),
+});
+
+/**
+ * @summary Process refund for an order (admin)
+ */
+export const ProcessRefundParams = zod.object({
+  orderId: zod.coerce.number(),
+});
+
+export const ProcessRefundBody = zod.object({
+  reason: zod.string().optional(),
+});
+
+/**
+ * @summary Get user's disputes
+ */
+export const GetDisputesResponseItem = zod.object({
+  id: zod.number(),
+  orderId: zod.number(),
+  userId: zod.number(),
+  reason: zod.enum([
+    "item_not_received",
+    "item_not_as_described",
+    "damaged_item",
+    "wrong_item",
+    "seller_unresponsive",
+    "other",
+  ]),
+  description: zod.string(),
+  evidenceUrls: zod.array(zod.string()),
+  status: zod.enum([
+    "open",
+    "under_review",
+    "resolved_buyer",
+    "resolved_seller",
+    "dismissed",
+  ]),
+  resolution: zod.string().nullish(),
+  adminNote: zod.string().nullish(),
+  resolvedBy: zod.number().nullish(),
+  createdAt: zod.coerce.date(),
+  resolvedAt: zod.coerce.date().nullish(),
+});
+export const GetDisputesResponse = zod.array(GetDisputesResponseItem);
+
+/**
+ * @summary Raise a dispute for an order
+ */
+export const CreateDisputeBody = zod.object({
+  orderId: zod.number(),
+  reason: zod.enum([
+    "item_not_received",
+    "item_not_as_described",
+    "damaged_item",
+    "wrong_item",
+    "seller_unresponsive",
+    "other",
+  ]),
+  description: zod.string(),
+  evidenceUrls: zod.array(zod.string()).optional(),
+});
+
+/**
+ * @summary Get single dispute
+ */
+export const GetDisputeParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetDisputeResponse = zod.object({
+  id: zod.number(),
+  orderId: zod.number(),
+  userId: zod.number(),
+  reason: zod.enum([
+    "item_not_received",
+    "item_not_as_described",
+    "damaged_item",
+    "wrong_item",
+    "seller_unresponsive",
+    "other",
+  ]),
+  description: zod.string(),
+  evidenceUrls: zod.array(zod.string()),
+  status: zod.enum([
+    "open",
+    "under_review",
+    "resolved_buyer",
+    "resolved_seller",
+    "dismissed",
+  ]),
+  resolution: zod.string().nullish(),
+  adminNote: zod.string().nullish(),
+  resolvedBy: zod.number().nullish(),
+  createdAt: zod.coerce.date(),
+  resolvedAt: zod.coerce.date().nullish(),
+});
+
+/**
+ * @summary List all disputes (admin)
+ */
+export const GetAdminDisputesResponseItem = zod.object({
+  id: zod.number(),
+  orderId: zod.number(),
+  userId: zod.number(),
+  reason: zod.enum([
+    "item_not_received",
+    "item_not_as_described",
+    "damaged_item",
+    "wrong_item",
+    "seller_unresponsive",
+    "other",
+  ]),
+  description: zod.string(),
+  evidenceUrls: zod.array(zod.string()),
+  status: zod.enum([
+    "open",
+    "under_review",
+    "resolved_buyer",
+    "resolved_seller",
+    "dismissed",
+  ]),
+  resolution: zod.string().nullish(),
+  adminNote: zod.string().nullish(),
+  resolvedBy: zod.number().nullish(),
+  createdAt: zod.coerce.date(),
+  resolvedAt: zod.coerce.date().nullish(),
+});
+export const GetAdminDisputesResponse = zod.array(GetAdminDisputesResponseItem);
+
+/**
+ * @summary Mark dispute as under review (admin)
+ */
+export const MarkDisputeUnderReviewParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const MarkDisputeUnderReviewResponse = zod.object({
+  id: zod.number(),
+  orderId: zod.number(),
+  userId: zod.number(),
+  reason: zod.enum([
+    "item_not_received",
+    "item_not_as_described",
+    "damaged_item",
+    "wrong_item",
+    "seller_unresponsive",
+    "other",
+  ]),
+  description: zod.string(),
+  evidenceUrls: zod.array(zod.string()),
+  status: zod.enum([
+    "open",
+    "under_review",
+    "resolved_buyer",
+    "resolved_seller",
+    "dismissed",
+  ]),
+  resolution: zod.string().nullish(),
+  adminNote: zod.string().nullish(),
+  resolvedBy: zod.number().nullish(),
+  createdAt: zod.coerce.date(),
+  resolvedAt: zod.coerce.date().nullish(),
+});
+
+/**
+ * @summary Resolve a dispute (admin)
+ */
+export const ResolveDisputeParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const ResolveDisputeBody = zod.object({
+  status: zod.enum(["resolved_buyer", "resolved_seller", "dismissed"]),
+  resolution: zod.string(),
+  adminNote: zod.string().optional(),
+  processRefund: zod.boolean().optional(),
+  releasePayout: zod.boolean().optional(),
+});
+
+export const ResolveDisputeResponse = zod.object({
+  id: zod.number(),
+  orderId: zod.number(),
+  userId: zod.number(),
+  reason: zod.enum([
+    "item_not_received",
+    "item_not_as_described",
+    "damaged_item",
+    "wrong_item",
+    "seller_unresponsive",
+    "other",
+  ]),
+  description: zod.string(),
+  evidenceUrls: zod.array(zod.string()),
+  status: zod.enum([
+    "open",
+    "under_review",
+    "resolved_buyer",
+    "resolved_seller",
+    "dismissed",
+  ]),
+  resolution: zod.string().nullish(),
+  adminNote: zod.string().nullish(),
+  resolvedBy: zod.number().nullish(),
+  createdAt: zod.coerce.date(),
+  resolvedAt: zod.coerce.date().nullish(),
+});

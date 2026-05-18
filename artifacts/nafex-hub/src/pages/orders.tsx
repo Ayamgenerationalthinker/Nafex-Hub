@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useGetUserOrders, getGetUserOrdersQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,6 +20,8 @@ import {
   KeyRound,
   Loader2,
   AlertCircle,
+  Navigation,
+  AlertTriangle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -297,6 +299,26 @@ export default function Orders() {
                     <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
                       <ShieldCheck className="w-4 h-4 flex-shrink-0" />
                       <span>Escrow released to seller after confirmed delivery.</span>
+                    </div>
+                  )}
+
+                  {/* Action buttons — Track & Dispute */}
+                  {order.status !== "cancelled" && (
+                    <div className="flex flex-wrap gap-2 pt-1 border-t border-border/50">
+                      <Link href="/track">
+                        <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8">
+                          <Navigation className="w-3.5 h-3.5" />
+                          Track Package
+                        </Button>
+                      </Link>
+                      {["in_escrow", "released"].includes(order.paymentStatus ?? "") && (
+                        <Link href="/disputes">
+                          <Button size="sm" variant="ghost" className="gap-1.5 text-xs h-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50">
+                            <AlertTriangle className="w-3.5 h-3.5" />
+                            Raise Dispute
+                          </Button>
+                        </Link>
+                      )}
                     </div>
                   )}
                 </CardContent>
