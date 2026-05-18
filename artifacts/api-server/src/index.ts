@@ -12,6 +12,7 @@ if (Number.isNaN(port) || port <= 0) {
 const httpServer = createServer(app);
 initSocketIO(httpServer);
 
-httpServer.listen(port, () => {
+// Bind to 0.0.0.0 so Cloud Run / Docker health checks can reach the server
+httpServer.listen(port, "0.0.0.0", () => {
   logger.info({ port }, "Server listening");
 });
