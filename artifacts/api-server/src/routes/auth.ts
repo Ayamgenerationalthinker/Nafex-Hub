@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { RegisterBody, LoginBody } from "@workspace/api-zod";
 import { z } from "zod";
 import crypto from "crypto";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import rateLimit from "express-rate-limit";
 import { sendAdminEmail } from "../lib/mailer";
 import { requireAuth } from "../lib/auth-middleware";

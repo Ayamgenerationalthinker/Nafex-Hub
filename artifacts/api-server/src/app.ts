@@ -11,6 +11,10 @@ import { logger } from "./lib/logger";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app: Express = express();
 
+// Trust the first proxy hop (Replit dev proxy, Cloud Run load balancer)
+// Required for express-rate-limit and correct IP detection behind proxies
+app.set("trust proxy", 1);
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
