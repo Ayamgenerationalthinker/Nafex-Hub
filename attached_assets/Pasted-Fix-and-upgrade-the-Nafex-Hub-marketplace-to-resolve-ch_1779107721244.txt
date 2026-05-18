@@ -1,0 +1,126 @@
+Fix and upgrade the Nafex Hub marketplace to resolve chat system failures and make the entire platform fully responsive across mobile, tablet, and desktop devices.
+
+CURRENT PROBLEMS:
+1. Chat system does not send or receive messages properly.
+2. Buyer-to-seller messaging is broken.
+3. Customer support chat does not function.
+4. Messages are not stored or updated in real-time.
+5. UI is not responsive on mobile, iOS, Android, tablets, or small screens.
+
+REQUIRED FIXES:
+
+PART 1 — REAL-TIME CHAT SYSTEM (CRITICAL)
+
+Implement a working chat system using Socket.io.
+
+Requirements:
+- Real-time messaging between:
+  a) Buyer ↔ Seller
+  b) User ↔ Support Admin
+- Messages must be stored in database
+- Messages must persist on reload
+- Chat rooms must be separated per order or conversation
+- Typing indicator (optional but preferred)
+- Read/unread message status
+
+Backend:
+- Use Socket.io on Express server
+- Create "join_room" system using conversationId
+- Create "send_message" event
+- Save every message to database
+
+Database:
+Create Messages table:
+- id
+- senderId
+- receiverId
+- conversationId
+- message
+- createdAt
+- readStatus
+
+API:
+- GET /messages/:conversationId
+- POST /messages
+- Socket events:
+  - join_room
+  - send_message
+  - receive_message
+
+Fix buyer-to-seller chat routing so each product/order has a unique conversationId.
+
+---
+
+PART 2 — SUPPORT CHAT SYSTEM FIX
+
+Create a dedicated support chat system:
+- user chats with support agent/admin
+- messages routed to "support room"
+- admin dashboard receives messages in real time
+- support conversations stored separately
+
+---
+
+PART 3 — RESPONSIVE UI FIX (MOBILE-FIRST)
+
+Make the entire frontend fully responsive:
+
+Requirements:
+- Mobile-first design approach
+- Works on Android, iOS, tablets, laptops, desktops
+- Use Flexbox and CSS Grid properly
+- Add responsive breakpoints:
+  - mobile: 320px–768px
+  - tablet: 768px–1024px
+  - desktop: 1024px+
+
+Fix:
+- Seller dashboard layout
+- Chat UI layout
+- Product cards
+- Navigation sidebar (convert to hamburger menu on mobile)
+- Tables must scroll horizontally on small screens
+
+Add:
+- Tailwind CSS or responsive CSS system
+- Sticky bottom navigation for mobile (optional but recommended)
+- Responsive font scaling
+- Touch-friendly buttons
+
+---
+
+PART 4 — CHAT UI FIX
+
+Fix chat interface:
+- messages must align left/right properly
+- scroll to bottom automatically
+- input box must stay fixed at bottom
+- messages must load on page open
+- prevent duplicate messages
+
+---
+
+PART 5 — DATA FLOW FIX
+
+Ensure:
+- Messages are saved BEFORE emitting socket event
+- Socket only broadcasts saved messages
+- No message loss on refresh
+- No fake frontend-only messages
+
+---
+
+TECH STACK:
+- Node.js + Express
+- Socket.io
+- Prisma + PostgreSQL or SQLite
+- React frontend
+- Tailwind CSS (or equivalent responsive CSS)
+
+OUTPUT REQUIRED:
+- Fixed backend chat system
+- Fixed frontend chat UI
+- Working buyer-seller messaging
+- Working support chat system
+- Fully responsive UI across all devices
+- Clean folder structure updates if needed

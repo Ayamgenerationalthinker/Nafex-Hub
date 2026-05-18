@@ -38,6 +38,7 @@ import PaymentCallback from "@/pages/payment-callback";
 import Disputes from "@/pages/disputes";
 import AdminDeliveries from "@/pages/admin-deliveries";
 import AdminDisputesPage from "@/pages/admin-disputes-page";
+import { SupportChatWidget } from "@/components/support-chat";
 
 const queryClient = new QueryClient();
 
@@ -116,6 +117,7 @@ function App() {
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
           <Router />
+          <SupportChatWidget />
         </WouterRouter>
         <Toaster />
       </TooltipProvider>
