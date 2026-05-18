@@ -387,4 +387,85 @@ router.delete("/products/:id", requireAuth, async (req: AuthRequest, res): Promi
   res.json({ ok: true });
 });
 
+// POST /products/bulk — create up to 50 products at once
+router.post("/products/bulk", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const BulkBody = z.object({
+    businessId: z.number().int().positive(),
+    products: z.array(z.object({
+      name: z.string().min(1),
+      description: z.string().default(""),
+      price: z.string().regex(/^\d+(\.\d{1,2})?$/),
+      images: z.array(z.string()).default([]),
+      stock: z.number().int().min(0).nullable().optional(),
+    })).min(1).max(50),
+  });
+
+  const parsed = BulkBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+
+  const [business] = await db
+    .select()
+    .from(businessesTable)
+    .where(and(eq(businessesTable.id, parsed.data.businessId), eq(businessesTable.ownerId, req.userId!)));
+
+  if (!business) { res.status(403).json({ error: "Not your business" }); return; }
+
+  const created = await db
+    .insert(productsTable)
+    .values(
+      parsed.data.products.map((p) => ({
+        businessId: parsed.data.businessId,
+        name: p.name,
+        description: p.description,
+        price: p.price,
+        images: p.images,
+        stock: p.stock ?? null,
+      }))
+    )
+    .returning();
+
+  res.status(201).json(created);
+});
+
+// POST /products/bulk-discount — apply or clear discount % on selected products
+router.post("/products/bulk-discount", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const BulkDiscountBody = z.object({
+    businessId: z.number().int().positive(),
+    productIds: z.array(z.number().int().positive()).min(1).max(200),
+    discountPercent: z.number().min(0).max(90).nullable(),
+  });
+
+  const parsed = BulkDiscountBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+
+  const [business] = await db
+    .select()
+    .from(businessesTable)
+    .where(and(eq(businessesTable.id, parsed.data.businessId), eq(businessesTable.ownerId, req.userId!)));
+
+  if (!business) { res.status(403).json({ error: "Not your business" }); return; }
+
+  const allProducts = await db
+    .select({ id: productsTable.id, price: productsTable.price })
+    .from(productsTable)
+    .where(eq(productsTable.businessId, parsed.data.businessId));
+
+  const targets = allProducts.filter((p) => parsed.data.productIds.includes(p.id));
+
+  await Promise.all(
+    targets.map((p) => {
+      const discountPrice =
+        parsed.data.discountPercent !== null
+          ? (Number(p.price) * (1 - parsed.data.discountPercent / 100)).toFixed(2)
+          : null;
+      return db
+        .update(productsTable)
+        .set({ discountPrice, updatedAt: new Date() })
+        .where(eq(productsTable.id, p.id));
+    })
+  );
+
+  res.json({ updated: targets.length });
+});
+
 export default router;
