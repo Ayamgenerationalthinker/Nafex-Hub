@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useLocation, Link } from "wouter";
 import {
   useGetUserOrders,
-  useInitializePaystackPayment,
   getGetUserOrdersQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -33,20 +32,10 @@ import {
   Navigation,
   AlertTriangle,
   CreditCard,
-  Smartphone,
   PartyPopper,
-  Phone,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { getPaystackPublicKey, openPaystackPopup } from "@/lib/paystack";
 
 const STEPS = [
   { key: "pending",          label: "Placed",       icon: <Clock className="w-3.5 h-3.5" /> },
@@ -86,57 +75,83 @@ type OrderWithDetails = {
   createdAt: string | Date;
 };
 
-type PayChannel = "card" | "mobile_money";
-
 function PayWithPaystackDialog({
   order,
   open,
   onClose,
+  onSuccess,
 }: {
   order: OrderWithDetails;
   open: boolean;
   onClose: () => void;
+  onSuccess: () => void;
 }) {
   const { toast } = useToast();
-  const [channel, setChannel] = useState<PayChannel>("card");
-  const [momoPhone, setMomoPhone] = useState("");
-  const [momoNetwork, setMomoNetwork] = useState<"MTN" | "Vodafone" | "AirtelTigo">("MTN");
-  const [redirecting, setRedirecting] = useState(false);
+  const { user } = useAuth();
+  const [paying, setPaying] = useState(false);
+  const token = localStorage.getItem("nafex_token") ?? "";
 
-  const { mutate: initPay, isPending } = useInitializePaystackPayment({
-    mutation: {
-      onSuccess: (data) => {
-        setRedirecting(true);
-        // Redirect to Paystack hosted checkout — same tab, Paystack returns via callback_url
-        window.location.href = data.authorizationUrl;
-      },
-      onError: (err: unknown) => {
-        const msg =
-          (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-          "Failed to initialise payment";
-        toast({ title: "Payment Error", description: msg, variant: "destructive" });
-      },
-    },
-  });
+  async function handlePay() {
+    setPaying(true);
+    try {
+      // Step 1: create pending transaction record + reference on backend
+      const initRes = await fetch("/api/payments/paystack/initialize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ orderId: order.id }),
+      });
+      const initData = (await initRes.json()) as { reference?: string; amountPesewas?: number; error?: string };
+      if (!initRes.ok) {
+        toast({ title: "Payment Error", description: initData.error ?? "Could not initialize payment.", variant: "destructive" });
+        return;
+      }
+      const { reference, amountPesewas } = initData;
+      if (!reference || !amountPesewas) throw new Error("Invalid response from server");
 
-  function handlePay() {
-    if (channel === "mobile_money" && !momoPhone.trim()) {
-      toast({ title: "Enter your MoMo phone number", variant: "destructive" });
-      return;
+      // Step 2: get Paystack public key from backend config
+      const publicKey = await getPaystackPublicKey();
+
+      // Step 3: open Paystack inline popup — no redirect, no secret key on frontend
+      openPaystackPopup({
+        publicKey,
+        email: user?.email ?? "customer@nafexhub.com",
+        amountPesewas,
+        reference,
+        onSuccess: async (ref) => {
+          // Step 4: verify with backend (backend uses secret key)
+          try {
+            const vRes = await fetch("/api/payments/paystack/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ reference: ref, orderId: order.id }),
+            });
+            if (!vRes.ok) {
+              const err = (await vRes.json()) as { error?: string };
+              console.error("[Paystack] Order verify failed:", err.error);
+              toast({ title: "Verification failed", description: err.error ?? "Contact support with ref: " + ref, variant: "destructive" });
+            } else {
+              toast({ title: "Payment successful!", description: "Your funds are held in escrow until delivery." });
+              onSuccess();
+              onClose();
+            }
+          } finally {
+            setPaying(false);
+          }
+        },
+        onClose: () => {
+          toast({ title: "Payment cancelled", description: "You closed the payment window.", variant: "destructive" });
+          setPaying(false);
+        },
+      });
+    } catch (err: unknown) {
+      console.error("[Paystack] Order payment error:", err);
+      toast({ title: "Payment error", description: (err as Error).message ?? "An unexpected error occurred.", variant: "destructive" });
+      setPaying(false);
     }
-    initPay({
-      data: {
-        orderId: order.id,
-        channel,
-        ...(channel === "mobile_money"
-          ? { momoPhone: momoPhone.trim(), momoNetwork }
-          : {}),
-      },
-    });
   }
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v && !redirecting) onClose(); }}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v && !paying) onClose(); }}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -150,84 +165,23 @@ function PayWithPaystackDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Channel selector */}
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => setChannel("card")}
-              className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-colors text-sm font-medium ${
-                channel === "card"
-                  ? "border-primary bg-primary/5 text-primary"
-                  : "border-border text-muted-foreground hover:border-primary/40"
-              }`}
-            >
-              <CreditCard className="w-5 h-5" />
-              Card
-            </button>
-            <button
-              onClick={() => setChannel("mobile_money")}
-              className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-colors text-sm font-medium ${
-                channel === "mobile_money"
-                  ? "border-primary bg-primary/5 text-primary"
-                  : "border-border text-muted-foreground hover:border-primary/40"
-              }`}
-            >
-              <Smartphone className="w-5 h-5" />
-              Mobile Money
-            </button>
-          </div>
-
-          {/* MoMo fields */}
-          {channel === "mobile_money" && (
-            <div className="space-y-3">
-              <div>
-                <Label>Network</Label>
-                <Select value={momoNetwork} onValueChange={(v) => setMomoNetwork(v as typeof momoNetwork)}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="MTN">MTN Mobile Money</SelectItem>
-                    <SelectItem value="Vodafone">Vodafone Cash</SelectItem>
-                    <SelectItem value="AirtelTigo">AirtelTigo Money</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Phone Number</Label>
-                <div className="relative mt-1">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    value={momoPhone}
-                    onChange={(e) => setMomoPhone(e.target.value)}
-                    placeholder="0244000000"
-                    className="pl-9"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Escrow info banner */}
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2.5">
             <ShieldCheck className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
             <p className="text-xs text-amber-700 leading-relaxed">
               Payment is held securely in escrow. Funds are only released to the seller
-              after you confirm you've received your items.
+              after you confirm you've received your items. You can pay by card or mobile money.
             </p>
           </div>
         </div>
 
         <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={onClose} disabled={isPending || redirecting}>
+          <Button variant="outline" onClick={onClose} disabled={paying}>
             Cancel
           </Button>
-          <Button
-            onClick={handlePay}
-            disabled={isPending || redirecting}
-            className="gap-2 flex-1"
-          >
-            {(isPending || redirecting) ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /> Redirecting…</>
+          <Button onClick={handlePay} disabled={paying} className="gap-2 flex-1">
+            {paying ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Opening…</>
             ) : (
               <><CreditCard className="w-4 h-4" /> Pay GHS {(order.totalPrice / 100).toFixed(2)}</>
             )}
@@ -568,6 +522,10 @@ export default function Orders() {
           order={payingOrder}
           open={!!payingOrder}
           onClose={() => setPayingOrder(null)}
+          onSuccess={() => {
+            setPayingOrder(null);
+            queryClient.invalidateQueries({ queryKey: getGetUserOrdersQueryKey() });
+          }}
         />
       )}
       {confirmingOrder && (

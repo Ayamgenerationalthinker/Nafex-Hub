@@ -70,15 +70,18 @@ function requireAdmin(req: AuthRequest, res: Parameters<typeof requireAuth>[1], 
   next();
 }
 
-// ── Initialize Paystack Payment ─────────────────────────────────────────────
+// ── Expose Paystack public key safely ───────────────────────────────────────
+
+router.get("/config/paystack", (_req, res): void => {
+  res.json({ publicKey: process.env["PAYSTACK_PUBLIC_KEY"] ?? null });
+});
+
+// ── Initialize Paystack Payment (inline popup) ───────────────────────────────
+// Creates a pending record + reference. The frontend opens the Paystack popup
+// using the PUBLIC KEY. On success the popup callback calls /verify with the ref.
 
 router.post("/payments/paystack/initialize", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  if (!PAYSTACK_SECRET) {
-    res.status(503).json({ error: "Payment gateway not configured. Set PAYSTACK_SECRET_KEY." });
-    return;
-  }
-
-  const parsed = InitiatePaymentBody.safeParse(req.body);
+  const parsed = z.object({ orderId: z.number().int().positive() }).safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, parsed.data.orderId));
@@ -90,59 +93,22 @@ router.post("/payments/paystack/initialize", requireAuth, async (req: AuthReques
   }
 
   const reference = `NAF-${order.id}-${Date.now()}`;
-  const amountKobo = order.totalPrice; // already in pesewas (Ghana cents)
+  const amountPesewas = order.totalPrice; // already in pesewas (Ghana cents)
 
-  // Build callback URL using Replit domain or request host
-  const domain = process.env["REPLIT_DOMAINS"]?.split(",")[0];
-  const callbackBase = domain ? `https://${domain}` : `${req.protocol}://${req.get("host")}`;
-  const callbackUrl = `${callbackBase}/payment/callback?orderId=${order.id}`;
-
-  // Build Paystack request
-  const paystackBody: Record<string, unknown> = {
-    email: req.user!.email,
-    amount: amountKobo,
-    reference,
+  await db.insert(transactionsTable).values({
+    orderId: order.id,
+    userId: req.userId!,
+    type: "payment",
+    amount: (amountPesewas / 100).toString(),
     currency: "GHS",
-    channels: [parsed.data.channel],
-    callback_url: callbackUrl,
-    metadata: { orderId: order.id, userId: req.userId },
-  };
+    provider: "paystack",
+    providerRef: reference,
+    channel: "card",
+    status: "pending",
+    metadata: { orderId: order.id },
+  });
 
-  if (parsed.data.channel === "mobile_money" && parsed.data.momoPhone) {
-    paystackBody["mobile_money"] = {
-      phone: parsed.data.momoPhone,
-      provider: (parsed.data.momoNetwork ?? "MTN").toLowerCase(),
-    };
-  }
-
-  try {
-    const data = await paystackPost<{ authorization_url: string; access_code: string; reference: string }>(
-      "/transaction/initialize",
-      paystackBody
-    );
-
-    // Log pending transaction
-    await db.insert(transactionsTable).values({
-      orderId: order.id,
-      userId: req.userId!,
-      type: "payment",
-      amount: (amountKobo / 100).toString(),
-      currency: "GHS",
-      provider: parsed.data.channel === "mobile_money" ? "momo" : "paystack",
-      providerRef: reference,
-      channel: parsed.data.channel,
-      status: "pending",
-      metadata: { paystackRef: data.reference, accessCode: data.access_code },
-    });
-
-    res.json({
-      authorizationUrl: data.authorization_url,
-      accessCode: data.access_code,
-      reference: data.reference,
-    });
-  } catch (err: unknown) {
-    res.status(502).json({ error: (err as Error).message ?? "Failed to initialize payment" });
-  }
+  res.json({ reference, amountPesewas, orderId: order.id });
 });
 
 // ── Verify Paystack Payment ─────────────────────────────────────────────────
