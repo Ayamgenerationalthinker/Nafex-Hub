@@ -23,6 +23,7 @@ import deliveriesRouter from "./deliveries";
 import paymentsRouter from "./payments";
 import disputesRouter from "./disputes";
 import tradeRouter from "./trade";
+import boostsRouter from "./boosts";
 
 const router: IRouter = Router();
 
@@ -50,5 +51,6 @@ router.use(deliveriesRouter);
 router.use(paymentsRouter);
 router.use(disputesRouter);
 router.use(tradeRouter);
+router.use(boostsRouter);
 
 export default router;

@@ -65,9 +65,13 @@ import {
   ShieldCheck,
   KeyRound,
   AlertCircle,
+  Upload,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/image-upload";
+import { EarningsTab } from "@/components/dashboard/earnings-tab";
+import { BoostTab } from "@/components/dashboard/boost-tab";
+import { BulkUploadModal } from "@/components/dashboard/bulk-upload-modal";
 
 const STATUS_COLORS: Record<string, string> = {
   pending:          "bg-yellow-100 text-yellow-800",
@@ -254,6 +258,7 @@ export default function Dashboard() {
   }
 
   const [activeTab, setActiveTab] = useState("overview");
+  const [showBulkUpload, setShowBulkUpload] = useState(false);
 
   type Client = {
     userId: number;
@@ -361,6 +366,27 @@ export default function Dashboard() {
       );
   };
 
+  // Auto-verify boost payment when Paystack redirects back to /dashboard?boost_ref=...&boost_id=...
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const boostRef = params.get("boost_ref");
+    const boostId  = params.get("boost_id");
+    if (boostRef && boostId) {
+      window.history.replaceState({}, "", "/dashboard");
+      setActiveTab("boost");
+      const t = localStorage.getItem("nafex_token");
+      fetch("/api/boosts/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` },
+        body: JSON.stringify({ reference: boostRef, boostId: parseInt(boostId) }),
+      })
+        .then((r) => (r.ok ? r.json() : Promise.reject()))
+        .then(() => toast({ title: "Boost activated!", description: "Your listing is now boosted in search results." }))
+        .catch(() => toast({ title: "Could not auto-verify boost", description: "Open the Boost tab and click Verify.", variant: "destructive" }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const statCards = [
     {
       label: "Total Orders",
@@ -422,6 +448,8 @@ export default function Dashboard() {
             <TabsTrigger value="feedback" className="whitespace-nowrap">Feedback</TabsTrigger>
             <TabsTrigger value="pricing" className="whitespace-nowrap">Pricing</TabsTrigger>
             <TabsTrigger value="settings" className="whitespace-nowrap">Store Settings</TabsTrigger>
+            <TabsTrigger value="earnings" className="whitespace-nowrap">Earnings</TabsTrigger>
+            <TabsTrigger value="boost" className="whitespace-nowrap">Boost</TabsTrigger>
           </TabsList>
         </div>
 
@@ -621,12 +649,24 @@ export default function Dashboard() {
             <div className="text-center py-16 text-muted-foreground">List your business to manage inventory</div>
           ) : (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
                 <p className="text-sm text-muted-foreground">Manage your products and stock levels.</p>
-                <Button size="sm" className="gap-2" onClick={() => setShowAddProduct(true)}>
-                  <Plus className="w-4 h-4" /> Add Product
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button size="sm" variant="outline" className="gap-2" onClick={() => setShowBulkUpload(true)}>
+                    <Upload className="w-4 h-4" /> Bulk Upload
+                  </Button>
+                  <Button size="sm" className="gap-2" onClick={() => setShowAddProduct(true)}>
+                    <Plus className="w-4 h-4" /> Add Product
+                  </Button>
+                </div>
               </div>
+
+              <BulkUploadModal
+                businessId={businessId}
+                open={showBulkUpload}
+                onOpenChange={setShowBulkUpload}
+                onSuccess={() => { setShowBulkUpload(false); refetchProducts(); }}
+              />
 
               {/* Add Product Dialog */}
               <Dialog open={showAddProduct} onOpenChange={setShowAddProduct}>
@@ -1232,6 +1272,28 @@ export default function Dashboard() {
               </Button>
             </div>
           )}
+        </TabsContent>
+
+        {/* ── Earnings Tab ── */}
+        <TabsContent value="earnings" className="space-y-6">
+          <div className="mb-2">
+            <h2 className="font-semibold text-lg">Earnings &amp; Revenue</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">Track your income, escrow balance, and transaction history.</p>
+          </div>
+          <EarningsTab businessId={businessId} />
+        </TabsContent>
+
+        {/* ── Boost Tab ── */}
+        <TabsContent value="boost" className="space-y-6">
+          <div className="mb-2">
+            <h2 className="font-semibold text-lg">Boost Your Listing</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">Pay to promote your store and reach more customers across Nafex Hub.</p>
+          </div>
+          <BoostTab
+            businessId={businessId}
+            userEmail={user?.email ?? ""}
+            token={localStorage.getItem("nafex_token") ?? ""}
+          />
         </TabsContent>
       </Tabs>
     </div>
