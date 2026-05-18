@@ -34,6 +34,7 @@ import BuyerSettings from "@/pages/buyer-settings";
 import Help from "@/pages/help";
 import SellerPerformance from "@/pages/seller-performance";
 import Track from "@/pages/track";
+import PaymentCallback from "@/pages/payment-callback";
 import Disputes from "@/pages/disputes";
 import AdminDeliveries from "@/pages/admin-deliveries";
 import AdminDisputesPage from "@/pages/admin-disputes-page";
@@ -95,6 +96,7 @@ function Router() {
             <Route path="/account/settings">{() => <ProtectedRoute component={BuyerSettings} roles={["user"]} to="/explore" />}</Route>
             <Route path="/help" component={Help} />
             <Route path="/seller/performance">{() => <ProtectedRoute component={SellerPerformance} roles={["business_owner"]} to="/explore" />}</Route>
+            <Route path="/payment/callback" component={PaymentCallback} />
             <Route path="/track" component={Track} />
             <Route path="/track/:code" component={Track} />
             <Route path="/disputes">{() => <ProtectedRoute component={Disputes} />}</Route>
