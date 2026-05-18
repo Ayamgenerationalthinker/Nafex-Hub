@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, conversationsTable, messagesTable, businessesTable, notificationsTable } from "@workspace/db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, ne, count } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
 import { getIO } from "../lib/socket";
@@ -21,6 +21,18 @@ const SendMessageBody = z.object({
 
 function emitToRoom(conversationId: number, message: unknown) {
   try { getIO()?.to(`conv_${conversationId}`).emit("receive_message", message); } catch {}
+}
+
+async function getUnreadCount(conversationId: number, forUserId: number): Promise<number> {
+  const [result] = await db
+    .select({ val: count() })
+    .from(messagesTable)
+    .where(and(
+      eq(messagesTable.conversationId, conversationId),
+      ne(messagesTable.senderId, forUserId),
+      eq(messagesTable.isRead, false)
+    ));
+  return Number(result?.val ?? 0);
 }
 
 // ── Buyer conversations ──────────────────────────────────────────────────────
@@ -49,7 +61,8 @@ router.get("/conversations", requireAuth, async (req: AuthRequest, res): Promise
         .where(eq(messagesTable.conversationId, conv.id))
         .orderBy(desc(messagesTable.createdAt))
         .limit(1);
-      return { ...conv, lastMessage: last?.text ?? null };
+      const unreadCount = await getUnreadCount(conv.id, req.userId!);
+      return { ...conv, lastMessage: last?.text ?? null, unreadCount };
     })
   );
 
@@ -86,7 +99,8 @@ router.get("/seller/conversations", requireAuth, async (req: AuthRequest, res): 
         .where(eq(messagesTable.conversationId, conv.id))
         .orderBy(desc(messagesTable.createdAt))
         .limit(1);
-      return { ...conv, businessName: business.name, businessLogo: null as string | null, lastMessage: last?.text ?? null };
+      const unreadCount = await getUnreadCount(conv.id, req.userId!);
+      return { ...conv, businessName: business.name, businessLogo: null as string | null, lastMessage: last?.text ?? null, unreadCount };
     })
   );
 
@@ -110,7 +124,8 @@ router.post("/conversations", requireAuth, async (req: AuthRequest, res): Promis
   if (existing) {
     const [business] = await db.select().from(businessesTable).where(eq(businessesTable.id, existing.businessId));
     const [last] = await db.select().from(messagesTable).where(eq(messagesTable.conversationId, existing.id)).orderBy(desc(messagesTable.createdAt)).limit(1);
-    res.json({ ...existing, businessName: business?.name ?? null, businessLogo: business?.logo ?? null, lastMessage: last?.text ?? null });
+    const unreadCount = await getUnreadCount(existing.id, req.userId!);
+    res.json({ ...existing, businessName: business?.name ?? null, businessLogo: business?.logo ?? null, lastMessage: last?.text ?? null, unreadCount });
     return;
   }
 
@@ -121,7 +136,33 @@ router.post("/conversations", requireAuth, async (req: AuthRequest, res): Promis
 
   const [business] = await db.select().from(businessesTable).where(eq(businessesTable.id, parsed.data.businessId));
 
-  res.json({ ...conv, businessName: business?.name ?? null, businessLogo: business?.logo ?? null, lastMessage: null });
+  res.json({ ...conv, businessName: business?.name ?? null, businessLogo: business?.logo ?? null, lastMessage: null, unreadCount: 0 });
+});
+
+// ── Mark messages as read ─────────────────────────────────────────────────────
+router.patch("/conversations/:id/read", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const params = ConversationParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+
+  const [conv] = await db.select().from(conversationsTable).where(eq(conversationsTable.id, params.data.id));
+  if (!conv) { res.status(404).json({ error: "Conversation not found" }); return; }
+
+  const [biz] = conv.businessId && conv.businessId > 0
+    ? await db.select({ ownerId: businessesTable.ownerId }).from(businessesTable).where(eq(businessesTable.id, conv.businessId))
+    : [null];
+
+  const isParticipant = conv.userId === req.userId || biz?.ownerId === req.userId || req.userRole === "admin";
+  if (!isParticipant) { res.status(403).json({ error: "Access denied" }); return; }
+
+  await db
+    .update(messagesTable)
+    .set({ isRead: true })
+    .where(and(
+      eq(messagesTable.conversationId, params.data.id),
+      ne(messagesTable.senderId, req.userId!)
+    ));
+
+  res.json({ ok: true });
 });
 
 // ── Get messages ─────────────────────────────────────────────────────────────

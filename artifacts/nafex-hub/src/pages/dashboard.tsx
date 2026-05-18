@@ -411,17 +411,19 @@ export default function Dashboard() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-6 flex-wrap h-auto gap-1">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="orders">Orders</TabsTrigger>
-          <TabsTrigger value="inventory">Inventory</TabsTrigger>
-          <TabsTrigger value="collections">Collections</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="clients">Clients</TabsTrigger>
-          <TabsTrigger value="feedback">Feedback</TabsTrigger>
-          <TabsTrigger value="pricing">Pricing</TabsTrigger>
-          <TabsTrigger value="settings">Store Settings</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 mb-6">
+          <TabsList className="flex-nowrap h-auto gap-1 w-max">
+            <TabsTrigger value="overview" className="whitespace-nowrap">Overview</TabsTrigger>
+            <TabsTrigger value="orders" className="whitespace-nowrap">Orders</TabsTrigger>
+            <TabsTrigger value="inventory" className="whitespace-nowrap">Inventory</TabsTrigger>
+            <TabsTrigger value="collections" className="whitespace-nowrap">Collections</TabsTrigger>
+            <TabsTrigger value="analytics" className="whitespace-nowrap">Analytics</TabsTrigger>
+            <TabsTrigger value="clients" className="whitespace-nowrap">Clients</TabsTrigger>
+            <TabsTrigger value="feedback" className="whitespace-nowrap">Feedback</TabsTrigger>
+            <TabsTrigger value="pricing" className="whitespace-nowrap">Pricing</TabsTrigger>
+            <TabsTrigger value="settings" className="whitespace-nowrap">Store Settings</TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* ── Overview Tab ── */}
         <TabsContent value="overview" className="space-y-6">
