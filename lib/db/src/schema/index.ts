@@ -17,3 +17,4 @@ export * from "./riders";
 export * from "./deliveries";
 export * from "./transactions";
 export * from "./disputes";
+export * from "./trade";

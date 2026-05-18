@@ -22,6 +22,7 @@ import ridersRouter from "./riders";
 import deliveriesRouter from "./deliveries";
 import paymentsRouter from "./payments";
 import disputesRouter from "./disputes";
+import tradeRouter from "./trade";
 
 const router: IRouter = Router();
 
@@ -48,5 +49,6 @@ router.use(ridersRouter);
 router.use(deliveriesRouter);
 router.use(paymentsRouter);
 router.use(disputesRouter);
+router.use(tradeRouter);
 
 export default router;
