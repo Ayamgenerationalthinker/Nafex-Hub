@@ -1,26 +1,29 @@
 import { useLocation } from "wouter";
-import { useGetFavorites, useToggleFavorite } from "@workspace/api-client-react";
+import { useGetFavorites, useToggleFavorite, getGetFavoritesQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, Store, ShoppingBag, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function Favorites() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
 
-  const token = localStorage.getItem("nafex_token");
-  if (!token) {
-    setLocation("/login");
-    return null;
-  }
-
-  const { data, isLoading, refetch } = useGetFavorites();
+  // ── All hooks must be called before any early return ──
+  const { data, isLoading, refetch } = useGetFavorites({ query: { enabled: !!user, queryKey: getGetFavoritesQueryKey() } });
   const { mutate: toggleFav } = useToggleFavorite({
     mutation: { onSuccess: () => { toast({ title: "Removed from favorites" }); refetch(); } },
   });
+
+  // Auth guard — after all hooks
+  if (!user) {
+    setLocation("/login");
+    return null;
+  }
 
   const businesses = (data as { businesses?: unknown[] } | undefined)?.businesses ?? [];
   const products = data?.products ?? [];

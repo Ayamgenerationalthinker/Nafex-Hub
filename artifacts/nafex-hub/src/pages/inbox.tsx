@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import {
   useGetConversations,
+  getGetConversationsQueryKey,
   useGetMessages,
   getGetMessagesQueryKey,
   useSendMessage,
@@ -11,27 +12,26 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Send, MessageCircle, ArrowLeft } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function Inbox() {
   const [, setLocation] = useLocation();
-  const token = localStorage.getItem("nafex_token");
+  const { user } = useAuth();
 
-  if (!token) {
-    setLocation("/login");
-    return null;
-  }
-
+  // ── All hooks must be called before any early return ──
   const [selectedConvId, setSelectedConvId] = useState<number | null>(null);
   const [messageText, setMessageText] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { data: conversations, isLoading: convsLoading, refetch: refetchConvs } = useGetConversations();
+  const { data: conversations, isLoading: convsLoading, refetch: refetchConvs } = useGetConversations({
+    query: { enabled: !!user, queryKey: getGetConversationsQueryKey() },
+  });
 
   const selectedConv = conversations?.find((c) => c.id === selectedConvId);
 
   const { data: messages, isLoading: msgsLoading, refetch: refetchMessages } = useGetMessages(
     selectedConvId ?? 0,
-    { query: { enabled: !!selectedConvId, refetchInterval: 5000, queryKey: getGetMessagesQueryKey(selectedConvId ?? 0) } }
+    { query: { enabled: !!selectedConvId && !!user, refetchInterval: !!selectedConvId ? 3000 : false, queryKey: getGetMessagesQueryKey(selectedConvId ?? 0) } }
   );
 
   const { mutate: sendMessage, isPending: sending } = useSendMessage({
@@ -55,18 +55,18 @@ export default function Inbox() {
     }
   }, [conversations, selectedConvId]);
 
+  // Auth guard — after all hooks
+  if (!user) {
+    setLocation("/login");
+    return null;
+  }
+
   const handleSend = () => {
     if (!messageText.trim() || !selectedConvId) return;
     sendMessage({ id: selectedConvId, data: { text: messageText.trim() } });
   };
 
-  const currentUserId = (() => {
-    try {
-      return parseInt(Buffer.from(token, "base64").toString().split(":")[0], 10);
-    } catch {
-      return -1;
-    }
-  })();
+  const currentUserId = user.id;
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-5xl">
