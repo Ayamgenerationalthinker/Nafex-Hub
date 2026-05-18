@@ -32,6 +32,7 @@ type ConvData = {
   businessName?: string | null;
   businessLogo?: string | null;
   lastMessage?: string | null;
+  unreadCount?: number;
 };
 
 export default function Inbox() {
@@ -65,7 +66,6 @@ export default function Inbox() {
       query: {
         enabled: !!selectedConvId && !!user,
         queryKey: getGetMessagesQueryKey(selectedConvId ?? 0),
-        // Keep polling as fallback for environments where socket might not connect
         refetchInterval: selectedConvId ? 8000 : false,
         staleTime: 0,
       },
@@ -76,7 +76,6 @@ export default function Inbox() {
     mutation: {
       onSuccess: (saved) => {
         setMessageText("");
-        // Server-sent message already in localMessages via socket; if socket missed it, add via REST
         setLocalMessages((prev) => {
           const alreadyIn = prev.some((m) => m.id === (saved as MsgData).id);
           return alreadyIn ? prev : [...prev, saved as MsgData];
@@ -85,6 +84,25 @@ export default function Inbox() {
       },
     },
   });
+
+  // Mark all incoming messages in the open conversation as read
+  const markConvAsRead = useCallback(async (convId: number) => {
+    const token = localStorage.getItem("nafex_token");
+    if (!token) return;
+    try {
+      await fetch(`/api/conversations/${convId}/read`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // Refresh conversation list so unread badge disappears
+      queryClient.invalidateQueries({ queryKey: getGetConversationsQueryKey() });
+    } catch {}
+  }, [queryClient]);
+
+  const handleSelectConv = useCallback((convId: number) => {
+    setSelectedConvId(convId);
+    markConvAsRead(convId);
+  }, [markConvAsRead]);
 
   // Merge fetched + socket messages, deduplicate by id
   useEffect(() => {
@@ -113,13 +131,14 @@ export default function Inbox() {
   // Auto-select first conversation
   useEffect(() => {
     if (conversations.length > 0 && !selectedConvId) {
-      setSelectedConvId(conversations[0].id);
+      handleSelectConv(conversations[0].id);
     }
   }, [conversations]);
 
   // Socket.io real-time events
   useEffect(() => {
-    if (!socket || !selectedConvId) return;
+    if (!socket || !selectedConvId || !user) return;
+    const myUserId = user.id;
 
     socket.emit("join_room", selectedConvId);
 
@@ -129,8 +148,11 @@ export default function Inbox() {
         if (prev.some((m) => m.id === msg.id)) return prev;
         return [...prev, msg];
       });
-      // Refresh conversation list to update last message snippet
       queryClient.invalidateQueries({ queryKey: getGetConversationsQueryKey() });
+      // Immediately mark as read since we're actively viewing this conversation
+      if (msg.senderId !== myUserId) {
+        markConvAsRead(selectedConvId);
+      }
     };
 
     const onTyping = ({ userName }: { userName: string }) => {
@@ -149,7 +171,7 @@ export default function Inbox() {
       socket.off("stop_typing", onStopTyping);
       socket.emit("leave_room", selectedConvId);
     };
-  }, [socket, selectedConvId]);
+  }, [socket, selectedConvId, user, markConvAsRead, queryClient]);
 
   const handleTyping = useCallback(() => {
     if (!socket || !selectedConvId) return;
@@ -251,33 +273,41 @@ export default function Inbox() {
                 )}
               </div>
             ) : (
-              conversations.map((conv) => (
-                <button
-                  key={conv.id}
-                  onClick={() => setSelectedConvId(conv.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-3 text-left hover:bg-muted/40 transition-colors border-b border-border/40 ${
-                    selectedConvId === conv.id
-                      ? "bg-primary/5 border-l-2 border-l-primary"
-                      : ""
-                  }`}
-                >
-                  <Avatar className="w-10 h-10 flex-shrink-0">
-                    <AvatarFallback className="bg-primary/10 text-primary text-sm font-bold">
-                      {(conv.businessName ?? "B").charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground truncate">
-                      {conv.businessName ?? "Business"}
-                    </p>
-                    {conv.lastMessage && (
-                      <p className="text-xs text-muted-foreground truncate mt-0.5">
-                        {conv.lastMessage}
+              conversations.map((conv) => {
+                const hasUnread = !!conv.unreadCount && conv.unreadCount > 0 && selectedConvId !== conv.id;
+                return (
+                  <button
+                    key={conv.id}
+                    onClick={() => handleSelectConv(conv.id)}
+                    className={`w-full flex items-center gap-3 px-3 py-3 text-left hover:bg-muted/40 transition-colors border-b border-border/40 ${
+                      selectedConvId === conv.id
+                        ? "bg-primary/5 border-l-2 border-l-primary"
+                        : ""
+                    }`}
+                  >
+                    <Avatar className="w-10 h-10 flex-shrink-0">
+                      <AvatarFallback className="bg-primary/10 text-primary text-sm font-bold">
+                        {(conv.businessName ?? "B").charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm truncate ${hasUnread ? "font-bold text-foreground" : "font-semibold text-foreground"}`}>
+                        {conv.businessName ?? "Business"}
                       </p>
+                      {conv.lastMessage && (
+                        <p className={`text-xs truncate mt-0.5 ${hasUnread ? "text-foreground/80 font-medium" : "text-muted-foreground"}`}>
+                          {conv.lastMessage}
+                        </p>
+                      )}
+                    </div>
+                    {hasUnread && (
+                      <span className="flex-shrink-0 min-w-[20px] h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center px-1.5">
+                        {conv.unreadCount! > 9 ? "9+" : conv.unreadCount}
+                      </span>
                     )}
-                  </div>
-                </button>
-              ))
+                  </button>
+                );
+              })
             )}
           </div>
         </div>
