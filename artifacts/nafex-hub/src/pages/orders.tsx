@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { useGetUserOrders } from "@workspace/api-client-react";
+import { useGetUserOrders, getGetUserOrdersQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -67,18 +67,20 @@ export default function Orders() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const token = localStorage.getItem("nafex_token");
 
+  // ── All hooks must be called before any early return ──
   const [payRef, setPayRef] = useState<Record<number, string>>({});
   const [payingId, setPayingId] = useState<number | null>(null);
   const [showPayForm, setShowPayForm] = useState<Record<number, boolean>>({});
 
+  const token = localStorage.getItem("nafex_token");
+  const { data: orders, isLoading } = useGetUserOrders({ query: { enabled: !!token, queryKey: getGetUserOrdersQueryKey() } });
+
+  // Auth guard — after all hooks
   if (!token) {
     setLocation("/login");
     return null;
   }
-
-  const { data: orders, isLoading } = useGetUserOrders();
 
   async function submitPayment(orderId: number) {
     const ref = payRef[orderId]?.trim();

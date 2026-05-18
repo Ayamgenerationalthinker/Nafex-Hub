@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
 import {
   useGetDashboardStats,
   useGetBusinessAnalytics,
@@ -98,13 +99,9 @@ const PAYMENT_BADGE: Record<string, { label: string; color: string }> = {
 export default function Dashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
 
-  const token = localStorage.getItem("nafex_token");
-  if (!token) {
-    setLocation("/login");
-    return null;
-  }
-
+  // ── All hooks must be called before any early return ──
   const { data: stats, isLoading: statsLoading } = useGetDashboardStats();
 
   const businessId = (stats as { businessId?: number } | undefined)?.businessId ?? 0;
@@ -392,6 +389,12 @@ export default function Dashboard() {
   ];
 
   const last14Days = analytics?.dailyStats?.slice(-14) ?? [];
+
+  // Auth guard — after all hooks
+  if (!user) {
+    setLocation("/login");
+    return null;
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">

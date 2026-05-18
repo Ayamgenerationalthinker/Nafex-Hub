@@ -1,0 +1,30 @@
+I have a marketplace web app called Nafex Hub built with React, TypeScript, Express, and PostgreSQL. I need you to create a strict seller requirements and onboarding guide page or modal. It should feel professional and serious — like Jumia or Jiji seller rules. Here is the exact content:
+Who Can Sell on Nafex Hub
+To become a verified seller on Nafex Hub, you must meet the following requirements:
+
+You must be a registered business or individual trader based in Ghana
+You must sell authentic fashion products only — Clothing, Footwear, or Accessories
+You must have a working WhatsApp number for customer communication
+You must be able to fulfill orders within a reasonable time
+You must not sell counterfeit, stolen, or prohibited items
+You must maintain a good rating — sellers with consistent bad reviews will be removed
+
+Seller Responsibilities
+
+Keep your product listings accurate — wrong prices or descriptions will lead to account suspension
+Respond to customer messages promptly
+Update your stock levels regularly so customers know what is available
+Mark orders as Confirmed, Shipped, and Delivered as you process them
+Never ask customers to pay outside the platform
+
+How to Set Up Your Shop
+Step 1 — Create a Business Owner account on the Sign Up page
+Step 2 — List your business with your real business name, category, location, WhatsApp number, logo, and store images
+Step 3 — Add your products with clear photos, accurate descriptions, and correct prices in GHS
+Step 4 — Organise products into collections to make your shop easier to browse
+Step 5 — Monitor your orders and analytics from your Dashboard daily
+Verification Badge
+After listing your business, the Nafex Hub admin team will review your profile. Sellers who meet all requirements will receive a Verified badge on their profile, which increases customer trust and visibility on the platform.
+Account Suspension Policy
+Nafex Hub reserves the right to suspend or permanently ban any seller who violates these rules, receives consistent bad reviews, or engages in fraudulent activity.
+Please build this as a clean, professional page or modal styled to match a dark-themed fashion marketplace with gold/amber primary colors. Include clear section headings, icons where appropriate, and a final call-to-action button that says "I Understand — Start Selling".
