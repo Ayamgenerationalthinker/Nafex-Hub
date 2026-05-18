@@ -33,6 +33,10 @@ import MyShop from "@/pages/my-shop";
 import BuyerSettings from "@/pages/buyer-settings";
 import Help from "@/pages/help";
 import SellerPerformance from "@/pages/seller-performance";
+import Track from "@/pages/track";
+import Disputes from "@/pages/disputes";
+import AdminDeliveries from "@/pages/admin-deliveries";
+import AdminDisputesPage from "@/pages/admin-disputes-page";
 
 const queryClient = new QueryClient();
 
@@ -91,6 +95,11 @@ function Router() {
             <Route path="/account/settings">{() => <ProtectedRoute component={BuyerSettings} roles={["user"]} to="/explore" />}</Route>
             <Route path="/help" component={Help} />
             <Route path="/seller/performance">{() => <ProtectedRoute component={SellerPerformance} roles={["business_owner"]} to="/explore" />}</Route>
+            <Route path="/track" component={Track} />
+            <Route path="/track/:code" component={Track} />
+            <Route path="/disputes">{() => <ProtectedRoute component={Disputes} />}</Route>
+            <Route path="/admin/deliveries">{() => <ProtectedRoute component={AdminDeliveries} roles={["admin"]} to="/" />}</Route>
+            <Route path="/admin/disputes">{() => <ProtectedRoute component={AdminDisputesPage} roles={["admin"]} to="/" />}</Route>
             <Route component={NotFound} />
           </Switch>
         </Layout>

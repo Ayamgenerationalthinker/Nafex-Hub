@@ -18,6 +18,10 @@ import servicesRouter from "./services";
 import collectionsRouter from "./collections";
 import uploadRouter from "./upload";
 import supportRouter from "./support";
+import ridersRouter from "./riders";
+import deliveriesRouter from "./deliveries";
+import paymentsRouter from "./payments";
+import disputesRouter from "./disputes";
 
 const router: IRouter = Router();
 
@@ -40,5 +44,9 @@ router.use(servicesRouter);
 router.use(collectionsRouter);
 router.use(uploadRouter);
 router.use(supportRouter);
+router.use(ridersRouter);
+router.use(deliveriesRouter);
+router.use(paymentsRouter);
+router.use(disputesRouter);
 
 export default router;

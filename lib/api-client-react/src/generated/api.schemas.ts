@@ -398,6 +398,303 @@ export interface UpdateCollectionBody {
   coverImage?: string | null;
 }
 
+export type RiderVehicleType =
+  (typeof RiderVehicleType)[keyof typeof RiderVehicleType];
+
+export const RiderVehicleType = {
+  bike: "bike",
+  car: "car",
+  van: "van",
+} as const;
+
+export interface Rider {
+  id: number;
+  name: string;
+  phone: string;
+  vehicleType: RiderVehicleType;
+  isAvailable: boolean;
+  isActive: boolean;
+  rating: string;
+  totalDeliveries: number;
+  zone?: string | null;
+  createdAt: string;
+}
+
+export type CreateRiderBodyVehicleType =
+  (typeof CreateRiderBodyVehicleType)[keyof typeof CreateRiderBodyVehicleType];
+
+export const CreateRiderBodyVehicleType = {
+  bike: "bike",
+  car: "car",
+  van: "van",
+} as const;
+
+export interface CreateRiderBody {
+  name: string;
+  phone: string;
+  vehicleType?: CreateRiderBodyVehicleType;
+  zone?: string;
+}
+
+export type UpdateRiderBodyVehicleType =
+  (typeof UpdateRiderBodyVehicleType)[keyof typeof UpdateRiderBodyVehicleType];
+
+export const UpdateRiderBodyVehicleType = {
+  bike: "bike",
+  car: "car",
+  van: "van",
+} as const;
+
+export interface UpdateRiderBody {
+  name?: string;
+  phone?: string;
+  vehicleType?: UpdateRiderBodyVehicleType;
+  zone?: string;
+  isAvailable?: boolean;
+  isActive?: boolean;
+}
+
+export interface DeliveryEvent {
+  id: number;
+  deliveryId: number;
+  status: string;
+  note?: string | null;
+  location?: string | null;
+  createdAt: string;
+}
+
+export type DeliveryWithDetailsStatus =
+  (typeof DeliveryWithDetailsStatus)[keyof typeof DeliveryWithDetailsStatus];
+
+export const DeliveryWithDetailsStatus = {
+  created: "created",
+  assigned: "assigned",
+  picked_up: "picked_up",
+  in_transit: "in_transit",
+  delivered: "delivered",
+  failed: "failed",
+  returned: "returned",
+} as const;
+
+export interface DeliveryWithDetails {
+  id: number;
+  orderId: number;
+  riderId?: number | null;
+  trackingCode: string;
+  status: DeliveryWithDetailsStatus;
+  pickupAddress: string;
+  deliveryAddress: string;
+  deliveryZone?: string | null;
+  deliveryFee: string;
+  estimatedArrival?: string | null;
+  notes?: string | null;
+  proofImageUrl?: string | null;
+  businessName?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  events: DeliveryEvent[];
+  rider?: Rider | null;
+}
+
+export interface CreateDeliveryBody {
+  orderId: number;
+  pickupAddress: string;
+  deliveryAddress: string;
+  deliveryZone?: string;
+  notes?: string;
+  estimatedArrival?: string;
+}
+
+export type UpdateDeliveryStatusBodyStatus =
+  (typeof UpdateDeliveryStatusBodyStatus)[keyof typeof UpdateDeliveryStatusBodyStatus];
+
+export const UpdateDeliveryStatusBodyStatus = {
+  assigned: "assigned",
+  picked_up: "picked_up",
+  in_transit: "in_transit",
+  delivered: "delivered",
+  failed: "failed",
+  returned: "returned",
+} as const;
+
+export interface UpdateDeliveryStatusBody {
+  status: UpdateDeliveryStatusBodyStatus;
+  note?: string;
+  location?: string;
+}
+
+export interface AssignRiderBody {
+  riderId: number;
+}
+
+export interface FeeEstimate {
+  zone: string;
+  fee: number;
+  currency: string;
+}
+
+export type TransactionType =
+  (typeof TransactionType)[keyof typeof TransactionType];
+
+export const TransactionType = {
+  payment: "payment",
+  refund: "refund",
+  payout: "payout",
+  fee: "fee",
+} as const;
+
+export type TransactionProvider =
+  (typeof TransactionProvider)[keyof typeof TransactionProvider];
+
+export const TransactionProvider = {
+  paystack: "paystack",
+  momo: "momo",
+  manual: "manual",
+  system: "system",
+} as const;
+
+export type TransactionStatus =
+  (typeof TransactionStatus)[keyof typeof TransactionStatus];
+
+export const TransactionStatus = {
+  pending: "pending",
+  success: "success",
+  failed: "failed",
+  reversed: "reversed",
+} as const;
+
+export interface Transaction {
+  id: number;
+  orderId?: number | null;
+  userId: number;
+  type: TransactionType;
+  amount: string;
+  currency: string;
+  provider: TransactionProvider;
+  providerRef?: string | null;
+  channel?: string | null;
+  status: TransactionStatus;
+  metadata?: unknown | null;
+  createdAt: string;
+}
+
+export type InitiatePaymentBodyChannel =
+  (typeof InitiatePaymentBodyChannel)[keyof typeof InitiatePaymentBodyChannel];
+
+export const InitiatePaymentBodyChannel = {
+  card: "card",
+  mobile_money: "mobile_money",
+  bank: "bank",
+} as const;
+
+export type InitiatePaymentBodyMomoNetwork =
+  (typeof InitiatePaymentBodyMomoNetwork)[keyof typeof InitiatePaymentBodyMomoNetwork];
+
+export const InitiatePaymentBodyMomoNetwork = {
+  MTN: "MTN",
+  Vodafone: "Vodafone",
+  AirtelTigo: "AirtelTigo",
+} as const;
+
+export interface InitiatePaymentBody {
+  orderId: number;
+  channel?: InitiatePaymentBodyChannel;
+  momoPhone?: string;
+  momoNetwork?: InitiatePaymentBodyMomoNetwork;
+}
+
+export interface PaystackInitResponse {
+  authorizationUrl: string;
+  accessCode: string;
+  reference: string;
+}
+
+export interface VerifyPaymentBody {
+  reference: string;
+  orderId: number;
+}
+
+export type PaystackVerifyResponseOrder = { [key: string]: unknown };
+
+export type PaystackVerifyResponseTransaction = { [key: string]: unknown };
+
+export interface PaystackVerifyResponse {
+  order: PaystackVerifyResponseOrder;
+  transaction: PaystackVerifyResponseTransaction;
+}
+
+export type DisputeReason = (typeof DisputeReason)[keyof typeof DisputeReason];
+
+export const DisputeReason = {
+  item_not_received: "item_not_received",
+  item_not_as_described: "item_not_as_described",
+  damaged_item: "damaged_item",
+  wrong_item: "wrong_item",
+  seller_unresponsive: "seller_unresponsive",
+  other: "other",
+} as const;
+
+export type DisputeStatus = (typeof DisputeStatus)[keyof typeof DisputeStatus];
+
+export const DisputeStatus = {
+  open: "open",
+  under_review: "under_review",
+  resolved_buyer: "resolved_buyer",
+  resolved_seller: "resolved_seller",
+  dismissed: "dismissed",
+} as const;
+
+export interface Dispute {
+  id: number;
+  orderId: number;
+  userId: number;
+  reason: DisputeReason;
+  description: string;
+  evidenceUrls: string[];
+  status: DisputeStatus;
+  resolution?: string | null;
+  adminNote?: string | null;
+  resolvedBy?: number | null;
+  createdAt: string;
+  resolvedAt?: string | null;
+}
+
+export type CreateDisputeBodyReason =
+  (typeof CreateDisputeBodyReason)[keyof typeof CreateDisputeBodyReason];
+
+export const CreateDisputeBodyReason = {
+  item_not_received: "item_not_received",
+  item_not_as_described: "item_not_as_described",
+  damaged_item: "damaged_item",
+  wrong_item: "wrong_item",
+  seller_unresponsive: "seller_unresponsive",
+  other: "other",
+} as const;
+
+export interface CreateDisputeBody {
+  orderId: number;
+  reason: CreateDisputeBodyReason;
+  description: string;
+  evidenceUrls?: string[];
+}
+
+export type ResolveDisputeBodyStatus =
+  (typeof ResolveDisputeBodyStatus)[keyof typeof ResolveDisputeBodyStatus];
+
+export const ResolveDisputeBodyStatus = {
+  resolved_buyer: "resolved_buyer",
+  resolved_seller: "resolved_seller",
+  dismissed: "dismissed",
+} as const;
+
+export interface ResolveDisputeBody {
+  status: ResolveDisputeBodyStatus;
+  resolution: string;
+  adminNote?: string;
+  processRefund?: boolean;
+  releasePayout?: boolean;
+}
+
 export type ChangePassword200 = {
   message: string;
 };
@@ -432,4 +729,12 @@ export type ToggleFavorite200 = {
 
 export type GetCollectionsParams = {
   businessId: number;
+};
+
+export type GetDeliveryFeeEstimateParams = {
+  zone?: string;
+};
+
+export type ProcessRefundBody = {
+  reason?: string;
 };

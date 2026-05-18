@@ -23,6 +23,10 @@ tags:
   - name: favorites
   - name: notifications
   - name: collections
+  - name: deliveries
+  - name: riders
+  - name: payments
+  - name: disputes
 
 paths:
   /healthz:
@@ -1159,6 +1163,525 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /deliveries:
+    post:
+      operationId: createDelivery
+      tags: [deliveries]
+      summary: Create delivery for an order
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDeliveryBody"
+      responses:
+        "201":
+          description: Delivery created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeliveryWithDetails"
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+        "409":
+          description: Delivery already exists
+
+  /deliveries/fee-estimate:
+    get:
+      operationId: getDeliveryFeeEstimate
+      tags: [deliveries]
+      summary: Get delivery fee estimate for a zone
+      parameters:
+        - in: query
+          name: zone
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Fee estimate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeeEstimate"
+
+  /deliveries/track/{code}:
+    get:
+      operationId: trackDelivery
+      tags: [deliveries]
+      summary: Public delivery tracking by tracking code
+      parameters:
+        - in: path
+          name: code
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Delivery tracking info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeliveryWithDetails"
+        "404":
+          description: Not found
+
+  /deliveries/order/{orderId}:
+    get:
+      operationId: getDeliveryByOrder
+      tags: [deliveries]
+      summary: Get delivery by order ID
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Delivery details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeliveryWithDetails"
+        "404":
+          description: No delivery for this order
+
+  /deliveries/{id}:
+    get:
+      operationId: getDelivery
+      tags: [deliveries]
+      summary: Get single delivery
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Delivery details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeliveryWithDetails"
+        "404":
+          description: Not found
+
+  /deliveries/{id}/status:
+    patch:
+      operationId: updateDeliveryStatus
+      tags: [deliveries]
+      summary: Update delivery status (admin)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDeliveryStatusBody"
+      responses:
+        "200":
+          description: Updated delivery
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeliveryWithDetails"
+
+  /deliveries/{id}/assign:
+    patch:
+      operationId: assignRiderToDelivery
+      tags: [deliveries]
+      summary: Assign a rider to a delivery (admin)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignRiderBody"
+      responses:
+        "200":
+          description: Updated delivery
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeliveryWithDetails"
+
+  /admin/deliveries:
+    get:
+      operationId: getAdminDeliveries
+      tags: [admin, deliveries]
+      summary: List all deliveries (admin)
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: All deliveries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DeliveryWithDetails"
+
+  /riders:
+    get:
+      operationId: getRiders
+      tags: [riders]
+      summary: List all riders (admin)
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Riders list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Rider"
+    post:
+      operationId: createRider
+      tags: [riders]
+      summary: Create a new rider (admin)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRiderBody"
+      responses:
+        "201":
+          description: Rider created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rider"
+
+  /riders/available:
+    get:
+      operationId: getAvailableRiders
+      tags: [riders]
+      summary: List available riders (admin)
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Available riders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Rider"
+
+  /riders/{id}:
+    patch:
+      operationId: updateRider
+      tags: [riders]
+      summary: Update rider (admin)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRiderBody"
+      responses:
+        "200":
+          description: Updated rider
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rider"
+
+  /riders/{id}/availability:
+    patch:
+      operationId: toggleRiderAvailability
+      tags: [riders]
+      summary: Toggle rider availability (admin)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Rider with updated availability
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rider"
+
+  /payments/paystack/initialize:
+    post:
+      operationId: initializePaystackPayment
+      tags: [payments]
+      summary: Initialize Paystack payment for an order
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InitiatePaymentBody"
+      responses:
+        "200":
+          description: Paystack authorization URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaystackInitResponse"
+        "503":
+          description: Payment gateway not configured
+
+  /payments/paystack/verify:
+    post:
+      operationId: verifyPaystackPayment
+      tags: [payments]
+      summary: Verify Paystack payment and lock escrow
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyPaymentBody"
+      responses:
+        "200":
+          description: Verification result and updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaystackVerifyResponse"
+
+  /payments/webhook/paystack:
+    post:
+      operationId: paystackWebhook
+      tags: [payments]
+      summary: Paystack webhook endpoint
+      responses:
+        "200":
+          description: OK
+
+  /transactions:
+    get:
+      operationId: getTransactions
+      tags: [payments]
+      summary: Get user transaction history
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Transaction list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+
+  /admin/transactions:
+    get:
+      operationId: getAdminTransactions
+      tags: [admin, payments]
+      summary: All transactions (admin)
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: All transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+
+  /admin/payouts/{orderId}:
+    post:
+      operationId: releasePayout
+      tags: [admin, payments]
+      summary: Release escrow payout to seller (admin)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated order
+        "409":
+          description: Order not in escrow
+
+  /admin/refunds/{orderId}:
+    post:
+      operationId: processRefund
+      tags: [admin, payments]
+      summary: Process refund for an order (admin)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        "200":
+          description: Updated order
+
+  /disputes:
+    get:
+      operationId: getDisputes
+      tags: [disputes]
+      summary: Get user's disputes
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Disputes list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Dispute"
+    post:
+      operationId: createDispute
+      tags: [disputes]
+      summary: Raise a dispute for an order
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDisputeBody"
+      responses:
+        "201":
+          description: Dispute created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dispute"
+        "409":
+          description: Dispute already exists
+
+  /disputes/{id}:
+    get:
+      operationId: getDispute
+      tags: [disputes]
+      summary: Get single dispute
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Dispute
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dispute"
+        "404":
+          description: Not found
+
+  /admin/disputes:
+    get:
+      operationId: getAdminDisputes
+      tags: [admin, disputes]
+      summary: List all disputes (admin)
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: All disputes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Dispute"
+
+  /admin/disputes/{id}/review:
+    patch:
+      operationId: markDisputeUnderReview
+      tags: [admin, disputes]
+      summary: Mark dispute as under review (admin)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated dispute
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dispute"
+
+  /admin/disputes/{id}/resolve:
+    patch:
+      operationId: resolveDispute
+      tags: [admin, disputes]
+      summary: Resolve a dispute (admin)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResolveDisputeBody"
+      responses:
+        "200":
+          description: Resolved dispute
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dispute"
+
 components:
   schemas:
     HealthStatus:
@@ -1927,3 +2450,334 @@ components:
         coverImage:
           type: string
           nullable: true
+
+    Rider:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: string
+        vehicleType:
+          type: string
+          enum: [bike, car, van]
+        isAvailable:
+          type: boolean
+        isActive:
+          type: boolean
+        rating:
+          type: string
+        totalDeliveries:
+          type: integer
+        zone:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, name, phone, vehicleType, isAvailable, isActive, rating, totalDeliveries, createdAt]
+
+    CreateRiderBody:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        vehicleType:
+          type: string
+          enum: [bike, car, van]
+        zone:
+          type: string
+      required: [name, phone]
+
+    UpdateRiderBody:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        vehicleType:
+          type: string
+          enum: [bike, car, van]
+        zone:
+          type: string
+        isAvailable:
+          type: boolean
+        isActive:
+          type: boolean
+
+    DeliveryEvent:
+      type: object
+      properties:
+        id:
+          type: integer
+        deliveryId:
+          type: integer
+        status:
+          type: string
+        note:
+          type: string
+          nullable: true
+        location:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, deliveryId, status, createdAt]
+
+    DeliveryWithDetails:
+      type: object
+      properties:
+        id:
+          type: integer
+        orderId:
+          type: integer
+        riderId:
+          type: integer
+          nullable: true
+        trackingCode:
+          type: string
+        status:
+          type: string
+          enum: [created, assigned, picked_up, in_transit, delivered, failed, returned]
+        pickupAddress:
+          type: string
+        deliveryAddress:
+          type: string
+        deliveryZone:
+          type: string
+          nullable: true
+        deliveryFee:
+          type: string
+        estimatedArrival:
+          type: string
+          format: date-time
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        proofImageUrl:
+          type: string
+          nullable: true
+        businessName:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/DeliveryEvent"
+        rider:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/Rider"
+      required: [id, orderId, trackingCode, status, pickupAddress, deliveryAddress, deliveryFee, createdAt, updatedAt, events]
+
+    CreateDeliveryBody:
+      type: object
+      properties:
+        orderId:
+          type: integer
+        pickupAddress:
+          type: string
+        deliveryAddress:
+          type: string
+        deliveryZone:
+          type: string
+        notes:
+          type: string
+        estimatedArrival:
+          type: string
+          format: date-time
+      required: [orderId, pickupAddress, deliveryAddress]
+
+    UpdateDeliveryStatusBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [assigned, picked_up, in_transit, delivered, failed, returned]
+        note:
+          type: string
+        location:
+          type: string
+      required: [status]
+
+    AssignRiderBody:
+      type: object
+      properties:
+        riderId:
+          type: integer
+      required: [riderId]
+
+    FeeEstimate:
+      type: object
+      properties:
+        zone:
+          type: string
+        fee:
+          type: number
+        currency:
+          type: string
+      required: [zone, fee, currency]
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+        orderId:
+          type: integer
+          nullable: true
+        userId:
+          type: integer
+        type:
+          type: string
+          enum: [payment, refund, payout, fee]
+        amount:
+          type: string
+        currency:
+          type: string
+        provider:
+          type: string
+          enum: [paystack, momo, manual, system]
+        providerRef:
+          type: string
+          nullable: true
+        channel:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [pending, success, failed, reversed]
+        metadata:
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, userId, type, amount, currency, provider, status, createdAt]
+
+    InitiatePaymentBody:
+      type: object
+      properties:
+        orderId:
+          type: integer
+        channel:
+          type: string
+          enum: [card, mobile_money, bank]
+        momoPhone:
+          type: string
+        momoNetwork:
+          type: string
+          enum: [MTN, Vodafone, AirtelTigo]
+      required: [orderId]
+
+    PaystackInitResponse:
+      type: object
+      properties:
+        authorizationUrl:
+          type: string
+        accessCode:
+          type: string
+        reference:
+          type: string
+      required: [authorizationUrl, accessCode, reference]
+
+    VerifyPaymentBody:
+      type: object
+      properties:
+        reference:
+          type: string
+        orderId:
+          type: integer
+      required: [reference, orderId]
+
+    PaystackVerifyResponse:
+      type: object
+      properties:
+        order:
+          type: object
+        transaction:
+          type: object
+      required: [order, transaction]
+
+    Dispute:
+      type: object
+      properties:
+        id:
+          type: integer
+        orderId:
+          type: integer
+        userId:
+          type: integer
+        reason:
+          type: string
+          enum: [item_not_received, item_not_as_described, damaged_item, wrong_item, seller_unresponsive, other]
+        description:
+          type: string
+        evidenceUrls:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [open, under_review, resolved_buyer, resolved_seller, dismissed]
+        resolution:
+          type: string
+          nullable: true
+        adminNote:
+          type: string
+          nullable: true
+        resolvedBy:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        resolvedAt:
+          type: string
+          format: date-time
+          nullable: true
+      required: [id, orderId, userId, reason, description, evidenceUrls, status, createdAt]
+
+    CreateDisputeBody:
+      type: object
+      properties:
+        orderId:
+          type: integer
+        reason:
+          type: string
+          enum: [item_not_received, item_not_as_described, damaged_item, wrong_item, seller_unresponsive, other]
+        description:
+          type: string
+        evidenceUrls:
+          type: array
+          items:
+            type: string
+      required: [orderId, reason, description]
+
+    ResolveDisputeBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [resolved_buyer, resolved_seller, dismissed]
+        resolution:
+          type: string
+        adminNote:
+          type: string
+        processRefund:
+          type: boolean
+        releasePayout:
+          type: boolean
+      required: [status, resolution]

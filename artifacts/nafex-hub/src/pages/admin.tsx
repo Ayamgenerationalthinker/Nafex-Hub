@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
+import { useLocation } from "wouter";
 import { useGetAdminBusinesses, useVerifyBusiness, getGetAdminBusinessesQueryKey, getGetBusinessesQueryKey, getGetFeaturedBusinessesQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Search, CheckCircle2, XCircle, Shield, Loader2, Upload, Image as ImageIcon, Users, Building2, Clock, UserCheck, UserX, Settings, MessageCircle, Instagram, Facebook, Mail, Phone, Trash2, Headphones, Send, X as XIcon } from "lucide-react";
+import { Search, CheckCircle2, XCircle, Shield, Loader2, Upload, Image as ImageIcon, Users, Building2, Clock, UserCheck, UserX, Settings, MessageCircle, Instagram, Facebook, Mail, Phone, Trash2, Headphones, Send, X as XIcon, Truck, AlertTriangle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebounce } from "@/hooks/use-debounce";
 import { invalidateSettingsCache } from "@/hooks/use-site-settings";
@@ -100,6 +101,7 @@ async function saveLogoSetting(base64: string, token: string): Promise<void> {
 }
 
 export default function Admin() {
+  const [, setLocation] = useLocation();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
   const [filter, setFilter] = useState<string>("all");
@@ -422,6 +424,20 @@ export default function Admin() {
         >
           <Headphones className="w-4 h-4" />
           Support
+        </button>
+        <button
+          onClick={() => setLocation("/admin/deliveries")}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors text-muted-foreground hover:text-foreground"
+        >
+          <Truck className="w-4 h-4" />
+          Deliveries
+        </button>
+        <button
+          onClick={() => setLocation("/admin/disputes")}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors text-muted-foreground hover:text-foreground"
+        >
+          <AlertTriangle className="w-4 h-4" />
+          Disputes
         </button>
       </div>
 
