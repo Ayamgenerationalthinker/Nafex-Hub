@@ -119,14 +119,13 @@ router.get("/boosts/my", requireAuth, async (req: AuthRequest, res): Promise<voi
   });
 });
 
-// POST /api/boosts/initialize — initialize Paystack payment for boost
+// POST /api/boosts/initialize — create pending boost record for inline popup payment
+// Frontend opens Paystack popup with PUBLIC KEY; on success calls /api/boosts/verify
 router.post("/boosts/initialize", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  if (!PAYSTACK_SECRET) {
-    res.status(503).json({ error: "Payment gateway not configured. Please set PAYSTACK_SECRET_KEY in your environment." });
-    return;
-  }
-
-  const parsed = InitBoostSchema.safeParse(req.body);
+  const parsed = z.object({
+    tier: z.enum(["basic", "pro", "premium"]),
+    durationDays: z.number().int().min(7).max(28).default(7),
+  }).safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
   const [business] = await db
@@ -143,7 +142,6 @@ router.post("/boosts/initialize", requireAuth, async (req: AuthRequest, res): Pr
   const weeks = parsed.data.durationDays / 7;
   const amountGHS = tierInfo.pricePerWeek * weeks;
   const amountPesewas = Math.round(amountGHS * 100);
-
   const reference = `BOOST-${business.id}-${Date.now()}`;
 
   const [boost] = await db
@@ -160,50 +158,19 @@ router.post("/boosts/initialize", requireAuth, async (req: AuthRequest, res): Pr
     })
     .returning();
 
-  const domain = process.env["REPLIT_DOMAINS"]?.split(",")[0];
-  const callbackBase = domain ? `https://${domain}` : `${req.protocol}://${req.get("host")}`;
-  const callbackUrl = `${callbackBase}/dashboard?boost_ref=${reference}&boost_id=${boost.id}`;
-
-  const paystackBody: Record<string, unknown> = {
-    email: req.user!.email,
-    amount: amountPesewas,
-    reference,
+  await db.insert(transactionsTable).values({
+    userId: req.userId!,
+    type: "payment",
+    amount: amountGHS.toString(),
     currency: "GHS",
-    channels: [parsed.data.channel],
-    callback_url: callbackUrl,
-    metadata: { boostId: boost.id, businessId: business.id, tier: parsed.data.tier, durationDays: parsed.data.durationDays },
-  };
+    provider: "paystack",
+    providerRef: reference,
+    channel: "card",
+    status: "pending",
+    metadata: { boostId: boost.id, businessId: business.id, tier: parsed.data.tier },
+  });
 
-  if (parsed.data.channel === "mobile_money" && parsed.data.momoPhone) {
-    paystackBody["mobile_money"] = {
-      phone: parsed.data.momoPhone,
-      provider: (parsed.data.momoNetwork ?? "MTN").toLowerCase(),
-    };
-  }
-
-  try {
-    const data = await paystackPost<{ authorization_url: string; access_code: string; reference: string }>(
-      "/transaction/initialize",
-      paystackBody
-    );
-
-    await db.insert(transactionsTable).values({
-      userId: req.userId!,
-      type: "payment",
-      amount: amountGHS.toString(),
-      currency: "GHS",
-      provider: parsed.data.channel === "mobile_money" ? "momo" : "paystack",
-      providerRef: reference,
-      channel: parsed.data.channel,
-      status: "pending",
-      metadata: { boostId: boost.id, businessId: business.id, tier: parsed.data.tier },
-    });
-
-    res.json({ authorizationUrl: data.authorization_url, accessCode: data.access_code, reference: data.reference, boostId: boost.id });
-  } catch (err: unknown) {
-    await db.delete(adBoostsTable).where(eq(adBoostsTable.id, boost.id));
-    res.status(502).json({ error: (err as Error).message ?? "Failed to initialize payment" });
-  }
+  res.json({ reference, amountPesewas, boostId: boost.id });
 });
 
 // POST /api/boosts/verify — verify payment and activate boost

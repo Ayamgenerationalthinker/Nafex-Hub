@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { getPaystackPublicKey, openPaystackPopup } from "@/lib/paystack";
 import {
-  Zap, Star, Crown, CheckCircle2, Clock, RefreshCw, ExternalLink, History,
+  Zap, Star, Crown, CheckCircle2, Clock, RefreshCw, CreditCard, History,
 } from "lucide-react";
 
 type BoostStatus = {
@@ -103,7 +104,6 @@ export function BoostTab({
   const [selectedTier, setSelectedTier] = useState<"basic" | "pro" | "premium">("pro");
   const [selectedDays, setSelectedDays] = useState(7);
   const [paying, setPaying] = useState(false);
-  const [pendingRef, setPendingRef] = useState<{ reference: string; boostId: number } | null>(null);
   const [verifying, setVerifying] = useState(false);
 
   const fetchStatus = () => {
@@ -122,30 +122,46 @@ export function BoostTab({
     if (!businessId) return;
     setPaying(true);
     try {
-      const res = await fetch("/api/boosts/initialize", {
+      // Step 1: create pending boost record + get reference
+      const initRes = await fetch("/api/boosts/initialize", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ tier: selectedTier, durationDays: selectedDays, channel: "card" }),
+        body: JSON.stringify({ tier: selectedTier, durationDays: selectedDays }),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        toast({ title: "Payment failed", description: data.error ?? "Could not initialize payment.", variant: "destructive" });
+      const initData = (await initRes.json()) as { reference?: string; amountPesewas?: number; boostId?: number; error?: string };
+      if (!initRes.ok) {
+        toast({ title: "Payment failed", description: initData.error ?? "Could not initialize payment.", variant: "destructive" });
         return;
       }
-      setPendingRef({ reference: data.reference, boostId: data.boostId });
-      window.open(data.authorizationUrl, "_blank", "noopener,noreferrer");
-      toast({ title: "Payment page opened", description: "Complete payment in the Paystack tab, then click Verify below." });
-    } catch {
-      toast({ title: "Network error", description: "Please try again.", variant: "destructive" });
+      const { reference, amountPesewas, boostId } = initData;
+      if (!reference || !amountPesewas || !boostId) throw new Error("Invalid response from server");
+
+      // Step 2: get public key
+      const publicKey = await getPaystackPublicKey();
+
+      // Step 3: open Paystack inline popup
+      openPaystackPopup({
+        publicKey,
+        email: userEmail,
+        amountPesewas,
+        reference,
+        onSuccess: async (ref) => {
+          // Step 4: verify on backend (secret key used server-side)
+          await handleVerify(ref, boostId);
+        },
+        onClose: () => {
+          toast({ title: "Payment cancelled", description: "You closed the payment window without completing.", variant: "destructive" });
+        },
+      });
+    } catch (err: unknown) {
+      console.error("[Paystack] Boost payment error:", err);
+      toast({ title: "Payment error", description: (err as Error).message ?? "An unexpected error occurred.", variant: "destructive" });
     } finally {
       setPaying(false);
     }
   }
 
-  async function handleVerify(ref?: string, bid?: number) {
-    const reference = ref ?? pendingRef?.reference;
-    const boostId = bid ?? pendingRef?.boostId;
-    if (!reference || !boostId) return;
+  async function handleVerify(reference: string, boostId: number) {
     setVerifying(true);
     try {
       const res = await fetch("/api/boosts/verify", {
@@ -153,13 +169,12 @@ export function BoostTab({
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ reference, boostId }),
       });
-      const data = await res.json();
+      const data = (await res.json()) as { error?: string };
       if (!res.ok) {
         toast({ title: "Verification failed", description: data.error ?? "Could not verify payment.", variant: "destructive" });
         return;
       }
       toast({ title: "Boost activated!", description: "Your listing is now boosted." });
-      setPendingRef(null);
       fetchStatus();
     } catch {
       toast({ title: "Network error", variant: "destructive" });
@@ -213,17 +228,12 @@ export function BoostTab({
         </Card>
       )}
 
-      {/* Pending verification */}
-      {pendingRef && (
+      {/* Verifying indicator */}
+      {verifying && (
         <Card className="border-amber-200 bg-amber-50/50">
-          <CardContent className="py-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
-            <div>
-              <p className="font-medium text-amber-800 text-sm">Payment pending verification</p>
-              <p className="text-xs text-amber-700 mt-0.5">Ref: {pendingRef.reference}</p>
-            </div>
-            <Button size="sm" onClick={() => handleVerify()} disabled={verifying} className="shrink-0">
-              {verifying ? "Verifying..." : "Verify Payment"}
-            </Button>
+          <CardContent className="py-4 flex items-center gap-3">
+            <RefreshCw className="w-4 h-4 text-amber-600 animate-spin shrink-0" />
+            <p className="text-sm text-amber-800 font-medium">Confirming your payment…</p>
           </CardContent>
         </Card>
       )}
@@ -299,12 +309,13 @@ export function BoostTab({
                 {tierInfo.label} · {selectedDays / 7} week{selectedDays > 7 ? "s" : ""} · via Paystack
               </p>
             </div>
-            <Button size="lg" onClick={handlePay} disabled={paying || !userEmail} className="gap-2">
-              {paying ? "Redirecting..." : (
-                <>
-                  <ExternalLink className="w-4 h-4" />
-                  Pay with Paystack
-                </>
+            <Button size="lg" onClick={handlePay} disabled={paying || verifying || !userEmail} className="gap-2">
+              {paying ? (
+                <><RefreshCw className="w-4 h-4 animate-spin" /> Opening…</>
+              ) : verifying ? (
+                <><RefreshCw className="w-4 h-4 animate-spin" /> Confirming…</>
+              ) : (
+                <><CreditCard className="w-4 h-4" /> Pay with Paystack</>
               )}
             </Button>
           </div>

@@ -18,6 +18,7 @@ import {
   Clock, AlertCircle, Loader2, MapPin, ArrowLeft,
   ChevronDown, CreditCard, PackageCheck,
 } from "lucide-react";
+import { getPaystackPublicKey, openPaystackPopup } from "@/lib/paystack";
 import { io as socketIO, type Socket } from "socket.io-client";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -120,33 +121,9 @@ export default function TradeOrderDetail() {
     }
   };
 
-  // Auto-verify escrow on redirect from Paystack
-  const autoVerifyEscrow = async (ref: string) => {
-    try {
-      const r = await fetch(`/api/trade/escrow/${orderId}/verify`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ reference: ref }),
-      });
-      if (!r.ok) throw new Error();
-      toast({ title: "Escrow funded!", description: "Funds held securely. Supplier is now sourcing your order." });
-      fetchOrder();
-    } catch {
-      toast({ title: "Could not auto-verify payment", description: "Please contact support.", variant: "destructive" });
-    }
-  };
-
   useEffect(() => {
     if (!user) { setLocation("/login"); return; }
     fetchOrder();
-
-    // Check for Paystack redirect
-    const params = new URLSearchParams(window.location.search);
-    const escrowRef = params.get("escrow_ref");
-    if (escrowRef) {
-      window.history.replaceState({}, "", `/trade/order/${orderId}`);
-      autoVerifyEscrow(escrowRef);
-    }
 
     // Socket.IO for real-time updates
     const socket = socketIO({ path: "/api/socket.io", auth: { token } });
@@ -183,14 +160,51 @@ export default function TradeOrderDetail() {
   const initEscrow = async () => {
     setPayingEscrow(true);
     try {
+      // Step 1: create escrow reference on backend
       const r = await fetch(`/api/trade/escrow/${orderId}/initialize`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       });
-      const d = (await r.json()) as { authorizationUrl?: string; error?: string };
-      if (!r.ok || !d.authorizationUrl) throw new Error(d.error ?? "Failed to initialize payment");
-      window.location.href = d.authorizationUrl;
+      const d = (await r.json()) as { reference?: string; amountPesewas?: number; email?: string; error?: string };
+      if (!r.ok) throw new Error(d.error ?? "Failed to initialize payment");
+      if (!d.reference || !d.amountPesewas || !d.email) throw new Error("Invalid payment data from server");
+
+      // Step 2: get Paystack public key
+      const publicKey = await getPaystackPublicKey();
+
+      // Step 3: open inline popup (secret key never touches the frontend)
+      openPaystackPopup({
+        publicKey,
+        email: d.email,
+        amountPesewas: d.amountPesewas,
+        reference: d.reference,
+        onSuccess: async (ref) => {
+          // Step 4: verify with backend using secret key
+          try {
+            const vRes = await fetch(`/api/trade/escrow/${orderId}/verify`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ reference: ref }),
+            });
+            if (!vRes.ok) {
+              const err = (await vRes.json()) as { error?: string };
+              console.error("[Paystack] Escrow verify failed:", err.error);
+              toast({ title: "Verification failed", description: err.error ?? "Contact support with ref: " + ref, variant: "destructive" });
+            } else {
+              toast({ title: "Escrow funded!", description: "Funds held securely. Supplier is now sourcing your order." });
+              fetchOrder();
+            }
+          } finally {
+            setPayingEscrow(false);
+          }
+        },
+        onClose: () => {
+          toast({ title: "Payment cancelled", description: "You closed the payment window without completing.", variant: "destructive" });
+          setPayingEscrow(false);
+        },
+      });
     } catch (e: unknown) {
+      console.error("[Paystack] Escrow payment error:", e);
       toast({ title: "Payment error", description: (e as Error).message, variant: "destructive" });
       setPayingEscrow(false);
     }

@@ -82,7 +82,9 @@ router.post("/trade/quotes/:id/accept", requireAuth, async (req: AuthRequest, re
   res.status(201).json({ order, escrow });
 });
 
-// ── Buyer: initialize escrow payment (Paystack) ───────────────────────────────
+// ── Buyer: initialize escrow payment (Paystack inline popup) ─────────────────
+// Creates a reference, saves it to escrow record. Frontend opens popup with
+// PUBLIC KEY; on success the popup callback calls /trade/escrow/:id/verify.
 router.post("/trade/escrow/:orderId/initialize", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   const params = z.object({ orderId: z.coerce.number().int().positive() }).safeParse(req.params);
   if (!params.success) { res.status(400).json({ error: "Invalid orderId" }); return; }
@@ -95,34 +97,14 @@ router.post("/trade/escrow/:orderId/initialize", requireAuth, async (req: AuthRe
   const [user] = await db.select({ email: usersTable.email }).from(usersTable).where(eq(usersTable.id, req.userId!));
   if (!user) { res.status(404).json({ error: "User not found" }); return; }
 
-  if (!PAYSTACK_SECRET) {
-    res.status(503).json({ error: "Payment gateway not configured. Please contact support." });
-    return;
-  }
-
   const reference = `trade_escrow_${escrow.orderId}_${Date.now()}`;
-  const amountKobo = Math.round(parseFloat(escrow.amount) * 100);
-  const callbackUrl = `${req.headers.origin ?? ""}/trade/order/${escrow.orderId}?escrow_ref=${reference}`;
-
-  const psRes = await fetch("https://api.paystack.co/transaction/initialize", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${PAYSTACK_SECRET}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ email: user.email, amount: amountKobo, reference, callback_url: callbackUrl, currency: "GHS" }),
-  });
-
-  if (!psRes.ok) {
-    const err = await psRes.json().catch(() => ({})) as { message?: string };
-    res.status(502).json({ error: err.message ?? "Paystack initialization failed" });
-    return;
-  }
-
-  const psData = (await psRes.json()) as { data: { authorization_url: string; reference: string } };
+  const amountPesewas = Math.round(parseFloat(escrow.amount) * 100);
 
   await db.update(tradeEscrowTable)
     .set({ paystackRef: reference })
     .where(eq(tradeEscrowTable.id, escrow.id));
 
-  res.json({ authorizationUrl: psData.data.authorization_url, reference });
+  res.json({ reference, amountPesewas, escrowId: escrow.id, email: user.email });
 });
 
 // ── Verify escrow payment ─────────────────────────────────────────────────────
