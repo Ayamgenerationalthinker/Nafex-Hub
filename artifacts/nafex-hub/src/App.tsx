@@ -39,6 +39,9 @@ import Disputes from "@/pages/disputes";
 import AdminDeliveries from "@/pages/admin-deliveries";
 import AdminDisputesPage from "@/pages/admin-disputes-page";
 import { SupportChatWidget } from "@/components/support-chat";
+import TradeConnect from "@/pages/trade-connect";
+import TradeMyRequests from "@/pages/trade-my-requests";
+import TradeBoard from "@/pages/trade-board";
 
 const queryClient = new QueryClient();
 
@@ -103,6 +106,9 @@ function Router() {
             <Route path="/disputes">{() => <ProtectedRoute component={Disputes} />}</Route>
             <Route path="/admin/deliveries">{() => <ProtectedRoute component={AdminDeliveries} roles={["admin"]} to="/" />}</Route>
             <Route path="/admin/disputes">{() => <ProtectedRoute component={AdminDisputesPage} roles={["admin"]} to="/" />}</Route>
+            <Route path="/trade">{() => <ProtectedRoute component={TradeConnect} />}</Route>
+            <Route path="/trade/my-requests">{() => <ProtectedRoute component={TradeMyRequests} />}</Route>
+            <Route path="/trade/board">{() => <ProtectedRoute component={TradeBoard} />}</Route>
             <Route component={NotFound} />
           </Switch>
         </Layout>

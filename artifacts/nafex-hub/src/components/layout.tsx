@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail, Tag, Headphones, Settings, ChevronDown, HelpCircle, User2, ClipboardList, Star, Truck, TrendingUp } from "lucide-react";
+import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail, Tag, Headphones, Settings, ChevronDown, HelpCircle, User2, ClipboardList, Star, Truck, TrendingUp, Globe2 } from "lucide-react";
 import { NotificationBell } from "@/components/notification-bell";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 
@@ -43,6 +43,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     ? [
         { href: "/explore", label: "Explore Brands", icon: <Store className="w-4 h-4" />, testId: "mobile-nav-explore" },
         { href: "/discounts", label: "Deals", icon: <Tag className="w-4 h-4" /> },
+        { href: "/trade", label: "Trade Connect", icon: <Globe2 className="w-4 h-4" /> },
         { href: "/inbox", label: "Inbox", icon: <MessageCircle className="w-4 h-4" /> },
         { href: "/orders", label: "Orders", icon: <ShoppingBag className="w-4 h-4" /> },
         { href: "/favorites", label: "Favorites", icon: <Heart className="w-4 h-4" /> },
@@ -65,6 +66,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     ? [
         { href: "/explore", label: "Explore Brands" },
         { href: "/discounts", label: "Deals" },
+        { href: "/trade", label: "Trade Connect" },
         { href: "/inbox", label: "Inbox" },
         { href: "/orders", label: "Orders" },
       ]
