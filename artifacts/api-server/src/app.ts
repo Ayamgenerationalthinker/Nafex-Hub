@@ -15,6 +15,13 @@ const app: Express = express();
 // Required for express-rate-limit and correct IP detection behind proxies
 app.set("trust proxy", 1);
 
+// Health check must be registered BEFORE the HTTPS-redirect middleware.
+// Cloud Run probes hit http://localhost:<PORT>/api/healthz internally —
+// they never carry x-forwarded-proto:https, so any redirect kills the promote step.
+app.get("/api/healthz", (_req, res) => {
+  res.json({ status: "ok" });
+});
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
