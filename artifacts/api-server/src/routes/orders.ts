@@ -294,6 +294,57 @@ router.post("/orders/:id/confirm-delivery", requireAuth, async (req: AuthRequest
   res.json(order);
 });
 
+// ── Buyer confirms delivery → escrow auto-released ──────────────────────────
+router.post("/orders/:id/buyer-confirm", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const params = OrderParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid order id" }); return; }
+
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, params.data.id));
+  if (!order) { res.status(404).json({ error: "Order not found" }); return; }
+  if (order.userId !== req.userId) { res.status(403).json({ error: "Not your order" }); return; }
+
+  const confirmable = ["confirmed", "packed", "out_for_delivery"];
+  if (!confirmable.includes(order.status)) {
+    res.status(409).json({ error: "Order cannot be confirmed at this stage" });
+    return;
+  }
+
+  if (["released", "refunded"].includes(order.paymentStatus)) {
+    res.status(409).json({ error: "Escrow already settled for this order" });
+    return;
+  }
+
+  const newPaymentStatus = order.paymentStatus === "in_escrow" ? "released" : order.paymentStatus;
+
+  const [updated] = await db
+    .update(ordersTable)
+    .set({ status: "delivered", paymentStatus: newPaymentStatus, updatedAt: new Date() })
+    .where(eq(ordersTable.id, params.data.id))
+    .returning();
+
+  // Notify seller that escrow has been released
+  try {
+    const [biz] = await db
+      .select({ ownerId: businessesTable.ownerId })
+      .from(businessesTable)
+      .where(eq(businessesTable.id, order.businessId));
+    if (biz?.ownerId) {
+      await db.insert(notificationsTable).values({
+        userId: biz.ownerId,
+        type: "order_update",
+        title: `Delivery confirmed — Order #${order.id}`,
+        body: order.paymentStatus === "in_escrow"
+          ? `Buyer confirmed receipt. GHS ${(order.totalPrice / 100).toFixed(2)} escrow has been released to your account.`
+          : `Buyer confirmed receipt of Order #${order.id}.`,
+        relatedId: order.id,
+        isRead: false,
+      });
+    }
+  } catch {}
+
+  res.json(updated);
+});
+
 // Seller clients
 router.get("/orders/business/clients", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   const [business] = await db

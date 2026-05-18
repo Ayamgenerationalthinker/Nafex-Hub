@@ -1,12 +1,23 @@
 import { useState } from "react";
 import { useLocation, Link } from "wouter";
-import { useGetUserOrders, getGetUserOrdersQueryKey } from "@workspace/api-client-react";
+import {
+  useGetUserOrders,
+  useInitializePaystackPayment,
+  getGetUserOrdersQueryKey,
+} from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import {
   Package,
   ShoppingBag,
@@ -15,15 +26,27 @@ import {
   Truck,
   XCircle,
   Box,
-  MapPin,
   ShieldCheck,
   KeyRound,
   Loader2,
   AlertCircle,
   Navigation,
   AlertTriangle,
+  CreditCard,
+  Smartphone,
+  PartyPopper,
+  Phone,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const STEPS = [
   { key: "pending",          label: "Placed",       icon: <Clock className="w-3.5 h-3.5" /> },
@@ -49,8 +72,6 @@ const PAYMENT_CONFIG: Record<string, { label: string; color: string }> = {
   refunded:  { label: "Refunded",        color: "bg-red-100 text-red-600 border-red-200" },
 };
 
-const NAFEX_ESCROW_NUMBER = "024-000-1234 (MTN MoMo)";
-
 type OrderWithDetails = {
   id: number;
   status: string;
@@ -65,48 +86,258 @@ type OrderWithDetails = {
   createdAt: string | Date;
 };
 
+type PayChannel = "card" | "mobile_money";
+
+function PayWithPaystackDialog({
+  order,
+  open,
+  onClose,
+}: {
+  order: OrderWithDetails;
+  open: boolean;
+  onClose: () => void;
+}) {
+  const { toast } = useToast();
+  const [channel, setChannel] = useState<PayChannel>("card");
+  const [momoPhone, setMomoPhone] = useState("");
+  const [momoNetwork, setMomoNetwork] = useState<"MTN" | "Vodafone" | "AirtelTigo">("MTN");
+  const [redirecting, setRedirecting] = useState(false);
+
+  const { mutate: initPay, isPending } = useInitializePaystackPayment({
+    mutation: {
+      onSuccess: (data) => {
+        setRedirecting(true);
+        // Redirect to Paystack hosted checkout — same tab, Paystack returns via callback_url
+        window.location.href = data.authorizationUrl;
+      },
+      onError: (err: unknown) => {
+        const msg =
+          (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+          "Failed to initialise payment";
+        toast({ title: "Payment Error", description: msg, variant: "destructive" });
+      },
+    },
+  });
+
+  function handlePay() {
+    if (channel === "mobile_money" && !momoPhone.trim()) {
+      toast({ title: "Enter your MoMo phone number", variant: "destructive" });
+      return;
+    }
+    initPay({
+      data: {
+        orderId: order.id,
+        channel,
+        ...(channel === "mobile_money"
+          ? { momoPhone: momoPhone.trim(), momoNetwork }
+          : {}),
+      },
+    });
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v && !redirecting) onClose(); }}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-amber-500" />
+            Pay Securely — Order #{order.id}
+          </DialogTitle>
+          <DialogDescription>
+            <strong>GHS {(order.totalPrice / 100).toFixed(2)}</strong> will be held in escrow
+            until you confirm delivery.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {/* Channel selector */}
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => setChannel("card")}
+              className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-colors text-sm font-medium ${
+                channel === "card"
+                  ? "border-primary bg-primary/5 text-primary"
+                  : "border-border text-muted-foreground hover:border-primary/40"
+              }`}
+            >
+              <CreditCard className="w-5 h-5" />
+              Card
+            </button>
+            <button
+              onClick={() => setChannel("mobile_money")}
+              className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-colors text-sm font-medium ${
+                channel === "mobile_money"
+                  ? "border-primary bg-primary/5 text-primary"
+                  : "border-border text-muted-foreground hover:border-primary/40"
+              }`}
+            >
+              <Smartphone className="w-5 h-5" />
+              Mobile Money
+            </button>
+          </div>
+
+          {/* MoMo fields */}
+          {channel === "mobile_money" && (
+            <div className="space-y-3">
+              <div>
+                <Label>Network</Label>
+                <Select value={momoNetwork} onValueChange={(v) => setMomoNetwork(v as typeof momoNetwork)}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MTN">MTN Mobile Money</SelectItem>
+                    <SelectItem value="Vodafone">Vodafone Cash</SelectItem>
+                    <SelectItem value="AirtelTigo">AirtelTigo Money</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Phone Number</Label>
+                <div className="relative mt-1">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    value={momoPhone}
+                    onChange={(e) => setMomoPhone(e.target.value)}
+                    placeholder="0244000000"
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Escrow info banner */}
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2.5">
+            <ShieldCheck className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-amber-700 leading-relaxed">
+              Payment is held securely in escrow. Funds are only released to the seller
+              after you confirm you've received your items.
+            </p>
+          </div>
+        </div>
+
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={onClose} disabled={isPending || redirecting}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handlePay}
+            disabled={isPending || redirecting}
+            className="gap-2 flex-1"
+          >
+            {(isPending || redirecting) ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Redirecting…</>
+            ) : (
+              <><CreditCard className="w-4 h-4" /> Pay GHS {(order.totalPrice / 100).toFixed(2)}</>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ConfirmDeliveryDialog({
+  order,
+  open,
+  onClose,
+  onConfirmed,
+}: {
+  order: OrderWithDetails;
+  open: boolean;
+  onClose: () => void;
+  onConfirmed: () => void;
+}) {
+  const { toast } = useToast();
+  const token = localStorage.getItem("nafex_token");
+  const [loading, setLoading] = useState(false);
+
+  async function handleConfirm() {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/orders/${order.id}/buyer-confirm`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({})) as { error?: string };
+        throw new Error(err.error ?? "Failed to confirm delivery");
+      }
+      toast({
+        title: "Delivery confirmed!",
+        description: order.paymentStatus === "in_escrow"
+          ? "Escrow funds have been released to the seller."
+          : "Order marked as delivered.",
+      });
+      onConfirmed();
+    } catch (e: unknown) {
+      toast({ title: "Error", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <PartyPopper className="w-5 h-5 text-green-500" />
+            Confirm Delivery
+          </DialogTitle>
+          <DialogDescription>
+            Only confirm once you have physically received all items from Order #{order.id}.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3">
+          {order.paymentStatus === "in_escrow" && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-start gap-2.5">
+              <ShieldCheck className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-green-700 leading-relaxed">
+                Confirming delivery will release{" "}
+                <strong>GHS {(order.totalPrice / 100).toFixed(2)}</strong> from escrow to
+                the seller.
+              </p>
+            </div>
+          )}
+          <p className="text-sm text-muted-foreground">
+            Have you received all items in good condition?
+          </p>
+        </div>
+
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={onClose} disabled={loading}>Not yet</Button>
+          <Button onClick={handleConfirm} disabled={loading} className="gap-2">
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+            Yes, I received it
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function Orders() {
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // ── All hooks must be called before any early return ──
-  const [payRef, setPayRef] = useState<Record<number, string>>({});
-  const [payingId, setPayingId] = useState<number | null>(null);
-  const [showPayForm, setShowPayForm] = useState<Record<number, boolean>>({});
+  const [payingOrder, setPayingOrder] = useState<OrderWithDetails | null>(null);
+  const [confirmingOrder, setConfirmingOrder] = useState<OrderWithDetails | null>(null);
 
-  const token = localStorage.getItem("nafex_token");
-  const { data: orders, isLoading } = useGetUserOrders({ query: { enabled: !!token, queryKey: getGetUserOrdersQueryKey() } });
+  const { data: orders, isLoading } = useGetUserOrders({
+    query: { enabled: !!user, queryKey: getGetUserOrdersQueryKey() },
+  });
 
-  // Auth guard — after all hooks
-  if (!token) {
+  if (!user) {
     setLocation("/login");
     return null;
   }
 
-  async function submitPayment(orderId: number) {
-    const ref = payRef[orderId]?.trim();
-    if (!ref) { toast({ title: "Enter your mobile money reference", variant: "destructive" }); return; }
-    setPayingId(orderId);
-    try {
-      const res = await fetch(`/api/orders/${orderId}/pay`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ reference: ref }),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? "Payment submission failed");
-      }
-      toast({ title: "Payment locked in escrow!", description: "The seller has been notified. Your funds are secured." });
-      setShowPayForm((p) => ({ ...p, [orderId]: false }));
-      queryClient.invalidateQueries({ queryKey: ["getUserOrders"] });
-    } catch (e: unknown) {
-      toast({ title: "Error", description: (e as Error).message, variant: "destructive" });
-    } finally {
-      setPayingId(null);
-    }
-  }
+  const typedOrders = (orders ?? []) as unknown as OrderWithDetails[];
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -118,10 +349,10 @@ export default function Orders() {
       {isLoading ? (
         <div className="space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-48 rounded-xl" />
+            <Skeleton key={i} className="h-52 rounded-xl" />
           ))}
         </div>
-      ) : !orders || orders.length === 0 ? (
+      ) : typedOrders.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center space-y-4">
           <ShoppingBag className="w-16 h-16 text-muted-foreground/30" />
           <h2 className="font-serif text-xl font-semibold text-foreground">No orders yet</h2>
@@ -132,16 +363,25 @@ export default function Orders() {
         </div>
       ) : (
         <div className="space-y-5">
-          {(orders as unknown as OrderWithDetails[]).map((order) => {
+          {typedOrders.map((order) => {
             const status = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.pending;
             const paymentStatus = PAYMENT_CONFIG[order.paymentStatus ?? "unpaid"] ?? PAYMENT_CONFIG.unpaid;
             const items = order.items as { name: string; quantity: number; price: number }[];
             const currentStepIdx = STEPS.findIndex((s) => s.key === order.status);
 
+            const isUnpaid = (order.paymentStatus ?? "unpaid") === "unpaid";
+            const isInEscrow = order.paymentStatus === "in_escrow";
+            const isReleased = order.paymentStatus === "released";
+            const canConfirm =
+              !isReleased &&
+              order.paymentStatus !== "refunded" &&
+              ["confirmed", "packed", "out_for_delivery"].includes(order.status);
+
             return (
               <Card key={order.id} className="border-border/50 overflow-hidden">
                 <CardContent className="pt-5 pb-5 space-y-4">
-                  {/* Header */}
+
+                  {/* ── Header ── */}
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                     <div className="space-y-1.5">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -161,7 +401,7 @@ export default function Orders() {
                           {order.businessName}
                         </button>
                       )}
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-1.5">
                         {items.map((item, i) => (
                           <span key={i} className="text-xs bg-muted/50 rounded-lg px-2.5 py-1 text-foreground">
                             {item.name} × {item.quantity}
@@ -184,40 +424,38 @@ export default function Orders() {
                     </div>
                   </div>
 
-                  {/* Tracking Timeline */}
+                  {/* ── Progress timeline ── */}
                   {order.status !== "cancelled" && (
-                    <div>
-                      <div className="flex items-start gap-0">
-                        {STEPS.map((step, i) => {
-                          const done = i <= currentStepIdx;
-                          const active = i === currentStepIdx;
-                          return (
-                            <div key={step.key} className="flex items-center flex-1">
-                              <div className="flex flex-col items-center gap-1">
-                                <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
-                                  done ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                                } ${active ? "ring-2 ring-primary ring-offset-2" : ""}`}>
-                                  {step.icon}
-                                </div>
-                                <span className={`text-[10px] text-center leading-tight font-medium hidden sm:block ${
-                                  done ? "text-primary" : "text-muted-foreground"
-                                }`}>
-                                  {step.label}
-                                </span>
+                    <div className="flex items-start gap-0">
+                      {STEPS.map((step, i) => {
+                        const done = i <= currentStepIdx;
+                        const active = i === currentStepIdx;
+                        return (
+                          <div key={step.key} className="flex items-center flex-1">
+                            <div className="flex flex-col items-center gap-1">
+                              <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
+                                done ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                              } ${active ? "ring-2 ring-primary ring-offset-2" : ""}`}>
+                                {step.icon}
                               </div>
-                              {i < STEPS.length - 1 && (
-                                <div className={`flex-1 h-0.5 mb-4 mx-1 transition-colors ${
-                                  i < currentStepIdx ? "bg-primary" : "bg-border"
-                                }`} />
-                              )}
+                              <span className={`text-[10px] text-center leading-tight font-medium hidden sm:block ${
+                                done ? "text-primary" : "text-muted-foreground"
+                              }`}>
+                                {step.label}
+                              </span>
                             </div>
-                          );
-                        })}
-                      </div>
+                            {i < STEPS.length - 1 && (
+                              <div className={`flex-1 h-0.5 mb-4 mx-1 transition-colors ${
+                                i < currentStepIdx ? "bg-primary" : "bg-border"
+                              }`} />
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
 
-                  {/* OTP Alert (out for delivery) */}
+                  {/* ── OTP (out for delivery) ── */}
                   {order.status === "out_for_delivery" && order.deliveryOtp && (
                     <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 flex items-start gap-3">
                       <KeyRound className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
@@ -227,82 +465,78 @@ export default function Orders() {
                           {order.deliveryOtp}
                         </p>
                         <p className="text-xs text-indigo-600 mt-1">
-                          Share this code with your delivery person to confirm receipt of your order.
+                          Give this code to your rider to confirm handoff.
                         </p>
                       </div>
                     </div>
                   )}
 
-                  {/* Escrow Payment Section */}
-                  {order.status !== "cancelled" && (order.paymentStatus ?? "unpaid") === "unpaid" && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-3">
-                      <div className="flex items-start gap-3">
-                        <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-amber-900">Secure Your Order with Escrow</p>
+                  {/* ── UNPAID → Pay with Paystack ── */}
+                  {order.status !== "cancelled" && isUnpaid && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+                      <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1 space-y-3">
+                        <div>
+                          <p className="text-sm font-semibold text-amber-900">Payment Required</p>
                           <p className="text-xs text-amber-700 mt-0.5">
-                            Transfer <strong>GHS {((order.totalPrice ?? 0) / 100).toFixed(2)}</strong> to the Nafex escrow account:
-                          </p>
-                          <p className="text-sm font-mono font-bold text-amber-800 mt-1">{NAFEX_ESCROW_NUMBER}</p>
-                          <p className="text-xs text-amber-600 mt-0.5">
-                            Your payment is held securely and only released to the seller after you confirm delivery.
+                            Secure your order with escrow. Your payment is held safely until you
+                            confirm delivery — the seller only gets paid when you're happy.
                           </p>
                         </div>
-                      </div>
-                      {showPayForm[order.id] ? (
-                        <div className="flex gap-2">
-                          <Input
-                            placeholder="Enter your MoMo reference (e.g. 1234567890)"
-                            value={payRef[order.id] ?? ""}
-                            onChange={(e) => setPayRef((p) => ({ ...p, [order.id]: e.target.value }))}
-                            className="h-9 text-sm"
-                          />
-                          <Button
-                            size="sm"
-                            className="h-9 gap-1 whitespace-nowrap"
-                            disabled={payingId === order.id}
-                            onClick={() => submitPayment(order.id)}
-                          >
-                            {payingId === order.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <ShieldCheck className="w-3 h-3" />}
-                            Lock Escrow
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-9"
-                            onClick={() => setShowPayForm((p) => ({ ...p, [order.id]: false }))}
-                          >
-                            Cancel
-                          </Button>
-                        </div>
-                      ) : (
                         <Button
                           size="sm"
-                          variant="outline"
-                          className="border-amber-400 text-amber-700 hover:bg-amber-100 h-8 text-xs"
-                          onClick={() => setShowPayForm((p) => ({ ...p, [order.id]: true }))}
+                          className="gap-2 bg-amber-600 hover:bg-amber-700 text-white h-9"
+                          onClick={() => setPayingOrder(order)}
                         >
-                          I've Paid — Enter Reference
+                          <CreditCard className="w-3.5 h-3.5" />
+                          Pay GHS {(order.totalPrice / 100).toFixed(2)} with Paystack
                         </Button>
-                      )}
+                      </div>
                     </div>
                   )}
 
-                  {/* Escrow locked confirmation */}
-                  {(order.paymentStatus === "in_escrow") && (
-                    <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                      <ShieldCheck className="w-4 h-4 flex-shrink-0" />
-                      <span>Payment is locked in escrow. Reference: <strong>{order.paymentReference}</strong></span>
+                  {/* ── IN ESCROW → Confirm delivery ── */}
+                  {isInEscrow && canConfirm && (
+                    <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
+                      <ShieldCheck className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1 space-y-3">
+                        <div>
+                          <p className="text-sm font-semibold text-green-900">Payment in Escrow</p>
+                          <p className="text-xs text-green-700 mt-0.5">
+                            Once you receive your items, confirm delivery to release{" "}
+                            <strong>GHS {(order.totalPrice / 100).toFixed(2)}</strong> to the
+                            seller.
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            className="gap-2 h-9"
+                            onClick={() => setConfirmingOrder(order)}
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            I've Received My Items
+                          </Button>
+                          <Link href="/disputes">
+                            <Button size="sm" variant="ghost" className="gap-2 h-9 text-orange-600 hover:bg-orange-50">
+                              <AlertTriangle className="w-3.5 h-3.5" />
+                              Raise Issue
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
                     </div>
                   )}
-                  {(order.paymentStatus === "released") && (
+
+                  {/* ── RELEASED confirmation ── */}
+                  {isReleased && (
                     <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-                      <ShieldCheck className="w-4 h-4 flex-shrink-0" />
-                      <span>Escrow released to seller after confirmed delivery.</span>
+                      <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                      <span>Delivery confirmed — escrow released to seller.</span>
                     </div>
                   )}
 
-                  {/* Action buttons — Track & Dispute */}
+                  {/* ── Bottom action bar ── */}
                   {order.status !== "cancelled" && (
                     <div className="flex flex-wrap gap-2 pt-1 border-t border-border/50">
                       <Link href="/track">
@@ -311,7 +545,7 @@ export default function Orders() {
                           Track Package
                         </Button>
                       </Link>
-                      {["in_escrow", "released"].includes(order.paymentStatus ?? "") && (
+                      {(isInEscrow || isReleased) && (
                         <Link href="/disputes">
                           <Button size="sm" variant="ghost" className="gap-1.5 text-xs h-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50">
                             <AlertTriangle className="w-3.5 h-3.5" />
@@ -326,6 +560,26 @@ export default function Orders() {
             );
           })}
         </div>
+      )}
+
+      {/* ── Dialogs ── */}
+      {payingOrder && (
+        <PayWithPaystackDialog
+          order={payingOrder}
+          open={!!payingOrder}
+          onClose={() => setPayingOrder(null)}
+        />
+      )}
+      {confirmingOrder && (
+        <ConfirmDeliveryDialog
+          order={confirmingOrder}
+          open={!!confirmingOrder}
+          onClose={() => setConfirmingOrder(null)}
+          onConfirmed={() => {
+            setConfirmingOrder(null);
+            queryClient.invalidateQueries({ queryKey: getGetUserOrdersQueryKey() });
+          }}
+        />
       )}
     </div>
   );

@@ -92,6 +92,11 @@ router.post("/payments/paystack/initialize", requireAuth, async (req: AuthReques
   const reference = `NAF-${order.id}-${Date.now()}`;
   const amountKobo = order.totalPrice; // already in pesewas (Ghana cents)
 
+  // Build callback URL using Replit domain or request host
+  const domain = process.env["REPLIT_DOMAINS"]?.split(",")[0];
+  const callbackBase = domain ? `https://${domain}` : `${req.protocol}://${req.get("host")}`;
+  const callbackUrl = `${callbackBase}/payment/callback?orderId=${order.id}`;
+
   // Build Paystack request
   const paystackBody: Record<string, unknown> = {
     email: req.user!.email,
@@ -99,6 +104,7 @@ router.post("/payments/paystack/initialize", requireAuth, async (req: AuthReques
     reference,
     currency: "GHS",
     channels: [parsed.data.channel],
+    callback_url: callbackUrl,
     metadata: { orderId: order.id, userId: req.userId },
   };
 
