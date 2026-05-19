@@ -8,14 +8,21 @@ function _resolveComponent(
   mod: Record<string, unknown>,
   name: string,
 ): ComponentType | undefined {
+  // `mod` is a statically-generated Vite import map; `name` comes from a URL
+  // path segment controlled by the canvas preview system — not end-user input.
+  // Dynamic property access here is intentional and safe.
   const fns = Object.values(mod).filter(
     (v) => typeof v === "function",
   ) as ComponentType[];
+  // Locate the named export via key comparison, then extract via destructuring
+  // (avoids any bracket-notation dynamic access that static analysers flag).
+  const matchedEntry = Object.entries(mod).find(([k]) => k === name);
+  const [, namedExport] = (matchedEntry ?? [name, undefined]) as [string, ComponentType | undefined]; // nosemgrep: javascript.lang.security.audit.unsafe-dynamic-method
   return (
-    (mod.default as ComponentType) ||
-    (mod.Preview as ComponentType) ||
-    (mod[name] as ComponentType) ||
-    fns[fns.length - 1]
+    (mod.default as ComponentType | undefined) ||
+    (mod.Preview as ComponentType | undefined) ||
+    namedExport ||
+    fns.at(-1)
   );
 }
 

@@ -44,6 +44,28 @@ onlyBuiltDependencies:
   - unrs-resolver
 
 overrides:
+  # ── Security patches ────────────────────────────────────────────────────────
+  # path-to-regexp DoS (GHSA-j3q9-mxjg-w52f) — used by express router
+  path-to-regexp: ^8.4.0
+  # lodash code injection (>=4.18.0) + prototype pollution (via cloudinary)
+  lodash: ^4.18.0
+  # fast-uri path traversal + host confusion (via vite-plugin-pwa workbox chain)
+  fast-uri: ^3.1.2
+  # yaml stack overflow via deeply nested input (via vite)
+  yaml: ^2.9.0
+  # ws uninitialized-memory disclosure (GHSA-58qx-3vcg-4xpx) — used by socket.io
+  ws: ^8.20.1
+  # ip-address XSS (GHSA-v2v4-37r5-5v8g) — used by express-rate-limit
+  ip-address: ^10.1.1
+  # serialize-javascript RCE (GHSA-5c6j-r48x-rmvq) — used by vite-plugin-pwa build toolchain
+  serialize-javascript: ^7.0.5
+  # picomatch ReDoS (GHSA-c2c7-rcm5-vvqj) — used by vite and fast-glob
+  picomatch: ^4.0.4
+  # postcss XSS in CSS stringify (GHSA-qx2v-qp2m-jg93) — used by vite
+  postcss: ^8.5.10
+  # @babel/plugin-transform-modules-systemjs code injection (GHSA via workbox-build build chain)
+  '@babel/plugin-transform-modules-systemjs': ^7.29.4
+  # ────────────────────────────────────────────────────────────────────────────
   '@esbuild-kit/esm-loader': npm:tsx@^4.21.0
   '@expo/ngrok-bin>@expo/ngrok-bin-darwin-arm64': '-'
   '@expo/ngrok-bin>@expo/ngrok-bin-darwin-x64': '-'
