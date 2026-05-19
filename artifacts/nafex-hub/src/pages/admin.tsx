@@ -131,6 +131,7 @@ export default function Admin() {
   const [userSearch, setUserSearch] = useState("");
   const debouncedUserSearch = useDebounce(userSearch, 300);
   const [roleUpdating, setRoleUpdating] = useState<number | null>(null);
+  const [userDeletingId, setUserDeletingId] = useState<number | null>(null);
 
   const [activity, setActivity] = useState<ActivityLog[]>([]);
   const [activityLoading, setActivityLoading] = useState(false);
@@ -265,6 +266,27 @@ export default function Admin() {
       toast({ title: "Failed to save settings", variant: "destructive" });
     } finally {
       setSavingContact(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId: number) => {
+    const token = localStorage.getItem("nafex_token") ?? "";
+    setUserDeletingId(userId);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Failed to delete user");
+      }
+      setUsers(prev => prev.filter(u => u.id !== userId));
+      toast({ title: "User deleted" });
+    } catch (e: any) {
+      toast({ title: e.message ?? "Failed to delete user", variant: "destructive" });
+    } finally {
+      setUserDeletingId(null);
     }
   };
 
@@ -747,26 +769,65 @@ export default function Admin() {
                           )}
                         </td>
                         <td className="p-4 text-right">
-                          {user.role === "admin" ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleRoleChange(user.id, "user")}
-                              disabled={roleUpdating === user.id}
-                              className="text-destructive border-destructive/30 hover:bg-destructive/10 text-xs"
-                            >
-                              {roleUpdating === user.id ? <Loader2 className="w-3 h-3 animate-spin" /> : "Revoke Admin"}
-                            </Button>
-                          ) : (
-                            <Button
-                              size="sm"
-                              onClick={() => handleRoleChange(user.id, "admin")}
-                              disabled={roleUpdating === user.id}
-                              className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs gap-1"
-                            >
-                              {roleUpdating === user.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Shield className="w-3 h-3" /> Make Admin</>}
-                            </Button>
-                          )}
+                          <div className="flex items-center justify-end gap-2">
+                            {user.role === "admin" ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleRoleChange(user.id, "user")}
+                                disabled={roleUpdating === user.id}
+                                className="text-destructive border-destructive/30 hover:bg-destructive/10 text-xs"
+                              >
+                                {roleUpdating === user.id ? <Loader2 className="w-3 h-3 animate-spin" /> : "Revoke Admin"}
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm"
+                                onClick={() => handleRoleChange(user.id, "admin")}
+                                disabled={roleUpdating === user.id}
+                                className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs gap-1"
+                              >
+                                {roleUpdating === user.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Shield className="w-3 h-3" /> Make Admin</>}
+                              </Button>
+                            )}
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  disabled={userDeletingId === user.id}
+                                  className="text-destructive border-destructive/30 hover:bg-destructive/10 text-xs gap-1"
+                                  data-testid={`btn-delete-user-${user.id}`}
+                                >
+                                  {userDeletingId === user.id ? (
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                  ) : (
+                                    <Trash2 className="w-3 h-3" />
+                                  )}
+                                  Delete
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete user account?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This will permanently delete <span className="font-semibold text-foreground">{user.name}</span> ({user.email}) and all of their reviews, messages, conversations, orders, favorites, notifications, transactions, disputes, and trade activity. This cannot be undone.
+                                    <br /><br />
+                                    If this user owns any businesses, you must delete those first from the Businesses tab.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteUser(user.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete user
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         </td>
                       </tr>
                     ))
