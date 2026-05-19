@@ -22,17 +22,34 @@ app.get("/api/healthz", (_req, res) => {
   res.json({ status: "ok" });
 });
 
+// Derive allowed origin from Replit domains env in production, fallback for dev
+const allowedOrigins = (() => {
+  const domains = process.env["REPLIT_DOMAINS"];
+  if (domains) return domains.split(",").map((d) => `https://${d.trim()}`);
+  return ["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"];
+})();
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
+      // Allow Paystack inline popup script from their official CDN.
+      // SRI cannot be pinned because Paystack updates the file in-place.
+      // The domain allowlist in script-src mitigates supply-chain risk.
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://js.paystack.co"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:", "blob:"],
-      connectSrc: ["'self'", "ws:", "wss:"],
+      // Allow WebSocket connections and Paystack API calls from the browser
+      connectSrc: ["'self'", "ws:", "wss:", "https://api.paystack.co", "https://checkout.paystack.com"],
+      frameSrc: ["'self'", "https://checkout.paystack.com"],
     },
   },
+  // Additional hardening headers
+  referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+  hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
+  xContentTypeOptions: true,
+  xFrameOptions: { action: "sameorigin" },
 }));
 
 if (process.env["NODE_ENV"] === "production") {
@@ -45,7 +62,21 @@ if (process.env["NODE_ENV"] === "production") {
 }
 
 app.use(cors({
-  origin: process.env["ALLOWED_ORIGIN"] ?? "http://localhost:5173",
+  origin: (origin, cb) => {
+    // Allow same-origin requests (no Origin header) and health-check tools
+    if (!origin) return cb(null, true);
+    // Allow if explicitly set via env var (production)
+    const explicitOrigin = process.env["ALLOWED_ORIGIN"];
+    if (explicitOrigin && origin === explicitOrigin) return cb(null, true);
+    // Allow any Replit preview/production domain
+    const replitDomains = process.env["REPLIT_DOMAINS"]?.split(",") ?? [];
+    if (replitDomains.some((d) => origin === `https://${d.trim()}`)) return cb(null, true);
+    // Allow localhost in development
+    if (process.env["NODE_ENV"] !== "production" && /^https?:\/\/localhost(:\d+)?$/.test(origin)) {
+      return cb(null, true);
+    }
+    cb(new Error(`CORS: origin '${origin}' not allowed`));
+  },
   credentials: true,
 }));
 
