@@ -3,6 +3,15 @@
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 
+/* Refine all line icons globally for a more premium, less "toy-like" feel.
+   Lucide defaults to stroke-width 2; 1.6 reads more like a polished editorial
+   icon set (Stripe / Linear / Apple). Filled marks (logos, badges) are
+   unaffected because they have no stroke. */
+:where(svg.lucide) {
+  stroke-width: 1.6;
+}
+
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

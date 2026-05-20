@@ -53,6 +53,13 @@ export function SupportChatWidget() {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [state.messages]);
 
+  // Allow other parts of the app (e.g. footer "Live Chat" link) to open the widget.
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener("open-support-chat", handler);
+    return () => window.removeEventListener("open-support-chat", handler);
+  }, []);
+
   // Join socket room when conversation available
   useEffect(() => {
     if (!socket || !state.conversationId) return;

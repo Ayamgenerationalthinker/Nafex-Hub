@@ -4,7 +4,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail, Tag, Headphones, Settings, ChevronDown, HelpCircle, User2, ClipboardList, Star, Truck, TrendingUp, Globe2, Wallet } from "lucide-react";
+import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail, Tag, Headphones, Settings, ChevronDown, HelpCircle, User2, ClipboardList, Star, Truck, TrendingUp, Globe2, Wallet, Clock } from "lucide-react";
+import { VisaLogo, MastercardLogo, PaystackLogo, MobileMoneyLogo, BankTransferLogo } from "@/components/payment-icons";
 import { NotificationBell } from "@/components/notification-bell";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 
@@ -394,86 +395,206 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </main>
 
       <footer className="border-t bg-secondary text-secondary-foreground">
-        <div className="container mx-auto px-4 md:px-8 py-10 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-serif font-bold text-sm">
-              N
+        <div className="container mx-auto px-4 md:px-8 py-12">
+          {/* Brand + tagline */}
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 pb-8 border-b border-secondary-foreground/10">
+            <div className="space-y-3 max-w-md">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-serif font-bold">
+                  N
+                </div>
+                <span className="font-serif font-bold text-xl">Nafex <span className="text-primary">Hub</span></span>
+              </div>
+              <p className="text-sm text-secondary-foreground/70 leading-relaxed">
+                From fashion and electronics to home essentials and lifestyle goods, Nafex Hub is a curated marketplace of verified Ghanaian businesses and creators — with escrow-protected payments, real-time logistics tracking, and direct sourcing through Nafex Trade Connect.
+              </p>
+              {/* Trust badges */}
+              <div className="flex flex-wrap gap-1.5 pt-2">
+                {[
+                  { icon: Shield, label: "Verified Sellers" },
+                  { icon: Wallet, label: "Escrow Protection" },
+                  { icon: Truck, label: "Logistics Tracking" },
+                  { icon: Star, label: "Ratings & Reviews" },
+                  { icon: Globe2, label: "Nafex Trade Connect" },
+                ].map(({ icon: Icon, label }) => (
+                  <span
+                    key={label}
+                    className="inline-flex items-center gap-1.5 text-[11px] text-secondary-foreground/80 bg-secondary-foreground/10 border border-secondary-foreground/15 rounded-full px-2.5 py-1"
+                    data-testid={`badge-trust-${label.toLowerCase().replace(/\s+/g, "-")}`}
+                  >
+                    <Icon className="w-3 h-3 text-primary" strokeWidth={1.75} />
+                    {label}
+                  </span>
+                ))}
+              </div>
             </div>
-            <span className="font-serif font-bold text-lg">Nafex <span className="text-primary">Hub</span></span>
-          </div>
-          <p className="text-sm text-secondary-foreground/70 max-w-2xl">
-            From fashion and electronics to home essentials and lifestyle goods, Nafex Hub is a curated marketplace of verified Ghanaian businesses and creators — with escrow-protected payments, real-time logistics tracking, and direct sourcing through Nafex Trade Connect.
-          </p>
-
-          {/* Trust badges */}
-          <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-            {[
-              { icon: Shield, label: "Verified Sellers" },
-              { icon: Wallet, label: "Escrow Protection" },
-              { icon: Truck, label: "Logistics Tracking" },
-              { icon: Star, label: "Ratings & Reviews" },
-              { icon: Globe2, label: "Nafex Trade Connect" },
-            ].map(({ icon: Icon, label }) => (
-              <span
-                key={label}
-                className="inline-flex items-center gap-1.5 text-xs text-secondary-foreground/80 bg-secondary-foreground/10 border border-secondary-foreground/15 rounded-full px-3 py-1"
-                data-testid={`badge-trust-${label.toLowerCase().replace(/\s+/g, "-")}`}
-              >
-                <Icon className="w-3.5 h-3.5 text-primary" />
-                {label}
-              </span>
-            ))}
           </div>
 
-          {/* Socials */}
-          <div className="flex items-center gap-4 pt-1">
-            {siteSettings.whatsappNumber?.trim() && (
-              <a
-                href={`https://wa.me/${siteSettings.whatsappNumber.replace(/\D/g, "")}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-secondary-foreground/60 hover:text-green-400 transition-colors"
-                title="WhatsApp"
-              >
-                <Phone className="w-5 h-5" />
-              </a>
-            )}
-            {siteSettings.instagramLink?.trim() && (
-              <a
-                href={siteSettings.instagramLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-secondary-foreground/60 hover:text-pink-400 transition-colors"
-                title="Instagram"
-              >
-                <Instagram className="w-5 h-5" />
-              </a>
-            )}
-            {siteSettings.facebookLink?.trim() && (
-              <a
-                href={siteSettings.facebookLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-secondary-foreground/60 hover:text-blue-400 transition-colors"
-                title="Facebook"
-              >
-                <Facebook className="w-5 h-5" />
-              </a>
-            )}
-            {siteSettings.email?.trim() && (
-              <a
-                href={`mailto:${siteSettings.email}`}
-                className="text-secondary-foreground/60 hover:text-primary transition-colors"
-                title="Email"
-              >
-                <Mail className="w-5 h-5" />
-              </a>
-            )}
+          {/* Columns */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 py-10">
+            {/* Support */}
+            <div className="space-y-4">
+              <h4 className="font-semibold text-sm text-secondary-foreground uppercase tracking-wider">Support</h4>
+              <ul className="space-y-2.5 text-sm">
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => window.dispatchEvent(new CustomEvent("open-support-chat"))}
+                    className="text-secondary-foreground/70 hover:text-primary transition-colors inline-flex items-center gap-2"
+                    data-testid="footer-live-chat"
+                  >
+                    <MessageCircle className="w-4 h-4" strokeWidth={1.75} /> Live Chat Support
+                  </button>
+                </li>
+                <li>
+                  <Link href="/support" className="text-secondary-foreground/70 hover:text-primary transition-colors inline-flex items-center gap-2" data-testid="footer-contact-support">
+                    <Headphones className="w-4 h-4" strokeWidth={1.75} /> Contact Support
+                  </Link>
+                </li>
+                {siteSettings.whatsappNumber?.trim() && (
+                  <li>
+                    <a
+                      href={`tel:${siteSettings.whatsappNumber.replace(/\s+/g, "")}`}
+                      className="text-secondary-foreground/70 hover:text-primary transition-colors inline-flex items-center gap-2"
+                      data-testid="footer-call"
+                    >
+                      <Phone className="w-4 h-4" strokeWidth={1.75} /> Call: {siteSettings.whatsappNumber}
+                    </a>
+                  </li>
+                )}
+                <li>
+                  <Link href="/help" className="text-secondary-foreground/70 hover:text-primary transition-colors inline-flex items-center gap-2" data-testid="footer-help-center">
+                    <HelpCircle className="w-4 h-4" strokeWidth={1.75} /> Help Center
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/track" className="text-secondary-foreground/70 hover:text-primary transition-colors inline-flex items-center gap-2" data-testid="footer-track-order">
+                    <Truck className="w-4 h-4" strokeWidth={1.75} /> Track Order
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/disputes" className="text-secondary-foreground/70 hover:text-primary transition-colors inline-flex items-center gap-2" data-testid="footer-report-issue">
+                    <ClipboardList className="w-4 h-4" strokeWidth={1.75} /> Report Issue
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/payments" className="text-secondary-foreground/70 hover:text-primary transition-colors inline-flex items-center gap-2" data-testid="footer-buyer-protection">
+                    <Shield className="w-4 h-4" strokeWidth={1.75} /> Buyer Protection
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* About */}
+            <div className="space-y-4">
+              <h4 className="font-semibold text-sm text-secondary-foreground uppercase tracking-wider">About</h4>
+              <ul className="space-y-2.5 text-sm text-secondary-foreground/70">
+                <li className="font-semibold text-secondary-foreground">Nafex Hub Ghana Ltd</li>
+                <li className="inline-flex items-start gap-2">
+                  <Globe2 className="w-4 h-4 mt-0.5 flex-shrink-0" strokeWidth={1.75} />
+                  <span>Accra, Ghana</span>
+                </li>
+                <li>
+                  <a
+                    href={`mailto:${siteSettings.email?.trim() || "support@nafexhub.com"}`}
+                    className="hover:text-primary transition-colors inline-flex items-center gap-2"
+                    data-testid="footer-email"
+                  >
+                    <Mail className="w-4 h-4" strokeWidth={1.75} /> {siteSettings.email?.trim() || "support@nafexhub.com"}
+                  </a>
+                </li>
+                <li className="inline-flex items-start gap-2">
+                  <Clock className="w-4 h-4 mt-0.5 flex-shrink-0" strokeWidth={1.75} />
+                  <span>Mon–Sat · 8AM–8PM</span>
+                </li>
+              </ul>
+
+              {/* Socials */}
+              <div className="flex items-center gap-3 pt-2">
+                {siteSettings.whatsappNumber?.trim() && (
+                  <a
+                    href={`https://wa.me/${siteSettings.whatsappNumber.replace(/\D/g, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-9 h-9 rounded-full bg-secondary-foreground/10 hover:bg-green-500/20 hover:text-green-400 flex items-center justify-center text-secondary-foreground/70 transition-all"
+                    title="WhatsApp"
+                    data-testid="footer-social-whatsapp"
+                  >
+                    <Phone className="w-4 h-4" strokeWidth={1.75} />
+                  </a>
+                )}
+                {siteSettings.instagramLink?.trim() && (
+                  <a
+                    href={siteSettings.instagramLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-9 h-9 rounded-full bg-secondary-foreground/10 hover:bg-pink-500/20 hover:text-pink-400 flex items-center justify-center text-secondary-foreground/70 transition-all"
+                    title="Instagram"
+                    data-testid="footer-social-instagram"
+                  >
+                    <Instagram className="w-4 h-4" strokeWidth={1.75} />
+                  </a>
+                )}
+                {siteSettings.facebookLink?.trim() && (
+                  <a
+                    href={siteSettings.facebookLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-9 h-9 rounded-full bg-secondary-foreground/10 hover:bg-blue-500/20 hover:text-blue-400 flex items-center justify-center text-secondary-foreground/70 transition-all"
+                    title="Facebook"
+                    data-testid="footer-social-facebook"
+                  >
+                    <Facebook className="w-4 h-4" strokeWidth={1.75} />
+                  </a>
+                )}
+              </div>
+            </div>
+
+            {/* Marketplace */}
+            <div className="space-y-4">
+              <h4 className="font-semibold text-sm text-secondary-foreground uppercase tracking-wider">Marketplace</h4>
+              <ul className="space-y-2.5 text-sm">
+                <li><Link href="/explore" className="text-secondary-foreground/70 hover:text-primary transition-colors">Explore Brands</Link></li>
+                <li><Link href="/discounts" className="text-secondary-foreground/70 hover:text-primary transition-colors">Deals & Flash Sales</Link></li>
+                <li><Link href="/services" className="text-secondary-foreground/70 hover:text-primary transition-colors">Services</Link></li>
+                <li><Link href="/trade" className="text-secondary-foreground/70 hover:text-primary transition-colors">Nafex Trade Connect</Link></li>
+                <li><Link href="/list" className="text-secondary-foreground/70 hover:text-primary transition-colors">List Your Business</Link></li>
+              </ul>
+            </div>
+
+            {/* Payment Methods */}
+            <div className="space-y-4">
+              <h4 className="font-semibold text-sm text-secondary-foreground uppercase tracking-wider">Payment Methods</h4>
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="h-11 bg-white rounded-md flex items-center justify-center px-3 shadow-sm" title="Paystack" data-testid="payment-paystack">
+                  <PaystackLogo className="h-4 w-auto" />
+                </div>
+                <div className="h-11 bg-white rounded-md flex items-center justify-center px-3 shadow-sm" title="Mobile Money" data-testid="payment-momo">
+                  <MobileMoneyLogo className="h-6 w-auto" />
+                </div>
+                <div className="h-11 bg-white rounded-md flex items-center justify-center px-3 shadow-sm" title="Visa" data-testid="payment-visa">
+                  <VisaLogo className="h-4 w-auto" />
+                </div>
+                <div className="h-11 bg-white rounded-md flex items-center justify-center px-3 shadow-sm" title="Mastercard" data-testid="payment-mastercard">
+                  <MastercardLogo className="h-6 w-auto" />
+                </div>
+                <div className="col-span-2 h-11 bg-white text-secondary rounded-md flex items-center justify-center gap-2 px-3 shadow-sm" title="Bank Transfer" data-testid="payment-bank">
+                  <BankTransferLogo className="h-5 w-auto" />
+                  <span className="text-xs font-semibold tracking-wide">BANK TRANSFER</span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <p className="text-xs text-secondary-foreground/50 pt-1">
-            © {new Date().getFullYear()} Nafex Hub. All rights reserved.
-          </p>
+          {/* Bottom bar */}
+          <div className="border-t border-secondary-foreground/10 pt-6 flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
+            <p className="text-xs text-secondary-foreground/60">
+              © {new Date().getFullYear()} Nafex Hub Ghana. All rights reserved.
+            </p>
+            <p className="text-xs text-secondary-foreground/60 italic">
+              Empowering African commerce through secure digital trade.
+            </p>
+          </div>
         </div>
       </footer>
     </div>
