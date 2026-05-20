@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, ordersTable, transactionsTable, businessesTable, notificationsTable } from "@workspace/db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { createHmac } from "crypto";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
@@ -250,18 +250,21 @@ router.post("/admin/payouts/:orderId", requireAuth, requireAdmin, async (req: Au
   const params = OrderParams.safeParse(req.params);
   if (!params.success) { res.status(400).json({ error: "Invalid order id" }); return; }
 
-  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, params.data.orderId));
-  if (!order) { res.status(404).json({ error: "Order not found" }); return; }
-  if (order.paymentStatus !== "in_escrow") {
-    res.status(409).json({ error: "Order is not in escrow" });
-    return;
-  }
-
+  // Atomic transition: only releases if status is still "in_escrow".
+  // Two concurrent calls cannot both succeed.
   const [updated] = await db
     .update(ordersTable)
     .set({ paymentStatus: "released", updatedAt: new Date() })
-    .where(eq(ordersTable.id, params.data.orderId))
+    .where(and(eq(ordersTable.id, params.data.orderId), eq(ordersTable.paymentStatus, "in_escrow")))
     .returning();
+
+  if (!updated) {
+    const [existing] = await db.select().from(ordersTable).where(eq(ordersTable.id, params.data.orderId));
+    if (!existing) { res.status(404).json({ error: "Order not found" }); return; }
+    res.status(409).json({ error: `Order is not in escrow (current state: ${existing.paymentStatus})` });
+    return;
+  }
+  const order = updated;
 
   // Log payout transaction
   await db.insert(transactionsTable).values({
@@ -306,17 +309,27 @@ router.post("/admin/refunds/:orderId", requireAuth, requireAdmin, async (req: Au
   const parsed = RefundBody.safeParse({ ...req.body, orderId: params.data.orderId });
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
-  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, params.data.orderId));
-  if (!order) { res.status(404).json({ error: "Order not found" }); return; }
+  // Atomic transition: only refunds if order is currently in_escrow or released.
+  // Prevents double-refund under concurrent admin clicks.
+  const [updated] = await db
+    .update(ordersTable)
+    .set({ paymentStatus: "refunded", status: "cancelled", updatedAt: new Date() })
+    .where(and(
+      eq(ordersTable.id, params.data.orderId),
+      inArray(ordersTable.paymentStatus, ["in_escrow", "released"]),
+    ))
+    .returning();
 
-  const refundable = ["in_escrow", "released"];
-  if (!refundable.includes(order.paymentStatus)) {
-    res.status(409).json({ error: "Order cannot be refunded in its current payment state" });
+  if (!updated) {
+    const [existing] = await db.select().from(ordersTable).where(eq(ordersTable.id, params.data.orderId));
+    if (!existing) { res.status(404).json({ error: "Order not found" }); return; }
+    res.status(409).json({ error: `Order cannot be refunded (current state: ${existing.paymentStatus})` });
     return;
   }
+  const order = updated;
 
-  // In production: call Paystack refund API with order.paymentReference
-  // For now we mark it in our system
+  // Best-effort Paystack refund call. DB is already in "refunded" state so admin
+  // can handle Paystack failures manually if it returns an error.
   if (PAYSTACK_SECRET && order.paymentReference) {
     try {
       await paystackPost("/refund", {
@@ -325,16 +338,10 @@ router.post("/admin/refunds/:orderId", requireAuth, requireAdmin, async (req: Au
         currency: "GHS",
         merchant_note: parsed.data.reason ?? "Buyer refund via Nafex Hub admin",
       });
-    } catch {
-      // Continue even if Paystack refund fails — admin can handle manually
+    } catch (err) {
+      req.log?.warn({ err, orderId: order.id, ref: order.paymentReference }, "Paystack refund call failed; DB marked refunded for manual handling");
     }
   }
-
-  const [updated] = await db
-    .update(ordersTable)
-    .set({ paymentStatus: "refunded", status: "cancelled", updatedAt: new Date() })
-    .where(eq(ordersTable.id, params.data.orderId))
-    .returning();
 
   await db.insert(transactionsTable).values({
     orderId: order.id,

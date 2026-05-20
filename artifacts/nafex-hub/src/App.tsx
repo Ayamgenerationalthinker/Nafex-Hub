@@ -45,6 +45,8 @@ import TradeBoard from "@/pages/trade-board";
 import TradeOrderDetail from "@/pages/trade-order-detail";
 import SellerBulkImport from "@/pages/seller-bulk-import";
 import AdminTrade from "@/pages/admin-trade";
+import AdminPayments from "@/pages/admin-payments";
+import Payments from "@/pages/payments";
 
 const queryClient = new QueryClient();
 
@@ -80,6 +82,7 @@ function Router() {
       <Route path="/admin/settings">{() => <ProtectedRoute component={AdminSettingsPage} roles={["admin"]} to="/" />}</Route>
       <Route path="/admin/products">{() => <ProtectedRoute component={AdminProductsPage} roles={["admin"]} to="/" />}</Route>
       <Route path="/admin/services">{() => <ProtectedRoute component={AdminServicesPage} roles={["admin"]} to="/" />}</Route>
+      <Route path="/admin/payments">{() => <ProtectedRoute component={AdminPayments} roles={["admin"]} to="/" />}</Route>
       <Route>
         <Layout>
           <Switch>
@@ -96,6 +99,7 @@ function Router() {
             <Route path="/admin">{() => <ProtectedRoute component={Admin} roles={["admin"]} to="/" />}</Route>
             <Route path="/inbox">{() => <ProtectedRoute component={Inbox} />}</Route>
             <Route path="/orders">{() => <ProtectedRoute component={Orders} />}</Route>
+            <Route path="/payments">{() => <ProtectedRoute component={Payments} />}</Route>
             <Route path="/favorites">{() => <ProtectedRoute component={Favorites} />}</Route>
             <Route path="/support">{() => <ProtectedRoute component={SupportChat} />}</Route>
             <Route path="/seller/settings">{() => <ProtectedRoute component={SellerSettings} roles={["business_owner"]} to="/explore" />}</Route>
