@@ -16,3 +16,37 @@ initSocketIO(httpServer);
 httpServer.listen(port, "0.0.0.0", () => {
   logger.info({ port }, "Server listening");
 });
+
+// ── Process-level error handlers ──────────────────────────────────────────────
+// Log fatal errors so they reach the deployment log stream instead of crashing
+// silently. We keep the process alive on unhandled rejections (recoverable) and
+// allow the orchestrator to restart us on truly fatal uncaught exceptions.
+process.on("unhandledRejection", (reason) => {
+  logger.error({ err: reason }, "Unhandled promise rejection");
+});
+
+process.on("uncaughtException", (err) => {
+  logger.fatal({ err }, "Uncaught exception — shutting down");
+  // Give the logger a moment to flush before exiting so the autoscaler can
+  // restart the process cleanly.
+  setTimeout(() => process.exit(1), 100);
+});
+
+let isShuttingDown = false;
+const shutdown = (signal: string) => {
+  if (isShuttingDown) {
+    logger.info({ signal }, "Shutdown already in progress, ignoring signal");
+    return;
+  }
+  isShuttingDown = true;
+  logger.info({ signal }, "Received shutdown signal");
+  httpServer.close(() => {
+    logger.info("HTTP server closed");
+    process.exit(0);
+  });
+  // Force exit if close hangs
+  setTimeout(() => process.exit(1), 10_000).unref();
+};
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
