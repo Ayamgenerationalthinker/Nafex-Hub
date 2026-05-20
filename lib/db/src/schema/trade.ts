@@ -13,9 +13,20 @@ export const tradeRequestsTable = pgTable("trade_requests", {
   targetPort: text("target_port"),
   requiredByDate: text("required_by_date"),
   category: text("category"),
+  images: text("images").array().notNull().default([]),
+  requesterRole: text("requester_role").notNull().default("buyer"), // buyer | seller
   status: text("status").notNull().default("pending"), // pending | sourcing | fulfilled | cancelled
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+});
+
+// ── Trade Messages (per-order chat: buyer ↔ supplier ↔ admin) ────────────────
+export const tradeMessagesTable = pgTable("trade_messages", {
+  id: serial("id").primaryKey(),
+  orderId: integer("order_id").notNull(),
+  senderId: integer("sender_id").notNull(),
+  text: text("text").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 // ── Trade Quotes ──────────────────────────────────────────────────────────────
@@ -100,6 +111,7 @@ export type TradeQuote         = typeof tradeQuotesTable.$inferSelect;
 export type TradeOrder         = typeof tradeOrdersTable.$inferSelect;
 export type TradeEscrow        = typeof tradeEscrowTable.$inferSelect;
 export type TradeTrackingEvent = typeof tradeTrackingEventsTable.$inferSelect;
+export type TradeMessage       = typeof tradeMessagesTable.$inferSelect;
 
 export type InsertTradeRequest = z.infer<typeof insertTradeRequestSchema>;
 export type InsertTradeQuote   = z.infer<typeof insertTradeQuoteSchema>;
