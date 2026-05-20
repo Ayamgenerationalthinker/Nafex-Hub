@@ -93,7 +93,7 @@ export default function SellerSettings() {
   return (
     <div className="container mx-auto px-4 md:px-8 py-10 max-w-3xl">
       <div className="mb-8">
-        <h1 className="font-serif text-3xl font-bold text-foreground">Account Settings</h1>
+        <h1 className="font-serif text-2xl md:text-3xl font-bold text-foreground">Account Settings</h1>
         <p className="text-muted-foreground mt-1">Manage your personal details, security, and account preferences.</p>
       </div>
 

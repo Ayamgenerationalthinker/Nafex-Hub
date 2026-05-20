@@ -163,12 +163,12 @@ export default function AdminDeliveries() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background p-4 md:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="font-serif text-3xl font-bold">Delivery Dashboard</h1>
+            <h1 className="font-serif text-2xl md:text-3xl font-bold">Delivery Dashboard</h1>
             <p className="text-muted-foreground mt-1">Manage riders and track all deliveries</p>
           </div>
           <Button onClick={() => setShowAddRider(true)} className="gap-2">

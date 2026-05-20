@@ -106,7 +106,7 @@ export default function Disputes() {
     <div className="container mx-auto px-4 py-8 max-w-3xl">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="font-serif text-3xl font-bold text-foreground">My Disputes</h1>
+          <h1 className="font-serif text-2xl md:text-3xl font-bold text-foreground">My Disputes</h1>
           <p className="text-muted-foreground mt-1">Raise and track issues with your orders</p>
         </div>
         <Button onClick={() => setShowForm(true)} className="gap-2">

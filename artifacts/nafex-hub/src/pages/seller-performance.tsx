@@ -134,7 +134,7 @@ export default function SellerPerformance() {
     <div className="container mx-auto px-4 md:px-8 py-10 max-w-5xl">
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="font-serif text-3xl font-bold text-foreground">Performance</h1>
+          <h1 className="font-serif text-2xl md:text-3xl font-bold text-foreground">Performance</h1>
           <p className="text-muted-foreground mt-1">See how your shop is performing over time.</p>
         </div>
         {/* Period toggle */}

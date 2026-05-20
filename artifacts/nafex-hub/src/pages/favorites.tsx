@@ -32,7 +32,7 @@ export default function Favorites() {
     <div className="container mx-auto px-4 py-8 max-w-5xl">
       <div className="flex items-center gap-3 mb-8">
         <Heart className="w-6 h-6 text-primary" />
-        <h1 className="font-serif text-3xl font-bold text-foreground">My Favorites</h1>
+        <h1 className="font-serif text-2xl md:text-3xl font-bold text-foreground">My Favorites</h1>
       </div>
 
       <Tabs defaultValue="businesses">

@@ -323,14 +323,14 @@ export default function AdminAnalytics() {
                 <p className="text-xs mt-1">Feature a business from the Businesses page to see analytics here.</p>
               </div>
             ) : (
-              <>
+              <div className="overflow-x-auto">
                 {/* Table header */}
-                <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] gap-3 px-5 py-2 border-b border-border/60 bg-muted/10">
+                <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr] gap-3 px-5 py-2 border-b border-border/60 bg-muted/10 min-w-[760px]">
                   {["Business", "Type", "Views", "Orders", "Expiry", "Status"].map(h => (
                     <span key={h} className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">{h}</span>
                   ))}
                 </div>
-                <div className="divide-y divide-border/60">
+                <div className="divide-y divide-border/60 min-w-[760px]">
                   {featuredAnalytics.businesses
                     .sort((a, b) => b.views - a.views)
                     .map((biz) => {
@@ -392,7 +392,7 @@ export default function AdminAnalytics() {
                       );
                     })}
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>
