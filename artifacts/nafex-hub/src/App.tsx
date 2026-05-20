@@ -47,6 +47,7 @@ import SellerBulkImport from "@/pages/seller-bulk-import";
 import AdminTrade from "@/pages/admin-trade";
 import AdminPayments from "@/pages/admin-payments";
 import Payments from "@/pages/payments";
+import AdminFlashSales from "@/pages/admin-flash-sales";
 
 const queryClient = new QueryClient();
 
@@ -83,6 +84,7 @@ function Router() {
       <Route path="/admin/products">{() => <ProtectedRoute component={AdminProductsPage} roles={["admin"]} to="/" />}</Route>
       <Route path="/admin/services">{() => <ProtectedRoute component={AdminServicesPage} roles={["admin"]} to="/" />}</Route>
       <Route path="/admin/payments">{() => <ProtectedRoute component={AdminPayments} roles={["admin"]} to="/" />}</Route>
+      <Route path="/admin/flash-sales">{() => <ProtectedRoute component={AdminFlashSales} roles={["admin"]} to="/" />}</Route>
       <Route>
         <Layout>
           <Switch>
