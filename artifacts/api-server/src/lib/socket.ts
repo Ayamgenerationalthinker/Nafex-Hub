@@ -1,6 +1,6 @@
 import { Server, type Socket } from "socket.io";
 import type { Server as HttpServer } from "http";
-import { db, usersTable } from "@workspace/db";
+import { db, usersTable, tradeOrdersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { parseToken } from "../routes/auth";
 import { logger } from "./logger";
@@ -67,9 +67,35 @@ export function initSocketIO(httpServer: HttpServer): Server {
     });
 
     // ── Trade order rooms ──────────────────────────────────────────────────────
-    socket.on("join_trade_order", (orderId: number) => {
-      socket.join(`trade_${orderId}`);
-      logger.info({ userId: socket.data.userId, orderId }, "Joined trade order room");
+    socket.on("join_trade_order", async (orderId: number) => {
+      const userId = socket.data.userId as number | undefined;
+      const userRole = socket.data.userRole as string | undefined;
+      if (typeof orderId !== "number" || !Number.isFinite(orderId) || userId === undefined) {
+        socket.emit("trade_join_error", { orderId, error: "Invalid request" });
+        return;
+      }
+      try {
+        const [order] = await db
+          .select({ buyerId: tradeOrdersTable.buyerId, supplierId: tradeOrdersTable.supplierId })
+          .from(tradeOrdersTable)
+          .where(eq(tradeOrdersTable.id, orderId));
+        if (!order) {
+          socket.emit("trade_join_error", { orderId, error: "Order not found" });
+          return;
+        }
+        const allowed =
+          userRole === "admin" || order.buyerId === userId || order.supplierId === userId;
+        if (!allowed) {
+          socket.emit("trade_join_error", { orderId, error: "Not authorized" });
+          logger.warn({ userId, orderId }, "Trade room join denied");
+          return;
+        }
+        socket.join(`trade_${orderId}`);
+        logger.info({ userId, orderId }, "Joined trade order room");
+      } catch (err) {
+        logger.error({ err, userId, orderId }, "join_trade_order failed");
+        socket.emit("trade_join_error", { orderId, error: "Server error" });
+      }
     });
 
     socket.on("leave_trade_order", (orderId: number) => {

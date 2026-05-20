@@ -6,11 +6,24 @@ import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
 
 const router: IRouter = Router();
 
+// Accept absolute URLs (Cloudinary) OR relative server-hosted upload paths (/api/uploads/...)
+const ImageRef = z
+  .string()
+  .min(1)
+  .max(2048)
+  .refine(
+    (v) => /^https?:\/\//i.test(v) || v.startsWith("/api/uploads/") || v.startsWith("/uploads/"),
+    { message: "Image must be a URL or an /api/uploads/ path" }
+  );
+
 const CreateRequestBody = z.object({
   productName: z.string().min(2).max(200),
   quantity: z.number().int().positive(),
   budget: z.number().positive(),
   description: z.string().min(10).max(2000),
+  category: z.string().max(80).optional(),
+  images: z.array(ImageRef).max(8).optional(),
+  requesterRole: z.enum(["buyer", "seller"]).optional(),
 });
 
 const CreateQuoteBody = z.object({
@@ -33,6 +46,13 @@ router.post("/trade/request", requireAuth, async (req: AuthRequest, res): Promis
   const parsed = CreateRequestBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
+  // Enforce role server-side: only business_owner/admin may post as "seller"
+  let requesterRole: "buyer" | "seller" = parsed.data.requesterRole ?? "buyer";
+  if (requesterRole === "seller" && req.userRole !== "business_owner" && req.userRole !== "admin") {
+    res.status(403).json({ error: "Only verified sellers can post seller sourcing requests" });
+    return;
+  }
+
   const [request] = await db
     .insert(tradeRequestsTable)
     .values({
@@ -41,6 +61,9 @@ router.post("/trade/request", requireAuth, async (req: AuthRequest, res): Promis
       quantity: parsed.data.quantity,
       budget: parsed.data.budget.toString(),
       description: parsed.data.description,
+      category: parsed.data.category,
+      images: parsed.data.images ?? [],
+      requesterRole,
     })
     .returning();
 

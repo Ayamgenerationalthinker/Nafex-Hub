@@ -34,6 +34,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     ? [
         { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
         { href: "/my-shop", label: "My Shop", icon: <Store className="w-4 h-4" /> },
+        { href: "/trade/seller-import", label: "Source from China", icon: <Globe2 className="w-4 h-4" /> },
         { href: "/inbox", label: "Inbox", icon: <MessageCircle className="w-4 h-4" /> },
         { href: "/orders", label: "Orders", icon: <ShoppingBag className="w-4 h-4" /> },
         { href: "/seller/settings", label: "Settings", icon: <Settings className="w-4 h-4" /> },
@@ -59,6 +60,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     : isBusinessOwner
     ? [
         { href: "/dashboard", label: "Dashboard" },
+        { href: "/trade/seller-import", label: "Source from China" },
         { href: "/inbox", label: "Inbox" },
         { href: "/orders", label: "Orders" },
       ]

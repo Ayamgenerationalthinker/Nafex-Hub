@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { getPaystackPublicKey, openPaystackPopup } from "@/lib/paystack";
 import { io as socketIO, type Socket } from "socket.io-client";
+import { TradeChat } from "@/components/trade-chat";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type TrackingEvent = {
@@ -504,6 +505,11 @@ export default function TradeOrderDetail() {
           )}
         </CardContent>
       </Card>
+
+      {/* Order Chat — buyer ↔ supplier ↔ admin */}
+      {user && (isBuyer || isSupplier || isAdmin) && (
+        <TradeChat orderId={order.id} currentUserId={user.id} />
+      )}
 
       {/* Status update dialog */}
       <Dialog open={showStatusUpdate} onOpenChange={setShowStatusUpdate}>
