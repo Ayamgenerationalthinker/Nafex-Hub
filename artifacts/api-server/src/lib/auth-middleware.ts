@@ -8,6 +8,7 @@ export type AuthUser = {
   name: string;
   email: string;
   role: string;
+  emailVerified: boolean;
 };
 
 export interface AuthRequest extends Request {
@@ -47,7 +48,36 @@ export async function requireAuth(
 
   req.userId = user.id;
   req.userRole = user.role;
-  req.user = { id: user.id, name: user.name, email: user.email, role: user.role };
+  req.user = {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    emailVerified: user.emailVerified,
+  };
+  next();
+}
+
+/**
+ * Require an authenticated user whose email has been verified. Run AFTER `requireAuth`.
+ * Returns 403 with a machine-readable code so the frontend can route to /verify-email.
+ */
+export function requireVerified(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): void {
+  if (!req.user) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  if (!req.user.emailVerified) {
+    res.status(403).json({
+      error: "Please verify your email before continuing.",
+      code: "EMAIL_NOT_VERIFIED",
+    });
+    return;
+  }
   next();
 }
 

@@ -8,6 +8,7 @@ import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, Messa
 import { VisaLogo, MastercardLogo, PaystackLogo, MobileMoneyLogo, BankTransferLogo } from "@/components/payment-icons";
 import { NotificationBell } from "@/components/notification-bell";
 import { VerifyEmailBanner } from "@/components/verify-email-banner";
+import { CartIcon } from "@/components/cart-icon";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 
 const FALLBACK_LOGO = "/nafex-verified-badge.png";
@@ -114,6 +115,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
             {user ? (
               <div className="flex items-center gap-1">
+                <CartIcon className="text-secondary-foreground/80 hover:text-primary" />
                 <NotificationBell />
 
                 {/* Buyer: Help dropdown + user account dropdown */}
@@ -276,6 +278,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Mobile hamburger */}
           <div className="flex md:hidden items-center gap-2">
+            <CartIcon className="text-secondary-foreground/80 hover:text-primary" />
             {user && <NotificationBell />}
             {!user && (
               <Link href="/register">

@@ -2,7 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, ordersTable, businessesTable, notificationsTable, usersTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import { z } from "zod";
-import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
+import { requireAuth, requireVerified, type AuthRequest } from "../lib/auth-middleware";
 import { sendAdminEmail, sendDeliveryOtpEmail } from "../lib/mailer";
 import { notifyAllAdmins } from "../lib/notify";
 
@@ -58,7 +58,7 @@ async function attachBusinessDetails(orders: typeof ordersTable.$inferSelect[]) 
 }
 
 // Create order
-router.post("/orders", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+router.post("/orders", requireAuth, requireVerified, async (req: AuthRequest, res): Promise<void> => {
   const parsed = CreateOrderBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
