@@ -4,6 +4,7 @@ import { eq, desc } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
 import { sendAdminEmail } from "../lib/mailer";
+import { notifyAllAdmins } from "../lib/notify";
 
 const router: IRouter = Router();
 
@@ -82,6 +83,33 @@ router.post("/orders", requireAuth, async (req: AuthRequest, res): Promise<void>
     `A new order has been placed on Nafex Hub.\n\nOrder ID: ${order.id}\nBusiness ID: ${order.businessId}\nTotal: GHS ${(order.totalPrice / 100).toFixed(2)}\nItems: ${parsed.data.items.length}\nDate: ${new Date().toUTCString()}`
   );
 
+  // In-app notifications for seller (business owner) + all admins.
+  try {
+    const [biz] = await db
+      .select({ ownerId: businessesTable.ownerId, name: businessesTable.name })
+      .from(businessesTable)
+      .where(eq(businessesTable.id, order.businessId));
+    const totalGhs = `GHS ${(order.totalPrice / 100).toFixed(2)}`;
+
+    if (biz?.ownerId) {
+      await db.insert(notificationsTable).values({
+        userId: biz.ownerId,
+        type: "order_update",
+        title: `New order received — #${order.id}`,
+        body: `You have a new order for ${totalGhs} (${parsed.data.items.length} item${parsed.data.items.length === 1 ? "" : "s"}). Awaiting buyer payment.`,
+        relatedId: order.id,
+        isRead: false,
+      });
+    }
+
+    await notifyAllAdmins({
+      type: "order_update",
+      title: `New order placed — #${order.id}`,
+      body: `${biz?.name ?? "A business"} received a new order for ${totalGhs}. Track payment & delivery in the admin dashboard.`,
+      relatedId: order.id,
+    });
+  } catch {}
+
   res.status(201).json(order);
 });
 
@@ -120,6 +148,12 @@ router.post("/orders/:id/pay", requireAuth, async (req: AuthRequest, res): Promi
         isRead: false,
       });
     }
+    await notifyAllAdmins({
+      type: "order_update",
+      title: `Payment received — Order #${existing.id}`,
+      body: `${business?.name ?? "A seller"} received an escrow-held payment for Order #${existing.id} (ref: ${parsed.data.reference}). Ready for fulfillment.`,
+      relatedId: existing.id,
+    });
   } catch {}
 
   res.json(updated);
@@ -226,6 +260,12 @@ router.patch("/orders/:id/status", requireAuth, async (req: AuthRequest, res): P
       relatedId: order.id,
       isRead: false,
     });
+    await notifyAllAdmins({
+      type: "order_update",
+      title: `Order #${order.id} → ${label}`,
+      body: `Seller updated Order #${order.id} status to "${label}".`,
+      relatedId: order.id,
+    });
   } catch {}
 
   res.json(order);
@@ -289,6 +329,12 @@ router.post("/orders/:id/confirm-delivery", requireAuth, async (req: AuthRequest
       relatedId: order.id,
       isRead: false,
     });
+    await notifyAllAdmins({
+      type: "order_update",
+      title: `Order #${order.id} delivered`,
+      body: `Order #${order.id} confirmed delivered via OTP. ${existing.paymentStatus === "in_escrow" ? "Escrow released to seller." : ""}`,
+      relatedId: order.id,
+    });
   } catch {}
 
   res.json(order);
@@ -340,6 +386,14 @@ router.post("/orders/:id/buyer-confirm", requireAuth, async (req: AuthRequest, r
         isRead: false,
       });
     }
+    await notifyAllAdmins({
+      type: "order_update",
+      title: `Buyer confirmed delivery — Order #${order.id}`,
+      body: order.paymentStatus === "in_escrow"
+        ? `Buyer confirmed receipt of Order #${order.id}. Escrow released to seller.`
+        : `Buyer confirmed receipt of Order #${order.id}.`,
+      relatedId: order.id,
+    });
   } catch {}
 
   res.json(updated);
