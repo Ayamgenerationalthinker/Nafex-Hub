@@ -9,7 +9,7 @@ import {
   usersTable,
   TRADE_ORDER_STATUSES,
 } from "@workspace/db";
-import { eq, desc, and, or } from "drizzle-orm";
+import { eq, desc, and, or, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
 import { getIO } from "../lib/socket";
@@ -358,11 +358,53 @@ router.patch("/admin/trade-orders/:id", requireAuth, async (req: AuthRequest, re
   if (body.data.status) updates.status = body.data.status;
 
   if (body.data.escrowAction === "release") {
+    // Atomic: only release if currently funded; prevents concurrent double-release.
+    const result = await db
+      .update(tradeEscrowTable)
+      .set({ releasedAt: new Date() })
+      .where(and(eq(tradeEscrowTable.orderId, order.id), eq(tradeEscrowTable.paystackStatus, "success")))
+      .returning();
+    if (result.length === 0 && order.escrowStatus === "released") {
+      res.status(409).json({ error: "Escrow already released" });
+      return;
+    }
     updates.escrowStatus = "released";
-    await db.update(tradeEscrowTable).set({ releasedAt: new Date() }).where(eq(tradeEscrowTable.orderId, order.id));
   } else if (body.data.escrowAction === "refund") {
+    // Atomic: only refund if not already refunded. Sets refundedAt only on first call.
+    const refundedRows = await db
+      .update(tradeEscrowTable)
+      .set({ refundedAt: new Date() })
+      .where(and(eq(tradeEscrowTable.orderId, order.id), isNull(tradeEscrowTable.refundedAt)))
+      .returning();
+    if (refundedRows.length === 0) {
+      res.status(409).json({ error: "Escrow already refunded" });
+      return;
+    }
+    const escrow = refundedRows[0];
+    const PAYSTACK_SECRET = process.env["PAYSTACK_SECRET_KEY"] ?? "";
+    if (PAYSTACK_SECRET && escrow.paystackRef && escrow.paystackStatus === "success") {
+      try {
+        const r = await fetch("https://api.paystack.co/refund", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${PAYSTACK_SECRET}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            transaction: escrow.paystackRef,
+            currency: escrow.currency ?? "GHS",
+            merchant_note: body.data.note ?? "Trade Connect refund via Nafex Hub admin",
+          }),
+        });
+        const payload = (await r.json().catch(() => ({}))) as { status?: boolean; message?: string };
+        if (!r.ok || payload.status === false) {
+          req.log?.warn({ paystackRef: escrow.paystackRef, status: r.status, message: payload.message }, "Paystack trade refund failed; DB marked refunded for manual handling");
+        }
+      } catch (err) {
+        req.log?.error({ err, paystackRef: escrow.paystackRef }, "Paystack trade refund threw; DB marked refunded for manual handling");
+      }
+    }
     updates.escrowStatus = "refunded";
-    await db.update(tradeEscrowTable).set({ refundedAt: new Date() }).where(eq(tradeEscrowTable.orderId, order.id));
   }
 
   const [updatedOrder] = await db.update(tradeOrdersTable)

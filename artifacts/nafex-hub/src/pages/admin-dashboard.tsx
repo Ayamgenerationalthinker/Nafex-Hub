@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { AdminLayout } from "@/components/admin-layout";
-import { Users, Building2, CheckCircle2, ShoppingBag, TrendingUp, ArrowRight } from "lucide-react";
+import { Users, Building2, CheckCircle2, ShoppingBag, TrendingUp, ArrowRight, Wallet } from "lucide-react";
 import { Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -96,7 +96,15 @@ export default function AdminDashboard() {
         {/* Quick links */}
         <div className="bg-card border border-border rounded-xl p-5">
           <h3 className="font-semibold text-foreground text-sm mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <Link href="/admin/payments" className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted transition-colors group" data-testid="link-admin-payments">
+              <Wallet className="w-4 h-4 text-primary" />
+              <div>
+                <p className="text-sm font-medium text-foreground">Payments & Escrow</p>
+                <p className="text-xs text-muted-foreground">Ledger & manual controls</p>
+              </div>
+              <ArrowRight className="w-4 h-4 text-muted-foreground ml-auto group-hover:text-primary transition-colors" />
+            </Link>
             <Link href="/admin/businesses" className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted transition-colors group">
               <Building2 className="w-4 h-4 text-primary" />
               <div>
