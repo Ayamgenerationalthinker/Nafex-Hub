@@ -9,7 +9,6 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLocation } from "wouter";
 import type { Business } from "@workspace/api-client-react";
-import { AiSearchBar } from "@/components/ai-search-bar";
 
 const CATEGORY_GROUPS = [
   {
@@ -180,11 +179,6 @@ export default function Explore() {
         <p className="text-muted-foreground text-lg max-w-2xl">
           Discover independent fashion creators across Ghana.
         </p>
-      </div>
-
-      {/* AI-powered natural language search */}
-      <div className="mb-6">
-        <AiSearchBar />
       </div>
 
       {/* Search + controls bar */}

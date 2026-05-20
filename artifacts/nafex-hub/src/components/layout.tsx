@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail, Tag, Headphones, Settings, ChevronDown, HelpCircle, User2, ClipboardList, Star, Truck, TrendingUp, Globe2, Wallet, Clock } from "lucide-react";
 import { VisaLogo, MastercardLogo, PaystackLogo, MobileMoneyLogo, BankTransferLogo } from "@/components/payment-icons";
 import { NotificationBell } from "@/components/notification-bell";
+import { VerifyEmailBanner } from "@/components/verify-email-banner";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 
 const FALLBACK_LOGO = "/nafex-verified-badge.png";
@@ -84,6 +85,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-[100dvh] flex flex-col w-full bg-background text-foreground font-sans">
+      <VerifyEmailBanner />
       {/* ── Header (dark charcoal matches reference design) ── */}
       <header className="sticky top-0 z-50 w-full bg-secondary text-secondary-foreground shadow-md">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-8">
