@@ -181,7 +181,7 @@ router.get("/businesses/:id", async (req, res): Promise<void> => {
   res.json(business);
 });
 
-router.post("/businesses", async (req, res): Promise<void> => {
+router.post("/businesses", requireAuth, requireVerified, async (req: AuthRequest, res): Promise<void> => {
   const parsed = CreateBusinessBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -192,6 +192,8 @@ router.post("/businesses", async (req, res): Promise<void> => {
     .insert(businessesTable)
     .values({
       ...parsed.data,
+      // Force ownership to the authenticated user — never trust client-provided ownerId.
+      ownerId: req.userId!,
       images: parsed.data.images ?? [],
     })
     .returning();
@@ -241,23 +243,29 @@ router.put("/businesses/:id", requireAuth, async (req: AuthRequest, res): Promis
   res.json(business);
 });
 
-router.delete("/businesses/:id", async (req, res): Promise<void> => {
+router.delete("/businesses/:id", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   const params = DeleteBusinessParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
     return;
   }
 
-  const [business] = await db
-    .delete(businessesTable)
-    .where(eq(businessesTable.id, params.data.id))
-    .returning();
+  const [existing] = await db
+    .select({ ownerId: businessesTable.ownerId })
+    .from(businessesTable)
+    .where(eq(businessesTable.id, params.data.id));
 
-  if (!business) {
+  if (!existing) {
     res.status(404).json({ error: "Business not found" });
     return;
   }
 
+  if (existing.ownerId !== req.userId && req.user?.role !== "admin") {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+
+  await db.delete(businessesTable).where(eq(businessesTable.id, params.data.id));
   res.sendStatus(204);
 });
 

@@ -201,11 +201,8 @@ export default function Register() {
   };
 
   const handleContinue = () => {
-    if (successInfo?.role === "business_owner") {
-      setLocation("/list");
-    } else {
-      setLocation("/explore");
-    }
+    // Every new account MUST verify email before anything else.
+    setLocation("/verify-email");
   };
 
   // ── Success screen ──────────────────────────────────────────────────────

@@ -16,6 +16,7 @@ import Login from "@/pages/login";
 import Register from "@/pages/register";
 import VerifyEmail from "@/pages/verify-email";
 import { VerifyEmailBanner } from "@/components/verify-email-banner";
+import Cart from "@/pages/cart";
 import Dashboard from "@/pages/dashboard";
 import Inbox from "@/pages/inbox";
 import Orders from "@/pages/orders";
@@ -96,6 +97,7 @@ function Router() {
             <Route path="/login" component={Login} />
             <Route path="/register" component={Register} />
             <Route path="/verify-email" component={VerifyEmail} />
+            <Route path="/cart" component={Cart} />
             <Route path="/discounts" component={Discounts} />
             <Route path="/services" component={ServicesPage} />
             <Route path="/product/:id" component={ProductDetail} />

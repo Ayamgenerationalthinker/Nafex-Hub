@@ -4,7 +4,7 @@ import { BrandCard } from "@/components/brand-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, ChevronLeft, ChevronRight, ShieldCheck, Star, SlidersHorizontal, X, ChevronDown, ChevronUp, Shirt, Footprints, Watch, ShoppingBag, Utensils, Smartphone, Home, Sparkles, Wrench, Car, GraduationCap, Baby, Dumbbell, Leaf, Palette, Plane, DollarSign, Package } from "lucide-react";
+import { Search, Filter, ChevronLeft, ChevronRight, ShieldCheck, Star, SlidersHorizontal, X, ChevronDown, ChevronUp, ShoppingBag, Package } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLocation } from "wouter";
@@ -13,86 +13,86 @@ import type { Business } from "@workspace/api-client-react";
 const CATEGORY_GROUPS = [
   {
     label: "Fashion & Style",
-    icon: <Shirt className="w-5 h-5" />,
-    color: "bg-pink-50 text-pink-600 border-pink-200",
+    emoji: "👗",
+    gradient: "from-pink-400 to-rose-500",
     categories: ["Clothing", "Footwear", "Accessories", "Jewelry & Watches", "Bags & Luggage", "Fabric & Textiles"],
   },
   {
     label: "Food & Beverages",
-    icon: <Utensils className="w-5 h-5" />,
-    color: "bg-orange-50 text-orange-600 border-orange-200",
+    emoji: "🍲",
+    gradient: "from-orange-400 to-amber-500",
     categories: ["Food & Drinks", "Groceries & Supermarket", "Restaurants & Chop Bars", "Catering & Events Food", "Beverages & Drinks", "Bakery & Pastries", "Farm Produce"],
   },
   {
     label: "Electronics & Tech",
-    icon: <Smartphone className="w-5 h-5" />,
-    color: "bg-blue-50 text-blue-600 border-blue-200",
+    emoji: "📱",
+    gradient: "from-blue-500 to-cyan-500",
     categories: ["Electronics", "Phones & Gadgets", "Computers & Laptops", "Home Appliances", "Solar & Power"],
   },
   {
     label: "Home & Living",
-    icon: <Home className="w-5 h-5" />,
-    color: "bg-teal-50 text-teal-600 border-teal-200",
+    emoji: "🛋️",
+    gradient: "from-teal-400 to-emerald-500",
     categories: ["Furniture", "Home Decor", "Bedding & Bath", "Kitchen & Cookware", "Building Materials"],
   },
   {
     label: "Health & Beauty",
-    icon: <Sparkles className="w-5 h-5" />,
-    color: "bg-purple-50 text-purple-600 border-purple-200",
+    emoji: "💄",
+    gradient: "from-fuchsia-400 to-purple-500",
     categories: ["Beauty & Skincare", "Hair & Wigs", "Health & Wellness", "Pharmacy & Medicine", "Gym & Fitness Equipment"],
   },
   {
     label: "Services",
-    icon: <Wrench className="w-5 h-5" />,
-    color: "bg-slate-50 text-slate-600 border-slate-200",
+    emoji: "🛠️",
+    gradient: "from-slate-500 to-gray-600",
     categories: ["Cleaning Services", "Laundry & Dry Cleaning", "Construction & Repairs", "Photography & Videography", "Event Planning", "Printing & Branding", "Transport & Logistics", "Security Services"],
   },
   {
     label: "Automotive",
-    icon: <Car className="w-5 h-5" />,
-    color: "bg-gray-50 text-gray-600 border-gray-200",
+    emoji: "🚗",
+    gradient: "from-zinc-600 to-slate-700",
     categories: ["Cars & Vehicles", "Auto Parts & Accessories", "Car Wash & Repairs"],
   },
   {
     label: "Education",
-    icon: <GraduationCap className="w-5 h-5" />,
-    color: "bg-indigo-50 text-indigo-600 border-indigo-200",
+    emoji: "🎓",
+    gradient: "from-indigo-500 to-violet-600",
     categories: ["Tutoring & Lessons", "Books & Stationery", "Training & Courses"],
   },
   {
     label: "Kids & Baby",
-    icon: <Baby className="w-5 h-5" />,
-    color: "bg-yellow-50 text-yellow-600 border-yellow-200",
+    emoji: "🍼",
+    gradient: "from-yellow-400 to-orange-400",
     categories: ["Baby & Kids", "Toys & Games", "School Supplies"],
   },
   {
     label: "Sports & Outdoors",
-    icon: <Dumbbell className="w-5 h-5" />,
-    color: "bg-green-50 text-green-600 border-green-200",
+    emoji: "⚽",
+    gradient: "from-green-500 to-emerald-600",
     categories: ["Sports & Fitness", "Outdoor & Adventure"],
   },
   {
     label: "Agriculture",
-    icon: <Leaf className="w-5 h-5" />,
-    color: "bg-lime-50 text-lime-600 border-lime-200",
+    emoji: "🌾",
+    gradient: "from-lime-500 to-green-600",
     categories: ["Agriculture & Farming", "Livestock & Poultry"],
   },
   {
     label: "Arts & Entertainment",
-    icon: <Palette className="w-5 h-5" />,
-    color: "bg-rose-50 text-rose-600 border-rose-200",
+    emoji: "🎨",
+    gradient: "from-rose-400 to-pink-500",
     categories: ["Crafts & Handmade", "Art & Collectibles", "Music & Instruments", "Gaming & Consoles"],
   },
   {
     label: "Travel & Real Estate",
-    icon: <Plane className="w-5 h-5" />,
-    color: "bg-sky-50 text-sky-600 border-sky-200",
+    emoji: "✈️",
+    gradient: "from-sky-400 to-blue-500",
     categories: ["Travel & Tours", "Property & Real Estate"],
   },
   {
     label: "Finance & Other",
-    icon: <DollarSign className="w-5 h-5" />,
-    color: "bg-emerald-50 text-emerald-600 border-emerald-200",
+    emoji: "💰",
+    gradient: "from-emerald-500 to-teal-600",
     categories: ["Financial Services", "Insurance", "Other"],
   },
 ];
@@ -323,21 +323,25 @@ export default function Explore() {
           {CATEGORY_GROUPS.map((group) => {
             const isGroupActive = activeGroup === group.label;
             const hasCatSelected = group.categories.some(c => c === category);
+            const active = isGroupActive || hasCatSelected;
             return (
               <button
                 key={group.label}
                 onClick={() => handleGroupClick(group.label)}
-                className={`flex-shrink-0 flex flex-col items-center gap-1.5 px-3 py-2.5 rounded-xl border transition-all min-w-[68px] ${
-                  isGroupActive || hasCatSelected
-                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                    : "bg-background border-border hover:border-primary/40 hover:bg-muted/50 text-foreground"
+                className={`flex-shrink-0 flex flex-col items-center gap-1.5 px-2 py-2 rounded-xl border transition-all min-w-[72px] ${
+                  active
+                    ? "bg-primary/10 border-primary shadow-sm"
+                    : "bg-background border-border hover:border-primary/40 hover:bg-muted/30"
                 }`}
               >
-                <span className={isGroupActive || hasCatSelected ? "text-primary-foreground" : ""}>
-                  {group.icon}
+                <span
+                  className={`w-11 h-11 rounded-full flex items-center justify-center text-2xl shadow-md ring-2 ring-white bg-gradient-to-br ${group.gradient} ${active ? "scale-110" : ""} transition-transform`}
+                  aria-hidden
+                >
+                  {group.emoji}
                 </span>
-                <span className="text-[10px] font-semibold leading-tight text-center"
-                  style={{ maxWidth: 60, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                <span className={`text-[10px] font-semibold leading-tight text-center ${active ? "text-primary" : "text-foreground"}`}
+                  style={{ maxWidth: 64, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                   {group.label}
                 </span>
               </button>
