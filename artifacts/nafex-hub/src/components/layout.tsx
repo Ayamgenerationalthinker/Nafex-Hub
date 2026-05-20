@@ -34,7 +34,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     ? [
         { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
         { href: "/my-shop", label: "My Shop", icon: <Store className="w-4 h-4" /> },
-        { href: "/trade/seller-import", label: "Source from China", icon: <Globe2 className="w-4 h-4" /> },
+        { href: "/trade/seller-import", label: "Nafex Trade Connect", icon: <Globe2 className="w-4 h-4" /> },
         { href: "/inbox", label: "Inbox", icon: <MessageCircle className="w-4 h-4" /> },
         { href: "/orders", label: "Orders", icon: <ShoppingBag className="w-4 h-4" /> },
         { href: "/payments", label: "Payments", icon: <Wallet className="w-4 h-4" /> },
@@ -62,7 +62,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     : isBusinessOwner
     ? [
         { href: "/dashboard", label: "Dashboard" },
-        { href: "/trade/seller-import", label: "Source from China" },
+        { href: "/trade/seller-import", label: "Nafex Trade Connect" },
         { href: "/inbox", label: "Inbox" },
         { href: "/orders", label: "Orders" },
         { href: "/payments", label: "Payments" },
@@ -401,10 +401,32 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </div>
             <span className="font-serif font-bold text-lg">Nafex <span className="text-primary">Hub</span></span>
           </div>
-          <p className="text-sm text-secondary-foreground/60">
-            Ghana's premier digital fashion marketplace.
+          <p className="text-sm text-secondary-foreground/70 max-w-2xl">
+            From fashion and electronics to home essentials and lifestyle goods, Nafex Hub is a curated marketplace of verified Ghanaian businesses and creators — with escrow-protected payments, real-time logistics tracking, and direct sourcing through Nafex Trade Connect.
           </p>
-          <div className="flex items-center gap-4">
+
+          {/* Trust badges */}
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+            {[
+              { icon: Shield, label: "Verified Sellers" },
+              { icon: Wallet, label: "Escrow Protection" },
+              { icon: Truck, label: "Logistics Tracking" },
+              { icon: Star, label: "Ratings & Reviews" },
+              { icon: Globe2, label: "Nafex Trade Connect" },
+            ].map(({ icon: Icon, label }) => (
+              <span
+                key={label}
+                className="inline-flex items-center gap-1.5 text-xs text-secondary-foreground/80 bg-secondary-foreground/10 border border-secondary-foreground/15 rounded-full px-3 py-1"
+                data-testid={`badge-trust-${label.toLowerCase().replace(/\s+/g, "-")}`}
+              >
+                <Icon className="w-3.5 h-3.5 text-primary" />
+                {label}
+              </span>
+            ))}
+          </div>
+
+          {/* Socials */}
+          <div className="flex items-center gap-4 pt-1">
             {siteSettings.whatsappNumber?.trim() && (
               <a
                 href={`https://wa.me/${siteSettings.whatsappNumber.replace(/\D/g, "")}`}
@@ -447,11 +469,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <Mail className="w-5 h-5" />
               </a>
             )}
-            <div className="h-4 w-px bg-secondary-foreground/20 mx-1" />
-            <Link href="/explore" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">Explore</Link>
-            <Link href="/list" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">List Business</Link>
-            <Link href="/login" className="text-sm text-secondary-foreground/60 hover:text-primary transition-colors">Login</Link>
           </div>
+
+          <p className="text-xs text-secondary-foreground/50 pt-1">
+            © {new Date().getFullYear()} Nafex Hub. All rights reserved.
+          </p>
         </div>
       </footer>
     </div>
