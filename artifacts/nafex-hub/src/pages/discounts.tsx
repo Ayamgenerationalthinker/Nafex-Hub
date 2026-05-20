@@ -4,6 +4,7 @@ import { Tag, Flame, Search, ShoppingBag, Store } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FlashSalesStrip } from "@/components/flash-sale-banner";
 
 type DiscountedProduct = {
   id: number;
@@ -129,6 +130,9 @@ export default function Discounts() {
           Exclusive deals from Ghana's top fashion brands — limited time offers.
         </p>
       </div>
+
+      {/* Flash sales — live time-limited promos */}
+      <FlashSalesStrip />
 
       {/* Banner */}
       {!loading && products.length > 0 && (

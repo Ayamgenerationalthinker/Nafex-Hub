@@ -9,6 +9,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLocation } from "wouter";
 import type { Business } from "@workspace/api-client-react";
+import { AiSearchBar } from "@/components/ai-search-bar";
 
 const CATEGORY_GROUPS = [
   {
@@ -174,11 +175,16 @@ export default function Explore() {
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12 min-h-[calc(100vh-4rem)]">
-      <div className="space-y-2 mb-8">
+      <div className="space-y-2 mb-6">
         <h1 className="font-serif text-3xl md:text-5xl font-bold text-foreground">Explore Brands</h1>
         <p className="text-muted-foreground text-lg max-w-2xl">
           Discover independent fashion creators across Ghana.
         </p>
+      </div>
+
+      {/* AI-powered natural language search */}
+      <div className="mb-6">
+        <AiSearchBar />
       </div>
 
       {/* Search + controls bar */}

@@ -14,6 +14,8 @@ import {
   Package,
   Sparkles,
   Menu,
+  Flame,
+  Wallet,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -21,6 +23,8 @@ const NAV_ITEMS = [
   { path: "/admin/businesses", label: "Businesses", icon: Building2 },
   { path: "/admin/products", label: "Products", icon: Package },
   { path: "/admin/services", label: "Services", icon: Sparkles },
+  { path: "/admin/flash-sales", label: "Flash Sales", icon: Flame },
+  { path: "/admin/payments", label: "Payments", icon: Wallet },
   { path: "/admin/analytics", label: "Analytics", icon: BarChart2 },
   { path: "/admin/settings", label: "Settings", icon: Settings },
 ];
