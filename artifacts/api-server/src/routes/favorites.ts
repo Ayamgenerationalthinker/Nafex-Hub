@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, favoritesTable, businessesTable, productsTable } from "@workspace/db";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
 
@@ -25,7 +25,7 @@ router.get("/favorites", requireAuth, async (req: AuthRequest, res): Promise<voi
 
   const [businesses, products] = await Promise.all([
     businessIds.length
-      ? db.select().from(businessesTable).where(sql`${businessesTable.id} = ANY(${businessIds})`)
+      ? db.select().from(businessesTable).where(inArray(businessesTable.id, businessIds))
       : Promise.resolve([]),
     productIds.length
       ? db
@@ -43,7 +43,7 @@ router.get("/favorites", requireAuth, async (req: AuthRequest, res): Promise<voi
           })
           .from(productsTable)
           .leftJoin(businessesTable, eq(productsTable.businessId, businessesTable.id))
-          .where(sql`${productsTable.id} = ANY(${productIds})`)
+          .where(inArray(productsTable.id, productIds))
       : Promise.resolve([]),
   ]);
 
