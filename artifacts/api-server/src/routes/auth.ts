@@ -6,8 +6,13 @@ import { z } from "zod";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import rateLimit from "express-rate-limit";
-import { sendAdminEmail } from "../lib/mailer";
+import { sendAdminEmail, sendVerificationEmail } from "../lib/mailer";
 import { requireAuth } from "../lib/auth-middleware";
+
+function generateVerificationCode(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+const VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
 
 const router: IRouter = Router();
 
@@ -92,10 +97,20 @@ router.post("/auth/register", authLimiter, async (req, res): Promise<void> => {
   }
 
   const hashedPassword = await hashPassword(password);
+  const verificationCode = generateVerificationCode();
+  const verificationExpiry = new Date(Date.now() + VERIFICATION_TTL_MS);
 
   const [user] = await db
     .insert(usersTable)
-    .values({ name, email: normalizedEmail, password: hashedPassword, role: role ?? "user" })
+    .values({
+      name,
+      email: normalizedEmail,
+      password: hashedPassword,
+      role: role ?? "user",
+      emailVerified: false,
+      emailVerificationCode: verificationCode,
+      emailVerificationExpiry: verificationExpiry,
+    })
     .returning();
 
   const token = generateToken(user.id);
@@ -105,15 +120,71 @@ router.post("/auth/register", authLimiter, async (req, res): Promise<void> => {
     `A new user has registered on Nafex Hub.\n\nName: ${user.name}\nEmail: ${user.email}\nRole: ${user.role}\nDate: ${new Date().toUTCString()}`
   );
 
+  // Fire-and-forget verification email; user is still logged in either way.
+  sendVerificationEmail(user.email, user.name, verificationCode).catch(() => {});
+
   res.status(201).json({
     user: {
       id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
+      emailVerified: user.emailVerified,
       createdAt: user.createdAt,
     },
     token,
+  });
+});
+
+// Verify email with 6-digit code emailed at signup. Rate-limited to deter brute force.
+router.post("/auth/verify-email", authLimiter, requireAuth, async (req, res): Promise<void> => {
+  const schema = z.object({ code: z.string().regex(/^\d{6}$/, "Code must be 6 digits") });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.issues[0]?.message ?? "Invalid code" });
+    return;
+  }
+  const userId = (req as { user?: { id: number } }).user!.id;
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
+  if (user.emailVerified) { res.json({ message: "Email already verified", emailVerified: true }); return; }
+  if (!user.emailVerificationCode || !user.emailVerificationExpiry) {
+    res.status(400).json({ error: "No pending verification. Request a new code." });
+    return;
+  }
+  if (user.emailVerificationExpiry.getTime() < Date.now()) {
+    res.status(400).json({ error: "Code has expired. Request a new one." });
+    return;
+  }
+  if (user.emailVerificationCode !== parsed.data.code) {
+    res.status(400).json({ error: "Incorrect code" });
+    return;
+  }
+  await db
+    .update(usersTable)
+    .set({ emailVerified: true, emailVerificationCode: null, emailVerificationExpiry: null })
+    .where(eq(usersTable.id, userId));
+  res.json({ message: "Email verified", emailVerified: true });
+});
+
+// Resend verification code (rate-limited).
+router.post("/auth/resend-verification", authLimiter, requireAuth, async (req, res): Promise<void> => {
+  const userId = (req as { user?: { id: number } }).user!.id;
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
+  if (user.emailVerified) { res.json({ message: "Already verified" }); return; }
+  const code = generateVerificationCode();
+  const expiry = new Date(Date.now() + VERIFICATION_TTL_MS);
+  await db
+    .update(usersTable)
+    .set({ emailVerificationCode: code, emailVerificationExpiry: expiry })
+    .where(eq(usersTable.id, userId));
+  const delivered = await sendVerificationEmail(user.email, user.name, code);
+  res.json({
+    message: delivered
+      ? "Verification code sent. Check your email."
+      : "Code generated but email delivery is not configured on the server.",
+    delivered,
   });
 });
 
@@ -147,6 +218,7 @@ router.post("/auth/login", authLimiter, async (req, res): Promise<void> => {
       name: user.name,
       email: user.email,
       role: user.role,
+      emailVerified: user.emailVerified,
       createdAt: user.createdAt,
     },
     token,
@@ -183,6 +255,7 @@ router.get("/auth/me", async (req, res): Promise<void> => {
     name: user.name,
     email: user.email,
     role: user.role,
+    emailVerified: user.emailVerified,
     createdAt: user.createdAt,
   });
 });

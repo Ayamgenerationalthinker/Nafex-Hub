@@ -3,7 +3,7 @@ import { db, ordersTable, businessesTable, notificationsTable, usersTable } from
 import { eq, desc } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
-import { sendAdminEmail } from "../lib/mailer";
+import { sendAdminEmail, sendDeliveryOtpEmail } from "../lib/mailer";
 import { notifyAllAdmins } from "../lib/notify";
 
 const router: IRouter = Router();
@@ -237,6 +237,19 @@ router.patch("/orders/:id/status", requireAuth, async (req: AuthRequest, res): P
     .set(updateFields)
     .where(eq(ordersTable.id, params.data.id))
     .returning();
+
+  // If dispatched, email the buyer the delivery OTP so they have it on hand.
+  if (parsed.data.status === "out_for_delivery" && updateFields.deliveryOtp) {
+    try {
+      const [buyer] = await db
+        .select({ email: usersTable.email, name: usersTable.name })
+        .from(usersTable)
+        .where(eq(usersTable.id, order.userId));
+      if (buyer?.email) {
+        sendDeliveryOtpEmail(buyer.email, buyer.name ?? "Customer", order.id, updateFields.deliveryOtp).catch(() => {});
+      }
+    } catch {}
+  }
 
   // Notify the customer
   try {

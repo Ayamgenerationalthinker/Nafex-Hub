@@ -5,6 +5,7 @@ interface User {
   name: string;
   email: string;
   role: "user" | "business_owner" | "admin";
+  emailVerified?: boolean;
   createdAt: string;
 }
 
@@ -12,6 +13,7 @@ interface AuthState {
   token: string | null;
   user: User | null;
   setAuth: (token: string, user: User) => void;
+  updateUser: (patch: Partial<User>) => void;
   logout: () => void;
 }
 
@@ -24,6 +26,14 @@ export const useAuth = create<AuthState>((set) => ({
     localStorage.setItem("nafex_token", token);
     localStorage.setItem("nafex_user", JSON.stringify(user));
     set({ token, user });
+  },
+  updateUser: (patch) => {
+    set((state) => {
+      if (!state.user) return state;
+      const next = { ...state.user, ...patch };
+      localStorage.setItem("nafex_user", JSON.stringify(next));
+      return { user: next };
+    });
   },
   logout: () => {
     localStorage.removeItem("nafex_token");
