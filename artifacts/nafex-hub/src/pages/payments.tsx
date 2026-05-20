@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Layout } from "@/components/layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -60,8 +59,7 @@ export default function Payments() {
   );
 
   return (
-    <Layout>
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
             <Wallet className="w-5 h-5 text-primary" />
@@ -146,7 +144,6 @@ export default function Payments() {
             })}
           </div>
         )}
-      </div>
-    </Layout>
+    </div>
   );
 }
