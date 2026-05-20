@@ -222,7 +222,8 @@ export default function AdminBusinessesPage() {
 
         {/* Table */}
         <div className="bg-card border border-border rounded-xl overflow-hidden">
-          <div className="grid grid-cols-[2fr_1fr_1fr_auto] gap-4 px-5 py-3 border-b border-border bg-muted/30">
+          <div className="overflow-x-auto">
+          <div className="grid grid-cols-[2fr_1fr_1fr_auto] gap-4 px-5 py-3 border-b border-border bg-muted/30 min-w-[720px]">
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Business</span>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Category</span>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Status</span>
@@ -230,7 +231,7 @@ export default function AdminBusinessesPage() {
           </div>
 
           {isLoading ? (
-            <div className="divide-y divide-border">
+            <div className="divide-y divide-border min-w-[720px]">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="grid grid-cols-[2fr_1fr_1fr_auto] gap-4 px-5 py-4 items-center">
                   <Skeleton className="h-4 w-40" />
@@ -246,7 +247,7 @@ export default function AdminBusinessesPage() {
               <p className="text-sm">No businesses found</p>
             </div>
           ) : (
-            <div className="divide-y divide-border">
+            <div className="divide-y divide-border min-w-[720px]">
               {businesses.map(biz => (
                 <div key={biz.id} className="grid grid-cols-[2fr_1fr_1fr_auto] gap-4 px-5 py-4 items-center hover:bg-muted/20 transition-colors">
                   <div className="flex items-center gap-3 min-w-0">
@@ -355,6 +356,7 @@ export default function AdminBusinessesPage() {
             </div>
           )}
 
+          </div>
           {businesses && businesses.length > 0 && (
             <div className="px-5 py-3 border-t border-border bg-muted/20 text-xs text-muted-foreground">
               {businesses.length} business{businesses.length !== 1 ? "es" : ""}

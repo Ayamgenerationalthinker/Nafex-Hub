@@ -117,8 +117,9 @@ export default function AdminProductsPage() {
 
         {/* Table */}
         <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
           {/* Header */}
-          <div className="grid grid-cols-[auto_2fr_1fr_1fr_auto_auto] gap-4 px-5 py-3 border-b border-border bg-muted/30">
+          <div className="grid grid-cols-[auto_2fr_1fr_1fr_auto_auto] gap-4 px-5 py-3 border-b border-border bg-muted/30 min-w-[760px]">
             <span className="w-10" />
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Product</span>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Business</span>
@@ -128,7 +129,7 @@ export default function AdminProductsPage() {
           </div>
 
           {isLoading ? (
-            <div className="divide-y divide-border">
+            <div className="divide-y divide-border min-w-[760px]">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="grid grid-cols-[auto_2fr_1fr_1fr_auto] gap-4 px-5 py-4 items-center">
                   <Skeleton className="w-10 h-10 rounded-lg flex-shrink-0" />
@@ -148,7 +149,7 @@ export default function AdminProductsPage() {
               <p className="text-sm">{search ? "No products match your search" : "No products yet"}</p>
             </div>
           ) : (
-            <div className="divide-y divide-border">
+            <div className="divide-y divide-border min-w-[760px]">
               {products.map(product => (
                 <div
                   key={product.id}
@@ -249,6 +250,7 @@ export default function AdminProductsPage() {
             </div>
           )}
 
+          </div>
           {/* Footer: count + pagination */}
           {data && data.total > 0 && (
             <div className="px-5 py-3 border-t border-border bg-muted/20 flex items-center justify-between text-xs text-muted-foreground">

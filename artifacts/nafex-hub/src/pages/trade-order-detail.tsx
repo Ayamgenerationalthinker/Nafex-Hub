@@ -313,8 +313,8 @@ export default function TradeOrderDetail() {
 
       {/* Status stepper */}
       <Card>
-        <CardContent className="pt-6 pb-5">
-          <div className="relative flex items-center justify-between">
+        <CardContent className="pt-6 pb-5 overflow-x-auto">
+          <div className="relative flex items-center justify-between min-w-[560px]">
             <div className="absolute top-5 left-0 right-0 h-0.5 bg-muted mx-8" />
             {STATUS_STEPS.map((step, i) => {
               const done    = i < currentStepIndex;

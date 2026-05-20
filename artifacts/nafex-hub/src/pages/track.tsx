@@ -249,7 +249,7 @@ export default function Track() {
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 mb-4">
           <Package className="w-7 h-7 text-primary" />
         </div>
-        <h1 className="font-serif text-3xl font-bold text-foreground">Track Your Delivery</h1>
+        <h1 className="font-serif text-2xl md:text-3xl font-bold text-foreground">Track Your Delivery</h1>
         <p className="text-muted-foreground mt-2">
           Enter your tracking code to see real-time updates on your package
         </p>

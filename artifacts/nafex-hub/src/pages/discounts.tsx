@@ -123,7 +123,7 @@ export default function Discounts() {
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <Flame className="w-7 h-7 text-red-500" />
-          <h1 className="font-serif text-3xl font-bold text-foreground">Deals & Discounts</h1>
+          <h1 className="font-serif text-2xl md:text-3xl font-bold text-foreground">Deals & Discounts</h1>
         </div>
         <p className="text-muted-foreground">
           Exclusive deals from Ghana's top fashion brands — limited time offers.

@@ -105,11 +105,32 @@
   * {
     @apply border-border;
   }
+  html, body {
+    /* Prevent any rogue element from causing horizontal page scroll on mobile. */
+    overflow-x: hidden;
+    max-width: 100%;
+  }
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    /* Use safe-area insets on notched devices (iPhone). */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-serif;
+  }
+  /* Inputs at <16px font-size cause iOS Safari to auto-zoom on focus. */
+  @media (max-width: 640px) {
+    input, select, textarea {
+      font-size: 16px;
+    }
+  }
+  /* Hide horizontal scrollbars on opt-in scrollers (already used in pages). */
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
   }
 }
 

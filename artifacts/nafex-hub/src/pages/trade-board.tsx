@@ -254,7 +254,7 @@ export default function TradeBoard() {
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs">Unit Price (GHS) *</Label>
                 <Input
@@ -276,7 +276,7 @@ export default function TradeBoard() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs flex items-center gap-1"><Truck className="w-3 h-3" /> Shipping Cost (GHS)</Label>
                 <Input

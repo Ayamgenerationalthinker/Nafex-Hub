@@ -109,10 +109,10 @@ export default function AdminDisputesPage() {
   const openCount = (disputes ?? []).filter((d) => d.status === "open").length;
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background p-4 md:p-6">
       <div className="max-w-5xl mx-auto space-y-6">
         <div>
-          <h1 className="font-serif text-3xl font-bold">Dispute Management</h1>
+          <h1 className="font-serif text-2xl md:text-3xl font-bold">Dispute Management</h1>
           <p className="text-muted-foreground mt-1">
             Review and resolve buyer-seller disputes
             {openCount > 0 && <span className="ml-2 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-semibold">{openCount} open</span>}

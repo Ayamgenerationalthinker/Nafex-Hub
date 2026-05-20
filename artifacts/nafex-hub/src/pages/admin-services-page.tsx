@@ -173,7 +173,8 @@ export default function AdminServicesPage() {
 
         {/* Services table */}
         <div className="bg-card border border-border rounded-xl overflow-hidden">
-          <div className="grid grid-cols-[auto_1fr_auto_auto] gap-4 px-5 py-3 border-b border-border bg-muted/30">
+          <div className="overflow-x-auto">
+          <div className="grid grid-cols-[auto_1fr_auto_auto] gap-4 px-5 py-3 border-b border-border bg-muted/30 min-w-[640px]">
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide w-12">Image</span>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Service</span>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Status</span>
@@ -181,7 +182,7 @@ export default function AdminServicesPage() {
           </div>
 
           {isLoading ? (
-            <div className="divide-y divide-border">
+            <div className="divide-y divide-border min-w-[640px]">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="grid grid-cols-[auto_1fr_auto_auto] gap-4 px-5 py-4 items-center">
                   <Skeleton className="w-12 h-12 rounded-lg" />
@@ -201,7 +202,7 @@ export default function AdminServicesPage() {
               <p className="text-xs mt-1">Click "Add Service" to get started</p>
             </div>
           ) : (
-            <div className="divide-y divide-border">
+            <div className="divide-y divide-border min-w-[640px]">
               {services.map(s => (
                 <div
                   key={s.id}
@@ -299,6 +300,7 @@ export default function AdminServicesPage() {
             </div>
           )}
 
+          </div>
           {services && services.length > 0 && (
             <div className="px-5 py-3 border-t border-border bg-muted/20 text-xs text-muted-foreground">
               {services.length} service{services.length !== 1 ? "s" : ""} · {services.filter(s => s.isActive).length} active
