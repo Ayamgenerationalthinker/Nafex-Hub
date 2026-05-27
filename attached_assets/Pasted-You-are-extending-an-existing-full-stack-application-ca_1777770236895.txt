@@ -1,0 +1,144 @@
+You are extending an existing full-stack application called **Nafex Hub**.
+
+⚠️ CRITICAL RULES:
+
+* DO NOT modify or redesign existing UI
+* ONLY add new analytics functionality
+* Maintain Tailwind styling and current layout system
+
+---
+
+## 🎯 OBJECTIVE
+
+Create a **Seller Analytics Dashboard** that allows business owners to track performance and growth on the platform.
+
+---
+
+## 📊 FEATURE: ANALYTICS DASHBOARD
+
+### New Route:
+
+* /dashboard/analytics
+
+### Access:
+
+* Only logged-in business owners
+
+---
+
+## 📈 METRICS TO TRACK
+
+For each business:
+
+1. Profile Views
+2. Messages Received
+3. Orders Created
+4. Conversion Rate (orders ÷ views)
+5. Growth over time (daily & weekly)
+
+---
+
+## 🗄️ DATABASE STRUCTURE
+
+Create a new collection:
+
+### AnalyticsEvent
+
+* id
+* businessId
+* userId (optional)
+* type (view | message | order)
+* createdAt
+
+---
+
+## ⚙️ EVENT TRACKING LOGIC
+
+Automatically log events:
+
+* When a user visits a business profile → create event (type: "view")
+* When a message is sent → create event (type: "message")
+* When an order is placed → create event (type: "order")
+
+---
+
+## 📊 BACKEND AGGREGATION
+
+Create API:
+
+GET /api/analytics/business/:businessId
+
+Return:
+
+* totalViews
+* totalMessages
+* totalOrders
+* conversionRate
+* dailyStats (last 7 days)
+* weeklyStats
+
+---
+
+## 🖥️ FRONTEND UI (Analytics Page)
+
+Create a clean dashboard with:
+
+### Top Cards:
+
+* Total Views
+* Messages
+* Orders
+* Conversion Rate
+
+### Charts:
+
+* Line chart for growth (views, messages, orders over time)
+
+### Layout:
+
+* Use existing dashboard layout
+* Maintain styling consistency
+* Mobile responsive
+
+---
+
+## 🏢 ADMIN ANALYTICS (PLATFORM OWNER)
+
+Create route:
+
+* /admin/analytics
+
+### Metrics:
+
+* Total users
+* Total businesses
+* Total orders (platform-wide)
+* Total messages
+* Growth trends
+
+---
+
+## ⚡ PERFORMANCE
+
+* Use aggregation queries (MongoDB)
+* Index businessId and createdAt fields
+* Cache results where possible
+
+---
+
+## 🔐 SECURITY
+
+* Only business owners can see their own analytics
+* Admin routes protected
+
+---
+
+## 🚀 OUTPUT REQUIREMENTS
+
+* Fully working analytics system
+* Integrated into existing dashboard
+* Clean UI and accurate data
+* No UI breakage
+* Ready to run in Replit
+
+Focus on clarity, performance, and real-time usefulness.

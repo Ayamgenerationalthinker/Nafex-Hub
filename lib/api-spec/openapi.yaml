@@ -1,0 +1,2783 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.2.0
+  description: Nafex Hub API - Fashion marketplace platform for Ghana
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+  - name: auth
+  - name: businesses
+  - name: categories
+  - name: admin
+  - name: stats
+  - name: reviews
+  - name: messages
+  - name: orders
+  - name: analytics
+  - name: dashboard
+  - name: products
+  - name: favorites
+  - name: notifications
+  - name: collections
+  - name: deliveries
+  - name: riders
+  - name: payments
+  - name: disputes
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterBody"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/profile:
+    patch:
+      operationId: updateProfile
+      tags: [auth]
+      summary: Update user profile (name)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileBody"
+      responses:
+        "200":
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/password:
+    patch:
+      operationId: changePassword
+      tags: [auth]
+      summary: Change user password
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordBody"
+      responses:
+        "200":
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required: [message]
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/account:
+    delete:
+      operationId: deleteAccount
+      tags: [auth]
+      summary: Delete user account permanently
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Account deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required: [message]
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /businesses:
+    get:
+      operationId: getBusinesses
+      tags: [businesses]
+      summary: List all businesses
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: verified
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of businesses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Business"
+    post:
+      operationId: createBusiness
+      tags: [businesses]
+      summary: Create a new business listing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBusinessBody"
+      responses:
+        "201":
+          description: Business created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Business"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /businesses/featured:
+    get:
+      operationId: getFeaturedBusinesses
+      tags: [businesses]
+      summary: Get homepage_section featured businesses
+      responses:
+        "200":
+          description: Featured businesses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Business"
+
+  /businesses/featured-top:
+    get:
+      operationId: getFeaturedTopBusinesses
+      tags: [businesses]
+      summary: Get homepage_top featured businesses
+      responses:
+        "200":
+          description: Top placement businesses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Business"
+
+  /businesses/{id}:
+    get:
+      operationId: getBusiness
+      tags: [businesses]
+      summary: Get a single business by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Business details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Business"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateBusiness
+      tags: [businesses]
+      summary: Update a business listing
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBusinessBody"
+      responses:
+        "200":
+          description: Updated business
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Business"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteBusiness
+      tags: [businesses]
+      summary: Delete a business listing
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted successfully
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /businesses/{id}/verify:
+    patch:
+      operationId: verifyBusiness
+      tags: [admin]
+      summary: Admin - verify/unverify a business
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyBusinessBody"
+      responses:
+        "200":
+          description: Business verification updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Business"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /categories:
+    get:
+      operationId: getCategories
+      tags: [categories]
+      summary: Get all categories with counts
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategoryCount"
+
+  /stats/summary:
+    get:
+      operationId: getStatsSummary
+      tags: [stats]
+      summary: Get platform summary statistics
+      responses:
+        "200":
+          description: Platform stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsSummary"
+
+  /admin/businesses:
+    get:
+      operationId: getAdminBusinesses
+      tags: [admin]
+      summary: Admin - get all businesses including unverified
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: verified
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: All businesses for admin
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Business"
+
+  # ── Reviews ────────────────────────────────────────────────
+
+  /businesses/{id}/reviews:
+    get:
+      operationId: getBusinessReviews
+      tags: [reviews]
+      summary: Get reviews for a business
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Review"
+
+  /reviews:
+    post:
+      operationId: createReview
+      tags: [reviews]
+      summary: Create a review for a business
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReviewBody"
+      responses:
+        "201":
+          description: Review created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ── Conversations / Messages ───────────────────────────────
+
+  /conversations:
+    get:
+      operationId: getConversations
+      tags: [messages]
+      summary: Get all conversations for the current user
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConversationWithDetails"
+    post:
+      operationId: createOrGetConversation
+      tags: [messages]
+      summary: Start or retrieve a conversation with a business
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateConversationBody"
+      responses:
+        "200":
+          description: Conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationWithDetails"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /conversations/{id}/messages:
+    get:
+      operationId: getMessages
+      tags: [messages]
+      summary: Get messages in a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+    post:
+      operationId: sendMessage
+      tags: [messages]
+      summary: Send a message in a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageBody"
+      responses:
+        "201":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ── Orders ────────────────────────────────────────────────
+
+  /orders:
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Place an order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderBody"
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /orders/user:
+    get:
+      operationId: getUserOrders
+      tags: [orders]
+      summary: Get orders for the current user
+      responses:
+        "200":
+          description: User orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrderWithBusiness"
+
+  /orders/business:
+    get:
+      operationId: getBusinessOrders
+      tags: [orders]
+      summary: Get orders for the current business owner
+      responses:
+        "200":
+          description: Business orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrderWithBusiness"
+
+  /orders/{id}/status:
+    patch:
+      operationId: updateOrderStatus
+      tags: [orders]
+      summary: Update order status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrderStatusBody"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ── Analytics ────────────────────────────────────────────
+
+  /analytics/track:
+    post:
+      operationId: trackEvent
+      tags: [analytics]
+      summary: Track an analytics event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TrackEventBody"
+      responses:
+        "201":
+          description: Event tracked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+
+  /analytics/business/{businessId}:
+    get:
+      operationId: getBusinessAnalytics
+      tags: [analytics]
+      summary: Get analytics for a business
+      parameters:
+        - name: businessId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Business analytics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessAnalytics"
+
+  # ── Dashboard ────────────────────────────────────────────
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get seller dashboard statistics
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  # ── Products ──────────────────────────────────
+
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List products with optional search
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get product by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateProduct
+      tags: [products]
+      summary: Update a product
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      summary: Delete a product
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+
+  /products/{id}/collection:
+    patch:
+      operationId: updateProductCollection
+      tags: [products]
+      summary: Assign or remove a product from a collection
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProductCollectionBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /products/{id}/stock:
+    patch:
+      operationId: updateProductStock
+      tags: [products]
+      summary: Update stock level for a product
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStockBody"
+      responses:
+        "200":
+          description: Stock updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /businesses/{businessId}/products:
+    get:
+      operationId: getBusinessProducts
+      tags: [products]
+      summary: Get products for a business
+      parameters:
+        - in: path
+          name: businessId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Create a product for a business
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: businessId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  # ── Favorites ──────────────────────────────────
+
+  /favorites:
+    get:
+      operationId: getFavorites
+      tags: [favorites]
+      summary: Get current user's favorites
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Favorites
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FavoritesResponse"
+
+  /favorites/toggle:
+    post:
+      operationId: toggleFavorite
+      tags: [favorites]
+      summary: Toggle a favorite (add or remove)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FavoriteToggleBody"
+      responses:
+        "200":
+          description: Toggle result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  favorited:
+                    type: boolean
+                  id:
+                    type: integer
+                required:
+                  - favorited
+                  - id
+
+  # ── Notifications ──────────────────────────────────
+
+  /notifications:
+    get:
+      operationId: getNotifications
+      tags: [notifications]
+      summary: Get current user's notifications
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+  /notifications/unread-count:
+    get:
+      operationId: getNotificationUnreadCount
+      tags: [notifications]
+      summary: Get unread notification count
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Unread count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnreadCountResponse"
+
+  /notifications/{id}/read:
+    patch:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark a notification as read
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Marked read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+
+  /notifications/read-all:
+    patch:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: All marked read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+
+  /collections:
+    get:
+      operationId: getCollections
+      tags: [collections]
+      summary: List collections for a business (with products)
+      parameters:
+        - in: query
+          name: businessId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of collections with products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CollectionWithProducts"
+    post:
+      operationId: createCollection
+      tags: [collections]
+      summary: Create a new collection
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCollectionBody"
+      responses:
+        "201":
+          description: Collection created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Collection"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /collections/{id}:
+    put:
+      operationId: updateCollection
+      tags: [collections]
+      summary: Update a collection
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCollectionBody"
+      responses:
+        "200":
+          description: Collection updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Collection"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteCollection
+      tags: [collections]
+      summary: Delete a collection
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /deliveries:
+    post:
+      operationId: createDelivery
+      tags: [deliveries]
+      summary: Create delivery for an order
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDeliveryBody"
+      responses:
+        "201":
+          description: Delivery created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeliveryWithDetails"
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+        "409":
+          description: Delivery already exists
+
+  /deliveries/fee-estimate:
+    get:
+      operationId: getDeliveryFeeEstimate
+      tags: [deliveries]
+      summary: Get delivery fee estimate for a zone
+      parameters:
+        - in: query
+          name: zone
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Fee estimate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeeEstimate"
+
+  /deliveries/track/{code}:
+    get:
+      operationId: trackDelivery
+      tags: [deliveries]
+      summary: Public delivery tracking by tracking code
+      parameters:
+        - in: path
+          name: code
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Delivery tracking info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeliveryWithDetails"
+        "404":
+          description: Not found
+
+  /deliveries/order/{orderId}:
+    get:
+      operationId: getDeliveryByOrder
+      tags: [deliveries]
+      summary: Get delivery by order ID
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Delivery details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeliveryWithDetails"
+        "404":
+          description: No delivery for this order
+
+  /deliveries/{id}:
+    get:
+      operationId: getDelivery
+      tags: [deliveries]
+      summary: Get single delivery
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Delivery details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeliveryWithDetails"
+        "404":
+          description: Not found
+
+  /deliveries/{id}/status:
+    patch:
+      operationId: updateDeliveryStatus
+      tags: [deliveries]
+      summary: Update delivery status (admin)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDeliveryStatusBody"
+      responses:
+        "200":
+          description: Updated delivery
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeliveryWithDetails"
+
+  /deliveries/{id}/assign:
+    patch:
+      operationId: assignRiderToDelivery
+      tags: [deliveries]
+      summary: Assign a rider to a delivery (admin)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignRiderBody"
+      responses:
+        "200":
+          description: Updated delivery
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeliveryWithDetails"
+
+  /admin/deliveries:
+    get:
+      operationId: getAdminDeliveries
+      tags: [admin, deliveries]
+      summary: List all deliveries (admin)
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: All deliveries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DeliveryWithDetails"
+
+  /riders:
+    get:
+      operationId: getRiders
+      tags: [riders]
+      summary: List all riders (admin)
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Riders list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Rider"
+    post:
+      operationId: createRider
+      tags: [riders]
+      summary: Create a new rider (admin)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRiderBody"
+      responses:
+        "201":
+          description: Rider created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rider"
+
+  /riders/available:
+    get:
+      operationId: getAvailableRiders
+      tags: [riders]
+      summary: List available riders (admin)
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Available riders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Rider"
+
+  /riders/{id}:
+    patch:
+      operationId: updateRider
+      tags: [riders]
+      summary: Update rider (admin)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRiderBody"
+      responses:
+        "200":
+          description: Updated rider
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rider"
+
+  /riders/{id}/availability:
+    patch:
+      operationId: toggleRiderAvailability
+      tags: [riders]
+      summary: Toggle rider availability (admin)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Rider with updated availability
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rider"
+
+  /payments/paystack/initialize:
+    post:
+      operationId: initializePaystackPayment
+      tags: [payments]
+      summary: Initialize Paystack payment for an order
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InitiatePaymentBody"
+      responses:
+        "200":
+          description: Paystack authorization URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaystackInitResponse"
+        "503":
+          description: Payment gateway not configured
+
+  /payments/paystack/verify:
+    post:
+      operationId: verifyPaystackPayment
+      tags: [payments]
+      summary: Verify Paystack payment and lock escrow
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyPaymentBody"
+      responses:
+        "200":
+          description: Verification result and updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaystackVerifyResponse"
+
+  /payments/webhook/paystack:
+    post:
+      operationId: paystackWebhook
+      tags: [payments]
+      summary: Paystack webhook endpoint
+      responses:
+        "200":
+          description: OK
+
+  /transactions:
+    get:
+      operationId: getTransactions
+      tags: [payments]
+      summary: Get user transaction history
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Transaction list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+
+  /admin/transactions:
+    get:
+      operationId: getAdminTransactions
+      tags: [admin, payments]
+      summary: All transactions (admin)
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: All transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+
+  /admin/payouts/{orderId}:
+    post:
+      operationId: releasePayout
+      tags: [admin, payments]
+      summary: Release escrow payout to seller (admin)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated order
+        "409":
+          description: Order not in escrow
+
+  /admin/refunds/{orderId}:
+    post:
+      operationId: processRefund
+      tags: [admin, payments]
+      summary: Process refund for an order (admin)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        "200":
+          description: Updated order
+
+  /disputes:
+    get:
+      operationId: getDisputes
+      tags: [disputes]
+      summary: Get user's disputes
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: Disputes list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Dispute"
+    post:
+      operationId: createDispute
+      tags: [disputes]
+      summary: Raise a dispute for an order
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDisputeBody"
+      responses:
+        "201":
+          description: Dispute created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dispute"
+        "409":
+          description: Dispute already exists
+
+  /disputes/{id}:
+    get:
+      operationId: getDispute
+      tags: [disputes]
+      summary: Get single dispute
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Dispute
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dispute"
+        "404":
+          description: Not found
+
+  /admin/disputes:
+    get:
+      operationId: getAdminDisputes
+      tags: [admin, disputes]
+      summary: List all disputes (admin)
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: All disputes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Dispute"
+
+  /admin/disputes/{id}/review:
+    patch:
+      operationId: markDisputeUnderReview
+      tags: [admin, disputes]
+      summary: Mark dispute as under review (admin)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated dispute
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dispute"
+
+  /admin/disputes/{id}/resolve:
+    patch:
+      operationId: resolveDispute
+      tags: [admin, disputes]
+      summary: Resolve a dispute (admin)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResolveDisputeBody"
+      responses:
+        "200":
+          description: Resolved dispute
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dispute"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    OkResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+      required:
+        - ok
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [user, business_owner, admin]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - email
+        - role
+        - createdAt
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        token:
+          type: string
+      required:
+        - user
+        - token
+
+    RegisterBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+          enum: [user, business_owner, admin]
+      required:
+        - name
+        - email
+        - password
+
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    UpdateProfileBody:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+        - name
+
+    ChangePasswordBody:
+      type: object
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+      required:
+        - currentPassword
+        - newPassword
+
+    Business:
+      type: object
+      properties:
+        id:
+          type: integer
+        ownerId:
+          type: ["integer", "null"]
+        name:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+        phone:
+          type: string
+        logo:
+          type: ["string", "null"]
+        images:
+          type: array
+          items:
+            type: string
+        isVerified:
+          type: boolean
+        isFeatured:
+          type: boolean
+        featuredType:
+          type: string
+          nullable: true
+          enum: [homepage_top, homepage_section, search_boost]
+        featuredUntil:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - category
+        - description
+        - location
+        - phone
+        - images
+        - isVerified
+        - isFeatured
+        - createdAt
+        - updatedAt
+
+    CreateBusinessBody:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+        phone:
+          type: string
+        logo:
+          type: ["string", "null"]
+        images:
+          type: array
+          items:
+            type: string
+      required:
+        - name
+        - category
+        - description
+        - location
+        - phone
+
+    UpdateBusinessBody:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        location:
+          type: string
+        phone:
+          type: string
+        logo:
+          type: ["string", "null"]
+        images:
+          type: array
+          items:
+            type: string
+
+    VerifyBusinessBody:
+      type: object
+      properties:
+        isVerified:
+          type: boolean
+      required:
+        - isVerified
+
+    CategoryCount:
+      type: object
+      properties:
+        category:
+          type: string
+        count:
+          type: integer
+      required:
+        - category
+        - count
+
+    StatsSummary:
+      type: object
+      properties:
+        totalBusinesses:
+          type: integer
+        verifiedBusinesses:
+          type: integer
+        totalCategories:
+          type: integer
+        featuredBrands:
+          type: integer
+      required:
+        - totalBusinesses
+        - verifiedBusinesses
+        - totalCategories
+        - featuredBrands
+
+    # ── Reviews ──────────────────────────────────
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        businessId:
+          type: integer
+        rating:
+          type: integer
+        comment:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        userName:
+          type: string
+      required:
+        - id
+        - userId
+        - businessId
+        - rating
+        - comment
+        - createdAt
+
+    CreateReviewBody:
+      type: object
+      properties:
+        businessId:
+          type: integer
+        rating:
+          type: integer
+        comment:
+          type: string
+      required:
+        - businessId
+        - rating
+        - comment
+
+    # ── Conversations / Messages ──────────────────
+
+    ConversationWithDetails:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        businessId:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        businessName:
+          type: string
+        businessLogo:
+          type: ["string", "null"]
+        lastMessage:
+          type: ["string", "null"]
+      required:
+        - id
+        - userId
+        - businessId
+        - createdAt
+        - updatedAt
+
+    CreateConversationBody:
+      type: object
+      properties:
+        businessId:
+          type: integer
+      required:
+        - businessId
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+        conversationId:
+          type: integer
+        senderId:
+          type: integer
+        text:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - conversationId
+        - senderId
+        - text
+        - createdAt
+
+    SendMessageBody:
+      type: object
+      properties:
+        text:
+          type: string
+      required:
+        - text
+
+    # ── Orders ──────────────────────────────────
+
+    OrderItem:
+      type: object
+      properties:
+        name:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: integer
+      required:
+        - name
+        - quantity
+        - price
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        businessId:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        totalPrice:
+          type: integer
+        status:
+          type: string
+          enum: [pending, confirmed, packed, out_for_delivery, shipped, delivered, cancelled]
+        paymentStatus:
+          type: string
+          enum: [unpaid, in_escrow, released, refunded]
+        paymentReference:
+          type: ["string", "null"]
+        deliveryOtp:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - businessId
+        - items
+        - totalPrice
+        - status
+        - paymentStatus
+        - createdAt
+        - updatedAt
+
+    OrderWithBusiness:
+      allOf:
+        - $ref: "#/components/schemas/Order"
+        - type: object
+          properties:
+            businessName:
+              type: string
+            businessLogo:
+              type: ["string", "null"]
+
+    CreateOrderBody:
+      type: object
+      properties:
+        businessId:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        totalPrice:
+          type: integer
+        notes:
+          type: string
+      required:
+        - businessId
+        - items
+        - totalPrice
+
+    UpdateOrderStatusBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, confirmed, packed, out_for_delivery, shipped, delivered, cancelled]
+      required:
+        - status
+
+    # ── Analytics ──────────────────────────────────
+
+    TrackEventBody:
+      type: object
+      properties:
+        businessId:
+          type: integer
+        type:
+          type: string
+          enum: [view, message, order]
+      required:
+        - businessId
+        - type
+
+    DailyStatPoint:
+      type: object
+      properties:
+        date:
+          type: string
+        views:
+          type: integer
+        messages:
+          type: integer
+        orders:
+          type: integer
+      required:
+        - date
+        - views
+        - messages
+        - orders
+
+    BusinessAnalytics:
+      type: object
+      properties:
+        totalViews:
+          type: integer
+        totalMessages:
+          type: integer
+        totalOrders:
+          type: integer
+        conversionRate:
+          type: number
+        dailyStats:
+          type: array
+          items:
+            $ref: "#/components/schemas/DailyStatPoint"
+      required:
+        - totalViews
+        - totalMessages
+        - totalOrders
+        - conversionRate
+        - dailyStats
+
+    # ── Products (paths appended below) ──────────────────────────────────
+    # ── Dashboard ──────────────────────────────────
+
+    DashboardStats:
+      type: object
+      properties:
+        totalOrders:
+          type: integer
+        pendingOrders:
+          type: integer
+        totalMessages:
+          type: integer
+        totalReviews:
+          type: integer
+        averageRating:
+          type: number
+        profileViews:
+          type: integer
+      required:
+        - totalOrders
+        - pendingOrders
+        - totalMessages
+        - totalReviews
+        - averageRating
+        - profileViews
+
+    # ── Products ──────────────────────────────────
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        businessId:
+          type: integer
+        collectionId:
+          type: integer
+          nullable: true
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        stock:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        businessName:
+          type: string
+        businessLogo:
+          type: string
+      required:
+        - id
+        - businessId
+        - name
+        - description
+        - price
+        - images
+        - createdAt
+        - updatedAt
+
+    CreateProductBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        stock:
+          type: integer
+          nullable: true
+        collectionId:
+          type: integer
+          nullable: true
+      required:
+        - name
+        - price
+
+    UpdateProductCollectionBody:
+      type: object
+      properties:
+        collectionId:
+          type: integer
+          nullable: true
+      required:
+        - collectionId
+
+    UpdateStockBody:
+      type: object
+      properties:
+        stock:
+          type: integer
+          nullable: true
+          description: "null = not tracking, 0 = out of stock, positive = units available"
+
+    # ── Favorites ──────────────────────────────────
+
+    Favorite:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        businessId:
+          type: integer
+          nullable: true
+        productId:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - createdAt
+
+    FavoriteToggleBody:
+      type: object
+      properties:
+        businessId:
+          type: integer
+          nullable: true
+        productId:
+          type: integer
+          nullable: true
+
+    FavoritesResponse:
+      type: object
+      properties:
+        businesses:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+      required:
+        - businesses
+        - products
+
+    # ── Notifications ──────────────────────────────────
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        type:
+          type: string
+          enum: [message, order_update, review]
+        title:
+          type: string
+        body:
+          type: string
+        isRead:
+          type: boolean
+        relatedId:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - type
+        - title
+        - body
+        - isRead
+        - createdAt
+
+    UnreadCountResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+      required:
+        - count
+
+    # ── Collections ──────────────────────────────────
+
+    Collection:
+      type: object
+      properties:
+        id:
+          type: integer
+        businessId:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        coverImage:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - businessId
+        - name
+        - createdAt
+
+    CollectionWithProducts:
+      allOf:
+        - $ref: "#/components/schemas/Collection"
+        - type: object
+          properties:
+            products:
+              type: array
+              items:
+                $ref: "#/components/schemas/Product"
+          required:
+            - products
+
+    CreateCollectionBody:
+      type: object
+      properties:
+        businessId:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        coverImage:
+          type: string
+          nullable: true
+      required:
+        - businessId
+        - name
+
+    UpdateCollectionBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        coverImage:
+          type: string
+          nullable: true
+
+    Rider:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: string
+        vehicleType:
+          type: string
+          enum: [bike, car, van]
+        isAvailable:
+          type: boolean
+        isActive:
+          type: boolean
+        rating:
+          type: string
+        totalDeliveries:
+          type: integer
+        zone:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, name, phone, vehicleType, isAvailable, isActive, rating, totalDeliveries, createdAt]
+
+    CreateRiderBody:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        vehicleType:
+          type: string
+          enum: [bike, car, van]
+        zone:
+          type: string
+      required: [name, phone]
+
+    UpdateRiderBody:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        vehicleType:
+          type: string
+          enum: [bike, car, van]
+        zone:
+          type: string
+        isAvailable:
+          type: boolean
+        isActive:
+          type: boolean
+
+    DeliveryEvent:
+      type: object
+      properties:
+        id:
+          type: integer
+        deliveryId:
+          type: integer
+        status:
+          type: string
+        note:
+          type: string
+          nullable: true
+        location:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, deliveryId, status, createdAt]
+
+    DeliveryWithDetails:
+      type: object
+      properties:
+        id:
+          type: integer
+        orderId:
+          type: integer
+        riderId:
+          type: integer
+          nullable: true
+        trackingCode:
+          type: string
+        status:
+          type: string
+          enum: [created, assigned, picked_up, in_transit, delivered, failed, returned]
+        pickupAddress:
+          type: string
+        deliveryAddress:
+          type: string
+        deliveryZone:
+          type: string
+          nullable: true
+        deliveryFee:
+          type: string
+        estimatedArrival:
+          type: string
+          format: date-time
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        proofImageUrl:
+          type: string
+          nullable: true
+        businessName:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/DeliveryEvent"
+        rider:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/Rider"
+      required: [id, orderId, trackingCode, status, pickupAddress, deliveryAddress, deliveryFee, createdAt, updatedAt, events]
+
+    CreateDeliveryBody:
+      type: object
+      properties:
+        orderId:
+          type: integer
+        pickupAddress:
+          type: string
+        deliveryAddress:
+          type: string
+        deliveryZone:
+          type: string
+        notes:
+          type: string
+        estimatedArrival:
+          type: string
+          format: date-time
+      required: [orderId, pickupAddress, deliveryAddress]
+
+    UpdateDeliveryStatusBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [assigned, picked_up, in_transit, delivered, failed, returned]
+        note:
+          type: string
+        location:
+          type: string
+      required: [status]
+
+    AssignRiderBody:
+      type: object
+      properties:
+        riderId:
+          type: integer
+      required: [riderId]
+
+    FeeEstimate:
+      type: object
+      properties:
+        zone:
+          type: string
+        fee:
+          type: number
+        currency:
+          type: string
+      required: [zone, fee, currency]
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+        orderId:
+          type: integer
+          nullable: true
+        userId:
+          type: integer
+        type:
+          type: string
+          enum: [payment, refund, payout, fee]
+        amount:
+          type: string
+        currency:
+          type: string
+        provider:
+          type: string
+          enum: [paystack, momo, manual, system]
+        providerRef:
+          type: string
+          nullable: true
+        channel:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [pending, success, failed, reversed]
+        metadata:
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, userId, type, amount, currency, provider, status, createdAt]
+
+    InitiatePaymentBody:
+      type: object
+      properties:
+        orderId:
+          type: integer
+        channel:
+          type: string
+          enum: [card, mobile_money, bank]
+        momoPhone:
+          type: string
+        momoNetwork:
+          type: string
+          enum: [MTN, Vodafone, AirtelTigo]
+      required: [orderId]
+
+    PaystackInitResponse:
+      type: object
+      properties:
+        authorizationUrl:
+          type: string
+        accessCode:
+          type: string
+        reference:
+          type: string
+      required: [authorizationUrl, accessCode, reference]
+
+    VerifyPaymentBody:
+      type: object
+      properties:
+        reference:
+          type: string
+        orderId:
+          type: integer
+      required: [reference, orderId]
+
+    PaystackVerifyResponse:
+      type: object
+      properties:
+        order:
+          type: object
+        transaction:
+          type: object
+      required: [order, transaction]
+
+    Dispute:
+      type: object
+      properties:
+        id:
+          type: integer
+        orderId:
+          type: integer
+        userId:
+          type: integer
+        reason:
+          type: string
+          enum: [item_not_received, item_not_as_described, damaged_item, wrong_item, seller_unresponsive, other]
+        description:
+          type: string
+        evidenceUrls:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [open, under_review, resolved_buyer, resolved_seller, dismissed]
+        resolution:
+          type: string
+          nullable: true
+        adminNote:
+          type: string
+          nullable: true
+        resolvedBy:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        resolvedAt:
+          type: string
+          format: date-time
+          nullable: true
+      required: [id, orderId, userId, reason, description, evidenceUrls, status, createdAt]
+
+    CreateDisputeBody:
+      type: object
+      properties:
+        orderId:
+          type: integer
+        reason:
+          type: string
+          enum: [item_not_received, item_not_as_described, damaged_item, wrong_item, seller_unresponsive, other]
+        description:
+          type: string
+        evidenceUrls:
+          type: array
+          items:
+            type: string
+      required: [orderId, reason, description]
+
+    ResolveDisputeBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [resolved_buyer, resolved_seller, dismissed]
+        resolution:
+          type: string
+        adminNote:
+          type: string
+        processRefund:
+          type: boolean
+        releasePayout:
+          type: boolean
+      required: [status, resolution]

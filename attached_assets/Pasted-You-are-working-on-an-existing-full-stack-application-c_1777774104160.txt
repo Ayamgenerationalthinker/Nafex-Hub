@@ -1,0 +1,155 @@
+You are working on an existing full-stack application called **Nafex Hub** built with Next.js, Tailwind CSS, and a backend (API routes + database).
+
+⚠️ CRITICAL RULES:
+
+* DO NOT modify or break any existing pages or features
+* DO NOT redesign the current UI
+* ONLY add a complete Admin Dashboard system as a new feature
+* All admin pages must be isolated under /admin
+* Maintain existing styling and layout system
+
+---
+
+## 🎯 OBJECTIVE
+
+Create a fully functional Admin Dashboard system accessible via:
+
+/admin/dashboard
+
+---
+
+## 🧱 STEP 1: CREATE ROUTES
+
+Create the following pages:
+
+* /admin/dashboard
+* /admin/businesses
+* /admin/analytics
+* /admin/settings
+
+Ensure all routes work correctly and are accessible.
+
+---
+
+## 🔐 STEP 2: AUTHORIZATION (VERY IMPORTANT)
+
+Implement role-based access:
+
+* Only users with role = "admin" can access /admin routes
+* If user is not logged in → redirect to login
+* If user is not admin → redirect to homepage
+
+---
+
+## 🖥️ STEP 3: ADMIN LAYOUT
+
+Create a reusable admin layout:
+
+* Sidebar (left side):
+
+  * Dashboard
+  * Businesses
+  * Analytics
+  * Settings
+
+* Top bar:
+
+  * Admin title
+  * User info (optional)
+
+Keep design clean and consistent with existing UI.
+
+---
+
+## 📊 STEP 4: /admin/dashboard
+
+Display overview cards:
+
+* Total Users
+* Total Businesses
+* Total Verified Businesses
+* Total Orders (if available)
+
+---
+
+## 🏪 STEP 5: /admin/businesses
+
+* List all businesses
+
+* Show:
+
+  * Name
+  * Category
+  * isVerified status
+
+* Add buttons:
+
+  * “Verify” → sets isVerified = true
+  * “Unverify” → sets isVerified = false
+
+Connect to backend API.
+
+---
+
+## 📈 STEP 6: /admin/analytics
+
+* Display:
+
+  * Total users
+  * Total businesses
+  * Total messages
+  * Total orders
+  * Growth over time (basic chart)
+
+Use existing data collections.
+
+---
+
+## ⚙️ STEP 7: /admin/settings
+
+Create a form to update:
+
+* WhatsApp number
+* Instagram link
+* Facebook link
+* Email
+
+Save to database and make accessible globally.
+
+---
+
+## 🔌 STEP 8: API CONNECTION
+
+Ensure all pages connect to backend APIs:
+
+* Fetch data dynamically
+* Update data (verify, settings, etc.)
+
+---
+
+## 🎨 UI RULES
+
+* Use Tailwind CSS
+* Reuse existing styles
+* Keep everything minimal and clean
+* Do NOT redesign main site
+
+---
+
+## ⚡ PERFORMANCE
+
+* Ensure pages load fast
+* Use efficient queries
+* Handle loading states
+
+---
+
+## 🚀 OUTPUT REQUIREMENTS
+
+* Fully working admin system
+* Accessible at /admin/dashboard
+* Secure (admin-only)
+* No breaking changes to existing app
+* Clean, modular code
+
+Focus on functionality, stability, and correct routing.

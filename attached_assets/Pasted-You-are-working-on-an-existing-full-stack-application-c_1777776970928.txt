@@ -1,0 +1,150 @@
+You are working on an existing full-stack application called **Nafex Hub**.
+
+⚠️ CRITICAL RULES:
+
+* DO NOT modify or break existing marketplace features
+* DO NOT redesign current UI
+* ONLY extend the system by adding a Services feature with full admin control
+* Maintain current styling and layout system
+
+---
+
+## 🎯 OBJECTIVE
+
+Add a **Nafex Creative Services system** that is fully manageable from the Admin Dashboard.
+
+---
+
+## 🗄️ DATABASE
+
+Create a new collection:
+
+Service:
+
+* id
+* title (e.g. Graphic Design)
+* description
+* image (optional)
+* isActive (Boolean)
+* createdAt
+* updatedAt
+
+---
+
+## 🏢 ADMIN FEATURES
+
+### Create new admin route:
+
+/admin/services
+
+---
+
+### Admin capabilities:
+
+* Add new service
+* Edit service
+* Delete service
+* Toggle active/inactive (isActive)
+
+---
+
+### Admin UI:
+
+Form fields:
+
+* Service Title
+* Description
+* Image (optional)
+
+Buttons:
+
+* Save
+* Update
+* Delete
+
+---
+
+## 🔌 API
+
+Create endpoints:
+
+GET /api/services
+POST /api/admin/services
+PUT /api/admin/services/:id
+DELETE /api/admin/services/:id
+
+---
+
+## 🌐 FRONTEND
+
+### 1. SERVICES PAGE
+
+Route:
+/services
+
+Display:
+
+* Only services where isActive = true
+
+Each service card should show:
+
+* title
+* description
+* optional image
+* button: “Contact via WhatsApp”
+
+---
+
+### 2. HOMEPAGE SECTION
+
+Add section:
+
+Title:
+“Nafex Creative Services”
+
+* Display top active services
+* Link to /services page
+
+---
+
+## 💬 WHATSAPP INTEGRATION
+
+Use global WhatsApp contact or admin settings:
+
+* Button opens WhatsApp with pre-filled message:
+  “Hello, I’m interested in your services on Nafex Hub”
+
+---
+
+## 🎨 UI RULES
+
+* Use existing card components
+* Maintain clean, minimal design
+* Keep consistency with marketplace UI
+
+---
+
+## 🔐 SECURITY
+
+* Only admin can manage services
+* Public users can only view active services
+
+---
+
+## ⚡ PERFORMANCE
+
+* Fetch only active services for frontend
+* Optimize API calls
+
+---
+
+## 🚀 OUTPUT REQUIREMENTS
+
+* Fully functional services system
+* Admin-controlled (add/edit/delete)
+* Visible on homepage and /services page
+* WhatsApp integration working
+* No UI breakage
+* Clean and scalable implementation
+
+Focus on flexibility, simplicity, and admin control.

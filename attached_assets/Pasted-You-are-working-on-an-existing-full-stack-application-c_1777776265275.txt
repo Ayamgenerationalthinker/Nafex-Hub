@@ -1,0 +1,163 @@
+You are working on an existing full-stack application called **Nafex Hub**.
+
+⚠️ CRITICAL RULES:
+
+* DO NOT redesign the homepage
+* DO NOT remove or modify existing features
+* ONLY add new sections in a clean, modular way
+* Maintain current styling, spacing, and layout system
+
+---
+
+## 🎯 OBJECTIVE
+
+Add curated sections to the homepage to improve trust, visibility, and user engagement.
+
+---
+
+## 🏆 FEATURE 1: TOP BRANDS SECTION
+
+### Placement:
+
+* Add below hero section
+
+### Title:
+
+* "Top Verified Brands in Ghana"
+
+### Logic:
+
+* Display businesses where:
+
+  * isVerified = true
+  * sorted by highest engagement (views, orders, or activity)
+
+### UI:
+
+* Horizontal scroll or grid
+* Show:
+
+  * brand image
+  * name
+  * verified badge
+  * short description
+
+---
+
+## 🔥 FEATURE 2: TRENDING BRANDS
+
+### Title:
+
+* "Trending Now"
+
+### Logic:
+
+* Based on:
+
+  * recent views
+  * recent messages
+  * recent activity
+
+---
+
+## ⭐ FEATURE 3: VERIFIED ONLY SECTION
+
+### Title:
+
+* "Verified Sellers"
+
+### Logic:
+
+* Show only:
+
+  * isVerified = true
+
+---
+
+## 💬 FEATURE 4: WHATSAPP CONTACT BUTTON
+
+On each business card:
+
+* Add button:
+  "Chat on WhatsApp"
+
+* Link format:
+  https://wa.me/{business.phone}
+
+---
+
+## ⭐ FEATURE 5: REVIEWS SUMMARY (LIGHT)
+
+On business card:
+
+* Show:
+
+  * average rating (e.g. ⭐ 4.5)
+  * number of reviews
+
+---
+
+## 📊 FEATURE 6: FEATURED BRAND SYSTEM (ADMIN CONTROL)
+
+### Database update:
+
+Add to Business:
+
+* isFeatured (Boolean)
+
+### Logic:
+
+* Featured brands appear:
+
+  * at top of homepage
+  * or in a special "Featured Brands" section
+
+---
+
+## 🏢 ADMIN CONTROL
+
+In /admin/businesses:
+
+Add toggles:
+
+* Set as Featured
+* Remove from Featured
+
+---
+
+## 🔌 API REQUIREMENTS
+
+Create endpoints to:
+
+* fetch top brands
+* fetch trending brands
+* fetch featured brands
+
+---
+
+## 🎨 UI RULES
+
+* Reuse existing card components
+* Maintain current design style
+* Keep layout clean and modern
+* Ensure mobile responsiveness
+
+---
+
+## ⚡ PERFORMANCE
+
+* Limit number of items per section
+* Use efficient queries
+* Add loading states
+
+---
+
+## 🚀 OUTPUT REQUIREMENTS
+
+* Fully working curated sections
+* Dynamic data (not hardcoded)
+* Admin-controlled featured system
+* No UI breakage
+* Clean integration with existing platform
+
+Focus on trust, simplicity, and performance.

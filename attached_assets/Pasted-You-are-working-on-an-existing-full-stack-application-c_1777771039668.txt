@@ -1,0 +1,148 @@
+You are working on an existing full-stack application called **Nafex Hub**.
+
+⚠️ CRITICAL INSTRUCTIONS:
+
+* DO NOT modify or remove any existing features
+* DO NOT redesign any UI components
+* DO NOT change layout, spacing, colors, or structure
+* ONLY add new features in a modular and non-breaking way
+* Ensure all additions integrate smoothly with the current system
+
+---
+
+## 🎯 OBJECTIVE
+
+Enhance Nafex Hub to feel more like a modern marketplace (inspired by Jumia), while keeping the current system simple, fast, and stable.
+
+---
+
+## ✅ FEATURES TO ADD (SAFE EXTENSIONS ONLY)
+
+### 1. PRODUCT LISTING SYSTEM (LIGHT VERSION)
+
+* Allow businesses to add products to their profiles
+* Each product should include:
+
+  * name
+  * price
+  * images
+  * description
+
+⚠️ Do NOT change existing brand pages — only extend them by adding a “Products” section.
+
+---
+
+### 2. PRODUCT DETAIL PAGE
+
+Create:
+
+* /product/[id]
+
+Display:
+
+* product images
+* price
+* description
+* seller info (linked to brand page)
+
+---
+
+### 3. BASIC SEARCH IMPROVEMENT
+
+Enhance existing search to also include:
+
+* product names
+
+⚠️ Do not replace current search — extend it.
+
+---
+
+### 4. REVIEW SUMMARY (LIGHT VERSION)
+
+* Show average rating on business profiles
+* Display total number of reviews
+
+⚠️ Use existing review system if already implemented.
+
+---
+
+### 5. TRUST ELEMENTS
+
+Without changing UI layout, add:
+
+* “Verified Seller” badge (use provided Nafex logo badge)
+* “Top Seller” tag (based on orders or activity)
+* Small trust labels under business names
+
+---
+
+### 6. FAVORITES / SAVE FEATURE
+
+Allow users to:
+
+* Save businesses
+* Save products
+
+Create:
+
+* /favorites page
+
+---
+
+### 7. LIGHT NOTIFICATION SYSTEM
+
+* Notify users when:
+
+  * they receive a message
+  * their order status changes
+
+Simple UI (icon + dropdown)
+
+---
+
+### 8. PERFORMANCE IMPROVEMENTS
+
+* Optimize images (lazy loading)
+* Add pagination to listings
+* Improve API response speed
+
+---
+
+## 🗄️ DATABASE ADDITIONS
+
+Add:
+
+Products:
+
+* id
+* businessId
+* name
+* price
+* images[]
+* description
+
+Favorites:
+
+* id
+* userId
+* productId OR businessId
+
+---
+
+## 🎨 UI RULES
+
+* Reuse existing components and styles
+* Maintain visual consistency
+* Do not introduce new design systems
+* Keep everything clean and minimal
+
+---
+
+## 🚀 OUTPUT REQUIREMENTS
+
+* All new features must work with existing system
+* No breaking changes
+* Clean, modular code
+* Ready to run in Replit
+
+Focus on stability, simplicity, and gradual enhancement — NOT complexity.
