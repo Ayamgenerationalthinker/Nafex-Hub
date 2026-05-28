@@ -219,6 +219,36 @@ router.patch("/orders/:id/status", requireAuth, async (req: AuthRequest, res): P
     return;
   }
 
+  if (["delivered", "cancelled"].includes(existing.status)) {
+    res.status(409).json({ error: "Finalized orders cannot be updated" });
+    return;
+  }
+
+  // Enforce a strict seller fulfillment flow.
+  const allowedNextByStatus: Record<string, string[]> = {
+    pending: ["confirmed", "cancelled"],
+    confirmed: ["packed", "cancelled"],
+    packed: ["out_for_delivery", "cancelled"],
+    out_for_delivery: [],
+  };
+  const allowedNext = allowedNextByStatus[existing.status] ?? [];
+  if (!allowedNext.includes(parsed.data.status)) {
+    res.status(409).json({
+      error: `Invalid status transition from "${existing.status}" to "${parsed.data.status}"`,
+    });
+    return;
+  }
+
+  // Seller should not fulfill unpaid orders.
+  const movingForward =
+    parsed.data.status === "confirmed" ||
+    parsed.data.status === "packed" ||
+    parsed.data.status === "out_for_delivery";
+  if (movingForward && existing.paymentStatus === "unpaid") {
+    res.status(409).json({ error: "Buyer payment is still pending" });
+    return;
+  }
+
   const updateFields: Partial<typeof ordersTable.$inferInsert> & { updatedAt: Date; deliveryOtp?: string | null; deliveryOtpExpiry?: Date | null } = {
     status: parsed.data.status,
     updatedAt: new Date(),

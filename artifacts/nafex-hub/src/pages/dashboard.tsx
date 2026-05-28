@@ -530,6 +530,11 @@ export default function Dashboard() {
             (orders as (typeof orders[0] & { paymentStatus?: string; paymentReference?: string | null })[]).map((order) => {
               const payBadge = PAYMENT_BADGE[order.paymentStatus ?? "unpaid"] ?? PAYMENT_BADGE.unpaid;
               const isFinal = order.status === "delivered" || order.status === "cancelled";
+              const requiresPayment =
+                order.status === "pending" ||
+                order.status === "confirmed" ||
+                order.status === "packed";
+              const paymentPending = requiresPayment && (order.paymentStatus ?? "unpaid") === "unpaid";
               const SELLER_FLOW: { key: string; label: string; nextStatus: string }[] = [
                 { key: "pending",          label: "Confirm Order",       nextStatus: "confirmed" },
                 { key: "confirmed",        label: "Mark Packed",         nextStatus: "packed" },
@@ -575,9 +580,10 @@ export default function Dashboard() {
                             <Button
                               size="sm"
                               className="text-xs h-7"
+                              disabled={paymentPending}
                               onClick={() => updateStatus({ id: order.id, data: { status: nextAction.nextStatus as "confirmed" | "packed" | "out_for_delivery" } })}
                             >
-                              {nextAction.label}
+                              {paymentPending ? "Awaiting Payment" : nextAction.label}
                             </Button>
                           )}
                           {order.status === "out_for_delivery" && (
@@ -634,6 +640,12 @@ export default function Dashboard() {
                       <div className="flex items-center gap-2 text-xs text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
                         <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0" />
                         Escrow released — payment has been confirmed and funds are available.
+                      </div>
+                    )}
+                    {paymentPending && (
+                      <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                        <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                        Buyer payment is pending. Fulfillment can start after payment moves to escrow.
                       </div>
                     )}
                   </CardContent>
