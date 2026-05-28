@@ -125,6 +125,10 @@ router.post("/payments/paystack/verify", requireAuth, async (req: AuthRequest, r
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, parsed.data.orderId));
   if (!order) { res.status(404).json({ error: "Order not found" }); return; }
   if (order.userId !== req.userId) { res.status(403).json({ error: "Not your order" }); return; }
+  if (order.paymentStatus !== "unpaid") {
+    res.status(409).json({ error: "Order payment has already been handled" });
+    return;
+  }
 
   try {
     const txData = await paystackGet<{
