@@ -171,6 +171,10 @@ router.patch("/admin/disputes/:id/resolve", requireAuth, requireAdmin, async (re
 
   const parsed = ResolveDisputeBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+  if (parsed.data.processRefund && parsed.data.releasePayout) {
+    res.status(400).json({ error: "Choose either refund or payout release, not both" });
+    return;
+  }
 
   const [dispute] = await db.select().from(disputesTable).where(eq(disputesTable.id, params.data.id));
   if (!dispute) { res.status(404).json({ error: "Dispute not found" }); return; }

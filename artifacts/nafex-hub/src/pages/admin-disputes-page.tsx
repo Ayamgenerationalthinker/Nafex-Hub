@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import {
@@ -97,10 +97,10 @@ export default function AdminDisputesPage() {
     },
   });
 
-  if (!user || user.role !== "admin") {
-    setLocation("/");
-    return null;
-  }
+  useEffect(() => {
+    if (!user || user.role !== "admin") setLocation("/");
+  }, [user, setLocation]);
+  if (!user || user.role !== "admin") return null;
 
   const filtered = (disputes ?? []).filter((d) =>
     filterStatus === "all" || d.status === filterStatus
