@@ -7,7 +7,7 @@ import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import rateLimit from "express-rate-limit";
 import { sendAdminEmail, sendVerificationEmail } from "../lib/mailer";
-import { requireAuth } from "../lib/auth-middleware";
+import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
 
 function generateVerificationCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -137,14 +137,14 @@ router.post("/auth/register", authLimiter, async (req, res): Promise<void> => {
 });
 
 // Verify email with 6-digit code emailed at signup. Rate-limited to deter brute force.
-router.post("/auth/verify-email", authLimiter, requireAuth, async (req, res): Promise<void> => {
+router.post("/auth/verify-email", authLimiter, requireAuth, async (req: AuthRequest, res): Promise<void> => {
   const schema = z.object({ code: z.string().regex(/^\d{6}$/, "Code must be 6 digits") });
   const parsed = schema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.issues[0]?.message ?? "Invalid code" });
     return;
   }
-  const userId = (req as { user?: { id: number } }).user!.id;
+  const userId = req.userId!;
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
   if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
   if (user.emailVerified) { res.json({ message: "Email already verified", emailVerified: true }); return; }
@@ -168,8 +168,8 @@ router.post("/auth/verify-email", authLimiter, requireAuth, async (req, res): Pr
 });
 
 // Resend verification code (rate-limited).
-router.post("/auth/resend-verification", authLimiter, requireAuth, async (req, res): Promise<void> => {
-  const userId = (req as { user?: { id: number } }).user!.id;
+router.post("/auth/resend-verification", authLimiter, requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const userId = req.userId!;
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
   if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
   if (user.emailVerified) { res.json({ message: "Already verified" }); return; }
@@ -260,14 +260,14 @@ router.get("/auth/me", async (req, res): Promise<void> => {
   });
 });
 
-router.patch("/auth/profile", requireAuth, async (req, res): Promise<void> => {
+router.patch("/auth/profile", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   const schema = z.object({ name: z.string().min(1).max(100) });
   const parsed = schema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Name is required" });
     return;
   }
-  const userId = (req as { user?: { id: number } }).user!.id;
+  const userId = req.userId!;
   const [updated] = await db
     .update(usersTable)
     .set({ name: parsed.data.name })
@@ -276,7 +276,7 @@ router.patch("/auth/profile", requireAuth, async (req, res): Promise<void> => {
   res.json({ id: updated.id, name: updated.name, email: updated.email, role: updated.role, createdAt: updated.createdAt });
 });
 
-router.patch("/auth/password", requireAuth, async (req, res): Promise<void> => {
+router.patch("/auth/password", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   const schema = z.object({
     currentPassword: z.string().min(1),
     newPassword: z.string().min(8),
@@ -286,7 +286,7 @@ router.patch("/auth/password", requireAuth, async (req, res): Promise<void> => {
     res.status(400).json({ error: "Invalid input" });
     return;
   }
-  const userId = (req as { user?: { id: number } }).user!.id;
+  const userId = req.userId!;
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
   if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
   const valid = await verifyPassword(parsed.data.currentPassword, user.password);
@@ -298,8 +298,8 @@ router.patch("/auth/password", requireAuth, async (req, res): Promise<void> => {
   res.json({ message: "Password changed successfully" });
 });
 
-router.delete("/auth/account", requireAuth, async (req, res): Promise<void> => {
-  const userId = (req as { user?: { id: number } }).user!.id;
+router.delete("/auth/account", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const userId = req.userId!;
   await db.delete(usersTable).where(eq(usersTable.id, userId));
   res.json({ message: "Account deleted" });
 });

@@ -21,7 +21,7 @@ import {
   tradeTrackingEventsTable,
   ridersTable,
 } from "@workspace/db";
-import { eq, or } from "drizzle-orm";
+import { eq, or, ilike, desc } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
 import { logAdminAction } from "../lib/log-admin-action";
 import { z } from "zod";
@@ -40,8 +40,8 @@ router.get("/admin/users", requireAuth, async (req: AuthRequest, res): Promise<v
   if (!adminOnly(req, res)) return;
 
   const { search } = req.query as { search?: string };
-
-  let rows = await db
+  const q = search?.trim();
+  const rows = await db
     .select({
       id: usersTable.id,
       name: usersTable.name,
@@ -50,14 +50,16 @@ router.get("/admin/users", requireAuth, async (req: AuthRequest, res): Promise<v
       createdAt: usersTable.createdAt,
     })
     .from(usersTable)
-    .orderBy(usersTable.createdAt);
-
-  if (search) {
-    const q = search.toLowerCase();
-    rows = rows.filter(
-      u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
-    );
-  }
+    .where(
+      q
+        ? or(
+            ilike(usersTable.name, `%${q}%`),
+            ilike(usersTable.email, `%${q}%`)
+          )
+        : undefined
+    )
+    .orderBy(desc(usersTable.createdAt))
+    .limit(500);
 
   res.json(rows);
 });

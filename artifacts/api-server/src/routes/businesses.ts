@@ -363,6 +363,11 @@ router.patch("/admin/businesses/:id/featured", requireAuth, async (req: AuthRequ
 });
 
 router.patch("/businesses/:id/verify", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  if (req.user?.role !== "admin") {
+    res.status(403).json({ error: "Admin only" });
+    return;
+  }
+
   const params = VerifyBusinessParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -386,16 +391,14 @@ router.patch("/businesses/:id/verify", requireAuth, async (req: AuthRequest, res
     return;
   }
 
-  if (req.user?.role === "admin") {
-    await logAdminAction({
-      adminId: req.user.id,
-      adminName: req.user.name,
-      action: parsed.data.isVerified ? "verify_business" : "unverify_business",
-      targetType: "business",
-      targetId: String(business.id),
-      details: { businessName: business.name },
-    });
-  }
+  await logAdminAction({
+    adminId: req.user.id,
+    adminName: req.user.name,
+    action: parsed.data.isVerified ? "verify_business" : "unverify_business",
+    targetType: "business",
+    targetId: String(business.id),
+    details: { businessName: business.name },
+  });
 
   res.json(business);
 });
