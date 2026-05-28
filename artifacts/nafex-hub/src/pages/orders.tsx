@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, Link } from "wouter";
 import {
   useGetUserOrders,
@@ -287,10 +287,11 @@ export default function Orders() {
     query: { enabled: !!user, queryKey: getGetUserOrdersQueryKey() },
   });
 
-  if (!user) {
-    setLocation("/login");
-    return null;
-  }
+  useEffect(() => {
+    if (!user) setLocation("/login");
+  }, [user, setLocation]);
+
+  if (!user) return null;
 
   const typedOrders = (orders ?? []) as unknown as OrderWithDetails[];
 
