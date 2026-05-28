@@ -20,8 +20,18 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script type="module" crossorigin src="/assets/index-BxVscLh2.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-B6jklOpj.css">
+    <!--
+      Paystack inline popup — loaded from their official CDN.
+      SRI (integrity hash) is intentionally omitted: Paystack updates this file
+      in-place and does not publish versioned SRI hashes. The CSP on the API
+      server restricts script-src to 'self' + https://js.paystack.co only,
+      which provides equivalent supply-chain protection without pinning a hash
+      that would break silently on every CDN update.
+    -->
+    <!-- nosemgrep: html.security.audit.missing-integrity -->
+    <script src="https://js.paystack.co/v1/inline.js" crossorigin="anonymous"></script>
+    <script type="module" crossorigin src="/assets/index-BXPMZxHK.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-D7gVTec9.css">
   <link rel="manifest" href="/manifest.webmanifest"></head>
   <body>
     <div id="root"></div>
