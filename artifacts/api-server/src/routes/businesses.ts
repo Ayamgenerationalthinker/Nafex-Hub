@@ -12,7 +12,7 @@ import {
   VerifyBusinessBody,
   VerifyBusinessParams,
 } from "@workspace/api-zod";
-import { requireAuth, requireVerified, type AuthRequest } from "../lib/auth-middleware";
+import { requireAuth, requireVerified as requireEmailVerified, type AuthRequest } from "../lib/auth-middleware";
 import { logAdminAction } from "../lib/log-admin-action";
 import { sendAdminEmail } from "../lib/mailer";
 
@@ -181,7 +181,7 @@ router.get("/businesses/:id", async (req, res): Promise<void> => {
   res.json(business);
 });
 
-router.post("/businesses", requireAuth, requireVerified, async (req: AuthRequest, res): Promise<void> => {
+router.post("/businesses", requireAuth, requireEmailVerified, async (req: AuthRequest, res): Promise<void> => {
   const parsed = CreateBusinessBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
