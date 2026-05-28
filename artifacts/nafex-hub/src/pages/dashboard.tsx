@@ -417,10 +417,10 @@ export default function Dashboard() {
   const last14Days = analytics?.dailyStats?.slice(-14) ?? [];
 
   // Auth guard — after all hooks
-  if (!user) {
-    setLocation("/login");
-    return null;
-  }
+  useEffect(() => {
+    if (!user) setLocation("/login");
+  }, [user, setLocation]);
+  if (!user) return null;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">

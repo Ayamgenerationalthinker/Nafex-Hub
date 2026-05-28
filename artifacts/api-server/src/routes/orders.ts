@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, ordersTable, businessesTable, notificationsTable, usersTable } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, requireVerified, type AuthRequest } from "../lib/auth-middleware";
 import { sendAdminEmail, sendDeliveryOtpEmail } from "../lib/mailer";
@@ -42,19 +42,30 @@ const ConfirmDeliveryBody = z.object({
 });
 
 async function attachBusinessDetails(orders: typeof ordersTable.$inferSelect[]) {
-  return Promise.all(
-    orders.map(async (order) => {
-      const [business] = await db
-        .select({ name: businessesTable.name, logo: businessesTable.logo })
-        .from(businessesTable)
-        .where(eq(businessesTable.id, order.businessId));
-      return {
-        ...order,
-        businessName: business?.name ?? null,
-        businessLogo: business?.logo ?? null,
-      };
+  if (orders.length === 0) return [];
+
+  const businessIds = [...new Set(orders.map((order) => order.businessId))];
+  const businesses = await db
+    .select({
+      id: businessesTable.id,
+      name: businessesTable.name,
+      logo: businessesTable.logo,
     })
+    .from(businessesTable)
+    .where(inArray(businessesTable.id, businessIds));
+
+  const businessById = new Map(
+    businesses.map((business) => [business.id, business] as const)
   );
+
+  return orders.map((order) => {
+    const business = businessById.get(order.businessId);
+    return {
+      ...order,
+      businessName: business?.name ?? null,
+      businessLogo: business?.logo ?? null,
+    };
+  });
 }
 
 // Create order
@@ -181,19 +192,13 @@ router.get("/orders/business", requireAuth, async (req: AuthRequest, res): Promi
   if (businesses.length === 0) { res.json([]); return; }
 
   const businessIds = businesses.map((b) => b.id);
-  const allOrders: typeof ordersTable.$inferSelect[] = [];
+  const orders = await db
+    .select()
+    .from(ordersTable)
+    .where(inArray(ordersTable.businessId, businessIds))
+    .orderBy(desc(ordersTable.createdAt));
 
-  for (const bizId of businessIds) {
-    const bizOrders = await db
-      .select()
-      .from(ordersTable)
-      .where(eq(ordersTable.businessId, bizId))
-      .orderBy(desc(ordersTable.createdAt));
-    allOrders.push(...bizOrders);
-  }
-
-  allOrders.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-  const withDetails = await attachBusinessDetails(allOrders);
+  const withDetails = await attachBusinessDetails(orders);
   res.json(withDetails);
 });
 
@@ -444,12 +449,13 @@ router.post("/orders/:id/buyer-confirm", requireAuth, async (req: AuthRequest, r
 
 // Seller clients
 router.get("/orders/business/clients", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const [business] = await db
+  const businesses = await db
     .select({ id: businessesTable.id })
     .from(businessesTable)
     .where(eq(businessesTable.ownerId, req.userId!));
 
-  if (!business) { res.json([]); return; }
+  if (businesses.length === 0) { res.json([]); return; }
+  const businessIds = businesses.map((business) => business.id);
 
   const orders = await db
     .select({
@@ -462,7 +468,7 @@ router.get("/orders/business/clients", requireAuth, async (req: AuthRequest, res
     })
     .from(ordersTable)
     .leftJoin(usersTable, eq(ordersTable.userId, usersTable.id))
-    .where(eq(ordersTable.businessId, business.id))
+    .where(inArray(ordersTable.businessId, businessIds))
     .orderBy(desc(ordersTable.createdAt));
 
   // Only count buyers who have at least one successfully delivered order
