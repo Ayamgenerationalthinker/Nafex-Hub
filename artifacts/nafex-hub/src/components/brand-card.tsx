@@ -16,6 +16,11 @@ export function BrandCard({ business, isTopSeller, isTrending, isFeaturedTop }: 
   const whatsappUrl = `https://wa.me/${business.phone.replace(/\D/g, "")}`;
   const avgRating = (business as { avgRating?: number | null }).avgRating;
   const reviewCount = (business as { reviewCount?: number }).reviewCount ?? 0;
+  const ratingScore = avgRating ? Math.min(5, Math.max(0, avgRating)) : 0;
+  const reviewConfidence = Math.min(1, reviewCount / 20);
+  const verifiedBoost = business.isVerified ? 0.5 : 0;
+  const qualityScore = Math.round(((ratingScore * 10) * (0.7 + 0.3 * reviewConfidence)) + (verifiedBoost * 10));
+  const showQualityScore = business.isVerified || reviewCount > 0;
 
   const showFeaturedBadge = business.isFeatured && !isTopSeller && !isTrending;
 
@@ -98,6 +103,14 @@ export function BrandCard({ business, isTopSeller, isTrending, isFeaturedTop }: 
             </div>
           )}
         </div>
+        {showQualityScore && (
+          <div className="mt-2">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
+              <Star className="w-3 h-3" />
+              Trust Score {qualityScore}/100
+            </span>
+          </div>
+        )}
       </CardHeader>
 
       <CardContent className="p-5 pt-2 flex-grow">

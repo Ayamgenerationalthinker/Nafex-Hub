@@ -1,9 +1,10 @@
 import { Link, useLocation, useParams } from "wouter";
 import { useGetProduct, useToggleFavorite } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Heart, ArrowLeft, Store, ShoppingBag, ShoppingCart, Minus, Plus, Loader2, Zap, Star, ShieldCheck } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ChangeEvent } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/hooks/use-cart";
@@ -16,6 +17,8 @@ export default function ProductDetail() {
   const addToCart = useCart((s) => s.addItem);
   const [selectedImg, setSelectedImg] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [offerPrice, setOfferPrice] = useState("");
+  const [sendingOffer, setSendingOffer] = useState(false);
   const [buying, setBuying] = useState(false);
   const [relatedLoading, setRelatedLoading] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
@@ -150,6 +153,49 @@ export default function ProductDetail() {
       toast({ title: "Order failed", description: (err as Error).message, variant: "destructive" });
     } finally {
       setBuying(false);
+    }
+  }
+
+  async function handleSendOffer() {
+    if (!product) return;
+    if (!user) { setLocation("/login"); return; }
+    if (!token) { setLocation("/login"); return; }
+
+    const offered = Number(offerPrice);
+    if (!offerPrice.trim() || Number.isNaN(offered) || offered <= 0) {
+      toast({ title: "Enter a valid offer amount", variant: "destructive" });
+      return;
+    }
+
+    setSendingOffer(true);
+    try {
+      const convRes = await fetch("/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ businessId: product.businessId }),
+      });
+      const convData = await convRes.json();
+      if (!convRes.ok || !convData?.id) {
+        throw new Error(convData?.error ?? "Could not start conversation");
+      }
+
+      const msg = `Offer for ${product.name}: GHS ${offered.toFixed(2)} (listed: GHS ${Number(product.price).toFixed(2)}). Quantity: ${safeQty}.`;
+      const msgRes = await fetch(`/api/conversations/${convData.id}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ text: msg }),
+      });
+      const msgData = await msgRes.json().catch(() => ({}));
+      if (!msgRes.ok) {
+        throw new Error(msgData?.error ?? "Failed to send offer");
+      }
+
+      toast({ title: "Offer sent", description: "Your offer was sent to the seller chat." });
+      setLocation(`/inbox?convId=${convData.id}&tab=buyer`);
+    } catch (err) {
+      toast({ title: "Could not send offer", description: (err as Error).message, variant: "destructive" });
+    } finally {
+      setSendingOffer(false);
     }
   }
 
@@ -300,6 +346,31 @@ export default function ProductDetail() {
               <div className="flex items-center justify-between border-t border-border/40 pt-3">
                 <span className="text-sm text-muted-foreground">Subtotal</span>
                 <span className="text-lg font-bold text-foreground">GHS {subtotal.toFixed(2)}</span>
+              </div>
+            </div>
+          )}
+
+          {!outOfStock && (
+            <div className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-2">
+              <p className="text-xs font-semibold text-foreground">Negotiate with seller</p>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={offerPrice}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setOfferPrice(e.target.value)}
+                  placeholder={`Offer amount (e.g. ${(Number(product.price) * 0.9).toFixed(2)})`}
+                  className="h-9"
+                />
+                <Button
+                  variant="outline"
+                  className="h-9 whitespace-nowrap"
+                  onClick={handleSendOffer}
+                  disabled={sendingOffer}
+                >
+                  {sendingOffer ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send Offer"}
+                </Button>
               </div>
             </div>
           )}
