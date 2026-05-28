@@ -4,6 +4,7 @@ import "./index.css";
 import { registerSW } from "virtual:pwa-register";
 
 registerSW({
+  immediate: true,
   onNeedRefresh() {},
   onOfflineReady() {
     console.info("[PWA] App ready to work offline");
