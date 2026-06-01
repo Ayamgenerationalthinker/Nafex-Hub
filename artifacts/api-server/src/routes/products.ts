@@ -4,6 +4,7 @@ import { and, desc, eq, ilike, isNotNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, optionalAuth, type AuthRequest } from "../lib/auth-middleware";
 import { logAdminAction } from "../lib/log-admin-action";
+import { optimizeListing } from "../lib/listing-optimizer";
 
 const router: IRouter = Router();
 
@@ -166,6 +167,48 @@ router.get("/products", async (req, res): Promise<void> => {
     .offset(offset);
 
   res.json(rows);
+});
+
+// POST /products/optimize-listing — AI-assisted title & description (seller)
+router.post("/products/optimize-listing", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const body = z
+    .object({
+      name: z.string().min(1),
+      description: z.string().optional(),
+      price: z.string().optional(),
+      category: z.string().optional(),
+      businessId: z.number().int().positive().optional(),
+    })
+    .safeParse(req.body);
+
+  if (!body.success) {
+    res.status(400).json({ error: body.error.message });
+    return;
+  }
+
+  if (body.data.businessId) {
+    const [biz] = await db
+      .select({ ownerId: businessesTable.ownerId, category: businessesTable.category })
+      .from(businessesTable)
+      .where(eq(businessesTable.id, body.data.businessId));
+
+    if (!biz || (biz.ownerId !== req.userId && req.user?.role !== "admin")) {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+
+    const suggestion = await optimizeListing({
+      name: body.data.name,
+      description: body.data.description,
+      price: body.data.price,
+      category: body.data.category ?? biz.category,
+    });
+    res.json(suggestion);
+    return;
+  }
+
+  const suggestion = await optimizeListing(body.data);
+  res.json(suggestion);
 });
 
 // GET /businesses/:businessId/products
