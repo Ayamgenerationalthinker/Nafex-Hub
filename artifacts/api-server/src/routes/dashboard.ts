@@ -37,6 +37,8 @@ router.get("/dashboard/stats", requireAuth, async (req: AuthRequest, res): Promi
 
   res.json({
     businessId: business.id,
+    businessName: business.name,
+    businessLocation: business.location,
     totalOrders:    Number(orderStats?.total   ?? 0),
     pendingOrders:  Number(pendingStats?.total ?? 0),
     totalMessages:  Number(convStats?.total    ?? 0),

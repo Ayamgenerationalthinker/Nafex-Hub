@@ -66,9 +66,9 @@ app.use(cors({
   origin: (origin, cb) => {
     // Allow same-origin requests (no Origin header) and health-check tools
     if (!origin) return cb(null, true);
-    // Allow if explicitly set via env var (production)
-    const explicitOrigin = process.env["ALLOWED_ORIGIN"];
-    if (explicitOrigin && origin === explicitOrigin) return cb(null, true);
+    // Allow if explicitly set via env var (production) — supports comma-separated list
+    const explicitOrigins = process.env["ALLOWED_ORIGIN"]?.split(",").map((o) => o.trim()).filter(Boolean) ?? [];
+    if (explicitOrigins.some((o) => origin === o)) return cb(null, true);
     // Allow any Replit preview/production domain
     const replitDomains = process.env["REPLIT_DOMAINS"]?.split(",") ?? [];
     if (replitDomains.some((d) => origin === `https://${d.trim()}`)) return cb(null, true);

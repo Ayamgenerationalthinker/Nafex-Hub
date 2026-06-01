@@ -3,6 +3,7 @@ import { db, deliveriesTable, deliveryEventsTable, ridersTable, ordersTable, bus
 import { eq, desc, and } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, optionalAuth, type AuthRequest } from "../lib/auth-middleware";
+import { autoAssignRider } from "../lib/delivery-assign";
 
 const router: IRouter = Router();
 
@@ -136,7 +137,8 @@ router.post("/deliveries", requireAuth, async (req: AuthRequest, res): Promise<v
     });
   } catch {}
 
-  res.status(201).json(await enrichDelivery(delivery));
+  const assigned = await autoAssignRider(delivery);
+  res.status(201).json(await enrichDelivery(assigned ?? delivery));
 });
 
 // Public tracking by code (no auth required)

@@ -24,7 +24,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -228,6 +229,53 @@ export default function Dashboard() {
   const [otpInput, setOtpInput] = useState<Record<number, string>>({});
   const [otpLoading, setOtpLoading] = useState<number | null>(null);
   const [showOtpForm, setShowOtpForm] = useState<Record<number, boolean>>({});
+  const [deliveryOrderId, setDeliveryOrderId] = useState<number | null>(null);
+  const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [deliveryZone, setDeliveryZone] = useState("default");
+  const [deliveryNotes, setDeliveryNotes] = useState("");
+  const [deliveryLoading, setDeliveryLoading] = useState(false);
+  const [orderTracking, setOrderTracking] = useState<Record<number, string>>({});
+
+  const businessLocation =
+    (stats as { businessLocation?: string } | undefined)?.businessLocation ?? "";
+
+  async function createDelivery(orderId: number) {
+    if (!deliveryAddress.trim()) {
+      toast({ title: "Enter the buyer delivery address", variant: "destructive" });
+      return;
+    }
+    setDeliveryLoading(true);
+    try {
+      const t = localStorage.getItem("nafex_token");
+      const res = await fetch("/api/deliveries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` },
+        body: JSON.stringify({
+          orderId,
+          pickupAddress: businessLocation || "Seller pickup — see order notes",
+          deliveryAddress: deliveryAddress.trim(),
+          deliveryZone: deliveryZone === "default" ? undefined : deliveryZone,
+          notes: deliveryNotes.trim() || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Could not create delivery");
+      setOrderTracking((p) => ({ ...p, [orderId]: data.trackingCode }));
+      toast({
+        title: "Delivery booked",
+        description: data.rider
+          ? `Rider ${data.rider.name} assigned. Tracking: ${data.trackingCode}`
+          : `Tracking code: ${data.trackingCode}. A rider will be assigned shortly.`,
+      });
+      setDeliveryOrderId(null);
+      setDeliveryAddress("");
+      setDeliveryNotes("");
+    } catch (e: unknown) {
+      toast({ title: "Delivery failed", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setDeliveryLoading(false);
+    }
+  }
 
   async function confirmDelivery(orderId: number) {
     const otp = otpInput[orderId]?.trim();
@@ -571,6 +619,18 @@ export default function Dashboard() {
                             MoMo Ref: {order.paymentReference}
                           </p>
                         )}
+                        {orderTracking[order.id] && (
+                          <p className="text-xs text-primary font-medium">
+                            Track:{" "}
+                            <button
+                              type="button"
+                              className="underline"
+                              onClick={() => setLocation(`/track/${orderTracking[order.id]}`)}
+                            >
+                              {orderTracking[order.id]}
+                            </button>
+                          </p>
+                        )}
                       </div>
 
                       {/* Action buttons */}
@@ -584,6 +644,20 @@ export default function Dashboard() {
                               onClick={() => updateStatus({ id: order.id, data: { status: nextAction.nextStatus as "confirmed" | "packed" | "out_for_delivery" } })}
                             >
                               {paymentPending ? "Awaiting Payment" : nextAction.label}
+                            </Button>
+                          )}
+                          {["packed", "out_for_delivery"].includes(order.status) && !paymentPending && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs h-7 gap-1"
+                              onClick={() => {
+                                setDeliveryOrderId(order.id);
+                                setDeliveryAddress("");
+                                setDeliveryZone("default");
+                              }}
+                            >
+                              <Truck className="w-3 h-3" /> Arrange Delivery
                             </Button>
                           )}
                           {order.status === "out_for_delivery" && (
@@ -1308,6 +1382,65 @@ export default function Dashboard() {
           />
         </TabsContent>
       </Tabs>
+
+      <Dialog open={deliveryOrderId !== null} onOpenChange={(o) => { if (!o) setDeliveryOrderId(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Arrange delivery</DialogTitle>
+            <DialogDescription>
+              Nafex will create a tracking code and auto-assign an available rider in your zone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>Pickup (your shop)</Label>
+              <Input value={businessLocation || "—"} readOnly className="bg-muted/50" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Buyer delivery address</Label>
+              <Textarea
+                value={deliveryAddress}
+                onChange={(e) => setDeliveryAddress(e.target.value)}
+                placeholder="House number, area, city, landmark…"
+                rows={2}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Delivery zone</Label>
+              <Select value={deliveryZone} onValueChange={setDeliveryZone}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default">Greater Accra (default)</SelectItem>
+                  <SelectItem value="accra_central">Accra Central</SelectItem>
+                  <SelectItem value="accra_east">Accra East</SelectItem>
+                  <SelectItem value="accra_west">Accra West</SelectItem>
+                  <SelectItem value="tema">Tema</SelectItem>
+                  <SelectItem value="kumasi">Kumasi</SelectItem>
+                  <SelectItem value="takoradi">Takoradi</SelectItem>
+                  <SelectItem value="tamale">Tamale</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Notes (optional)</Label>
+              <Input
+                value={deliveryNotes}
+                onChange={(e) => setDeliveryNotes(e.target.value)}
+                placeholder="Fragile, call on arrival…"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeliveryOrderId(null)}>Cancel</Button>
+            <Button
+              disabled={deliveryLoading || deliveryOrderId === null}
+              onClick={() => deliveryOrderId && createDelivery(deliveryOrderId)}
+            >
+              {deliveryLoading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Booking…</> : "Book delivery"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

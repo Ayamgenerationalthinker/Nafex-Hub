@@ -9,7 +9,7 @@ import {
   useDeleteProduct,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Loader2, Plus, Pencil, Trash2, Package, Store, ExternalLink, ImageOff } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, Package, Store, ExternalLink, ImageOff, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -87,6 +87,7 @@ export default function MyShop() {
   const [form, setForm] = useState<ProductForm>(EMPTY_FORM);
   const [search, setSearch] = useState("");
   const [stockFilter, setStockFilter] = useState<"all" | "in_stock" | "low_stock" | "out_of_stock">("all");
+  const [optimizing, setOptimizing] = useState(false);
 
   // Redirect non-sellers (no business yet) to /list
   useEffect(() => {
@@ -108,6 +109,38 @@ export default function MyShop() {
     setOpen(true);
   };
   const closeForm = () => { setOpen(false); setEditing(null); setForm(EMPTY_FORM); };
+
+  async function optimizeListing() {
+    if (!form.name.trim()) {
+      toast({ title: "Enter a product name first", variant: "destructive" });
+      return;
+    }
+    setOptimizing(true);
+    try {
+      const t = localStorage.getItem("nafex_token");
+      const res = await fetch("/api/products/optimize-listing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` },
+        body: JSON.stringify({
+          businessId,
+          name: form.name,
+          description: form.description,
+          price: form.price || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Optimization failed");
+      setForm((f) => ({ ...f, name: data.name, description: data.description }));
+      toast({
+        title: data.source === "ai" ? "Listing optimized (AI)" : "Listing improved",
+        description: data.tips?.[0] ?? "Review the suggested text before saving.",
+      });
+    } catch (e: unknown) {
+      toast({ title: "Could not optimize", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setOptimizing(false);
+    }
+  }
 
   const submit = () => {
     if (!businessId) return;
@@ -326,7 +359,24 @@ export default function MyShop() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="p-desc">Description</Label>
+              <div className="flex items-center justify-between gap-2">
+                <Label htmlFor="p-desc">Description</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1.5 text-xs"
+                  disabled={optimizing}
+                  onClick={optimizeListing}
+                >
+                  {optimizing ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-3.5 h-3.5" />
+                  )}
+                  Optimize listing
+                </Button>
+              </div>
               <Textarea
                 id="p-desc"
                 value={form.description}
