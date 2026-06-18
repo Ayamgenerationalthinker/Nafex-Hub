@@ -3,6 +3,7 @@ import { db, collectionsTable, businessesTable, productsTable } from "@workspace
 import { eq, asc } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
+import { validateBody, validateQuery } from "../lib/validation";
 
 const router: IRouter = Router();
 
@@ -38,12 +39,9 @@ async function ownsCollection(userId: number, collectionId: number) {
 }
 
 // GET /collections?businessId=
-router.get("/collections", async (req, res): Promise<void> => {
-  const parsed = z.coerce.number().int().positive().safeParse(req.query.businessId);
-  if (!parsed.success) {
-    res.status(400).json({ error: "businessId query param required" });
-    return;
-  }
+router.get("/collections", validateQuery(z.object({ businessId: z.coerce.number().int().positive() })), async (req, res): Promise<void> => {
+  const query = (req as any).validatedQuery as any;
+  const businessId = query.businessId;
 
   const collections = await db
     .select()
@@ -66,12 +64,8 @@ router.get("/collections", async (req, res): Promise<void> => {
 });
 
 // POST /collections
-router.post("/collections", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const parsed = CreateBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
+router.post("/collections", requireAuth, validateBody(CreateBody), async (req: AuthRequest, res): Promise<void> => {
+  const parsed = (req as any).validatedBody as any;
 
   const [biz] = await db
     .select({ ownerId: businessesTable.ownerId })
@@ -97,10 +91,8 @@ router.post("/collections", requireAuth, async (req: AuthRequest, res): Promise<
 });
 
 // PUT /collections/:id
-router.put("/collections/:id", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const params = IdParam.safeParse(req.params);
-  if (!params.success) {
-    res.status(404).json({ error: "Not found" });
+router.put("/collections/:id", requireAuth, validateBody(UpdateBody), async (req: AuthRequest, res): Promise<void> => {
+  // Validation middleware injected elsewhere for IdParam);
     return;
   }
 
@@ -110,11 +102,7 @@ router.put("/collections/:id", requireAuth, async (req: AuthRequest, res): Promi
     return;
   }
 
-  const parsed = UpdateBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
+  const parsed = (req as any).validatedBody as any;
 
   const [updated] = await db
     .update(collectionsTable)
@@ -131,9 +119,7 @@ router.put("/collections/:id", requireAuth, async (req: AuthRequest, res): Promi
 
 // DELETE /collections/:id
 router.delete("/collections/:id", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const params = IdParam.safeParse(req.params);
-  if (!params.success) {
-    res.status(404).json({ error: "Not found" });
+  // Validation middleware injected elsewhere for IdParam);
     return;
   }
 

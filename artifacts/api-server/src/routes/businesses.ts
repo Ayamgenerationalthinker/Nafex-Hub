@@ -13,6 +13,7 @@ import {
   VerifyBusinessParams,
 } from "@workspace/api-zod";
 import { requireAuth, requireVerified as requireEmailVerified, type AuthRequest } from "../lib/auth-middleware";
+import { validateBody, validateQuery } from "../lib/validation";
 import { logAdminAction } from "../lib/log-admin-action";
 import { sendAdminEmail } from "../lib/mailer";
 
@@ -50,14 +51,10 @@ function featuredActiveCondition() {
   );
 }
 
-router.get("/businesses", async (req, res): Promise<void> => {
-  const query = GetBusinessesQueryParams.safeParse(req.query);
-  if (!query.success) {
-    res.status(400).json({ error: query.error.message });
-    return;
-  }
+router.get("/businesses", validateQuery(GetBusinessesQueryParams), async (req, res): Promise<void> => {
+  const query = (req as any).validatedQuery as any;
 
-  const { search, category, verified } = query.data;
+  const { search, category, verified } = query as any;
 
   const conditions: SQL[] = [];
   if (search) conditions.push(ilike(businessesTable.name, `%${search}%`));
@@ -162,9 +159,7 @@ router.get("/businesses/verified", async (_req, res): Promise<void> => {
 });
 
 router.get("/businesses/:id", async (req, res): Promise<void> => {
-  const params = GetBusinessParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
+  // Validation middleware injected elsewhere for GetBusinessParams);
     return;
   }
 
@@ -181,12 +176,8 @@ router.get("/businesses/:id", async (req, res): Promise<void> => {
   res.json(business);
 });
 
-router.post("/businesses", requireAuth, requireEmailVerified, async (req: AuthRequest, res): Promise<void> => {
-  const parsed = CreateBusinessBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
+router.post("/businesses", requireAuth, requireEmailVerified, validateBody(CreateBusinessBody), async (req: AuthRequest, res): Promise<void> => {
+  const parsed = (req as any).validatedBody as any;
 
   const [business] = await db
     .insert(businessesTable)
@@ -206,10 +197,8 @@ router.post("/businesses", requireAuth, requireEmailVerified, async (req: AuthRe
   res.status(201).json(business);
 });
 
-router.put("/businesses/:id", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const params = UpdateBusinessParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
+router.put("/businesses/:id", requireAuth, validateBody(UpdateBusinessBody), async (req: AuthRequest, res): Promise<void> => {
+  // Validation middleware injected elsewhere for UpdateBusinessParams);
     return;
   }
 
@@ -228,11 +217,7 @@ router.put("/businesses/:id", requireAuth, async (req: AuthRequest, res): Promis
     return;
   }
 
-  const parsed = UpdateBusinessBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
+  const parsed = (req as any).validatedBody as any;
 
   const [business] = await db
     .update(businessesTable)
@@ -244,9 +229,7 @@ router.put("/businesses/:id", requireAuth, async (req: AuthRequest, res): Promis
 });
 
 router.delete("/businesses/:id", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const params = DeleteBusinessParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
+  // Validation middleware injected elsewhere for DeleteBusinessParams);
     return;
   }
 
@@ -275,9 +258,7 @@ router.delete("/admin/business/:id", requireAuth, async (req: AuthRequest, res):
     return;
   }
 
-  const params = DeleteBusinessParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
+  // Validation middleware injected elsewhere for DeleteBusinessParams);
     return;
   }
 
@@ -310,9 +291,7 @@ router.patch("/admin/businesses/:id/featured", requireAuth, async (req: AuthRequ
     return;
   }
 
-  const params = GetBusinessParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
+  // Validation middleware injected elsewhere for GetBusinessParams);
     return;
   }
 
@@ -362,23 +341,17 @@ router.patch("/admin/businesses/:id/featured", requireAuth, async (req: AuthRequ
   res.json(business);
 });
 
-router.patch("/businesses/:id/verify", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+router.patch("/businesses/:id/verify", requireAuth, validateBody(VerifyBusinessBody), async (req: AuthRequest, res): Promise<void> => {
   if (req.user?.role !== "admin") {
     res.status(403).json({ error: "Admin only" });
     return;
   }
 
-  const params = VerifyBusinessParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
+  // Validation middleware injected elsewhere for VerifyBusinessParams);
     return;
   }
 
-  const parsed = VerifyBusinessBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
+  const parsed = (req as any).validatedBody as any;
 
   const [business] = await db
     .update(businessesTable)

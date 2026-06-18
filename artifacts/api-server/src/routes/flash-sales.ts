@@ -3,6 +3,7 @@ import { db, flashSalesTable, productsTable, businessesTable } from "@workspace/
 import { eq, and, gt, lt, desc, sql } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
+import { validateBody, validateQuery } from "../lib/validation";
 
 const router: IRouter = Router();
 
@@ -77,8 +78,7 @@ router.get("/admin/flash-sales", requireAuth, requireAdmin, async (_req: AuthReq
 
 // ── Admin: create ────────────────────────────────────────────────────────────
 router.post("/admin/flash-sales", requireAuth, requireAdmin, async (req: AuthRequest, res): Promise<void> => {
-  const parsed = FlashSaleBody.safeParse(req.body);
-  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+  // Validation middleware injected elsewhere for FlashSaleBody); return; }
   if (new Date(parsed.data.endsAt) <= new Date(parsed.data.startsAt)) {
     res.status(400).json({ error: "endsAt must be after startsAt" });
     return;

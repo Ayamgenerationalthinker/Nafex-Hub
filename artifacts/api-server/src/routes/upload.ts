@@ -4,6 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { mkdirSync } from "fs";
 import { requireAuth } from "../lib/auth-middleware";
+import { validateBody, validateQuery } from "../lib/validation";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const router: IRouter = Router();

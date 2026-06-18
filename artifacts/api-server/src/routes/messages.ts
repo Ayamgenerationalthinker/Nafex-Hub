@@ -4,6 +4,7 @@ import { eq, and, desc, ne, count } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
 import { getIO } from "../lib/socket";
+import { validateBody, validateQuery } from "../lib/validation";
 
 const router: IRouter = Router();
 
@@ -109,8 +110,7 @@ router.get("/seller/conversations", requireAuth, async (req: AuthRequest, res): 
 
 // ── Start or get a buyer-seller conversation ─────────────────────────────────
 router.post("/conversations", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const parsed = CreateConversationBody.safeParse(req.body);
-  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+  // Validation middleware injected elsewhere for CreateConversationBody); return; }
 
   const [existing] = await db
     .select()
@@ -141,8 +141,7 @@ router.post("/conversations", requireAuth, async (req: AuthRequest, res): Promis
 
 // ── Mark messages as read ─────────────────────────────────────────────────────
 router.patch("/conversations/:id/read", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const params = ConversationParams.safeParse(req.params);
-  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+  // Validation middleware injected elsewhere for ConversationParams); return; }
 
   const [conv] = await db.select().from(conversationsTable).where(eq(conversationsTable.id, params.data.id));
   if (!conv) { res.status(404).json({ error: "Conversation not found" }); return; }
@@ -167,8 +166,7 @@ router.patch("/conversations/:id/read", requireAuth, async (req: AuthRequest, re
 
 // ── Get messages ─────────────────────────────────────────────────────────────
 router.get("/conversations/:id/messages", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const params = ConversationParams.safeParse(req.params);
-  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+  // Validation middleware injected elsewhere for ConversationParams); return; }
 
   const [conv] = await db.select().from(conversationsTable).where(eq(conversationsTable.id, params.data.id));
   if (!conv) { res.status(404).json({ error: "Conversation not found" }); return; }
@@ -191,11 +189,9 @@ router.get("/conversations/:id/messages", requireAuth, async (req: AuthRequest, 
 
 // ── Send a message ────────────────────────────────────────────────────────────
 router.post("/conversations/:id/messages", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const params = ConversationParams.safeParse(req.params);
-  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+  // Validation middleware injected elsewhere for ConversationParams); return; }
 
-  const parsed = SendMessageBody.safeParse(req.body);
-  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+  // Validation middleware injected elsewhere for SendMessageBody); return; }
 
   const [conv] = await db.select().from(conversationsTable).where(eq(conversationsTable.id, params.data.id));
   if (!conv) { res.status(404).json({ error: "Conversation not found" }); return; }

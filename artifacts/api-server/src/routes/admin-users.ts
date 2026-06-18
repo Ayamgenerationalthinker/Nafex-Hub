@@ -25,6 +25,7 @@ import { eq, or, ilike, desc } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
 import { logAdminAction } from "../lib/log-admin-action";
 import { z } from "zod";
+import { validateBody } from "../lib/validation";
 
 const router = Router();
 
@@ -64,18 +65,18 @@ router.get("/admin/users", requireAuth, async (req: AuthRequest, res): Promise<v
   res.json(rows);
 });
 
-router.put("/admin/users/:id/role", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+router.put("/admin/users/:id/role", requireAuth, validateBody(z.object({ role: z.enum(["user", "business_owner", "admin"]) })), async (req: AuthRequest, res): Promise<void> => {
   if (!adminOnly(req, res)) return;
 
   const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
 
-  const body = z
+  // Validation moved to middleware
     .object({ role: z.enum(["user", "business_owner", "admin"]) })
     .safeParse(req.body);
   if (!body.success) { res.status(400).json({ error: "Invalid role" }); return; }
 
-  if (req.user?.id === id && body.data.role !== "admin") {
+  if (req.user?.id === id && (req as any).validatedBody.role !== "admin") {
     res.status(400).json({ error: "Cannot remove your own admin role" });
     return;
   }
@@ -87,7 +88,7 @@ router.put("/admin/users/:id/role", requireAuth, async (req: AuthRequest, res): 
 
   const [updated] = await db
     .update(usersTable)
-    .set({ role: body.data.role })
+    .set({ role: (req as any).validatedBody.role })
     .where(eq(usersTable.id, id))
     .returning({ id: usersTable.id, name: usersTable.name, role: usersTable.role });
 
@@ -96,7 +97,7 @@ router.put("/admin/users/:id/role", requireAuth, async (req: AuthRequest, res): 
   await logAdminAction({
     adminId: req.user!.id,
     adminName: req.user!.name,
-    action: body.data.role === "admin" ? "grant_admin" : "revoke_admin",
+    action: (req as any).validatedBody.role === "admin" ? "grant_admin" : "revoke_admin",
     targetType: "user",
     targetId: String(id),
     details: {

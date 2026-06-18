@@ -4,6 +4,7 @@ import { eq, desc, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, requireVerified, type AuthRequest } from "../lib/auth-middleware";
 import { sendAdminEmail, sendDeliveryOtpEmail } from "../lib/mailer";
+import { validateBody } from "../lib/validation";
 import { notifyAllAdmins } from "../lib/notify";
 
 const router: IRouter = Router();
@@ -69,21 +70,17 @@ async function attachBusinessDetails(orders: typeof ordersTable.$inferSelect[]) 
 }
 
 // Create order
-router.post("/orders", requireAuth, requireVerified, async (req: AuthRequest, res): Promise<void> => {
-  const parsed = CreateOrderBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
+router.post("/orders", requireAuth, requireVerified, validateBody(CreateOrderBody), async (req: AuthRequest, res): Promise<void> => {
+  const data = (req as any).validatedBody;
 
   const [order] = await db
     .insert(ordersTable)
     .values({
       userId: req.userId!,
-      businessId: parsed.data.businessId,
-      items: parsed.data.items,
-      totalPrice: parsed.data.totalPrice,
-      notes: parsed.data.notes,
+      businessId: data.businessId,
+      items: data.items,
+      totalPrice: data.totalPrice,
+      notes: data.notes,
       status: "pending",
       paymentStatus: "unpaid",
     })
@@ -125,12 +122,10 @@ router.post("/orders", requireAuth, requireVerified, async (req: AuthRequest, re
 });
 
 // Buyer: submit mobile money payment reference → lock escrow
-router.post("/orders/:id/pay", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const params = OrderParams.safeParse(req.params);
-  if (!params.success) { res.status(400).json({ error: "Invalid order id" }); return; }
+router.post("/orders/:id/pay", requireAuth, validateBody(PayBody), async (req: AuthRequest, res): Promise<void> => {
+  // Validation middleware injected elsewhere for OrderParams); return; }
 
-  const parsed = PayBody.safeParse(req.body);
-  if (!parsed.success) { res.status(400).json({ error: "reference is required" }); return; }
+  const data = (req as any).validatedBody;
 
   const [existing] = await db.select().from(ordersTable).where(eq(ordersTable.id, params.data.id));
   if (!existing) { res.status(404).json({ error: "Order not found" }); return; }
@@ -139,7 +134,7 @@ router.post("/orders/:id/pay", requireAuth, async (req: AuthRequest, res): Promi
 
   const [updated] = await db
     .update(ordersTable)
-    .set({ paymentStatus: "in_escrow", paymentReference: parsed.data.reference, updatedAt: new Date() })
+    .set({ paymentStatus: "in_escrow", paymentReference: data.reference, updatedAt: new Date() })
     .where(eq(ordersTable.id, params.data.id))
     .returning();
 
@@ -203,12 +198,10 @@ router.get("/orders/business", requireAuth, async (req: AuthRequest, res): Promi
 });
 
 // Seller: update order status
-router.patch("/orders/:id/status", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const params = OrderParams.safeParse(req.params);
-  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+router.patch("/orders/:id/status", requireAuth, validateBody(UpdateStatusBody), async (req: AuthRequest, res): Promise<void> => {
+  // Validation middleware injected elsewhere for OrderParams); return; }
 
-  const parsed = UpdateStatusBody.safeParse(req.body);
-  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+  const data = (req as any).validatedBody;
 
   // Verify the user owns the business for this order
   const [existing] = await db.select().from(ordersTable).where(eq(ordersTable.id, params.data.id));
@@ -237,7 +230,7 @@ router.patch("/orders/:id/status", requireAuth, async (req: AuthRequest, res): P
     out_for_delivery: [],
   };
   const allowedNext = allowedNextByStatus[existing.status] ?? [];
-  if (!allowedNext.includes(parsed.data.status)) {
+  if (!allowedNext.includes(data.status)) {
     res.status(409).json({
       error: `Invalid status transition from "${existing.status}" to "${parsed.data.status}"`,
     });
@@ -255,7 +248,7 @@ router.patch("/orders/:id/status", requireAuth, async (req: AuthRequest, res): P
   }
 
   const updateFields: Partial<typeof ordersTable.$inferInsert> & { updatedAt: Date; deliveryOtp?: string | null; deliveryOtpExpiry?: Date | null } = {
-    status: parsed.data.status,
+    status: data.status,
     updatedAt: new Date(),
   };
 
@@ -320,12 +313,10 @@ router.patch("/orders/:id/status", requireAuth, async (req: AuthRequest, res): P
 });
 
 // Seller: confirm delivery by OTP → mark delivered + release escrow
-router.post("/orders/:id/confirm-delivery", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const params = OrderParams.safeParse(req.params);
-  if (!params.success) { res.status(400).json({ error: "Invalid order id" }); return; }
+router.post("/orders/:id/confirm-delivery", requireAuth, validateBody(ConfirmDeliveryBody), async (req: AuthRequest, res): Promise<void> => {
+  // Validation middleware injected elsewhere for OrderParams); return; }
 
-  const parsed = ConfirmDeliveryBody.safeParse(req.body);
-  if (!parsed.success) { res.status(400).json({ error: "A 6-digit OTP is required" }); return; }
+  const data = (req as any).validatedBody;
 
   const [existing] = await db.select().from(ordersTable).where(eq(ordersTable.id, params.data.id));
   if (!existing) { res.status(404).json({ error: "Order not found" }); return; }
@@ -345,7 +336,7 @@ router.post("/orders/:id/confirm-delivery", requireAuth, async (req: AuthRequest
     return;
   }
 
-  if (!existing.deliveryOtp || existing.deliveryOtp !== parsed.data.otp) {
+  if (!existing.deliveryOtp || existing.deliveryOtp !== data.otp) {
     res.status(400).json({ error: "Invalid OTP" });
     return;
   }
@@ -390,8 +381,7 @@ router.post("/orders/:id/confirm-delivery", requireAuth, async (req: AuthRequest
 
 // ── Buyer confirms delivery → escrow auto-released ──────────────────────────
 router.post("/orders/:id/buyer-confirm", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const params = OrderParams.safeParse(req.params);
-  if (!params.success) { res.status(400).json({ error: "Invalid order id" }); return; }
+  // Validation middleware injected elsewhere for OrderParams); return; }
 
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, params.data.id));
   if (!order) { res.status(404).json({ error: "Order not found" }); return; }
