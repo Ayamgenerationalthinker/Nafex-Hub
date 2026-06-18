@@ -13,6 +13,7 @@ import {
 } from "@workspace/db";
 import { eq, and, count, avg, desc, lte } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
+import { validateBody, validateQuery } from "../lib/validation";
 
 const router: IRouter = Router();
 

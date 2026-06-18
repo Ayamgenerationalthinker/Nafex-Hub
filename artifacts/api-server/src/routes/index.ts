@@ -27,6 +27,7 @@ import tradeOrdersRouter from "./trade-orders";
 import tradeMessagesRouter from "./trade-messages";
 import boostsRouter from "./boosts";
 import flashSalesRouter from "./flash-sales";
+import { validateBody, validateQuery } from "../lib/validation";
 
 const router: IRouter = Router();
 

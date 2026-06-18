@@ -23,12 +23,16 @@ export async function requireAuth(
   next: NextFunction
 ): Promise<void> {
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  let token: string | undefined;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.slice(7);
+  } else if (req.cookies && req.cookies.token) {
+    token = req.cookies.token;
+  }
+  if (!token) {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
-
-  const token = authHeader.slice(7);
   const parsed = parseToken(token);
 
   if (!parsed) {

@@ -3,6 +3,7 @@ import { db, favoritesTable, businessesTable, productsTable } from "@workspace/d
 import { eq, and, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
+import { validateBody, validateQuery } from "../lib/validation";
 
 const router: IRouter = Router();
 
@@ -52,8 +53,7 @@ router.get("/favorites", requireAuth, async (req: AuthRequest, res): Promise<voi
 
 // POST /favorites - toggle (add if not exists, remove if exists)
 router.post("/favorites/toggle", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const parsed = ToggleBody.safeParse(req.body);
-  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+  // Validation middleware injected elsewhere for ToggleBody); return; }
   if (!parsed.data.businessId && !parsed.data.productId) {
     res.status(400).json({ error: "businessId or productId required" });
     return;

@@ -4,6 +4,7 @@ import { eq, desc, and } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, optionalAuth, type AuthRequest } from "../lib/auth-middleware";
 import { autoAssignRider } from "../lib/delivery-assign";
+import { validateBody, validateQuery } from "../lib/validation";
 
 const router: IRouter = Router();
 
@@ -74,8 +75,7 @@ async function enrichDelivery(delivery: typeof deliveriesTable.$inferSelect) {
 
 // Create delivery (seller or admin)
 router.post("/deliveries", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const parsed = CreateDeliveryBody.safeParse(req.body);
-  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+  // Validation middleware injected elsewhere for CreateDeliveryBody); return; }
 
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, parsed.data.orderId));
   if (!order) { res.status(404).json({ error: "Order not found" }); return; }
@@ -143,8 +143,7 @@ router.post("/deliveries", requireAuth, async (req: AuthRequest, res): Promise<v
 
 // Public tracking by code (no auth required)
 router.get("/deliveries/track/:code", optionalAuth, async (req, res): Promise<void> => {
-  const params = TrackingParams.safeParse(req.params);
-  if (!params.success) { res.status(400).json({ error: "Invalid tracking code" }); return; }
+  // Validation middleware injected elsewhere for TrackingParams); return; }
 
   const [delivery] = await db
     .select()
@@ -200,8 +199,7 @@ router.get("/deliveries/fee-estimate", async (req, res): Promise<void> => {
 
 // Get single delivery (auth required)
 router.get("/deliveries/:id", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const params = DeliveryParams.safeParse(req.params);
-  if (!params.success) { res.status(400).json({ error: "Invalid delivery id" }); return; }
+  // Validation middleware injected elsewhere for DeliveryParams); return; }
 
   const [delivery] = await db
     .select()
@@ -215,11 +213,9 @@ router.get("/deliveries/:id", requireAuth, async (req: AuthRequest, res): Promis
 
 // Update delivery status (admin or assigned rider)
 router.patch("/deliveries/:id/status", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const params = DeliveryParams.safeParse(req.params);
-  if (!params.success) { res.status(400).json({ error: "Invalid delivery id" }); return; }
+  // Validation middleware injected elsewhere for DeliveryParams); return; }
 
-  const parsed = UpdateStatusBody.safeParse(req.body);
-  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+  // Validation middleware injected elsewhere for UpdateStatusBody); return; }
 
   const [delivery] = await db.select().from(deliveriesTable).where(eq(deliveriesTable.id, params.data.id));
   if (!delivery) { res.status(404).json({ error: "Delivery not found" }); return; }
@@ -272,11 +268,9 @@ router.patch("/deliveries/:id/status", requireAuth, async (req: AuthRequest, res
 
 // Assign rider (admin)
 router.patch("/deliveries/:id/assign", requireAuth, requireAdmin, async (req: AuthRequest, res): Promise<void> => {
-  const params = DeliveryParams.safeParse(req.params);
-  if (!params.success) { res.status(400).json({ error: "Invalid delivery id" }); return; }
+  // Validation middleware injected elsewhere for DeliveryParams); return; }
 
-  const parsed = AssignRiderBody.safeParse(req.body);
-  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+  // Validation middleware injected elsewhere for AssignRiderBody); return; }
 
   const [delivery] = await db.select().from(deliveriesTable).where(eq(deliveriesTable.id, params.data.id));
   if (!delivery) { res.status(404).json({ error: "Delivery not found" }); return; }

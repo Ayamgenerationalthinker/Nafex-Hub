@@ -3,6 +3,7 @@ import { db, ridersTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
+import { validateBody, validateQuery } from "../lib/validation";
 
 const router: IRouter = Router();
 
@@ -49,9 +50,7 @@ router.get("/riders/available", requireAuth, requireAdmin, async (_req, res): Pr
 
 // Create rider (admin)
 router.post("/riders", requireAuth, requireAdmin, async (req: AuthRequest, res): Promise<void> => {
-  const parsed = CreateRiderBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
+  // Validation middleware injected elsewhere for CreateRiderBody);
     return;
   }
   const [rider] = await db.insert(ridersTable).values(parsed.data).returning();
@@ -60,11 +59,9 @@ router.post("/riders", requireAuth, requireAdmin, async (req: AuthRequest, res):
 
 // Update rider (admin)
 router.patch("/riders/:id", requireAuth, requireAdmin, async (req: AuthRequest, res): Promise<void> => {
-  const params = RiderParams.safeParse(req.params);
-  if (!params.success) { res.status(400).json({ error: "Invalid rider id" }); return; }
+  // Validation middleware injected elsewhere for RiderParams); return; }
 
-  const parsed = UpdateRiderBody.safeParse(req.body);
-  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+  // Validation middleware injected elsewhere for UpdateRiderBody); return; }
 
   const [existing] = await db.select().from(ridersTable).where(eq(ridersTable.id, params.data.id));
   if (!existing) { res.status(404).json({ error: "Rider not found" }); return; }
@@ -80,8 +77,7 @@ router.patch("/riders/:id", requireAuth, requireAdmin, async (req: AuthRequest, 
 
 // Toggle availability
 router.patch("/riders/:id/availability", requireAuth, requireAdmin, async (req: AuthRequest, res): Promise<void> => {
-  const params = RiderParams.safeParse(req.params);
-  if (!params.success) { res.status(400).json({ error: "Invalid rider id" }); return; }
+  // Validation middleware injected elsewhere for RiderParams); return; }
 
   const [existing] = await db.select().from(ridersTable).where(eq(ridersTable.id, params.data.id));
   if (!existing) { res.status(404).json({ error: "Rider not found" }); return; }

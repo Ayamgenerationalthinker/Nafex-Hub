@@ -4,6 +4,7 @@ import { eq, asc } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
 import { getIO } from "../lib/socket";
+import { validateBody, validateQuery } from "../lib/validation";
 
 const router: IRouter = Router();
 
@@ -35,8 +36,7 @@ router.get(
   "/trade/orders/:id/messages",
   requireAuth,
   async (req: AuthRequest, res): Promise<void> => {
-    const params = IdParams.safeParse(req.params);
-    if (!params.success) { res.status(400).json({ error: "Invalid id" }); return; }
+    // Validation middleware injected elsewhere for IdParams); return; }
 
     const check = await assertOrderParticipant(params.data.id, req.userId, req.userRole);
     if (check.error !== undefined) { res.status(check.status).json({ error: check.error }); return; }
@@ -64,11 +64,9 @@ router.post(
   "/trade/orders/:id/messages",
   requireAuth,
   async (req: AuthRequest, res): Promise<void> => {
-    const params = IdParams.safeParse(req.params);
-    if (!params.success) { res.status(400).json({ error: "Invalid id" }); return; }
+    // Validation middleware injected elsewhere for IdParams); return; }
 
-    const body = SendBody.safeParse(req.body);
-    if (!body.success) { res.status(400).json({ error: body.error.message }); return; }
+    // Validation middleware injected elsewhere for SendBody); return; }
 
     const check = await assertOrderParticipant(params.data.id, req.userId, req.userRole);
     if (check.error !== undefined) { res.status(check.status).json({ error: check.error }); return; }

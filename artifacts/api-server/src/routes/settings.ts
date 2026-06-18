@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
 import { logAdminAction } from "../lib/log-admin-action";
 import { z } from "zod";
+import { validateBody, validateQuery } from "../lib/validation";
 
 const router = Router();
 
