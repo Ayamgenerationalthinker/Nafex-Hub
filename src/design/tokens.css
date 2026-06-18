@@ -1,0 +1,50 @@
+/* src/design/tokens.css */
+:root {
+  /* Primary gradient palette */
+  --color-primary-500: hsl(43 81% 46%); /* Gold */
+  --color-primary-600: hsl(43 81% 40%);
+  --color-primary-700: hsl(43 81% 35%);
+
+  /* Secondary dark palette */
+  --color-secondary-900: hsl(0 0% 11%);
+  --color-secondary-800: hsl(0 0% 15%);
+
+  /* Backgrounds */
+  --color-bg-light: hsl(0 0% 98%);
+  --color-bg-dark: hsl(0 0% 8%);
+  --color-bg-glass: rgba(255, 255, 255, 0.15);
+  --color-bg-glass-dark: rgba(0, 0, 0, 0.25);
+
+  /* Foregrounds */
+  --color-fg-light: hsl(0 0% 10%);
+  --color-fg-dark: hsl(0 0% 95%);
+
+  /* Accent for micro‑animations */
+  --color-accent: hsl(200 80% 50%);
+
+  /* Border & shadow */
+  --border-radius: 0.75rem;
+  --shadow-elevate: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+[data-theme="dark"] {
+  --color-bg-light: var(--color-bg-dark);
+  --color-fg-light: var(--color-fg-dark);
+  --color-bg-glass: var(--color-bg-glass-dark);
+}
+
+/* Utility classes */
+.glass {
+  backdrop-filter: blur(12px);
+  background: var(--color-bg-glass);
+  border-radius: var(--border-radius);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.transition {
+  transition: all 0.2s ease-out;
+}
+
+.hover-elevate:hover {
+  box-shadow: var(--shadow-elevate);
+}
