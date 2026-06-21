@@ -21,11 +21,10 @@ import {
   tradeTrackingEventsTable,
   ridersTable,
 } from "@workspace/db";
-import { eq, or, ilike, desc } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
 import { logAdminAction } from "../lib/log-admin-action";
 import { z } from "zod";
-import { validateBody } from "../lib/validation";
 
 const router = Router();
 
@@ -41,8 +40,8 @@ router.get("/admin/users", requireAuth, async (req: AuthRequest, res): Promise<v
   if (!adminOnly(req, res)) return;
 
   const { search } = req.query as { search?: string };
-  const q = search?.trim();
-  const rows = await db
+
+  let rows = await db
     .select({
       id: usersTable.id,
       name: usersTable.name,
@@ -51,32 +50,30 @@ router.get("/admin/users", requireAuth, async (req: AuthRequest, res): Promise<v
       createdAt: usersTable.createdAt,
     })
     .from(usersTable)
-    .where(
-      q
-        ? or(
-            ilike(usersTable.name, `%${q}%`),
-            ilike(usersTable.email, `%${q}%`)
-          )
-        : undefined
-    )
-    .orderBy(desc(usersTable.createdAt))
-    .limit(500);
+    .orderBy(usersTable.createdAt);
+
+  if (search) {
+    const q = search.toLowerCase();
+    rows = rows.filter(
+      u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+    );
+  }
 
   res.json(rows);
 });
 
-router.put("/admin/users/:id/role", requireAuth, validateBody(z.object({ role: z.enum(["user", "business_owner", "admin"]) })), async (req: AuthRequest, res): Promise<void> => {
+router.put("/admin/users/:id/role", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   if (!adminOnly(req, res)) return;
 
   const id = parseInt(String(req.params.id), 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
 
-  // Validation moved to middleware
+  const body = z
     .object({ role: z.enum(["user", "business_owner", "admin"]) })
     .safeParse(req.body);
   if (!body.success) { res.status(400).json({ error: "Invalid role" }); return; }
 
-  if (req.user?.id === id && (req as any).validatedBody.role !== "admin") {
+  if (req.user?.id === id && body.data.role !== "admin") {
     res.status(400).json({ error: "Cannot remove your own admin role" });
     return;
   }
@@ -88,7 +85,7 @@ router.put("/admin/users/:id/role", requireAuth, validateBody(z.object({ role: z
 
   const [updated] = await db
     .update(usersTable)
-    .set({ role: (req as any).validatedBody.role })
+    .set({ role: body.data.role })
     .where(eq(usersTable.id, id))
     .returning({ id: usersTable.id, name: usersTable.name, role: usersTable.role });
 
@@ -97,7 +94,7 @@ router.put("/admin/users/:id/role", requireAuth, validateBody(z.object({ role: z
   await logAdminAction({
     adminId: req.user!.id,
     adminName: req.user!.name,
-    action: (req as any).validatedBody.role === "admin" ? "grant_admin" : "revoke_admin",
+    action: body.data.role === "admin" ? "grant_admin" : "revoke_admin",
     targetType: "user",
     targetId: String(id),
     details: {

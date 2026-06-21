@@ -3,7 +3,6 @@ import { db, supportConversationsTable, supportMessagesTable, usersTable } from 
 import { eq, desc, asc } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
-import { validateBody, validateQuery } from "../lib/validation";
 
 const IdParam = z.object({ id: z.coerce.number().int().positive() });
 
@@ -70,7 +69,8 @@ router.get("/support/conversations", requireAuth, async (req: AuthRequest, res):
 
 // GET /support/conversations/:id/messages
 router.get("/support/conversations/:id/messages", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  // Validation middleware injected elsewhere for IdParam); return; }
+  const params = IdParam.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid id" }); return; }
   const id = params.data.id;
 
   const [caller] = await db
@@ -100,7 +100,8 @@ router.get("/support/conversations/:id/messages", requireAuth, async (req: AuthR
 
 // POST /support/conversations/:id/messages
 router.post("/support/conversations/:id/messages", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  // Validation middleware injected elsewhere for IdParam); return; }
+  const params = IdParam.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid id" }); return; }
   const id = params.data.id;
 
   const parsed = z.object({ text: z.string().min(1).max(2000) }).safeParse(req.body);
@@ -144,7 +145,8 @@ router.post("/support/conversations/:id/messages", requireAuth, async (req: Auth
 
 // PATCH /support/conversations/:id/close — Admin only
 router.patch("/support/conversations/:id/close", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  // Validation middleware injected elsewhere for IdParam); return; }
+  const params = IdParam.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid id" }); return; }
   const id = params.data.id;
 
   const [caller] = await db

@@ -13,7 +13,6 @@ import { eq, desc, and, or, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
 import { getIO } from "../lib/socket";
-import { validateBody, validateQuery } from "../lib/validation";
 
 const router: IRouter = Router();
 
@@ -29,7 +28,8 @@ function emitTradeUpdate(orderId: number, event: string, data: unknown) {
 
 // ── Accept a quote → create trade order + escrow record ──────────────────────
 router.post("/trade/quotes/:id/accept", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  // Validation middleware injected elsewhere for IdParams); return; }
+  const params = IdParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid quote id" }); return; }
 
   const [quote] = await db.select().from(tradeQuotesTable).where(eq(tradeQuotesTable.id, params.data.id));
   if (!quote) { res.status(404).json({ error: "Quote not found" }); return; }
@@ -153,7 +153,8 @@ router.post("/trade/escrow/:orderId/verify", requireAuth, async (req: AuthReques
 
 // ── Buyer confirms delivery → trigger escrow release ─────────────────────────
 router.post("/trade/orders/:id/confirm-delivery", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  // Validation middleware injected elsewhere for IdParams); return; }
+  const params = IdParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid id" }); return; }
 
   const [order] = await db.select().from(tradeOrdersTable).where(eq(tradeOrdersTable.id, params.data.id));
   if (!order) { res.status(404).json({ error: "Order not found" }); return; }
@@ -257,7 +258,8 @@ router.post("/trade/orders/:id/tracking", requireAuth, async (req: AuthRequest, 
 
 // ── Get tracking events for an order ─────────────────────────────────────────
 router.get("/trade/orders/:id/tracking", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  // Validation middleware injected elsewhere for IdParams); return; }
+  const params = IdParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid id" }); return; }
 
   const [order] = await db.select().from(tradeOrdersTable).where(eq(tradeOrdersTable.id, params.data.id));
   if (!order) { res.status(404).json({ error: "Order not found" }); return; }
@@ -275,7 +277,8 @@ router.get("/trade/orders/:id/tracking", requireAuth, async (req: AuthRequest, r
 
 // ── Get single order (buyer or supplier) ──────────────────────────────────────
 router.get("/trade/orders/:id", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  // Validation middleware injected elsewhere for IdParams); return; }
+  const params = IdParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid id" }); return; }
 
   const [order] = await db.select().from(tradeOrdersTable).where(eq(tradeOrdersTable.id, params.data.id));
   if (!order) { res.status(404).json({ error: "Order not found" }); return; }

@@ -3,7 +3,6 @@ import { db, adBoostsTable, businessesTable, transactionsTable } from "@workspac
 import { eq, and, desc, lte } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
-import { validateBody } from "../lib/validation";
 
 const router: IRouter = Router();
 
@@ -55,6 +54,9 @@ async function expireStaleBoosts(businessId: number): Promise<void> {
 const InitBoostSchema = z.object({
   tier: z.enum(["basic", "pro", "premium"]),
   durationDays: z.number().int().min(7).max(28).default(7),
+  channel: z.enum(["card", "mobile_money"]).default("mobile_money"),
+  momoPhone: z.string().optional(),
+  momoNetwork: z.enum(["MTN", "Vodafone", "AirtelTigo"]).optional(),
 });
 
 const VerifyBoostSchema = z.object({
@@ -119,8 +121,12 @@ router.get("/boosts/my", requireAuth, async (req: AuthRequest, res): Promise<voi
 
 // POST /api/boosts/initialize — create pending boost record for inline popup payment
 // Frontend opens Paystack popup with PUBLIC KEY; on success calls /api/boosts/verify
-router.post("/boosts/initialize", requireAuth, validateBody(InitBoostSchema), async (req: AuthRequest, res): Promise<void> => {
-  const { tier, durationDays } = req.body;
+router.post("/boosts/initialize", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const parsed = z.object({
+    tier: z.enum(["basic", "pro", "premium"]),
+    durationDays: z.number().int().min(7).max(28).default(7),
+  }).safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
   const [business] = await db
     .select()
@@ -132,8 +138,8 @@ router.post("/boosts/initialize", requireAuth, validateBody(InitBoostSchema), as
     return;
   }
 
-  const tierInfo = BOOST_TIERS[tier as BoostTier];
-  const weeks = durationDays / 7;
+  const tierInfo = BOOST_TIERS[parsed.data.tier as BoostTier];
+  const weeks = parsed.data.durationDays / 7;
   const amountGHS = tierInfo.pricePerWeek * weeks;
   const amountPesewas = Math.round(amountGHS * 100);
   const reference = `BOOST-${business.id}-${Date.now()}`;
@@ -142,8 +148,8 @@ router.post("/boosts/initialize", requireAuth, validateBody(InitBoostSchema), as
     .insert(adBoostsTable)
     .values({
       businessId: business.id,
-      tier: tier,
-      durationDays: durationDays,
+      tier: parsed.data.tier,
+      durationDays: parsed.data.durationDays,
       amount: amountGHS.toString(),
       currency: "GHS",
       paymentRef: reference,
@@ -161,17 +167,18 @@ router.post("/boosts/initialize", requireAuth, validateBody(InitBoostSchema), as
     providerRef: reference,
     channel: "card",
     status: "pending",
-    metadata: { boostId: boost.id, businessId: business.id, tier: tier },
+    metadata: { boostId: boost.id, businessId: business.id, tier: parsed.data.tier },
   });
 
   res.json({ reference, amountPesewas, boostId: boost.id });
 });
 
 // POST /api/boosts/verify — verify payment and activate boost
-router.post("/boosts/verify", requireAuth, validateBody(VerifyBoostSchema), async (req: AuthRequest, res): Promise<void> => {
-  const { boostId, reference } = req.body;
+router.post("/boosts/verify", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const parsed = VerifyBoostSchema.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
-  const [boost] = await db.select().from(adBoostsTable).where(eq(adBoostsTable.id, boostId));
+  const [boost] = await db.select().from(adBoostsTable).where(eq(adBoostsTable.id, parsed.data.boostId));
   if (!boost) { res.status(404).json({ error: "Boost not found" }); return; }
 
   const [business] = await db.select().from(businessesTable).where(eq(businessesTable.id, boost.businessId));

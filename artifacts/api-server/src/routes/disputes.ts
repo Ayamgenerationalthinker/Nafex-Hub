@@ -3,7 +3,6 @@ import { db, disputesTable, ordersTable, transactionsTable, businessesTable, not
 import { eq, desc, and } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
-import { validateBody, validateQuery } from "../lib/validation";
 
 const router: IRouter = Router();
 
@@ -41,7 +40,8 @@ function requireAdmin(req: AuthRequest, res: Parameters<typeof requireAuth>[1], 
 
 // Buyer: raise dispute
 router.post("/disputes", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  // Validation middleware injected elsewhere for CreateDisputeBody); return; }
+  const parsed = CreateDisputeBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, parsed.data.orderId));
   if (!order) { res.status(404).json({ error: "Order not found" }); return; }
@@ -112,7 +112,8 @@ router.get("/disputes", requireAuth, async (req: AuthRequest, res): Promise<void
 
 // Get single dispute (owner or admin)
 router.get("/disputes/:id", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  // Validation middleware injected elsewhere for DisputeParams); return; }
+  const params = DisputeParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid dispute id" }); return; }
 
   const [dispute] = await db.select().from(disputesTable).where(eq(disputesTable.id, params.data.id));
   if (!dispute) { res.status(404).json({ error: "Dispute not found" }); return; }
@@ -136,7 +137,8 @@ router.get("/admin/disputes", requireAuth, requireAdmin, async (_req, res): Prom
 
 // Admin: update dispute status (mark under review)
 router.patch("/admin/disputes/:id/review", requireAuth, requireAdmin, async (req: AuthRequest, res): Promise<void> => {
-  // Validation middleware injected elsewhere for DisputeParams); return; }
+  const params = DisputeParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid dispute id" }); return; }
 
   const [dispute] = await db.select().from(disputesTable).where(eq(disputesTable.id, params.data.id));
   if (!dispute) { res.status(404).json({ error: "Dispute not found" }); return; }
@@ -164,13 +166,11 @@ router.patch("/admin/disputes/:id/review", requireAuth, requireAdmin, async (req
 
 // Admin: resolve dispute
 router.patch("/admin/disputes/:id/resolve", requireAuth, requireAdmin, async (req: AuthRequest, res): Promise<void> => {
-  // Validation middleware injected elsewhere for DisputeParams); return; }
+  const params = DisputeParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid dispute id" }); return; }
 
-  // Validation middleware injected elsewhere for ResolveDisputeBody); return; }
-  if (parsed.data.processRefund && parsed.data.releasePayout) {
-    res.status(400).json({ error: "Choose either refund or payout release, not both" });
-    return;
-  }
+  const parsed = ResolveDisputeBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
   const [dispute] = await db.select().from(disputesTable).where(eq(disputesTable.id, params.data.id));
   if (!dispute) { res.status(404).json({ error: "Dispute not found" }); return; }

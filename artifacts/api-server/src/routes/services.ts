@@ -4,7 +4,6 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
 import { logAdminAction } from "../lib/log-admin-action";
-import { validateBody, validateQuery } from "../lib/validation";
 
 const router: IRouter = Router();
 
@@ -45,7 +44,9 @@ router.post("/admin/services", requireAuth, async (req: AuthRequest, res): Promi
     return;
   }
 
-  // Validation middleware injected elsewhere for ServiceBody);
+  const parsed = ServiceBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
     return;
   }
 
@@ -84,7 +85,9 @@ router.put("/admin/services/:id", requireAuth, async (req: AuthRequest, res): Pr
     return;
   }
 
-  // Validation middleware injected elsewhere for ServiceBody);
+  const parsed = ServiceBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
     return;
   }
 

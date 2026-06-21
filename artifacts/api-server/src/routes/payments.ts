@@ -4,7 +4,6 @@ import { eq, desc, and, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { createHmac } from "crypto";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
-import { validateBody, validateQuery } from "../lib/validation";
 
 const router: IRouter = Router();
 
@@ -120,15 +119,12 @@ router.post("/payments/paystack/verify", requireAuth, async (req: AuthRequest, r
     return;
   }
 
-  // Validation middleware injected elsewhere for VerifyPaymentBody); return; }
+  const parsed = VerifyPaymentBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, parsed.data.orderId));
   if (!order) { res.status(404).json({ error: "Order not found" }); return; }
   if (order.userId !== req.userId) { res.status(403).json({ error: "Not your order" }); return; }
-  if (order.paymentStatus !== "unpaid") {
-    res.status(409).json({ error: "Order payment has already been handled" });
-    return;
-  }
 
   try {
     const txData = await paystackGet<{
@@ -251,7 +247,8 @@ router.get("/admin/transactions", requireAuth, requireAdmin, async (_req, res): 
 // ── Admin: Release Payout ───────────────────────────────────────────────────
 
 router.post("/admin/payouts/:orderId", requireAuth, requireAdmin, async (req: AuthRequest, res): Promise<void> => {
-  // Validation middleware injected elsewhere for OrderParams); return; }
+  const params = OrderParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid order id" }); return; }
 
   // Atomic transition: only releases if status is still "in_escrow".
   // Two concurrent calls cannot both succeed.
@@ -306,7 +303,8 @@ router.post("/admin/payouts/:orderId", requireAuth, requireAdmin, async (req: Au
 // ── Admin: Process Refund ───────────────────────────────────────────────────
 
 router.post("/admin/refunds/:orderId", requireAuth, requireAdmin, async (req: AuthRequest, res): Promise<void> => {
-  // Validation middleware injected elsewhere for OrderParams); return; }
+  const params = OrderParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid order id" }); return; }
 
   const parsed = RefundBody.safeParse({ ...req.body, orderId: params.data.orderId });
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
