@@ -1,4 +1,8 @@
-.config/ 
-.local/ 
-node_modules/ 
-.pnpm-store/ 
+.config/
+.local/
+node_modules/
+.pnpm-store/
+
+dist/
+.replit-artifact/
+git_backup/
