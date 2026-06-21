@@ -7,12 +7,7 @@ import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import rateLimit from "express-rate-limit";
 import { sendAdminEmail, sendVerificationEmail } from "../lib/mailer";
-import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
-import jwt from "jsonwebtoken";
-import { validateBody } from "../lib/validation";
-import i18next from "i18next";
-import Backend from "i18next-fs-backend";
-import middleware from "i18next-http-middleware";
+import { requireAuth } from "../lib/auth-middleware";
 
 function generateVerificationCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -48,292 +43,265 @@ function validatePasswordStrength(password: string): string | null {
 }
 
 function generateToken(userId: number): string {
-  const payload = { userId };
-  const secret = process.env.JWT_SECRET || "dev-secret";
-  return jwt.sign(payload, secret, { expiresIn: `${TOKEN_EXPIRY_DAYS}d` });
+  const expiresAt = Date.now() + TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
+  const random = crypto.randomBytes(16).toString("hex");
+  const payload = `${userId}:${expiresAt}:${random}`;
+  return Buffer.from(payload).toString("base64");
 }
 
-export function parseToken(token: string): { userId: number } | null {
+export function parseToken(token: string): { userId: number; expiresAt: number } | null {
   try {
-    const secret = process.env.JWT_SECRET || "dev-secret";
-    const decoded = jwt.verify(token, secret) as { userId: number };
-    return { userId: decoded.userId };
+    const decoded = Buffer.from(token, "base64").toString("utf-8");
+    const parts = decoded.split(":");
+    if (parts.length < 2) return null;
+    const userId = parseInt(parts[0], 10);
+    const expiresAt = parseInt(parts[1], 10);
+    if (isNaN(userId) || isNaN(expiresAt)) return null;
+    if (Date.now() > expiresAt) return null;
+    return { userId, expiresAt };
   } catch {
     return null;
   }
 }
 
-// Register
-router.post(
-  "/auth/register",
-  authLimiter,
-  validateBody(RegisterBody),
-  async (req, res) => {
-    const { name, email, password, role } = (req as any).validatedBody;
-
-    const passwordError = validatePasswordStrength(password);
-    if (passwordError) {
-      res.status(400).json({ error: passwordError });
-      return;
-    }
-
-    if (role === "admin") {
-      res.status(403).json({ error: "Admin accounts cannot be created through registration" });
-      return;
-    }
-
-    const normalizedEmail = email.toLowerCase().trim();
-    const existing = await db.select().from(usersTable).where(eq(usersTable.email, normalizedEmail));
-    if (existing.length > 0) {
-      res.status(400).json({ error: "Email already registered" });
-      return;
-    }
-
-    const hashedPassword = await hashPassword(password);
-    const verificationCode = generateVerificationCode();
-    const verificationExpiry = new Date(Date.now() + VERIFICATION_TTL_MS);
-
-    const [user] = await db
-      .insert(usersTable)
-      .values({
-        name,
-        email: normalizedEmail,
-        password: hashedPassword,
-        role: role ?? "user",
-        emailVerified: false,
-        emailVerificationCode: verificationCode,
-        emailVerificationExpiry: verificationExpiry,
-      })
-      .returning();
-
-    const token = generateToken(user.id);
-
-    sendAdminEmail(
-      "New User Signup",
-      `A new user has registered on Nafex Hub.\n\nName: ${user.name}\nEmail: ${user.email}\nRole: ${user.role}\nDate: ${new Date().toUTCString()}`
-    );
-
-    sendVerificationEmail(user.email, user.name, verificationCode).catch(() => {});
-
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
-    });
-    res.status(201).json({
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        emailVerified: user.emailVerified,
-        createdAt: user.createdAt,
-      },
-      token,
-    });
+router.post("/auth/register", authLimiter, async (req, res): Promise<void> => {
+  const parsed = RegisterBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
   }
-);
 
-// Verify email
-router.post(
-  "/auth/verify-email",
-  authLimiter,
-  requireAuth,
-  validateBody(z.object({ code: z.string().regex(/^\d{6}$/, "Code must be 6 digits") })),
-  async (req: AuthRequest, res) => {
-    const { code } = (req as any).validatedBody;
-    const userId = req.userId!;
-    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
-    if (!user) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-    if (user.emailVerified) {
-      res.json({ message: "Email already verified", emailVerified: true });
-      return;
-    }
-    if (!user.emailVerificationCode || !user.emailVerificationExpiry) {
-      res.status(400).json({ error: "No pending verification. Request a new code." });
-      return;
-    }
-    if (user.emailVerificationExpiry.getTime() < Date.now()) {
-      res.status(400).json({ error: "Code has expired. Request a new one." });
-      return;
-    }
-    if (user.emailVerificationCode !== parsed.data.code) {
-      res.status(400).json({ error: "Incorrect code" });
-      return;
-    }
-    await db
-      .update(usersTable)
-      .set({ emailVerified: true, emailVerificationCode: null, emailVerificationExpiry: null })
-      .where(eq(usersTable.id, userId));
-    res.json({ message: "Email verified", emailVerified: true });
+  const { name, email, password, role } = parsed.data;
+
+  const passwordError = validatePasswordStrength(password);
+  if (passwordError) {
+    res.status(400).json({ error: passwordError });
+    return;
   }
-);
 
-// Resend verification
-router.post(
-  "/auth/resend-verification",
-  authLimiter,
-  requireAuth,
-  async (req: AuthRequest, res) => {
-    const userId = req.userId!;
-    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
-    if (!user) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-    if (user.emailVerified) {
-      res.json({ message: "Already verified" });
-      return;
-    }
-    const code = generateVerificationCode();
-    const expiry = new Date(Date.now() + VERIFICATION_TTL_MS);
-    await db
-      .update(usersTable)
-      .set({ emailVerificationCode: code, emailVerificationExpiry: expiry })
-      .where(eq(usersTable.id, userId));
-    const delivered = await sendVerificationEmail(user.email, user.name, code);
-    res.json({
-      message: delivered
-        ? "Verification code sent. Check your email."
-        : "Code generated but email delivery is not configured on the server.",
-      delivered,
-    });
+  if (role === "admin") {
+    res.status(403).json({ error: "Admin accounts cannot be created through registration" });
+    return;
   }
-);
 
-// Login
-router.post(
-  "/auth/login",
-  authLimiter,
-  validateBody(LoginBody),
-  async (req, res) => {
-    const { email, password } = (req as any).validatedBody;
-    const normalizedEmail = email.toLowerCase().trim();
-    const [user] = await db
-      .select()
-      .from(usersTable)
-      .where(eq(usersTable.email, normalizedEmail));
-    const passwordValid = user ? await verifyPassword(password, user.password) : false;
-    if (!user || !passwordValid) {
-      res.status(401).json({ error: "Invalid email or password" });
-      return;
-    }
-    const token = generateToken(user.id);
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
-    });
-    res.json({
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        emailVerified: user.emailVerified,
-        createdAt: user.createdAt,
-      },
-      token,
-    });
+  const normalizedEmail = email.toLowerCase().trim();
+
+  const existing = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.email, normalizedEmail));
+
+  if (existing.length > 0) {
+    res.status(400).json({ error: "Email already registered" });
+    return;
   }
-);
 
-// Get current user
-router.get(
-  "/auth/me",
-  async (req, res) => {
-    let token = null;
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      token = authHeader.slice(7);
-    } else if (req.cookies && req.cookies.token) {
-      token = req.cookies.token;
-    }
-    if (!token) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-    const parsed = parseToken(token);
-    if (!parsed) {
-      res.status(401).json({ error: "Invalid or expired token" });
-      return;
-    }
-    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, parsed.userId));
-    if (!user) {
-      res.status(401).json({ error: "User not found" });
-      return;
-    }
-    res.json({
+  const hashedPassword = await hashPassword(password);
+  const verificationCode = generateVerificationCode();
+  const verificationExpiry = new Date(Date.now() + VERIFICATION_TTL_MS);
+
+  const [user] = await db
+    .insert(usersTable)
+    .values({
+      name,
+      email: normalizedEmail,
+      password: hashedPassword,
+      role: role ?? "user",
+      emailVerified: false,
+      emailVerificationCode: verificationCode,
+      emailVerificationExpiry: verificationExpiry,
+    })
+    .returning();
+
+  const token = generateToken(user.id);
+
+  sendAdminEmail(
+    "New User Signup",
+    `A new user has registered on Nafex Hub.\n\nName: ${user.name}\nEmail: ${user.email}\nRole: ${user.role}\nDate: ${new Date().toUTCString()}`
+  );
+
+  // Fire-and-forget verification email; user is still logged in either way.
+  sendVerificationEmail(user.email, user.name, verificationCode).catch(() => {});
+
+  res.status(201).json({
+    user: {
       id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
       emailVerified: user.emailVerified,
       createdAt: user.createdAt,
-    });
-  }
-);
+    },
+    token,
+  });
+});
 
-// Update profile
-router.patch(
-  "/auth/profile",
-  requireAuth,
-  validateBody(z.object({ name: z.string().min(1).max(100) })),
-  async (req: AuthRequest, res) => {
-    const { name } = (req as any).validatedBody;
-    const userId = req.userId!;
-    const [updated] = await db
-      .update(usersTable)
-      .set({ name })
-      .where(eq(usersTable.id, userId))
-      .returning();
-    res.json({ id: updated.id, name: updated.name, email: updated.email, role: updated.role, createdAt: updated.createdAt });
+// Verify email with 6-digit code emailed at signup. Rate-limited to deter brute force.
+router.post("/auth/verify-email", authLimiter, requireAuth, async (req, res): Promise<void> => {
+  const schema = z.object({ code: z.string().regex(/^\d{6}$/, "Code must be 6 digits") });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.issues[0]?.message ?? "Invalid code" });
+    return;
   }
-);
+  const userId = (req as { user?: { id: number } }).user!.id;
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
+  if (user.emailVerified) { res.json({ message: "Email already verified", emailVerified: true }); return; }
+  if (!user.emailVerificationCode || !user.emailVerificationExpiry) {
+    res.status(400).json({ error: "No pending verification. Request a new code." });
+    return;
+  }
+  if (user.emailVerificationExpiry.getTime() < Date.now()) {
+    res.status(400).json({ error: "Code has expired. Request a new one." });
+    return;
+  }
+  if (user.emailVerificationCode !== parsed.data.code) {
+    res.status(400).json({ error: "Incorrect code" });
+    return;
+  }
+  await db
+    .update(usersTable)
+    .set({ emailVerified: true, emailVerificationCode: null, emailVerificationExpiry: null })
+    .where(eq(usersTable.id, userId));
+  res.json({ message: "Email verified", emailVerified: true });
+});
 
-// Change password
-router.patch(
-  "/auth/password",
-  requireAuth,
-  validateBody(z.object({ currentPassword: z.string().min(1), newPassword: z.string().min(8) })),
-  async (req: AuthRequest, res) => {
-    const { currentPassword, newPassword } = (req as any).validatedBody;
-    const userId = req.userId!;
-    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
-    if (!user) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-    const valid = await verifyPassword(currentPassword, user.password);
-    if (!valid) {
-      res.status(400).json({ error: "Current password is incorrect" });
-      return;
-    }
-    const strengthErr = validatePasswordStrength(newPassword);
-    if (strengthErr) {
-      res.status(400).json({ error: strengthErr });
-      return;
-    }
-    const hashed = await hashPassword(newPassword);
-    await db.update(usersTable).set({ password: hashed }).where(eq(usersTable.id, userId));
-    res.json({ message: "Password changed successfully" });
-  }
-);
+// Resend verification code (rate-limited).
+router.post("/auth/resend-verification", authLimiter, requireAuth, async (req, res): Promise<void> => {
+  const userId = (req as { user?: { id: number } }).user!.id;
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
+  if (user.emailVerified) { res.json({ message: "Already verified" }); return; }
+  const code = generateVerificationCode();
+  const expiry = new Date(Date.now() + VERIFICATION_TTL_MS);
+  await db
+    .update(usersTable)
+    .set({ emailVerificationCode: code, emailVerificationExpiry: expiry })
+    .where(eq(usersTable.id, userId));
+  const delivered = await sendVerificationEmail(user.email, user.name, code);
+  res.json({
+    message: delivered
+      ? "Verification code sent. Check your email."
+      : "Code generated but email delivery is not configured on the server.",
+    delivered,
+  });
+});
 
-// Delete account
-router.delete(
-  "/auth/account",
-  requireAuth,
-  async (req: AuthRequest, res) => {
-    const userId = req.userId!;
-    await db.delete(usersTable).where(eq(usersTable.id, userId));
-    res.json({ message: "Account deleted" });
+router.post("/auth/login", authLimiter, async (req, res): Promise<void> => {
+  const parsed = LoginBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
   }
-);
+
+  const { email, password } = parsed.data;
+  const normalizedEmail = email.toLowerCase().trim();
+
+  const [user] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.email, normalizedEmail));
+
+  const passwordValid = user ? await verifyPassword(password, user.password) : false;
+
+  if (!user || !passwordValid) {
+    res.status(401).json({ error: "Invalid email or password" });
+    return;
+  }
+
+  const token = generateToken(user.id);
+
+  res.json({
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      emailVerified: user.emailVerified,
+      createdAt: user.createdAt,
+    },
+    token,
+  });
+});
+
+router.get("/auth/me", async (req, res): Promise<void> => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+
+  const token = authHeader.slice(7);
+  const parsed = parseToken(token);
+
+  if (!parsed) {
+    res.status(401).json({ error: "Invalid or expired token" });
+    return;
+  }
+
+  const [user] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.id, parsed.userId));
+
+  if (!user) {
+    res.status(401).json({ error: "User not found" });
+    return;
+  }
+
+  res.json({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    emailVerified: user.emailVerified,
+    createdAt: user.createdAt,
+  });
+});
+
+router.patch("/auth/profile", requireAuth, async (req, res): Promise<void> => {
+  const schema = z.object({ name: z.string().min(1).max(100) });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Name is required" });
+    return;
+  }
+  const userId = (req as { user?: { id: number } }).user!.id;
+  const [updated] = await db
+    .update(usersTable)
+    .set({ name: parsed.data.name })
+    .where(eq(usersTable.id, userId))
+    .returning();
+  res.json({ id: updated.id, name: updated.name, email: updated.email, role: updated.role, createdAt: updated.createdAt });
+});
+
+router.patch("/auth/password", requireAuth, async (req, res): Promise<void> => {
+  const schema = z.object({
+    currentPassword: z.string().min(1),
+    newPassword: z.string().min(8),
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid input" });
+    return;
+  }
+  const userId = (req as { user?: { id: number } }).user!.id;
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
+  const valid = await verifyPassword(parsed.data.currentPassword, user.password);
+  if (!valid) { res.status(400).json({ error: "Current password is incorrect" }); return; }
+  const strengthErr = validatePasswordStrength(parsed.data.newPassword);
+  if (strengthErr) { res.status(400).json({ error: strengthErr }); return; }
+  const hashed = await hashPassword(parsed.data.newPassword);
+  await db.update(usersTable).set({ password: hashed }).where(eq(usersTable.id, userId));
+  res.json({ message: "Password changed successfully" });
+});
+
+router.delete("/auth/account", requireAuth, async (req, res): Promise<void> => {
+  const userId = (req as { user?: { id: number } }).user!.id;
+  await db.delete(usersTable).where(eq(usersTable.id, userId));
+  res.json({ message: "Account deleted" });
+});
 
 export default router;

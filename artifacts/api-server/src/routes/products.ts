@@ -3,9 +3,7 @@ import { db, productsTable, businessesTable, favoritesTable, collectionsTable, r
 import { and, desc, eq, ilike, isNotNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, optionalAuth, type AuthRequest } from "../lib/auth-middleware";
-import { validateBody } from "../lib/validation";
 import { logAdminAction } from "../lib/log-admin-action";
-import { optimizeListing } from "../lib/listing-optimizer";
 
 const router: IRouter = Router();
 
@@ -80,7 +78,9 @@ router.delete("/admin/product/:id", requireAuth, async (req: AuthRequest, res): 
     return;
   }
 
-  // Validation middleware injected elsewhere for IdParam);
+  const params = IdParam.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: "Invalid id" });
     return;
   }
 
@@ -168,44 +168,10 @@ router.get("/products", async (req, res): Promise<void> => {
   res.json(rows);
 });
 
-// POST /products/optimize-listing — AI-assisted title & description (seller)
-router.post("/products/optimize-listing", requireAuth, validateBody(z.object({
-  name: z.string().min(1),
-  description: z.string().optional(),
-  price: z.string().optional(),
-  category: z.string().optional(),
-  businessId: z.number().int().positive().optional(),
-})), async (req: AuthRequest, res): Promise<void> => {
-  const data = req.body;
-
-  if (data.businessId) {
-    const [biz] = await db
-      .select({ ownerId: businessesTable.ownerId, category: businessesTable.category })
-      .from(businessesTable)
-      .where(eq(businessesTable.id, data.businessId));
-
-    if (!biz || (biz.ownerId !== req.userId && req.user?.role !== "admin")) {
-      res.status(403).json({ error: "Forbidden" });
-      return;
-    }
-
-    const suggestion = await optimizeListing({
-      name: data.name,
-      description: data.description,
-      price: data.price,
-      category: data.category ?? biz.category,
-    });
-    res.json(suggestion);
-    return;
-  }
-
-  const suggestion = await optimizeListing(data);
-  res.json(suggestion);
-});
-
 // GET /businesses/:businessId/products
 router.get("/businesses/:businessId/products", async (req, res): Promise<void> => {
-  // Validation middleware injected elsewhere for BusinessIdParam); return; }
+  const params = BusinessIdParam.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid id" }); return; }
 
   const rows = await db
     .select()
@@ -218,7 +184,8 @@ router.get("/businesses/:businessId/products", async (req, res): Promise<void> =
 
 // GET /products/:id
 router.get("/products/:id", optionalAuth, async (req: AuthRequest, res): Promise<void> => {
-  // Validation middleware injected elsewhere for IdParam); return; }
+  const params = IdParam.safeParse(req.params);
+  if (!params.success) { res.status(404).json({ error: "Not found" }); return; }
 
   const [product] = await db
     .select({
@@ -267,8 +234,9 @@ router.get("/products/:id", optionalAuth, async (req: AuthRequest, res): Promise
 });
 
 // POST /products - create (auth required, must own business)
-router.post("/products", requireAuth, validateBody(CreateBody), async (req: AuthRequest, res): Promise<void> => {
-// Validation moved to middleware
+router.post("/products", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const parsed = CreateBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
   const bizId = Number(req.body.businessId);
   if (!bizId) { res.status(400).json({ error: "businessId required" }); return; }
@@ -293,7 +261,8 @@ router.post("/products", requireAuth, validateBody(CreateBody), async (req: Auth
 
 // PUT /products/:id
 router.put("/products/:id", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  // Validation middleware injected elsewhere for IdParam); return; }
+  const params = IdParam.safeParse(req.params);
+  if (!params.success) { res.status(404).json({ error: "Not found" }); return; }
 
   const [existing] = await db
     .select({ businessId: productsTable.businessId })
@@ -322,10 +291,12 @@ router.put("/products/:id", requireAuth, async (req: AuthRequest, res): Promise<
 });
 
 // PATCH /products/:id/collection
-router.patch("/products/:id/collection", requireAuth, validateBody(z.object({ collectionId: z.number().int().positive().nullable() })), async (req: AuthRequest, res): Promise<void> => {
-  // Validation middleware injected elsewhere for IdParam); return; }
+router.patch("/products/:id/collection", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const params = IdParam.safeParse(req.params);
+  if (!params.success) { res.status(404).json({ error: "Not found" }); return; }
 
-// Validation moved to middleware
+  const body = z.object({ collectionId: z.number().int().positive().nullable() }).safeParse(req.body);
+  if (!body.success) { res.status(400).json({ error: "collectionId must be a positive integer or null" }); return; }
 
   const [existing] = await db
     .select({ businessId: productsTable.businessId })
@@ -366,10 +337,12 @@ router.patch("/products/:id/collection", requireAuth, validateBody(z.object({ co
 });
 
 // PATCH /products/:id/stock
-router.patch("/products/:id/stock", requireAuth, validateBody(UpdateStockBody), async (req: AuthRequest, res): Promise<void> => {
-  // Validation middleware injected elsewhere for IdParam); return; }
+router.patch("/products/:id/stock", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const params = IdParam.safeParse(req.params);
+  if (!params.success) { res.status(404).json({ error: "Not found" }); return; }
 
-// Validation moved to middleware
+  const parsed = UpdateStockBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "stock must be a non-negative integer or null" }); return; }
 
   const [existing] = await db
     .select({ businessId: productsTable.businessId })
@@ -399,7 +372,8 @@ router.patch("/products/:id/stock", requireAuth, validateBody(UpdateStockBody), 
 
 // DELETE /products/:id
 router.delete("/products/:id", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  // Validation middleware injected elsewhere for IdParam); return; }
+  const params = IdParam.safeParse(req.params);
+  if (!params.success) { res.status(404).json({ error: "Not found" }); return; }
 
   const [existing] = await db
     .select({ businessId: productsTable.businessId })
@@ -423,16 +397,7 @@ router.delete("/products/:id", requireAuth, async (req: AuthRequest, res): Promi
 });
 
 // POST /products/bulk — create up to 50 products at once
-router.post("/products/bulk", requireAuth, validateBody(z.object({
-  businessId: z.number().int().positive(),
-  products: z.array(z.object({
-    name: z.string().min(1),
-    description: z.string().default(""),
-    price: z.string().regex(/^\\d+(\\.\\d{1,2})?$/),
-    images: z.array(z.string()).default([]),
-    stock: z.number().int().min(0).nullable().optional(),
-  })).min(1).max(50),
-})), async (req: AuthRequest, res): Promise<void> => {
+router.post("/products/bulk", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   const BulkBody = z.object({
     businessId: z.number().int().positive(),
     products: z.array(z.object({
@@ -444,7 +409,8 @@ router.post("/products/bulk", requireAuth, validateBody(z.object({
     })).min(1).max(50),
   });
 
-// Validation moved to middleware
+  const parsed = BulkBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
   const [business] = await db
     .select()
@@ -471,18 +437,15 @@ router.post("/products/bulk", requireAuth, validateBody(z.object({
 });
 
 // POST /products/bulk-discount — apply or clear discount % on selected products
-router.post("/products/bulk-discount", requireAuth, validateBody(z.object({
-  businessId: z.number().int().positive(),
-  productIds: z.array(z.number().int().positive()).min(1).max(200),
-  discountPercent: z.number().min(0).max(90).nullable(),
-})), async (req: AuthRequest, res): Promise<void> => {
+router.post("/products/bulk-discount", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   const BulkDiscountBody = z.object({
     businessId: z.number().int().positive(),
     productIds: z.array(z.number().int().positive()).min(1).max(200),
     discountPercent: z.number().min(0).max(90).nullable(),
   });
 
-// Validation moved to middleware
+  const parsed = BulkDiscountBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
   const [business] = await db
     .select()

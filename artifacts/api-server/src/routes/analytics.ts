@@ -3,7 +3,6 @@ import { db, analyticsEventsTable } from "@workspace/db";
 import { eq, and, gte } from "drizzle-orm";
 import { z } from "zod";
 import { optionalAuth, type AuthRequest } from "../lib/auth-middleware";
-import { validateBody, validateQuery } from "../lib/validation";
 
 const router: IRouter = Router();
 
@@ -17,7 +16,9 @@ const AnalyticsParams = z.object({
 });
 
 router.post("/analytics/track", optionalAuth, async (req: AuthRequest, res): Promise<void> => {
-  // Validation middleware injected elsewhere for TrackEventBody);
+  const parsed = TrackEventBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
     return;
   }
 
@@ -31,7 +32,9 @@ router.post("/analytics/track", optionalAuth, async (req: AuthRequest, res): Pro
 });
 
 router.get("/analytics/business/:businessId", async (req, res): Promise<void> => {
-  // Validation middleware injected elsewhere for AnalyticsParams);
+  const params = AnalyticsParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
     return;
   }
 

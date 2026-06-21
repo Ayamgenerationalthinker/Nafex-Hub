@@ -3,7 +3,6 @@ import { db, reviewsTable, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
-import { validateBody, validateQuery } from "../lib/validation";
 
 const router: IRouter = Router();
 
@@ -18,7 +17,9 @@ const GetReviewsParams = z.object({
 });
 
 router.get("/businesses/:id/reviews", async (req, res): Promise<void> => {
-  // Validation middleware injected elsewhere for GetReviewsParams);
+  const params = GetReviewsParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
     return;
   }
 
@@ -41,7 +42,9 @@ router.get("/businesses/:id/reviews", async (req, res): Promise<void> => {
 });
 
 router.post("/reviews", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  // Validation middleware injected elsewhere for CreateReviewBody);
+  const parsed = CreateReviewBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
     return;
   }
 

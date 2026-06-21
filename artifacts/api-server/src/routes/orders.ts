@@ -1,10 +1,9 @@
 import { Router, type IRouter } from "express";
 import { db, ordersTable, businessesTable, notificationsTable, usersTable } from "@workspace/db";
-import { eq, desc, inArray } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, requireVerified, type AuthRequest } from "../lib/auth-middleware";
 import { sendAdminEmail, sendDeliveryOtpEmail } from "../lib/mailer";
-import { validateBody } from "../lib/validation";
 import { notifyAllAdmins } from "../lib/notify";
 
 const router: IRouter = Router();
@@ -43,44 +42,37 @@ const ConfirmDeliveryBody = z.object({
 });
 
 async function attachBusinessDetails(orders: typeof ordersTable.$inferSelect[]) {
-  if (orders.length === 0) return [];
-
-  const businessIds = [...new Set(orders.map((order) => order.businessId))];
-  const businesses = await db
-    .select({
-      id: businessesTable.id,
-      name: businessesTable.name,
-      logo: businessesTable.logo,
+  return Promise.all(
+    orders.map(async (order) => {
+      const [business] = await db
+        .select({ name: businessesTable.name, logo: businessesTable.logo })
+        .from(businessesTable)
+        .where(eq(businessesTable.id, order.businessId));
+      return {
+        ...order,
+        businessName: business?.name ?? null,
+        businessLogo: business?.logo ?? null,
+      };
     })
-    .from(businessesTable)
-    .where(inArray(businessesTable.id, businessIds));
-
-  const businessById = new Map(
-    businesses.map((business) => [business.id, business] as const)
   );
-
-  return orders.map((order) => {
-    const business = businessById.get(order.businessId);
-    return {
-      ...order,
-      businessName: business?.name ?? null,
-      businessLogo: business?.logo ?? null,
-    };
-  });
 }
 
 // Create order
-router.post("/orders", requireAuth, requireVerified, validateBody(CreateOrderBody), async (req: AuthRequest, res): Promise<void> => {
-  const data = (req as any).validatedBody;
+router.post("/orders", requireAuth, requireVerified, async (req: AuthRequest, res): Promise<void> => {
+  const parsed = CreateOrderBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
 
   const [order] = await db
     .insert(ordersTable)
     .values({
       userId: req.userId!,
-      businessId: data.businessId,
-      items: data.items,
-      totalPrice: data.totalPrice,
-      notes: data.notes,
+      businessId: parsed.data.businessId,
+      items: parsed.data.items,
+      totalPrice: parsed.data.totalPrice,
+      notes: parsed.data.notes,
       status: "pending",
       paymentStatus: "unpaid",
     })
@@ -122,10 +114,12 @@ router.post("/orders", requireAuth, requireVerified, validateBody(CreateOrderBod
 });
 
 // Buyer: submit mobile money payment reference → lock escrow
-router.post("/orders/:id/pay", requireAuth, validateBody(PayBody), async (req: AuthRequest, res): Promise<void> => {
-  // Validation middleware injected elsewhere for OrderParams); return; }
+router.post("/orders/:id/pay", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const params = OrderParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid order id" }); return; }
 
-  const data = (req as any).validatedBody;
+  const parsed = PayBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "reference is required" }); return; }
 
   const [existing] = await db.select().from(ordersTable).where(eq(ordersTable.id, params.data.id));
   if (!existing) { res.status(404).json({ error: "Order not found" }); return; }
@@ -134,7 +128,7 @@ router.post("/orders/:id/pay", requireAuth, validateBody(PayBody), async (req: A
 
   const [updated] = await db
     .update(ordersTable)
-    .set({ paymentStatus: "in_escrow", paymentReference: data.reference, updatedAt: new Date() })
+    .set({ paymentStatus: "in_escrow", paymentReference: parsed.data.reference, updatedAt: new Date() })
     .where(eq(ordersTable.id, params.data.id))
     .returning();
 
@@ -187,21 +181,29 @@ router.get("/orders/business", requireAuth, async (req: AuthRequest, res): Promi
   if (businesses.length === 0) { res.json([]); return; }
 
   const businessIds = businesses.map((b) => b.id);
-  const orders = await db
-    .select()
-    .from(ordersTable)
-    .where(inArray(ordersTable.businessId, businessIds))
-    .orderBy(desc(ordersTable.createdAt));
+  const allOrders: typeof ordersTable.$inferSelect[] = [];
 
-  const withDetails = await attachBusinessDetails(orders);
+  for (const bizId of businessIds) {
+    const bizOrders = await db
+      .select()
+      .from(ordersTable)
+      .where(eq(ordersTable.businessId, bizId))
+      .orderBy(desc(ordersTable.createdAt));
+    allOrders.push(...bizOrders);
+  }
+
+  allOrders.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  const withDetails = await attachBusinessDetails(allOrders);
   res.json(withDetails);
 });
 
 // Seller: update order status
-router.patch("/orders/:id/status", requireAuth, validateBody(UpdateStatusBody), async (req: AuthRequest, res): Promise<void> => {
-  // Validation middleware injected elsewhere for OrderParams); return; }
+router.patch("/orders/:id/status", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const params = OrderParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
 
-  const data = (req as any).validatedBody;
+  const parsed = UpdateStatusBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
   // Verify the user owns the business for this order
   const [existing] = await db.select().from(ordersTable).where(eq(ordersTable.id, params.data.id));
@@ -217,38 +219,8 @@ router.patch("/orders/:id/status", requireAuth, validateBody(UpdateStatusBody), 
     return;
   }
 
-  if (["delivered", "cancelled"].includes(existing.status)) {
-    res.status(409).json({ error: "Finalized orders cannot be updated" });
-    return;
-  }
-
-  // Enforce a strict seller fulfillment flow.
-  const allowedNextByStatus: Record<string, string[]> = {
-    pending: ["confirmed", "cancelled"],
-    confirmed: ["packed", "cancelled"],
-    packed: ["out_for_delivery", "cancelled"],
-    out_for_delivery: [],
-  };
-  const allowedNext = allowedNextByStatus[existing.status] ?? [];
-  if (!allowedNext.includes(data.status)) {
-    res.status(409).json({
-      error: `Invalid status transition from "${existing.status}" to "${parsed.data.status}"`,
-    });
-    return;
-  }
-
-  // Seller should not fulfill unpaid orders.
-  const movingForward =
-    parsed.data.status === "confirmed" ||
-    parsed.data.status === "packed" ||
-    parsed.data.status === "out_for_delivery";
-  if (movingForward && existing.paymentStatus === "unpaid") {
-    res.status(409).json({ error: "Buyer payment is still pending" });
-    return;
-  }
-
   const updateFields: Partial<typeof ordersTable.$inferInsert> & { updatedAt: Date; deliveryOtp?: string | null; deliveryOtpExpiry?: Date | null } = {
-    status: data.status,
+    status: parsed.data.status,
     updatedAt: new Date(),
   };
 
@@ -313,10 +285,12 @@ router.patch("/orders/:id/status", requireAuth, validateBody(UpdateStatusBody), 
 });
 
 // Seller: confirm delivery by OTP → mark delivered + release escrow
-router.post("/orders/:id/confirm-delivery", requireAuth, validateBody(ConfirmDeliveryBody), async (req: AuthRequest, res): Promise<void> => {
-  // Validation middleware injected elsewhere for OrderParams); return; }
+router.post("/orders/:id/confirm-delivery", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const params = OrderParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid order id" }); return; }
 
-  const data = (req as any).validatedBody;
+  const parsed = ConfirmDeliveryBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "A 6-digit OTP is required" }); return; }
 
   const [existing] = await db.select().from(ordersTable).where(eq(ordersTable.id, params.data.id));
   if (!existing) { res.status(404).json({ error: "Order not found" }); return; }
@@ -336,7 +310,7 @@ router.post("/orders/:id/confirm-delivery", requireAuth, validateBody(ConfirmDel
     return;
   }
 
-  if (!existing.deliveryOtp || existing.deliveryOtp !== data.otp) {
+  if (!existing.deliveryOtp || existing.deliveryOtp !== parsed.data.otp) {
     res.status(400).json({ error: "Invalid OTP" });
     return;
   }
@@ -381,7 +355,8 @@ router.post("/orders/:id/confirm-delivery", requireAuth, validateBody(ConfirmDel
 
 // ── Buyer confirms delivery → escrow auto-released ──────────────────────────
 router.post("/orders/:id/buyer-confirm", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  // Validation middleware injected elsewhere for OrderParams); return; }
+  const params = OrderParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid order id" }); return; }
 
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, params.data.id));
   if (!order) { res.status(404).json({ error: "Order not found" }); return; }
@@ -439,13 +414,12 @@ router.post("/orders/:id/buyer-confirm", requireAuth, async (req: AuthRequest, r
 
 // Seller clients
 router.get("/orders/business/clients", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const businesses = await db
+  const [business] = await db
     .select({ id: businessesTable.id })
     .from(businessesTable)
     .where(eq(businessesTable.ownerId, req.userId!));
 
-  if (businesses.length === 0) { res.json([]); return; }
-  const businessIds = businesses.map((business) => business.id);
+  if (!business) { res.json([]); return; }
 
   const orders = await db
     .select({
@@ -458,7 +432,7 @@ router.get("/orders/business/clients", requireAuth, async (req: AuthRequest, res
     })
     .from(ordersTable)
     .leftJoin(usersTable, eq(ordersTable.userId, usersTable.id))
-    .where(inArray(ordersTable.businessId, businessIds))
+    .where(eq(ordersTable.businessId, business.id))
     .orderBy(desc(ordersTable.createdAt));
 
   // Only count buyers who have at least one successfully delivered order
