@@ -18,6 +18,16 @@ import { sendAdminEmail } from "../lib/mailer";
 
 const router: IRouter = Router();
 
+// Paystack Helper for server-side requests
+import { paystackPost } from "./payments";
+
+const SettlementBody = z.object({
+  type: z.enum(["momo", "nuban"]),
+  name: z.string().min(1),
+  account_number: z.string().min(1),
+  bank_code: z.string().min(1),
+});
+
 // Helper to select all business fields + review stats
 const bizWithStats = {
   id: businessesTable.id,
@@ -241,6 +251,43 @@ router.put("/businesses/:id", requireAuth, async (req: AuthRequest, res): Promis
     .returning();
 
   res.json(business);
+});
+
+// Add payout settlement details
+router.post("/businesses/:id/settlement", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const params = UpdateBusinessParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+  
+  const parsed = SettlementBody.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+
+  const [existing] = await db.select().from(businessesTable).where(eq(businessesTable.id, params.data.id));
+  if (!existing) { res.status(404).json({ error: "Business not found" }); return; }
+  if (existing.ownerId !== req.userId) { res.status(403).json({ error: "Unauthorized" }); return; }
+
+  try {
+    const paystackRes = await paystackPost<{ recipient_code: string }>("/transferrecipient", {
+      type: parsed.data.type,
+      name: parsed.data.name,
+      account_number: parsed.data.account_number,
+      bank_code: parsed.data.bank_code,
+      currency: "GHS",
+    });
+
+    const [updated] = await db
+      .update(businessesTable)
+      .set({
+        paystackRecipientCode: paystackRes.recipient_code,
+        settlementBank: parsed.data.bank_code,
+        settlementAccount: parsed.data.account_number,
+      })
+      .where(eq(businessesTable.id, params.data.id))
+      .returning();
+
+    res.json(updated);
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
 });
 
 router.delete("/businesses/:id", requireAuth, async (req: AuthRequest, res): Promise<void> => {

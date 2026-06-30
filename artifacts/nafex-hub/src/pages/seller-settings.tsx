@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { User, KeyRound, Trash2, ShieldAlert, Store, ArrowRight } from "lucide-react";
+import { User, KeyRound, Trash2, ShieldAlert, Store, ArrowRight, Wallet, Loader2 } from "lucide-react";
 import { Link } from "wouter";
+import { useGetDashboardStats } from "@workspace/api-client-react";
 
 export default function SellerSettings() {
   const { user, logout } = useAuth();
@@ -21,6 +22,15 @@ export default function SellerSettings() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const { data: stats } = useGetDashboardStats();
+  const businessId = (stats as { businessId?: number } | undefined)?.businessId;
+
+  const [payoutType, setPayoutType] = useState<"momo" | "nuban">("momo");
+  const [payoutName, setPayoutName] = useState("");
+  const [payoutAccount, setPayoutAccount] = useState("");
+  const [payoutBankCode, setPayoutBankCode] = useState("MTN"); // Default MTN
+  const [savingPayout, setSavingPayout] = useState(false);
 
   const { mutate: updateProfile, isPending: updatingProfile } = useUpdateProfile({
     mutation: {
@@ -90,6 +100,35 @@ export default function SellerSettings() {
     deleteAccount();
   }
 
+  async function handleSavePayout() {
+    if (!businessId) return;
+    if (!payoutName.trim() || !payoutAccount.trim() || !payoutBankCode.trim()) {
+      toast({ title: "Please fill all fields", variant: "destructive" });
+      return;
+    }
+    setSavingPayout(true);
+    try {
+      const token = localStorage.getItem("nafex_token");
+      const res = await fetch(`/api/businesses/${businessId}/settlement`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          type: payoutType,
+          name: payoutName.trim(),
+          account_number: payoutAccount.trim(),
+          bank_code: payoutBankCode,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed to save payout settings");
+      toast({ title: "Payout Settings Saved", description: "Your account has been linked successfully." });
+    } catch (err) {
+      toast({ title: "Error", description: (err as Error).message, variant: "destructive" });
+    } finally {
+      setSavingPayout(false);
+    }
+  }
+
   return (
     <div className="container mx-auto px-4 md:px-8 py-10 max-w-3xl">
       <div className="mb-8">
@@ -112,6 +151,11 @@ export default function SellerSettings() {
           <TabsTrigger value="personal" className="gap-2">
             <User className="w-4 h-4" /> Personal Details
           </TabsTrigger>
+          {businessId && (
+            <TabsTrigger value="payouts" className="gap-2">
+              <Wallet className="w-4 h-4" /> Payout Settings
+            </TabsTrigger>
+          )}
           <TabsTrigger value="security" className="gap-2">
             <KeyRound className="w-4 h-4" /> Security
           </TabsTrigger>
@@ -163,6 +207,76 @@ export default function SellerSettings() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* ── Payout Settings ── */}
+        {businessId && (
+          <TabsContent value="payouts">
+            <Card>
+              <CardHeader>
+                <CardTitle>Automated Payouts</CardTitle>
+                <CardDescription>Link your Mobile Money or Bank Account to receive instant payouts when buyers confirm delivery.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Account Type</Label>
+                    <select
+                      value={payoutType}
+                      onChange={(e) => setPayoutType(e.target.value as "momo" | "nuban")}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="momo">Mobile Money</option>
+                      <option value="nuban">Bank Account</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Network / Bank Code</Label>
+                    {payoutType === "momo" ? (
+                      <select
+                        value={payoutBankCode}
+                        onChange={(e) => setPayoutBankCode(e.target.value)}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <option value="MTN">MTN Momo</option>
+                        <option value="VOD">Vodafone Cash</option>
+                        <option value="ATL">AirtelTigo Money</option>
+                      </select>
+                    ) : (
+                      <Input
+                        value={payoutBankCode}
+                        onChange={(e) => setPayoutBankCode(e.target.value)}
+                        placeholder="e.g. 044 (Access Bank)"
+                      />
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Account Name</Label>
+                  <Input
+                    value={payoutName}
+                    onChange={(e) => setPayoutName(e.target.value)}
+                    placeholder="Exact name registered on the account"
+                  />
+                  <p className="text-xs text-muted-foreground">Must match the registered name exactly or transfers will fail.</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Account Number / Momo Number</Label>
+                  <Input
+                    value={payoutAccount}
+                    onChange={(e) => setPayoutAccount(e.target.value)}
+                    placeholder="e.g. 0541234567"
+                  />
+                </div>
+
+                <Button onClick={handleSavePayout} disabled={savingPayout} className="w-full sm:w-auto">
+                  {savingPayout ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</> : "Save Payout Details"}
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
 
         {/* ── Security ── */}
         <TabsContent value="security">
