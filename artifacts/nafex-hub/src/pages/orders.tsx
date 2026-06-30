@@ -81,6 +81,7 @@ type OrderWithDetails = {
 
 function PayWithPaystackDialog({
   order,
+  milestoneId,
   open,
   onClose,
   onSuccess,
