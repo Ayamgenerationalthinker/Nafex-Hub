@@ -22,6 +22,7 @@ export const ordersTable = pgTable("orders", {
   deliveryOtp: text("delivery_otp"),
   deliveryOtpExpiry: timestamp("delivery_otp_expiry", { withTimezone: true }),
   notes: text("notes"),
+  coinsApplied: integer("coins_applied").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });

@@ -15,6 +15,7 @@ export default function Cart() {
   const { toast } = useToast();
   const [placing, setPlacing] = useState(false);
   const [promoCode, setPromoCode] = useState("");
+  const [useCoins, setUseCoins] = useState(false);
 
   const grouped = items.reduce<Record<number, { businessName: string; items: typeof items }>>(
     (acc, item) => {
@@ -25,29 +26,35 @@ export default function Cart() {
     {}
   );
 
+  const maxCoins = user ? Math.min(user.loyaltyPoints || 0, Math.floor(totalPrice() * 5)) : 0;
+  const discountGHS = useCoins ? maxCoins * 0.20 : 0;
+
   async function checkoutAll() {
-    if (!user) { navigate("/login"); return; }
-    if (!user.emailVerified) { navigate("/verify-email"); return; }
-    if (items.length === 0) return;
+    if (!user || !token) {
+      toast({ title: "Please login to checkout" });
+      navigate("/login");
+      return;
+    }
 
     setPlacing(true);
     let hasError = false;
-    
-    // Process each business as a separate order
-    for (const [businessIdStr, group] of Object.entries(grouped)) {
-      const businessId = Number(businessIdStr);
+    let remainingCoins = useCoins ? maxCoins : 0;
+
+    for (const bizId of Object.keys(grouped)) {
+      const group = grouped[Number(bizId)];
       try {
+        const orderTotalPesewas = Math.round(group.items.reduce((s, i) => s + i.price * i.quantity * 100, 0));
+        const coinsForThisOrder = Math.min(remainingCoins, Math.floor(orderTotalPesewas / 20));
+        remainingCoins -= coinsForThisOrder;
+
         const res = await fetch("/api/orders", {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({
-            businessId,
-            items: group.items.map((i) => ({
-              name: i.name,
-              quantity: i.quantity,
-              price: Math.round(i.price * 100),
-            })),
-            totalPrice: Math.round(group.items.reduce((s, i) => s + i.price * i.quantity * 100, 0)),
+            businessId: parseInt(bizId, 10),
+            items: group.items.map((i) => ({ name: i.name, quantity: i.quantity, price: Math.round(i.price * 100) })),
+            totalPrice: orderTotalPesewas - (coinsForThisOrder * 20),
+            coinsApplied: coinsForThisOrder,
           }),
         });
         const data = await res.json();
@@ -203,7 +210,50 @@ export default function Cart() {
                     <span className="text-base font-bold">Subtotal</span>
                     <span className="text-xl font-bold text-foreground">GHS {totalPrice().toFixed(2)}</span>
                   </div>
+                  {useCoins && discountGHS > 0 && (
+                    <div className="flex items-center justify-between text-amber-600 font-semibold">
+                      <span>Coins Discount</span>
+                      <span>- GHS {discountGHS.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {useCoins && discountGHS > 0 && (
+                    <div className="flex items-center justify-between pt-2 border-t border-dashed">
+                      <span className="text-base font-bold">Total to Pay</span>
+                      <span className="text-xl font-bold text-foreground">GHS {(totalPrice() - discountGHS).toFixed(2)}</span>
+                    </div>
+                  )}
                   <p className="text-xs text-muted-foreground text-right">Delivery fees not included yet.</p>
+                </div>
+
+                <div className="pt-2 border-t mt-4 border-dashed pb-2">
+                   <div className="flex items-center justify-between mb-2">
+                     <p className="text-xs font-semibold text-secondary-foreground">NAFEX COINS</p>
+                     <span className="text-xs text-amber-600 font-bold">{user?.loyaltyPoints || 0} available</span>
+                   </div>
+                   {user && (user.loyaltyPoints || 0) > 0 ? (
+                     <div className="space-y-2">
+                       <label className="flex items-center gap-2 cursor-pointer bg-amber-50 p-2 rounded-sm border border-amber-200 hover:bg-amber-100 transition-colors">
+                         <input 
+                           type="checkbox" 
+                           checked={useCoins} 
+                           onChange={(e) => setUseCoins(e.target.checked)} 
+                           className="w-4 h-4 accent-amber-600 cursor-pointer rounded-sm"
+                           disabled={maxCoins === 0}
+                         />
+                         <div className="flex-1 text-sm text-amber-900 font-medium">
+                           Apply {maxCoins} coins (-GHS {(maxCoins * 0.20).toFixed(2)})
+                         </div>
+                       </label>
+                       {useCoins && (
+                         <div className="text-[10px] leading-tight text-amber-800 bg-amber-100/50 p-2 rounded-sm border border-amber-200/50">
+                           <strong className="block mb-0.5 uppercase tracking-wide">Important Restriction</strong>
+                           Nafex Coins can <b>ONLY</b> be used to purchase fashionable wears. Your order will be reviewed by an admin. If non-fashion items are found, the order will be cancelled and your coins refunded.
+                         </div>
+                       )}
+                     </div>
+                   ) : (
+                     <p className="text-xs text-muted-foreground">You don't have any coins yet. Earn coins on your purchases!</p>
+                   )}
                 </div>
 
                 <div className="pt-2 border-t mt-4 border-dashed pb-2">
@@ -236,7 +286,7 @@ export default function Cart() {
                   onClick={checkoutAll}
                   disabled={placing}
                 >
-                  {placing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing...</> : `Checkout (GHS ${totalPrice().toFixed(2)})`}
+                  {placing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing...</> : `Checkout (GHS ${(totalPrice() - discountGHS).toFixed(2)})`}
                 </Button>
               </CardContent>
             </Card>
