@@ -202,7 +202,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     <Button variant="ghost" size="sm" className="gap-1.5 text-amber-500 hover:text-amber-600 hover:bg-amber-500/10 px-3 border border-amber-500/20" title="Nafex Coins" asChild>
                       <Link href="/account/settings">
                         <Coins className="w-4 h-4" />
-                        <span className="text-sm font-semibold">{user.loyaltyPoints || 0}</span>
+                        <span className="text-sm font-semibold">{(user as any).loyaltyPoints || 0}</span>
                       </Link>
                     </Button>
 
