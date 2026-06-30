@@ -2,6 +2,8 @@ import { createServer } from "http";
 import app from "./app";
 import { initSocketIO } from "./lib/socket";
 import { logger } from "./lib/logger";
+import { db } from "@workspace/db";
+import { sql } from "drizzle-orm";
 
 const port = Number(process.env["PORT"] ?? 5000);
 
@@ -13,8 +15,14 @@ const httpServer = createServer(app);
 initSocketIO(httpServer);
 
 // Bind to 0.0.0.0 so Cloud Run / Docker health checks can reach the server
-httpServer.listen(port, "0.0.0.0", () => {
+httpServer.listen(port, "0.0.0.0", async () => {
   logger.info({ port }, "Server listening");
+  try {
+    await db.execute(sql`CREATE EXTENSION IF NOT EXISTS pg_trgm;`);
+    logger.info("Initialized pg_trgm extension");
+  } catch (e) {
+    logger.error({ err: e }, "Failed to create pg_trgm extension. Search fuzzy matching might be degraded.");
+  }
 });
 
 // ── Process-level error handlers ──────────────────────────────────────────────

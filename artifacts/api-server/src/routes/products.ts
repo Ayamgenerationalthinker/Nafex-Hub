@@ -160,8 +160,8 @@ router.get("/products", async (req, res): Promise<void> => {
     })
     .from(productsTable)
     .leftJoin(businessesTable, eq(productsTable.businessId, businessesTable.id))
-    .where(search ? ilike(productsTable.name, `%${search}%`) : undefined)
-    .orderBy(productsTable.createdAt)
+    .where(search ? sql`${productsTable.name} ILIKE ${'%' + search + '%'} OR ${productsTable.name} % ${search}` : undefined)
+    .orderBy(search ? sql`${productsTable.name} <-> ${search}` : desc(productsTable.createdAt))
     .limit(limit)
     .offset(offset);
 

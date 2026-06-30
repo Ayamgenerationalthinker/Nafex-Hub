@@ -89,7 +89,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-[100dvh] flex flex-col w-full bg-background text-foreground font-sans">
       <VerifyEmailBanner />
       {/* ── Header (dark charcoal matches reference design) ── */}
-      <header className="sticky top-0 z-50 w-full bg-secondary text-secondary-foreground shadow-md">
+      <header className="sticky top-0 z-50 w-full bg-secondary/80 backdrop-blur-lg text-secondary-foreground shadow-sm border-b border-white/10 transition-all duration-300">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-8">
 
           {/* Logo */}

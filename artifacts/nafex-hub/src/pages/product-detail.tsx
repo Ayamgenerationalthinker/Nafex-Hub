@@ -3,6 +3,7 @@ import { useGetProduct, useToggleFavorite } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { motion } from "framer-motion";
 import { Heart, ArrowLeft, Store, ShoppingBag, ShoppingCart, Minus, Plus, Loader2, Zap, Star, ShieldCheck } from "lucide-react";
 import { useEffect, useState, type ChangeEvent } from "react";
 import { useAuth } from "@/hooks/use-auth";
@@ -386,25 +387,29 @@ export default function ProductDetail() {
                 <Heart className={`w-4 h-4 ${isFav ? "fill-current" : ""}`} />
               </Button>
             )}
-            <Button
-              variant="outline"
-              className="flex-1 gap-2"
-              onClick={handleAddToCart}
-              disabled={outOfStock}
-              data-testid="btn-add-to-cart"
-            >
-              <ShoppingCart className="w-4 h-4" />
-              Add to Cart
-            </Button>
-            <Button
-              className="flex-1 gap-2"
-              onClick={handleBuyNow}
-              disabled={outOfStock || buying}
-              data-testid="btn-buy-now"
-            >
-              {buying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-              {buying ? "Placing…" : outOfStock ? "Out of stock" : "Buy Now"}
-            </Button>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1 flex">
+              <Button
+                variant="outline"
+                className="flex-1 gap-2"
+                onClick={handleAddToCart}
+                disabled={outOfStock}
+                data-testid="btn-add-to-cart"
+              >
+                <ShoppingCart className="w-4 h-4" />
+                Add to Cart
+              </Button>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1 flex">
+              <Button
+                className="flex-1 gap-2 shadow-md hover:shadow-lg transition-shadow"
+                onClick={handleBuyNow}
+                disabled={outOfStock || buying}
+                data-testid="btn-buy-now"
+              >
+                {buying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+                {buying ? "Placing…" : outOfStock ? "Out of stock" : "Buy Now"}
+              </Button>
+            </motion.div>
           </div>
         </div>
       </div>

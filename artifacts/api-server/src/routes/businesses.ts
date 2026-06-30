@@ -70,16 +70,18 @@ router.get("/businesses", async (req, res): Promise<void> => {
   const { search, category, verified } = query.data;
 
   const conditions: SQL[] = [];
-  if (search) conditions.push(ilike(businessesTable.name, `%${search}%`));
+  if (search) conditions.push(sql`${businessesTable.name} ILIKE ${'%' + search + '%'} OR ${businessesTable.name} % ${search}`);
   if (category && category !== "All") conditions.push(eq(businessesTable.category, category));
   if (verified === "true") conditions.push(eq(businessesTable.isVerified, true));
 
   // Sort search_boost + active featured businesses first
   const searchBoostSort = sql`case when ${businessesTable.isFeatured} = true and ${businessesTable.featuredType} = 'search_boost' and (${businessesTable.featuredUntil} is null or ${businessesTable.featuredUntil} > now()) then 0 else 1 end`;
+  const similaritySort = search ? sql`${businessesTable.name} <-> ${search}` : desc(businessesTable.createdAt);
+
   const businesses =
     conditions.length > 0
       ? await db.select().from(businessesTable).where(and(...conditions))
-          .orderBy(searchBoostSort, desc(businessesTable.createdAt))
+          .orderBy(searchBoostSort, similaritySort)
       : await db.select().from(businessesTable)
           .orderBy(searchBoostSort, desc(businessesTable.createdAt));
 

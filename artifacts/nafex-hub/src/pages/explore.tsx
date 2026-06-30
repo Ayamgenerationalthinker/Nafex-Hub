@@ -8,6 +8,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLocation } from "wouter";
 import type { Business, Product } from "@workspace/api-client-react";
+import { motion } from "framer-motion";
 
 const CATEGORY_GROUPS = [
   "Clothing", "Footwear", "Accessories", "Jewelry & Watches", "Bags & Luggage", 
@@ -271,7 +272,18 @@ export default function Explore() {
                 ))}
               </div>
             ) : filteredProducts.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
+              <motion.div 
+                className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4"
+                initial="hidden"
+                animate="show"
+                variants={{
+                  hidden: { opacity: 0 },
+                  show: {
+                    opacity: 1,
+                    transition: { staggerChildren: 0.05 }
+                  }
+                }}
+              >
                 {filteredProducts.map((product) => {
                   const anyProd = product as any;
                   const hasDiscount = anyProd.discountPrice && Number(anyProd.discountPrice) < Number(product.price);
@@ -280,8 +292,13 @@ export default function Explore() {
                     : 0;
 
                   return (
-                    <div 
+                    <motion.div 
                       key={product.id} 
+                      variants={{
+                        hidden: { opacity: 0, y: 20 },
+                        show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+                      }}
+                      whileHover={{ y: -4, transition: { duration: 0.2 } }}
                       className="bg-white rounded-md shadow-sm hover:shadow-md transition-shadow overflow-hidden group cursor-pointer relative flex flex-col"
                       onClick={() => setLocation(`/product/${product.id}`)}
                     >
@@ -356,10 +373,10 @@ export default function Explore() {
                            ADD TO CART
                          </Button>
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
-              </div>
+              </motion.div>
             ) : (
               <div className="bg-white rounded-md shadow-sm p-12 text-center flex flex-col items-center">
                 <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
