@@ -12,7 +12,7 @@ import {
   VerifyBusinessBody,
   VerifyBusinessParams,
 } from "@workspace/api-zod";
-import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
+import { requireAuth, requireVerified, type AuthRequest } from "../lib/auth-middleware";
 import { logAdminAction } from "../lib/log-admin-action";
 import { sendAdminEmail } from "../lib/mailer";
 
