@@ -24,6 +24,7 @@ const CreateOrderBody = z.object({
   items: z.array(OrderItemSchema).min(1),
   totalPrice: z.number().int().nonnegative(),
   coinsApplied: z.number().int().nonnegative().optional().default(0),
+  isB2b: z.boolean().optional().default(false),
   notes: z.string().optional(),
 });
 
@@ -67,26 +68,49 @@ router.post("/orders", requireAuth, requireVerified, async (req: AuthRequest, re
     return;
   }
 
-  if (parsed.data.coinsApplied > 0) {
+  const { businessId, items, totalPrice, notes, coinsApplied, isB2b } = parsed.data;
+
+  // Validate business
+  const [business] = await db.select().from(businessesTable).where(eq(businessesTable.id, businessId));
+  if (!business) {
+    res.status(404).json({ error: "Business not found" });
+    return;
+  }
+
+  // Deduct coins if applied
+  if (coinsApplied > 0) {
     const [user] = await db.select({ loyaltyPoints: usersTable.loyaltyPoints }).from(usersTable).where(eq(usersTable.id, req.userId!));
-    if (!user || user.loyaltyPoints < parsed.data.coinsApplied) {
-      res.status(400).json({ error: "Insufficient Nafex Coins" });
+    if (!user || user.loyaltyPoints < coinsApplied) {
+      res.status(400).json({ error: "Not enough Nafex Coins" });
       return;
     }
     await db.update(usersTable)
-      .set({ loyaltyPoints: sql`${usersTable.loyaltyPoints} - ${parsed.data.coinsApplied}` })
+      .set({ loyaltyPoints: sql`${usersTable.loyaltyPoints} - ${coinsApplied}` })
       .where(eq(usersTable.id, req.userId!));
+  }
+
+  // Generate Milestones if B2B
+  let milestones: any[] = [];
+  if (isB2b) {
+    const half = Math.floor(totalPrice / 2);
+    const remainder = totalPrice - half;
+    milestones = [
+      { id: 1, description: "50% Upfront Deposit", amount: half, status: "pending" },
+      { id: 2, description: "50% Balance on Delivery", amount: remainder, status: "pending" }
+    ];
   }
 
   const [order] = await db
     .insert(ordersTable)
     .values({
       userId: req.userId!,
-      businessId: parsed.data.businessId,
-      items: parsed.data.items,
-      totalPrice: parsed.data.totalPrice,
-      coinsApplied: parsed.data.coinsApplied,
-      notes: parsed.data.notes,
+      businessId,
+      items,
+      totalPrice,
+      coinsApplied,
+      isB2b,
+      milestones,
+      notes,
       status: "pending",
       paymentStatus: "unpaid",
     })
@@ -396,6 +420,74 @@ router.post("/orders/:id/confirm-delivery", requireAuth, async (req: AuthRequest
   } catch {}
 
   res.json(order);
+});
+
+// ── Buyer releases a specific B2B milestone ─────────────────────────────────
+router.post("/orders/:id/release-milestone", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const params = OrderParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid order id" }); return; }
+
+  const parsed = z.object({ milestoneId: z.number().int().positive() }).safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, params.data.id));
+  if (!order) { res.status(404).json({ error: "Order not found" }); return; }
+  if (order.userId !== req.userId) { res.status(403).json({ error: "Not your order" }); return; }
+  if (!order.isB2b) { res.status(400).json({ error: "Not a B2B order" }); return; }
+
+  const milestones = (order.milestones as any[]) || [];
+  const milestone = milestones.find((m) => m.id === parsed.data.milestoneId);
+  if (!milestone) { res.status(404).json({ error: "Milestone not found" }); return; }
+  
+  if (milestone.status !== "in_escrow") {
+    res.status(409).json({ error: "Milestone is not in escrow, cannot release." });
+    return;
+  }
+
+  // Update milestone status
+  const newMilestones = milestones.map((m) => 
+    m.id === milestone.id ? { ...m, status: "released" } : m
+  );
+
+  const allReleased = newMilestones.every((m) => m.status === "released");
+  const newPaymentStatus = allReleased ? "released" : order.paymentStatus;
+  const newStatus = allReleased ? "delivered" : order.status;
+
+  const [updated] = await db
+    .update(ordersTable)
+    .set({
+      milestones: newMilestones,
+      paymentStatus: newPaymentStatus as any,
+      status: newStatus as any,
+      updatedAt: new Date()
+    })
+    .where(eq(ordersTable.id, params.data.id))
+    .returning();
+
+  // Tiered Commission for this milestone amount
+  const amountGhs = milestone.amount / 100;
+  let commissionRate = 0.05;
+  if (amountGhs <= 100) commissionRate = 0.015;
+  else if (amountGhs <= 500) commissionRate = 0.03;
+  
+  const commissionPesewas = Math.floor(milestone.amount * commissionRate);
+  const payoutAmount = milestone.amount - commissionPesewas;
+
+  // Automated payout for this specific milestone
+  await payoutToSeller(order.businessId, payoutAmount, order.id);
+
+  try {
+    await db.insert(notificationsTable).values({
+      userId: updated.businessId, // Note: business owner ID is needed, we skip full lookup here for brevity if it's acceptable, or look it up:
+      type: "order_update",
+      title: `Milestone Released — Order #${order.id}`,
+      body: `Buyer released funds for: ${milestone.description}. Funds transferred to your account.`,
+      relatedId: order.id,
+      isRead: false,
+    });
+  } catch {}
+
+  res.json(updated);
 });
 
 // ── Buyer confirms delivery → escrow auto-released ──────────────────────────

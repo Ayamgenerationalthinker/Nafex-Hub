@@ -57,6 +57,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
 
 const PAYMENT_CONFIG: Record<string, { label: string; color: string }> = {
   unpaid:    { label: "Unpaid",          color: "bg-gray-100 text-gray-600 border-gray-200" },
+  partial:   { label: "Partially Funded",color: "bg-blue-100 text-blue-700 border-blue-200" },
   in_escrow: { label: "In Escrow",       color: "bg-amber-100 text-amber-700 border-amber-200" },
   released:  { label: "Escrow Released", color: "bg-green-100 text-green-700 border-green-200" },
   refunded:  { label: "Refunded",        color: "bg-red-100 text-red-600 border-red-200" },
@@ -73,6 +74,8 @@ type OrderWithDetails = {
   notes?: string | null;
   businessId: number;
   businessName?: string | null;
+  isB2b?: boolean;
+  milestones?: any[];
   createdAt: string | Date;
 };
 
@@ -83,6 +86,7 @@ function PayWithPaystackDialog({
   onSuccess,
 }: {
   order: OrderWithDetails;
+  milestoneId?: number;
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
@@ -99,7 +103,7 @@ function PayWithPaystackDialog({
       const initRes = await fetch("/api/payments/paystack/initialize", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ orderId: order.id }),
+        body: JSON.stringify({ orderId: order.id, milestoneId }),
       });
       const initData = (await initRes.json()) as { reference?: string; amountPesewas?: number; error?: string };
       if (!initRes.ok) {
@@ -160,8 +164,9 @@ function PayWithPaystackDialog({
             Pay Securely — Order #{order.id}
           </DialogTitle>
           <DialogDescription>
-            <strong>GHS {(order.totalPrice / 100).toFixed(2)}</strong> will be held in escrow
-            until you confirm delivery.
+            {milestoneId 
+              ? "You are funding a specific milestone."
+              : `GHS ${(order.totalPrice / 100).toFixed(2)} will be held in escrow until you confirm delivery.`}
           </DialogDescription>
         </DialogHeader>
 
@@ -280,8 +285,29 @@ export default function Orders() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const [payingOrder, setPayingOrder] = useState<OrderWithDetails | null>(null);
+  const [payingOrder, setPayingOrder] = useState<{ order: OrderWithDetails; milestoneId?: number } | null>(null);
   const [confirmingOrder, setConfirmingOrder] = useState<OrderWithDetails | null>(null);
+
+  // New helper for releasing B2B milestone
+  async function releaseMilestone(orderId: number, milestoneId: number) {
+    if (!window.confirm("Release these funds to the seller now?")) return;
+    const token = localStorage.getItem("nafex_token");
+    try {
+      const res = await fetch(`/api/orders/${orderId}/release-milestone`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ milestoneId }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error ?? "Failed to release milestone");
+      }
+      toast({ title: "Funds released to seller!" });
+      queryClient.invalidateQueries({ queryKey: getGetUserOrdersQueryKey() });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    }
+  }
 
   const { data: orders, isLoading } = useGetUserOrders({
     query: { enabled: !!user, queryKey: getGetUserOrdersQueryKey() },
@@ -449,9 +475,41 @@ export default function Orders() {
                     </div>
                   )}
 
-                  {/* ── UNPAID → Pay with Paystack ── */}
-                  {order.status !== "cancelled" && isUnpaid && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+                  {/* ── B2B Milestones Block ── */}
+                  {order.isB2b && order.milestones && order.milestones.length > 0 && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mt-4">
+                      <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-blue-600" />
+                        Wholesale Milestones
+                      </h4>
+                      <div className="space-y-3">
+                        {order.milestones.map((m: any) => (
+                          <div key={m.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-white rounded-lg border border-blue-100">
+                            <div>
+                              <p className="text-sm font-semibold text-foreground">{m.description}</p>
+                              <p className="text-xs text-muted-foreground">GHS {(m.amount / 100).toFixed(2)} • Status: <span className="font-bold capitalize">{m.status.replace("_", " ")}</span></p>
+                            </div>
+                            <div>
+                              {m.status === "pending" && (
+                                <Button size="sm" onClick={() => setPayingOrder({ order, milestoneId: m.id })}>
+                                  Fund Milestone
+                                </Button>
+                              )}
+                              {m.status === "in_escrow" && (
+                                <Button size="sm" variant="secondary" onClick={() => releaseMilestone(order.id, m.id)}>
+                                  Release to Seller
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ── UNPAID → Pay with Paystack (Standard Orders) ── */}
+                  {order.status !== "cancelled" && isUnpaid && !order.isB2b && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3 mt-4">
                       <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                       <div className="flex-1 space-y-3">
                         <div>
@@ -464,7 +522,7 @@ export default function Orders() {
                         <Button
                           size="sm"
                           className="gap-2 bg-amber-600 hover:bg-amber-700 text-white h-9"
-                          onClick={() => setPayingOrder(order)}
+                          onClick={() => setPayingOrder({ order })}
                         >
                           <CreditCard className="w-3.5 h-3.5" />
                           Pay GHS {(order.totalPrice / 100).toFixed(2)} with Paystack
@@ -552,11 +610,11 @@ export default function Orders() {
       {/* ── Dialogs ── */}
       {payingOrder && (
         <PayWithPaystackDialog
-          order={payingOrder}
-          open={!!payingOrder}
+          order={payingOrder.order}
+          milestoneId={payingOrder.milestoneId}
+          open={true}
           onClose={() => setPayingOrder(null)}
           onSuccess={() => {
-            setPayingOrder(null);
             queryClient.invalidateQueries({ queryKey: getGetUserOrdersQueryKey() });
           }}
         />
