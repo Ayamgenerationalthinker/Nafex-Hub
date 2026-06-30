@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, ordersTable, businessesTable, notificationsTable, usersTable } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, requireVerified, type AuthRequest } from "../lib/auth-middleware";
 import { sendAdminEmail, sendDeliveryOtpEmail } from "../lib/mailer";
@@ -332,6 +332,15 @@ router.post("/orders/:id/confirm-delivery", requireAuth, async (req: AuthRequest
     .where(eq(ordersTable.id, params.data.id))
     .returning();
 
+  if (existing.paymentStatus === "in_escrow") {
+    const points = Math.floor(existing.totalPrice / 1000); // 1 point per 10 GHS
+    if (points > 0) {
+      await db.update(usersTable)
+        .set({ loyaltyPoints: sql`${usersTable.loyaltyPoints} + ${points}` })
+        .where(eq(usersTable.id, existing.userId));
+    }
+  }
+
   // Notify buyer: delivered + escrow released
   try {
     await db.insert(notificationsTable).values({
@@ -380,6 +389,15 @@ router.post("/orders/:id/buyer-confirm", requireAuth, async (req: AuthRequest, r
     .set({ status: "delivered", paymentStatus: newPaymentStatus, updatedAt: new Date() })
     .where(eq(ordersTable.id, params.data.id))
     .returning();
+
+  if (order.paymentStatus === "in_escrow") {
+    const points = Math.floor(order.totalPrice / 1000);
+    if (points > 0) {
+      await db.update(usersTable)
+        .set({ loyaltyPoints: sql`${usersTable.loyaltyPoints} + ${points}` })
+        .where(eq(usersTable.id, order.userId));
+    }
+  }
 
   // Notify seller that escrow has been released
   try {

@@ -35,7 +35,7 @@ async function paystackGet<T>(path: string): Promise<T> {
   return data.data;
 }
 
-function verifyWebhookSignature(body: string, signature: string): boolean {
+function verifyWebhookSignature(body: string | Buffer, signature: string): boolean {
   if (!PAYSTACK_SECRET) return false;
   const hash = createHmac("sha512", PAYSTACK_SECRET).update(body).digest("hex");
   return hash === signature;
@@ -184,9 +184,10 @@ router.post("/payments/paystack/verify", requireAuth, async (req: AuthRequest, r
 
 router.post("/payments/webhook/paystack", async (req, res): Promise<void> => {
   const signature = req.headers["x-paystack-signature"] as string | undefined;
-  const rawBody = JSON.stringify(req.body);
+  const rawBody = (req as any).rawBody as Buffer | undefined;
+  const bodyToVerify = rawBody ?? JSON.stringify(req.body);
 
-  if (!signature || !verifyWebhookSignature(rawBody, signature)) {
+  if (!signature || !verifyWebhookSignature(bodyToVerify, signature)) {
     res.status(401).json({ error: "Invalid signature" });
     return;
   }
