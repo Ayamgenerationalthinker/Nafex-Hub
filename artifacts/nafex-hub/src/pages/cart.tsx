@@ -16,6 +16,7 @@ export default function Cart() {
   const [placing, setPlacing] = useState(false);
   const [promoCode, setPromoCode] = useState("");
   const [useCoins, setUseCoins] = useState(false);
+  const [useB2bMilestones, setUseB2bMilestones] = useState(false);
 
   const grouped = items.reduce<Record<number, { businessName: string; items: typeof items }>>(
     (acc, item) => {
@@ -55,6 +56,7 @@ export default function Cart() {
             items: group.items.map((i) => ({ name: i.name, quantity: i.quantity, price: Math.round(i.price * 100) })),
             totalPrice: orderTotalPesewas - (coinsForThisOrder * 20),
             coinsApplied: coinsForThisOrder,
+            isB2b: useB2bMilestones,
           }),
         });
         const data = await res.json();
@@ -62,7 +64,7 @@ export default function Cart() {
           if (data.code === "EMAIL_NOT_VERIFIED") { navigate("/verify-email"); return; }
           throw new Error(data.error ?? "Order failed");
         }
-        clearBusiness(businessId);
+        clearBusiness(Number(bizId));
       } catch (err) {
         toast({ title: `Order for ${group.businessName} failed`, description: (err as Error).message, variant: "destructive" });
         hasError = true;
@@ -216,12 +218,12 @@ export default function Cart() {
                       <span>- GHS {discountGHS.toFixed(2)}</span>
                     </div>
                   )}
-                  {useCoins && discountGHS > 0 && (
-                    <div className="flex items-center justify-between pt-2 border-t border-dashed">
-                      <span className="text-base font-bold">Total to Pay</span>
-                      <span className="text-xl font-bold text-foreground">GHS {(totalPrice() - discountGHS).toFixed(2)}</span>
-                    </div>
-                  )}
+                  <div className="flex justify-between items-center py-2 text-primary font-bold text-lg border-t border-dashed mt-2 pt-4">
+                    <span>Total Due Today:</span>
+                    <span>
+                      GHS {useB2bMilestones ? ((totalPrice() - discountGHS) / 2).toFixed(2) : (totalPrice() - discountGHS).toFixed(2)}
+                    </span>
+                  </div>
                   <p className="text-xs text-muted-foreground text-right">Delivery fees not included yet.</p>
                 </div>
 
@@ -279,7 +281,29 @@ export default function Cart() {
                         APPLY
                       </Button>
                    </div>
-                </div>
+                 </div>
+
+                 {totalPrice() >= 500 && (
+                   <div className="mt-4 p-4 rounded-xl border border-blue-200 bg-blue-50/50 flex flex-col gap-2">
+                     <div className="flex items-start gap-3">
+                       <input
+                         type="checkbox"
+                         id="b2b-milestones"
+                         className="mt-1 w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                         checked={useB2bMilestones}
+                         onChange={(e) => setUseB2bMilestones(e.target.checked)}
+                       />
+                       <div className="flex-1">
+                         <label htmlFor="b2b-milestones" className="text-sm font-semibold text-blue-900 cursor-pointer">
+                           Wholesale / B2B Milestones
+                         </label>
+                         <p className="text-xs text-blue-800/80 mt-1">
+                           Pay a 50% deposit now to start the order, and the remaining 50% upon delivery. Safe and secure.
+                         </p>
+                       </div>
+                     </div>
+                   </div>
+                 )}
 
                 <Button
                   className="w-full h-11 uppercase font-bold tracking-wider shadow-md"

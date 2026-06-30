@@ -106,19 +106,31 @@ router.get("/config/paystack", (_req, res): void => {
 // using the PUBLIC KEY. On success the popup callback calls /verify with the ref.
 
 router.post("/payments/paystack/initialize", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const parsed = z.object({ orderId: z.number().int().positive() }).safeParse(req.body);
+  const parsed = z.object({ 
+    orderId: z.number().int().positive(),
+    milestoneId: z.number().int().positive().optional()
+  }).safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, parsed.data.orderId));
   if (!order) { res.status(404).json({ error: "Order not found" }); return; }
   if (order.userId !== req.userId) { res.status(403).json({ error: "Not your order" }); return; }
-  if (order.paymentStatus !== "unpaid") {
-    res.status(409).json({ error: "Order already has a payment recorded" });
+  if (order.paymentStatus !== "unpaid" && order.paymentStatus !== "partial") {
+    res.status(409).json({ error: "Order already fully paid or settled" });
     return;
   }
 
   const reference = `NAF-${order.id}-${Date.now()}`;
-  const amountPesewas = order.totalPrice; // already in pesewas (Ghana cents)
+  
+  let amountPesewas = order.totalPrice; // already in pesewas (Ghana cents)
+  
+  if (parsed.data.milestoneId && order.isB2b) {
+    const milestones = (order.milestones as any[]) || [];
+    const milestone = milestones.find((m) => m.id === parsed.data.milestoneId);
+    if (!milestone) { res.status(404).json({ error: "Milestone not found" }); return; }
+    if (milestone.status !== "pending") { res.status(409).json({ error: "Milestone already funded" }); return; }
+    amountPesewas = milestone.amount;
+  }
 
   await db.insert(transactionsTable).values({
     orderId: order.id,
@@ -130,7 +142,7 @@ router.post("/payments/paystack/initialize", requireAuth, async (req: AuthReques
     providerRef: reference,
     channel: "card",
     status: "pending",
-    metadata: { orderId: order.id },
+    metadata: { orderId: order.id, milestoneId: parsed.data.milestoneId },
   });
 
   res.json({ reference, amountPesewas, orderId: order.id });
@@ -165,10 +177,34 @@ router.post("/payments/paystack/verify", requireAuth, async (req: AuthRequest, r
       return;
     }
 
-    // Update order to in_escrow
+    // Find the pending transaction to check if it was for a milestone
+    const [pendingTx] = await db
+      .select({ metadata: transactionsTable.metadata })
+      .from(transactionsTable)
+      .where(and(eq(transactionsTable.orderId, parsed.data.orderId), eq(transactionsTable.providerRef, parsed.data.reference)));
+
+    const milestoneId = (pendingTx?.metadata as any)?.milestoneId;
+    
+    let newPaymentStatus = "in_escrow";
+    let newMilestones = order.milestones as any[];
+
+    if (order.isB2b && milestoneId) {
+      newMilestones = (order.milestones as any[]).map(m => 
+        m.id === milestoneId ? { ...m, status: "in_escrow" } : m
+      );
+      const allFunded = newMilestones.every(m => m.status !== "pending");
+      newPaymentStatus = allFunded ? "in_escrow" : "partial";
+    }
+
+    // Update order
     const [updatedOrder] = await db
       .update(ordersTable)
-      .set({ paymentStatus: "in_escrow", paymentReference: parsed.data.reference, updatedAt: new Date() })
+      .set({ 
+        paymentStatus: newPaymentStatus as any, 
+        paymentReference: parsed.data.reference, 
+        milestones: newMilestones,
+        updatedAt: new Date() 
+      })
       .where(eq(ordersTable.id, parsed.data.orderId))
       .returning();
 

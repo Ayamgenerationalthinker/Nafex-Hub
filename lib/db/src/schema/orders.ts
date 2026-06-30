@@ -14,7 +14,7 @@ export const ordersTable = pgTable("orders", {
     .notNull()
     .default("pending"),
   paymentStatus: text("payment_status", {
-    enum: ["unpaid", "in_escrow", "released", "refunded"],
+    enum: ["unpaid", "partial", "in_escrow", "released", "refunded"],
   })
     .notNull()
     .default("unpaid"),
@@ -23,6 +23,8 @@ export const ordersTable = pgTable("orders", {
   deliveryOtpExpiry: timestamp("delivery_otp_expiry", { withTimezone: true }),
   notes: text("notes"),
   coinsApplied: integer("coins_applied").notNull().default(0),
+  isB2b: boolean("is_b2b").notNull().default(false),
+  milestones: jsonb("milestones").notNull().default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
