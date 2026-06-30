@@ -22,6 +22,7 @@ const CreateOrderBody = z.object({
   businessId: z.number().int().positive(),
   items: z.array(OrderItemSchema).min(1),
   totalPrice: z.number().int().nonnegative(),
+  coinsApplied: z.number().int().nonnegative().optional().default(0),
   notes: z.string().optional(),
 });
 
@@ -65,6 +66,17 @@ router.post("/orders", requireAuth, requireVerified, async (req: AuthRequest, re
     return;
   }
 
+  if (parsed.data.coinsApplied > 0) {
+    const [user] = await db.select({ loyaltyPoints: usersTable.loyaltyPoints }).from(usersTable).where(eq(usersTable.id, req.userId!));
+    if (!user || user.loyaltyPoints < parsed.data.coinsApplied) {
+      res.status(400).json({ error: "Insufficient Nafex Coins" });
+      return;
+    }
+    await db.update(usersTable)
+      .set({ loyaltyPoints: sql`${usersTable.loyaltyPoints} - ${parsed.data.coinsApplied}` })
+      .where(eq(usersTable.id, req.userId!));
+  }
+
   const [order] = await db
     .insert(ordersTable)
     .values({
@@ -72,6 +84,7 @@ router.post("/orders", requireAuth, requireVerified, async (req: AuthRequest, re
       businessId: parsed.data.businessId,
       items: parsed.data.items,
       totalPrice: parsed.data.totalPrice,
+      coinsApplied: parsed.data.coinsApplied,
       notes: parsed.data.notes,
       status: "pending",
       paymentStatus: "unpaid",
@@ -232,6 +245,13 @@ router.patch("/orders/:id/status", requireAuth, async (req: AuthRequest, res): P
     updateFields.deliveryOtpExpiry = expiry;
   }
 
+  // If cancelled and coins were applied, refund the coins
+  if (parsed.data.status === "cancelled" && existing.status !== "cancelled" && existing.coinsApplied > 0) {
+    await db.update(usersTable)
+      .set({ loyaltyPoints: sql`${usersTable.loyaltyPoints} + ${existing.coinsApplied}` })
+      .where(eq(usersTable.id, existing.userId));
+  }
+
   const [order] = await db
     .update(ordersTable)
     .set(updateFields)
@@ -333,7 +353,7 @@ router.post("/orders/:id/confirm-delivery", requireAuth, async (req: AuthRequest
     .returning();
 
   if (existing.paymentStatus === "in_escrow") {
-    const points = Math.floor(existing.totalPrice / 1000); // 1 point per 10 GHS
+    const points = Math.floor(existing.totalPrice / 2000); // 1 point per 20 GHS
     if (points > 0) {
       await db.update(usersTable)
         .set({ loyaltyPoints: sql`${usersTable.loyaltyPoints} + ${points}` })
@@ -391,7 +411,7 @@ router.post("/orders/:id/buyer-confirm", requireAuth, async (req: AuthRequest, r
     .returning();
 
   if (order.paymentStatus === "in_escrow") {
-    const points = Math.floor(order.totalPrice / 1000);
+    const points = Math.floor(order.totalPrice / 2000); // 1 point per 20 GHS
     if (points > 0) {
       await db.update(usersTable)
         .set({ loyaltyPoints: sql`${usersTable.loyaltyPoints} + ${points}` })
