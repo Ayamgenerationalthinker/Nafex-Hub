@@ -361,8 +361,20 @@ router.post("/orders/:id/confirm-delivery", requireAuth, async (req: AuthRequest
         .where(eq(usersTable.id, existing.userId));
     }
 
+    // Calculate Tiered Commission
+    const totalPriceGhs = existing.totalPrice / 100;
+    let commissionRate = 0.05; // 5% default for 501+
+    if (totalPriceGhs <= 100) {
+      commissionRate = 0.015; // 1.5% for 1 - 100 GHS
+    } else if (totalPriceGhs <= 500) {
+      commissionRate = 0.03;  // 3% for 101 - 500 GHS
+    }
+    
+    const commissionPesewas = Math.floor(existing.totalPrice * commissionRate);
+    const payoutAmount = existing.totalPrice - commissionPesewas;
+
     // Automated instant payout!
-    await payoutToSeller(existing.businessId, existing.totalPrice, existing.id);
+    await payoutToSeller(existing.businessId, payoutAmount, existing.id);
   }
 
   // Notify buyer: delivered + escrow released
@@ -422,8 +434,20 @@ router.post("/orders/:id/buyer-confirm", requireAuth, async (req: AuthRequest, r
         .where(eq(usersTable.id, order.userId));
     }
     
+    // Calculate Tiered Commission
+    const totalPriceGhs = order.totalPrice / 100;
+    let commissionRate = 0.05; // 5% default for 501+
+    if (totalPriceGhs <= 100) {
+      commissionRate = 0.015; // 1.5% for 1 - 100 GHS
+    } else if (totalPriceGhs <= 500) {
+      commissionRate = 0.03;  // 3% for 101 - 500 GHS
+    }
+    
+    const commissionPesewas = Math.floor(order.totalPrice * commissionRate);
+    const payoutAmount = order.totalPrice - commissionPesewas;
+
     // Automated instant payout!
-    const success = await payoutToSeller(order.businessId, order.totalPrice, order.id);
+    const success = await payoutToSeller(order.businessId, payoutAmount, order.id);
     if (success) {
       // Record a payout transaction here if we had a payouts table, for now it's handled in Paystack logs.
     }
