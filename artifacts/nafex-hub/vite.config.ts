@@ -61,6 +61,24 @@ export default defineConfig({
             },
           },
           {
+            urlPattern: /\.(?:png|gif|jpg|jpeg|webp|svg)$/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "images-cache",
+              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 }, // 30 Days
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/res\.cloudinary\.com\/.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "cloudinary-images",
+              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
             urlPattern: /\/api\/.*/i,
             handler: "NetworkFirst",
             options: {

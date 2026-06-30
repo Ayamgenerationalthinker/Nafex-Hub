@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail, Tag, Headphones, Settings, ChevronDown, HelpCircle, User2, ClipboardList, Star, Truck, TrendingUp, Globe2, Wallet, Clock, Search, Ticket, CreditCard, XCircle, RefreshCcw, Handshake, MessageSquare, AlertCircle, ShieldCheck, MapPin } from "lucide-react";
+import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail, Tag, Headphones, Settings, ChevronDown, HelpCircle, User2, ClipboardList, Star, Truck, TrendingUp, Globe2, Wallet, Clock, Search, Ticket, CreditCard, XCircle, RefreshCcw, Handshake, MessageSquare, AlertCircle, ShieldCheck, MapPin, Coins } from "lucide-react";
 import { VisaLogo, MastercardLogo, PaystackLogo, MobileMoneyLogo, BankTransferLogo } from "@/components/payment-icons";
 import { NotificationBell } from "@/components/notification-bell";
 import { VerifyEmailBanner } from "@/components/verify-email-banner";
@@ -198,6 +198,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>
+
+                    <Button variant="ghost" size="sm" className="gap-1.5 text-amber-500 hover:text-amber-600 hover:bg-amber-500/10 px-3 border border-amber-500/20" title="Nafex Coins" asChild>
+                      <Link href="/account/settings">
+                        <Coins className="w-4 h-4" />
+                        <span className="text-sm font-semibold">{user.loyaltyPoints || 0}</span>
+                      </Link>
+                    </Button>
 
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
