@@ -27,7 +27,7 @@ export default function Cart() {
     {}
   );
 
-  const maxCoins = user ? Math.min(user.loyaltyPoints || 0, Math.floor(totalPrice() * 5)) : 0;
+  const maxCoins = user ? Math.min((user as any).loyaltyPoints || 0, Math.floor(totalPrice() * 5)) : 0;
   const discountGHS = useCoins ? maxCoins * 0.20 : 0;
 
   async function checkoutAll() {
@@ -230,9 +230,9 @@ export default function Cart() {
                 <div className="pt-2 border-t mt-4 border-dashed pb-2">
                    <div className="flex items-center justify-between mb-2">
                      <p className="text-xs font-semibold text-secondary-foreground">NAFEX COINS</p>
-                     <span className="text-xs text-amber-600 font-bold">{user?.loyaltyPoints || 0} available</span>
+                     <span className="text-xs text-amber-600 font-bold">{(user as any)?.loyaltyPoints || 0} available</span>
                    </div>
-                   {user && (user.loyaltyPoints || 0) > 0 ? (
+                   {user && ((user as any).loyaltyPoints || 0) > 0 ? (
                      <div className="space-y-2">
                        <label className="flex items-center gap-2 cursor-pointer bg-amber-50 p-2 rounded-sm border border-amber-200 hover:bg-amber-100 transition-colors">
                          <input 
