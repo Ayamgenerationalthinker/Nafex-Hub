@@ -5,6 +5,7 @@ import { z } from "zod";
 import { requireAuth, requireVerified, type AuthRequest } from "../lib/auth-middleware";
 import { sendAdminEmail, sendDeliveryOtpEmail } from "../lib/mailer";
 import { notifyAllAdmins } from "../lib/notify";
+import { payoutToSeller } from "./payments";
 
 const router: IRouter = Router();
 
@@ -359,6 +360,9 @@ router.post("/orders/:id/confirm-delivery", requireAuth, async (req: AuthRequest
         .set({ loyaltyPoints: sql`${usersTable.loyaltyPoints} + ${points}` })
         .where(eq(usersTable.id, existing.userId));
     }
+
+    // Automated instant payout!
+    await payoutToSeller(existing.businessId, existing.totalPrice, existing.id);
   }
 
   // Notify buyer: delivered + escrow released
@@ -416,6 +420,12 @@ router.post("/orders/:id/buyer-confirm", requireAuth, async (req: AuthRequest, r
       await db.update(usersTable)
         .set({ loyaltyPoints: sql`${usersTable.loyaltyPoints} + ${points}` })
         .where(eq(usersTable.id, order.userId));
+    }
+    
+    // Automated instant payout!
+    const success = await payoutToSeller(order.businessId, order.totalPrice, order.id);
+    if (success) {
+      // Record a payout transaction here if we had a payouts table, for now it's handled in Paystack logs.
     }
   }
 

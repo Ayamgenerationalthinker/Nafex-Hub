@@ -12,7 +12,7 @@ const PAYSTACK_BASE = "https://api.paystack.co";
 
 // ── Paystack Helpers ────────────────────────────────────────────────────────
 
-async function paystackPost<T>(path: string, body: Record<string, unknown>): Promise<T> {
+export async function paystackPost<T>(path: string, body: Record<string, unknown>): Promise<T> {
   const res = await fetch(`${PAYSTACK_BASE}${path}`, {
     method: "POST",
     headers: {
@@ -39,6 +39,31 @@ function verifyWebhookSignature(body: string | Buffer, signature: string): boole
   if (!PAYSTACK_SECRET) return false;
   const hash = createHmac("sha512", PAYSTACK_SECRET).update(body).digest("hex");
   return hash === signature;
+}
+
+export async function payoutToSeller(businessId: number, amountPesewas: number, orderId: number): Promise<boolean> {
+  const [biz] = await db
+    .select({ paystackRecipientCode: businessesTable.paystackRecipientCode, name: businessesTable.name })
+    .from(businessesTable)
+    .where(eq(businessesTable.id, businessId));
+
+  if (!biz || !biz.paystackRecipientCode) {
+    console.error(`Cannot payout to business ${businessId}: No Paystack recipient code found.`);
+    return false;
+  }
+
+  try {
+    await paystackPost("/transfer", {
+      source: "balance",
+      amount: amountPesewas,
+      recipient: biz.paystackRecipientCode,
+      reason: `Escrow release for Order #${orderId} from Nafex Hub`,
+    });
+    return true;
+  } catch (error) {
+    console.error(`Failed to transfer to business ${businessId}:`, error);
+    return false;
+  }
 }
 
 // ── Schemas ─────────────────────────────────────────────────────────────────

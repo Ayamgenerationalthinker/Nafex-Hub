@@ -203,16 +203,24 @@ export default function MyShop() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate(`/brand/${businessId}`)} className="gap-1.5">
+          <Button variant="outline" onClick={() => navigate(`/brand/${businessId}`)} className="gap-1.5 hidden sm:flex">
             <ExternalLink className="w-4 h-4" />
             View brand page
           </Button>
-          <Button onClick={openCreate} className="gap-1.5" data-testid="btn-add-product">
+          <Button onClick={openCreate} className="gap-1.5 hidden sm:flex" data-testid="btn-add-product">
             <Plus className="w-4 h-4" />
             Add Product
           </Button>
         </div>
       </div>
+
+      {/* Mobile FAB */}
+      <Button 
+        onClick={openCreate} 
+        className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-xl flex sm:hidden items-center justify-center z-50 p-0"
+      >
+        <Plus className="w-6 h-6" />
+      </Button>
 
       {/* Inventory controls */}
       <div className="mb-8 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
