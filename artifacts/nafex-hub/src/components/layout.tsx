@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail, Tag, Headphones, Settings, ChevronDown, HelpCircle, User2, ClipboardList, Star, Truck, TrendingUp, Globe2, Wallet, Clock, Search } from "lucide-react";
+import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail, Tag, Headphones, Settings, ChevronDown, HelpCircle, User2, ClipboardList, Star, Truck, TrendingUp, Globe2, Wallet, Clock, Search, Ticket, CreditCard, XCircle, RefreshCcw, Handshake } from "lucide-react";
 import { VisaLogo, MastercardLogo, PaystackLogo, MobileMoneyLogo, BankTransferLogo } from "@/components/payment-icons";
 import { NotificationBell } from "@/components/notification-bell";
 import { VerifyEmailBanner } from "@/components/verify-email-banner";
@@ -152,15 +152,35 @@ export function Layout({ children }: { children: React.ReactNode }) {
                           <ChevronDown className="w-3 h-3" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-52">
+                      <DropdownMenuContent align="end" className="w-60">
                         <DropdownMenuItem asChild>
                           <Link href="/help" className="flex items-center gap-2 cursor-pointer">
                             <HelpCircle className="w-4 h-4 text-muted-foreground" /> Help Center
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
+                          <Link href="/explore" className="flex items-center gap-2 cursor-pointer">
+                            <ShoppingBag className="w-4 h-4 text-muted-foreground" /> Place an Order
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
                           <Link href="/orders" className="flex items-center gap-2 cursor-pointer">
-                            <Truck className="w-4 h-4 text-muted-foreground" /> Track My Order
+                            <CreditCard className="w-4 h-4 text-muted-foreground" /> Pay for Your Order
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/orders" className="flex items-center gap-2 cursor-pointer">
+                            <Truck className="w-4 h-4 text-muted-foreground" /> Track Your Order
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/orders" className="flex items-center gap-2 cursor-pointer">
+                            <XCircle className="w-4 h-4 text-muted-foreground" /> Cancel an Order
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/disputes" className="flex items-center gap-2 cursor-pointer">
+                            <RefreshCcw className="w-4 h-4 text-muted-foreground" /> Returns & Refunds
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
@@ -169,6 +189,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
                             <MessageCircle className="w-4 h-4 text-muted-foreground" /> Live Chat
                           </Link>
                         </DropdownMenuItem>
+                        {siteSettings.whatsappNumber?.trim() && (
+                          <DropdownMenuItem asChild>
+                            <a href={`https://wa.me/${siteSettings.whatsappNumber.replace(/\D/g, "")}`} className="flex items-center gap-2 cursor-pointer" target="_blank" rel="noreferrer">
+                              <Phone className="w-4 h-4 text-green-500" /> WhatsApp
+                            </a>
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
 
@@ -201,6 +228,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         <DropdownMenuItem asChild>
                           <Link href="/favorites" className="flex items-center gap-2 cursor-pointer">
                             <Heart className="w-4 h-4 text-muted-foreground" /> Wishlist
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/discounts" className="flex items-center gap-2 cursor-pointer">
+                            <Ticket className="w-4 h-4 text-muted-foreground" /> Vouchers
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
@@ -460,155 +492,109 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Columns */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 py-10">
-            {/* Support */}
+            {/* Let Us Help You */}
             <div className="space-y-4">
-              <h4 className="font-semibold text-sm text-secondary-foreground uppercase tracking-wider">Support</h4>
+              <h4 className="font-semibold text-sm text-secondary-foreground uppercase tracking-wider">Let Us Help You</h4>
               <ul className="space-y-2.5 text-sm">
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => window.dispatchEvent(new CustomEvent("open-support-chat"))}
-                    className="text-secondary-foreground/70 hover:text-primary transition-colors inline-flex items-center gap-2"
-                    data-testid="footer-live-chat"
-                  >
-                    <MessageCircle className="w-4 h-4" strokeWidth={1.75} /> Live Chat Support
-                  </button>
-                </li>
-                <li>
-                  <Link href="/support" className="text-secondary-foreground/70 hover:text-primary transition-colors inline-flex items-center gap-2" data-testid="footer-contact-support">
-                    <Headphones className="w-4 h-4" strokeWidth={1.75} /> Contact Support
-                  </Link>
-                </li>
-                {siteSettings.whatsappNumber?.trim() && (
-                  <li>
-                    <a
-                      href={`tel:${siteSettings.whatsappNumber.replace(/\s+/g, "")}`}
-                      className="text-secondary-foreground/70 hover:text-primary transition-colors inline-flex items-center gap-2"
-                      data-testid="footer-call"
-                    >
-                      <Phone className="w-4 h-4" strokeWidth={1.75} /> Call: {siteSettings.whatsappNumber}
-                    </a>
-                  </li>
-                )}
-                <li>
-                  <Link href="/help" className="text-secondary-foreground/70 hover:text-primary transition-colors inline-flex items-center gap-2" data-testid="footer-help-center">
-                    <HelpCircle className="w-4 h-4" strokeWidth={1.75} /> Help Center
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/track" className="text-secondary-foreground/70 hover:text-primary transition-colors inline-flex items-center gap-2" data-testid="footer-track-order">
-                    <Truck className="w-4 h-4" strokeWidth={1.75} /> Track Order
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/disputes" className="text-secondary-foreground/70 hover:text-primary transition-colors inline-flex items-center gap-2" data-testid="footer-report-issue">
-                    <ClipboardList className="w-4 h-4" strokeWidth={1.75} /> Report Issue
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/payments" className="text-secondary-foreground/70 hover:text-primary transition-colors inline-flex items-center gap-2" data-testid="footer-buyer-protection">
-                    <Shield className="w-4 h-4" strokeWidth={1.75} /> Buyer Protection
-                  </Link>
-                </li>
+                <li><Link href="/help" className="text-secondary-foreground/70 hover:text-primary transition-colors">Help Center</Link></li>
+                <li><Link href="/support" className="text-secondary-foreground/70 hover:text-primary transition-colors">Contact Us</Link></li>
+                <li><Link href="/explore" className="text-secondary-foreground/70 hover:text-primary transition-colors">How to shop on Nafex</Link></li>
+                <li><Link href="/track" className="text-secondary-foreground/70 hover:text-primary transition-colors">Delivery options and timelines</Link></li>
+                <li><Link href="/disputes" className="text-secondary-foreground/70 hover:text-primary transition-colors">How to return a product on Nafex</Link></li>
+                <li><Link href="/services" className="text-secondary-foreground/70 hover:text-primary transition-colors">Corporate and bulk purchases</Link></li>
+                <li><Link href="/disputes" className="text-secondary-foreground/70 hover:text-primary transition-colors">Report a Product</Link></li>
+                <li><Link href="/disputes" className="text-secondary-foreground/70 hover:text-primary transition-colors">Dispute Resolution Policy</Link></li>
+                <li><Link href="/payments" className="text-secondary-foreground/70 hover:text-primary transition-colors">Returns and Refunds Policy</Link></li>
               </ul>
             </div>
 
-            {/* About */}
+            {/* About Nafex */}
             <div className="space-y-4">
-              <h4 className="font-semibold text-sm text-secondary-foreground uppercase tracking-wider">About</h4>
+              <h4 className="font-semibold text-sm text-secondary-foreground uppercase tracking-wider">About Nafex</h4>
               <ul className="space-y-2.5 text-sm text-secondary-foreground/70">
-                <li className="font-semibold text-secondary-foreground">Nafex Hub Ghana Ltd</li>
-                <li className="inline-flex items-start gap-2">
-                  <Globe2 className="w-4 h-4 mt-0.5 flex-shrink-0" strokeWidth={1.75} />
-                  <span>Accra, Ghana</span>
-                </li>
-                <li>
-                  <a
-                    href={`mailto:${siteSettings.email?.trim() || "support@nafexhub.com"}`}
-                    className="hover:text-primary transition-colors inline-flex items-center gap-2"
-                    data-testid="footer-email"
-                  >
-                    <Mail className="w-4 h-4" strokeWidth={1.75} /> {siteSettings.email?.trim() || "support@nafexhub.com"}
-                  </a>
-                </li>
-                <li className="inline-flex items-start gap-2">
-                  <Clock className="w-4 h-4 mt-0.5 flex-shrink-0" strokeWidth={1.75} />
-                  <span>Mon–Sat · 8AM–8PM</span>
-                </li>
+                <li><Link href="/help" className="text-secondary-foreground/70 hover:text-primary transition-colors">About us</Link></li>
+                <li><Link href="/help" className="text-secondary-foreground/70 hover:text-primary transition-colors">Nafex careers</Link></li>
+                <li><Link href="/explore" className="text-secondary-foreground/70 hover:text-primary transition-colors">Nafex Express</Link></li>
+                <li><Link href="/help" className="text-secondary-foreground/70 hover:text-primary transition-colors">Terms and Conditions</Link></li>
+                <li><Link href="/help" className="text-secondary-foreground/70 hover:text-primary transition-colors">Privacy Notice</Link></li>
+                <li><Link href="/help" className="text-secondary-foreground/70 hover:text-primary transition-colors">Cookie Notice</Link></li>
+                <li><Link href="/discounts" className="text-secondary-foreground/70 hover:text-primary transition-colors">Flash Sales</Link></li>
               </ul>
-
-              {/* Socials */}
-              <div className="flex items-center gap-3 pt-2">
-                {siteSettings.whatsappNumber?.trim() && (
-                  <a
-                    href={`https://wa.me/${siteSettings.whatsappNumber.replace(/\D/g, "")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-9 h-9 rounded-full bg-secondary-foreground/10 hover:bg-green-500/20 hover:text-green-400 flex items-center justify-center text-secondary-foreground/70 transition-all"
-                    title="WhatsApp"
-                    data-testid="footer-social-whatsapp"
-                  >
-                    <Phone className="w-4 h-4" strokeWidth={1.75} />
-                  </a>
-                )}
-                {siteSettings.instagramLink?.trim() && (
-                  <a
-                    href={siteSettings.instagramLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-9 h-9 rounded-full bg-secondary-foreground/10 hover:bg-pink-500/20 hover:text-pink-400 flex items-center justify-center text-secondary-foreground/70 transition-all"
-                    title="Instagram"
-                    data-testid="footer-social-instagram"
-                  >
-                    <Instagram className="w-4 h-4" strokeWidth={1.75} />
-                  </a>
-                )}
-                {siteSettings.facebookLink?.trim() && (
-                  <a
-                    href={siteSettings.facebookLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-9 h-9 rounded-full bg-secondary-foreground/10 hover:bg-blue-500/20 hover:text-blue-400 flex items-center justify-center text-secondary-foreground/70 transition-all"
-                    title="Facebook"
-                    data-testid="footer-social-facebook"
-                  >
-                    <Facebook className="w-4 h-4" strokeWidth={1.75} />
-                  </a>
-                )}
-              </div>
             </div>
 
-            {/* Marketplace */}
+            {/* Make Money with Nafex */}
             <div className="space-y-4">
-              <h4 className="font-semibold text-sm text-secondary-foreground uppercase tracking-wider">Marketplace</h4>
+              <h4 className="font-semibold text-sm text-secondary-foreground uppercase tracking-wider">Make Money with Nafex</h4>
               <ul className="space-y-2.5 text-sm">
-                <li><Link href="/explore" className="text-secondary-foreground/70 hover:text-primary transition-colors">Explore Brands</Link></li>
-                <li><Link href="/discounts" className="text-secondary-foreground/70 hover:text-primary transition-colors">Deals & Flash Sales</Link></li>
-                <li><Link href="/services" className="text-secondary-foreground/70 hover:text-primary transition-colors">Services</Link></li>
+                <li><Link href="/list" className="text-secondary-foreground/70 hover:text-primary transition-colors">Sell on Nafex</Link></li>
                 <li><Link href="/trade" className="text-secondary-foreground/70 hover:text-primary transition-colors">Nafex Trade Connect</Link></li>
-                <li><Link href="/list" className="text-secondary-foreground/70 hover:text-primary transition-colors">List Your Business</Link></li>
+                <li><Link href="/services" className="text-secondary-foreground/70 hover:text-primary transition-colors">Become a Sales Consultant</Link></li>
+                <li><Link href="/services" className="text-secondary-foreground/70 hover:text-primary transition-colors">Become a Logistics Service Partner</Link></li>
               </ul>
             </div>
 
-            {/* Payment Methods */}
+            {/* Nafex International */}
             <div className="space-y-4">
-              <h4 className="font-semibold text-sm text-secondary-foreground uppercase tracking-wider">Payment Methods</h4>
-              <div className="grid grid-cols-2 gap-2.5">
-                <div className="h-11 bg-white rounded-md flex items-center justify-center px-3 shadow-sm" title="Paystack" data-testid="payment-paystack">
-                  <PaystackLogo className="h-4 w-auto" />
+              <h4 className="font-semibold text-sm text-secondary-foreground uppercase tracking-wider">Nafex International</h4>
+              <ul className="space-y-2.5 text-sm">
+                <li><span className="text-secondary-foreground/70 hover:text-primary transition-colors cursor-pointer">Ghana</span></li>
+                <li><span className="text-secondary-foreground/70 hover:text-primary transition-colors cursor-pointer">Nigeria</span></li>
+                <li><span className="text-secondary-foreground/70 hover:text-primary transition-colors cursor-pointer">Kenya</span></li>
+                <li><span className="text-secondary-foreground/70 hover:text-primary transition-colors cursor-pointer">Egypt</span></li>
+                <li><span className="text-secondary-foreground/70 hover:text-primary transition-colors cursor-pointer">South Africa</span></li>
+                <li><span className="text-secondary-foreground/70 hover:text-primary transition-colors cursor-pointer">Senegal</span></li>
+                <li><span className="text-secondary-foreground/70 hover:text-primary transition-colors cursor-pointer">Uganda</span></li>
+                <li><span className="text-secondary-foreground/70 hover:text-primary transition-colors cursor-pointer">Ivory Coast</span></li>
+              </ul>
+            </div>
+            
+            {/* Payment Methods and Socials merged into a new row */}
+            <div className="col-span-1 sm:col-span-2 lg:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-secondary-foreground/10">
+              {/* Payment Methods */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-sm text-secondary-foreground uppercase tracking-wider">Payment Methods</h4>
+                <div className="flex flex-wrap gap-2.5">
+                  <div className="h-11 w-16 bg-white rounded-md flex items-center justify-center shadow-sm" title="Paystack">
+                    <PaystackLogo className="h-4 w-auto" />
+                  </div>
+                  <div className="h-11 w-16 bg-white rounded-md flex items-center justify-center shadow-sm" title="Mobile Money">
+                    <MobileMoneyLogo className="h-6 w-auto" />
+                  </div>
+                  <div className="h-11 w-16 bg-white rounded-md flex items-center justify-center shadow-sm" title="Visa">
+                    <VisaLogo className="h-4 w-auto" />
+                  </div>
+                  <div className="h-11 w-16 bg-white rounded-md flex items-center justify-center shadow-sm" title="Mastercard">
+                    <MastercardLogo className="h-6 w-auto" />
+                  </div>
+                  <div className="h-11 bg-white text-secondary rounded-md flex items-center justify-center gap-2 px-3 shadow-sm" title="Bank Transfer">
+                    <BankTransferLogo className="h-5 w-auto" />
+                    <span className="text-[10px] font-semibold tracking-wide">BANK TRANSFER</span>
+                  </div>
                 </div>
-                <div className="h-11 bg-white rounded-md flex items-center justify-center px-3 shadow-sm" title="Mobile Money" data-testid="payment-momo">
-                  <MobileMoneyLogo className="h-6 w-auto" />
-                </div>
-                <div className="h-11 bg-white rounded-md flex items-center justify-center px-3 shadow-sm" title="Visa" data-testid="payment-visa">
-                  <VisaLogo className="h-4 w-auto" />
-                </div>
-                <div className="h-11 bg-white rounded-md flex items-center justify-center px-3 shadow-sm" title="Mastercard" data-testid="payment-mastercard">
-                  <MastercardLogo className="h-6 w-auto" />
-                </div>
-                <div className="col-span-2 h-11 bg-white text-secondary rounded-md flex items-center justify-center gap-2 px-3 shadow-sm" title="Bank Transfer" data-testid="payment-bank">
-                  <BankTransferLogo className="h-5 w-auto" />
-                  <span className="text-xs font-semibold tracking-wide">BANK TRANSFER</span>
+              </div>
+
+              {/* Socials & Contact */}
+              <div className="space-y-4 md:text-right">
+                <h4 className="font-semibold text-sm text-secondary-foreground uppercase tracking-wider">Connect With Us</h4>
+                <div className="flex items-center md:justify-end gap-3 pt-1">
+                  {siteSettings.whatsappNumber?.trim() && (
+                    <a href={`https://wa.me/${siteSettings.whatsappNumber.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-secondary-foreground/10 hover:bg-green-500/20 hover:text-green-400 flex items-center justify-center text-secondary-foreground/70 transition-all" title="WhatsApp">
+                      <Phone className="w-5 h-5" strokeWidth={1.75} />
+                    </a>
+                  )}
+                  {siteSettings.instagramLink?.trim() && (
+                    <a href={siteSettings.instagramLink} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-secondary-foreground/10 hover:bg-pink-500/20 hover:text-pink-400 flex items-center justify-center text-secondary-foreground/70 transition-all" title="Instagram">
+                      <Instagram className="w-5 h-5" strokeWidth={1.75} />
+                    </a>
+                  )}
+                  {siteSettings.facebookLink?.trim() && (
+                    <a href={siteSettings.facebookLink} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-secondary-foreground/10 hover:bg-blue-500/20 hover:text-blue-400 flex items-center justify-center text-secondary-foreground/70 transition-all" title="Facebook">
+                      <Facebook className="w-5 h-5" strokeWidth={1.75} />
+                    </a>
+                  )}
+                  <a href={`mailto:${siteSettings.email?.trim() || "support@nafexhub.com"}`} className="w-10 h-10 rounded-full bg-secondary-foreground/10 hover:bg-primary/20 hover:text-primary flex items-center justify-center text-secondary-foreground/70 transition-all" title="Email Us">
+                    <Mail className="w-5 h-5" strokeWidth={1.75} />
+                  </a>
                 </div>
               </div>
             </div>
