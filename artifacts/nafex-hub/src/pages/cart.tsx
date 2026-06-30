@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { ShoppingCart, Minus, Plus, Trash2, ArrowLeft, Package, Loader2 } from "lucide-react";
-import { ShieldCheck } from "lucide-react";
+import { ShoppingCart, Minus, Plus, Trash2, ArrowLeft, Package, Loader2, ShieldCheck, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCart } from "@/hooks/use-cart";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -26,198 +25,268 @@ export default function Cart() {
     {}
   );
 
-  async function checkout(businessId: number) {
+  async function checkoutAll() {
     if (!user) { navigate("/login"); return; }
     if (!user.emailVerified) { navigate("/verify-email"); return; }
-    const group = grouped[businessId];
-    if (!group) return;
+    if (items.length === 0) return;
 
     setPlacing(true);
-    try {
-      const res = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          businessId,
-          items: group.items.map((i) => ({
-            name: i.name,
-            quantity: i.quantity,
-            price: Math.round(i.price * 100),
-          })),
-          totalPrice: Math.round(group.items.reduce((s, i) => s + i.price * i.quantity * 100, 0)),
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        if (data.code === "EMAIL_NOT_VERIFIED") { navigate("/verify-email"); return; }
-        throw new Error(data.error ?? "Order failed");
+    let hasError = false;
+    
+    // Process each business as a separate order
+    for (const [businessIdStr, group] of Object.entries(grouped)) {
+      const businessId = Number(businessIdStr);
+      try {
+        const res = await fetch("/api/orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            businessId,
+            items: group.items.map((i) => ({
+              name: i.name,
+              quantity: i.quantity,
+              price: Math.round(i.price * 100),
+            })),
+            totalPrice: Math.round(group.items.reduce((s, i) => s + i.price * i.quantity * 100, 0)),
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          if (data.code === "EMAIL_NOT_VERIFIED") { navigate("/verify-email"); return; }
+          throw new Error(data.error ?? "Order failed");
+        }
+        clearBusiness(businessId);
+      } catch (err) {
+        toast({ title: `Order for ${group.businessName} failed`, description: (err as Error).message, variant: "destructive" });
+        hasError = true;
       }
-      clearBusiness(businessId);
-      toast({ title: "Order placed!", description: `Order #${data.id} from ${group.businessName} is now awaiting payment.` });
+    }
+    
+    setPlacing(false);
+    
+    if (!hasError) {
+      toast({ title: "Order placed!", description: `Your items are now awaiting payment.` });
       navigate("/orders");
-    } catch (err) {
-      toast({ title: "Order failed", description: (err as Error).message, variant: "destructive" });
-    } finally {
-      setPlacing(false);
+    } else if (items.length < Object.keys(grouped).length) {
+      // Partial success
+      toast({ title: "Partial success", description: "Some orders were placed successfully. Please check your orders page." });
+      navigate("/orders");
     }
   }
 
   if (items.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-16 max-w-2xl text-center space-y-6">
-        <div className="w-20 h-20 mx-auto rounded-full bg-muted flex items-center justify-center">
-          <ShoppingCart className="w-10 h-10 text-muted-foreground" />
+      <div className="bg-[#f5f5f5] min-h-[calc(100vh-16rem)] flex flex-col">
+        <div className="container mx-auto px-4 py-8 max-w-6xl flex-1">
+          <Card className="w-full">
+            <CardContent className="flex flex-col items-center justify-center py-20 text-center space-y-6">
+              <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center">
+                <ShoppingCart className="w-12 h-12 text-muted-foreground" />
+              </div>
+              <h1 className="font-serif text-2xl font-bold">Your cart is empty!</h1>
+              <p className="text-muted-foreground text-sm">Browse our categories and discover our best deals!</p>
+              <Button onClick={() => navigate("/explore")} size="lg" className="px-8 mt-4 uppercase font-semibold tracking-wider">
+                Start Shopping
+              </Button>
+            </CardContent>
+          </Card>
         </div>
-        <h1 className="font-serif text-3xl font-bold">Your cart is empty</h1>
-        <p className="text-muted-foreground">Browse brands and add products to get started.</p>
-        <Button onClick={() => navigate("/explore")} size="lg">Explore Brands</Button>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <button onClick={() => history.back()} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6">
-        <ArrowLeft className="w-4 h-4" />
-        Continue shopping
-      </button>
-
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="font-serif text-3xl font-bold">Your Cart</h1>
-        <div className="text-right">
-          <p className="text-xs text-muted-foreground">Cart total</p>
-          <p className="text-2xl font-bold text-primary">GHS {totalPrice().toFixed(2)}</p>
-        </div>
-      </div>
-
-      {/* Escrow + buyer protection */}
-      <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-        <ShieldCheck className="w-5 h-5 text-amber-700 flex-shrink-0 mt-0.5" />
-        <div>
-          <p className="text-sm font-semibold text-amber-900">Buyer protection is built-in</p>
-          <p className="text-xs text-amber-800 mt-1 leading-relaxed">
-            Your payment is held in escrow until delivery is confirmed. If there’s any issue, you can raise a dispute from your Orders.
-          </p>
-        </div>
-      </div>
-
-      {/* Promo codes (coming soon) */}
-      <div className="mb-6 flex flex-col sm:flex-row gap-3 items-stretch">
-        <Input
-          value={promoCode}
-          onChange={(e) => setPromoCode(e.target.value)}
-          placeholder="Promo code (coming soon)"
-          className="h-11"
-        />
-        <Button
-          variant="outline"
-          onClick={() => {
-            if (!promoCode.trim()) {
-              toast({ title: "Enter a promo code", variant: "destructive" });
-              return;
-            }
-            toast({ title: "Promo codes are coming soon", description: "For now, deals are available under Deals & Discounts." });
-          }}
-          className="h-11 sm:w-32"
-        >
-          Apply
-        </Button>
-      </div>
-
-      <div className="space-y-6">
-        {Object.entries(grouped).map(([bizId, group]) => {
-          const subtotal = group.items.reduce((s, i) => s + i.price * i.quantity, 0);
-          return (
-            <Card key={bizId}>
-              <CardContent className="p-5 space-y-4">
-                <div className="flex items-center justify-between border-b pb-3">
-                  <button
-                    onClick={() => navigate(`/brand/${bizId}`)}
-                    className="font-semibold text-foreground hover:text-primary"
-                  >
-                    {group.businessName}
-                  </button>
-                  <span className="text-xs text-muted-foreground">{group.items.length} item{group.items.length === 1 ? "" : "s"}</span>
-                </div>
-
-                <div className="space-y-3">
-                  {group.items.map((item) => (
-                    <div key={item.productId} className="flex items-center gap-3 py-2">
-                      <button
-                        onClick={() => navigate(`/product/${item.productId}`)}
-                        className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0"
-                      >
-                        {item.image ? (
-                          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Package className="w-6 h-6 text-muted-foreground" />
-                          </div>
-                        )}
-                      </button>
-                      <div className="flex-1 min-w-0">
-                        <button
-                          onClick={() => navigate(`/product/${item.productId}`)}
-                          className="text-sm font-medium text-foreground hover:text-primary truncate block w-full text-left"
-                        >
-                          {item.name}
-                        </button>
-                        <p className="text-xs text-muted-foreground">GHS {item.price.toFixed(2)} each</p>
-                      </div>
-                      <div className="flex items-center gap-1.5 bg-muted/50 rounded-full px-1">
-                        <button
-                          onClick={() => setQuantity(item.productId, item.quantity - 1)}
-                          className="w-7 h-7 rounded-full hover:bg-background flex items-center justify-center disabled:opacity-30"
-                          disabled={item.quantity <= 1}
-                          aria-label="Decrease"
-                        >
-                          <Minus className="w-3.5 h-3.5" />
-                        </button>
-                        <span className="w-6 text-center text-sm font-semibold">{item.quantity}</span>
-                        <button
-                          onClick={() => setQuantity(item.productId, item.quantity + 1)}
-                          className="w-7 h-7 rounded-full hover:bg-background flex items-center justify-center disabled:opacity-30"
-                          disabled={item.stock != null && item.quantity >= item.stock}
-                          aria-label="Increase"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                      <p className="w-20 text-right text-sm font-semibold">GHS {(item.price * item.quantity).toFixed(2)}</p>
-                      <button
-                        onClick={() => removeItem(item.productId)}
-                        className="text-muted-foreground hover:text-destructive p-1"
-                        aria-label="Remove"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+    <div className="bg-[#f5f5f5] min-h-[calc(100vh-16rem)]">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <div className="flex flex-col lg:flex-row gap-6">
+          
+          {/* Left Column: Cart Items */}
+          <div className="flex-1 space-y-4">
+            <Card>
+              <CardHeader className="border-b pb-4 pt-5 px-6">
+                <CardTitle className="text-xl font-bold">Cart ({items.length})</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {Object.entries(grouped).map(([bizId, group], groupIndex) => (
+                  <div key={bizId} className={groupIndex > 0 ? "border-t" : ""}>
+                    <div className="bg-muted/30 px-6 py-2 text-sm font-semibold text-secondary-foreground">
+                      Seller: {group.businessName}
                     </div>
-                  ))}
+                    <div className="divide-y">
+                      {group.items.map((item) => (
+                        <div key={item.productId} className="p-6 flex flex-col sm:flex-row gap-4">
+                          {/* Image */}
+                          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-md overflow-hidden bg-muted flex-shrink-0 cursor-pointer border border-border" onClick={() => navigate(`/product/${item.productId}`)}>
+                            {item.image ? (
+                              <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Package className="w-8 h-8 text-muted-foreground" />
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Details & Actions */}
+                          <div className="flex-1 flex flex-col sm:flex-row justify-between gap-4">
+                            <div className="flex-1 space-y-2">
+                              <button onClick={() => navigate(`/product/${item.productId}`)} className="text-base font-medium text-foreground hover:text-primary text-left line-clamp-2">
+                                {item.name}
+                              </button>
+                              <p className="text-xs text-muted-foreground">Seller: {group.businessName}</p>
+                              <div className="flex items-center gap-1.5 mt-2 text-primary font-bold">
+                                <span>GHS {item.price.toFixed(2)}</span>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-between w-full sm:w-auto">
+                              <div className="text-lg font-bold text-foreground">
+                                GHS {(item.price * item.quantity).toFixed(2)}
+                              </div>
+                              <div className="flex items-center gap-4 mt-2 sm:mt-0">
+                                <button onClick={() => removeItem(item.productId)} className="text-sm font-semibold text-primary hover:text-primary/80 flex items-center gap-1.5">
+                                  <Trash2 className="w-4 h-4" /> Remove
+                                </button>
+                                <div className="flex items-center gap-3">
+                                  <button
+                                    onClick={() => setQuantity(item.productId, item.quantity - 1)}
+                                    className="w-8 h-8 rounded bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center shadow-sm disabled:opacity-50 disabled:bg-muted disabled:text-muted-foreground"
+                                    disabled={item.quantity <= 1}
+                                  >
+                                    <Minus className="w-4 h-4" />
+                                  </button>
+                                  <span className="w-6 text-center text-sm font-semibold">{item.quantity}</span>
+                                  <button
+                                    onClick={() => setQuantity(item.productId, item.quantity + 1)}
+                                    className="w-8 h-8 rounded bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center shadow-sm disabled:opacity-50"
+                                    disabled={item.stock != null && item.quantity >= item.stock}
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Buyer Protection Banner */}
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3 shadow-sm">
+              <ShieldCheck className="w-6 h-6 text-amber-700 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-amber-900">Buyer protection is built-in</p>
+                <p className="text-xs text-amber-800 mt-1">
+                  Your payment is held in escrow until delivery is confirmed. If there’s any issue, you can raise a dispute from your Orders.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Cart Summary */}
+          <div className="w-full lg:w-80 flex-shrink-0 space-y-4">
+            <Card>
+              <CardHeader className="border-b pb-3 pt-4 px-4">
+                <CardTitle className="text-sm font-bold uppercase tracking-wider text-secondary-foreground">Cart Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 space-y-4">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-foreground">Item's total ({items.length})</span>
+                  <span className="font-bold">GHS {totalPrice().toFixed(2)}</span>
+                </div>
+                
+                <div className="pt-3 border-t space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-base font-bold">Subtotal</span>
+                    <span className="text-xl font-bold text-foreground">GHS {totalPrice().toFixed(2)}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground text-right">Delivery fees not included yet.</p>
                 </div>
 
-                <div className="flex items-center justify-between pt-3 border-t">
-                  <span className="text-sm">Subtotal</span>
-                  <span className="font-bold">GHS {subtotal.toFixed(2)}</span>
+                <div className="pt-2 border-t mt-4 border-dashed pb-2">
+                   <p className="text-xs font-semibold mb-2 text-secondary-foreground">PROMO CODE</p>
+                   <div className="flex gap-2">
+                     <Input
+                        value={promoCode}
+                        onChange={(e) => setPromoCode(e.target.value)}
+                        placeholder="Enter Promo code"
+                        className="h-9 text-sm rounded-sm"
+                      />
+                      <Button
+                        variant="secondary"
+                        onClick={() => {
+                          if (!promoCode.trim()) {
+                            toast({ title: "Enter a promo code", variant: "destructive" });
+                            return;
+                          }
+                          toast({ title: "Promo codes are coming soon" });
+                        }}
+                        className="h-9 rounded-sm font-semibold px-4 shadow-sm"
+                      >
+                        APPLY
+                      </Button>
+                   </div>
                 </div>
 
                 <Button
-                  className="w-full"
-                  size="lg"
-                  onClick={() => checkout(Number(bizId))}
+                  className="w-full h-11 uppercase font-bold tracking-wider shadow-md"
+                  onClick={checkoutAll}
                   disabled={placing}
-                  data-testid={`btn-checkout-${bizId}`}
                 >
-                  {placing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Placing order…</> : `Checkout ${group.businessName}`}
+                  {placing ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing...</> : `Checkout (GHS ${totalPrice().toFixed(2)})`}
                 </Button>
               </CardContent>
             </Card>
-          );
-        })}
-      </div>
+          </div>
+        </div>
 
-      <p className="text-xs text-muted-foreground text-center mt-6">
-        Each seller's items are checked out as a separate order so you can pay each one individually.
-      </p>
+        {/* Recently Viewed / Top Selling Sections (Mocked) */}
+        <div className="mt-8 space-y-6">
+          <Card className="rounded-md shadow-sm border-0 bg-white">
+            <CardHeader className="pb-3 border-b border-border/50 bg-[#feeed9] rounded-t-md px-4 py-3">
+              <CardTitle className="text-base font-semibold text-foreground">Recently Viewed</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+               {/* Horizontal scroll mocked products */}
+               <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
+                  {[1, 2, 3, 4, 5, 6].map(i => (
+                    <div key={i} className="flex-shrink-0 w-36 group cursor-pointer" onClick={() => navigate('/explore')}>
+                       <div className="aspect-square bg-muted/20 border border-border/50 rounded-sm mb-2 flex items-center justify-center relative overflow-hidden">
+                          <Package className="w-8 h-8 text-muted-foreground/30" />
+                       </div>
+                       <p className="text-xs text-secondary-foreground line-clamp-2">Example Product {i} for Recent Views</p>
+                       <p className="text-sm font-bold mt-1 text-foreground">GHS {(i * 45).toFixed(2)}</p>
+                    </div>
+                  ))}
+               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-md shadow-sm border-0 bg-white">
+            <CardHeader className="pb-3 border-b border-border/50 px-4 py-3 bg-[#e8f1ff] rounded-t-md">
+              <CardTitle className="text-base font-semibold text-foreground">Top selling items</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+               {/* Horizontal scroll mocked products */}
+               <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
+                  {[7, 8, 9, 10, 11, 12].map(i => (
+                    <div key={i} className="flex-shrink-0 w-36 group cursor-pointer" onClick={() => navigate('/explore')}>
+                       <div className="aspect-square bg-muted/20 border border-border/50 rounded-sm mb-2 flex items-center justify-center relative overflow-hidden">
+                          <Package className="w-8 h-8 text-muted-foreground/30" />
+                       </div>
+                       <p className="text-xs text-secondary-foreground line-clamp-2">Best Selling Product {i}</p>
+                       <p className="text-sm font-bold mt-1 text-foreground">GHS {(i * 75).toFixed(2)}</p>
+                    </div>
+                  ))}
+               </div>
+            </CardContent>
+          </Card>
+        </div>
+
+      </div>
     </div>
   );
 }
