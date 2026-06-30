@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail, Tag, Headphones, Settings, ChevronDown, HelpCircle, User2, ClipboardList, Star, Truck, TrendingUp, Globe2, Wallet, Clock, Search, Ticket, CreditCard, XCircle, RefreshCcw, Handshake } from "lucide-react";
+import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail, Tag, Headphones, Settings, ChevronDown, HelpCircle, User2, ClipboardList, Star, Truck, TrendingUp, Globe2, Wallet, Clock, Search, Ticket, CreditCard, XCircle, RefreshCcw, Handshake, MessageSquare, AlertCircle, ShieldCheck, MapPin } from "lucide-react";
 import { VisaLogo, MastercardLogo, PaystackLogo, MobileMoneyLogo, BankTransferLogo } from "@/components/payment-icons";
 import { NotificationBell } from "@/components/notification-bell";
 import { VerifyEmailBanner } from "@/components/verify-email-banner";
@@ -469,20 +469,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 From fashion and electronics to home essentials and lifestyle goods, Nafex Hub is a curated marketplace of verified Ghanaian businesses and creators — with escrow-protected payments, real-time logistics tracking, and direct sourcing through Nafex Trade Connect.
               </p>
               {/* Trust badges */}
-              <div className="flex flex-wrap gap-1.5 pt-2">
+              <div className="flex flex-wrap gap-2 pt-3">
                 {[
-                  { icon: Shield, label: "Verified Sellers" },
-                  { icon: Wallet, label: "Escrow Protection" },
+                  { icon: ShieldCheck, label: "Verified Sellers" },
+                  { icon: Shield, label: "Escrow Protection" },
                   { icon: Truck, label: "Logistics Tracking" },
                   { icon: Star, label: "Ratings & Reviews" },
                   { icon: Globe2, label: "Nafex Trade Connect" },
                 ].map(({ icon: Icon, label }) => (
                   <span
                     key={label}
-                    className="inline-flex items-center gap-1.5 text-[11px] text-secondary-foreground/80 bg-secondary-foreground/10 border border-secondary-foreground/15 rounded-full px-2.5 py-1"
+                    className="inline-flex items-center gap-1.5 text-[11px] text-gray-300 border border-gray-600 rounded-full px-3 py-1.5 shadow-sm"
                     data-testid={`badge-trust-${label.toLowerCase().replace(/\s+/g, "-")}`}
                   >
-                    <Icon className="w-3 h-3 text-primary" strokeWidth={1.75} />
+                    <Icon className="w-3.5 h-3.5 text-primary" strokeWidth={1.5} />
                     {label}
                   </span>
                 ))}
@@ -491,110 +491,62 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Columns */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 py-10">
-            {/* Let Us Help You */}
-            <div className="space-y-4">
-              <h4 className="font-semibold text-sm text-secondary-foreground uppercase tracking-wider">Let Us Help You</h4>
-              <ul className="space-y-2.5 text-sm">
-                <li><Link href="/help" className="text-secondary-foreground/70 hover:text-primary transition-colors">Help Center</Link></li>
-                <li><Link href="/support" className="text-secondary-foreground/70 hover:text-primary transition-colors">Contact Us</Link></li>
-                <li><Link href="/explore" className="text-secondary-foreground/70 hover:text-primary transition-colors">How to shop on Nafex</Link></li>
-                <li><Link href="/track" className="text-secondary-foreground/70 hover:text-primary transition-colors">Delivery options and timelines</Link></li>
-                <li><Link href="/disputes" className="text-secondary-foreground/70 hover:text-primary transition-colors">How to return a product on Nafex</Link></li>
-                <li><Link href="/services" className="text-secondary-foreground/70 hover:text-primary transition-colors">Corporate and bulk purchases</Link></li>
-                <li><Link href="/disputes" className="text-secondary-foreground/70 hover:text-primary transition-colors">Report a Product</Link></li>
-                <li><Link href="/disputes" className="text-secondary-foreground/70 hover:text-primary transition-colors">Dispute Resolution Policy</Link></li>
-                <li><Link href="/payments" className="text-secondary-foreground/70 hover:text-primary transition-colors">Returns and Refunds Policy</Link></li>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 py-10">
+            {/* SUPPORT */}
+            <div className="space-y-5">
+              <h4 className="font-bold text-[13px] text-white uppercase tracking-wider">SUPPORT</h4>
+              <ul className="space-y-3.5 text-sm">
+                <li><Link href="/support" className="text-gray-300 hover:text-primary transition-colors flex items-center gap-2"><MessageSquare className="w-4 h-4" strokeWidth={1.5} /> Live Chat Support</Link></li>
+                <li><Link href="/support" className="text-gray-300 hover:text-primary transition-colors flex items-center gap-2"><Headphones className="w-4 h-4" strokeWidth={1.5} /> Contact Support</Link></li>
+                <li><Link href="/help" className="text-gray-300 hover:text-primary transition-colors flex items-center gap-2"><HelpCircle className="w-4 h-4" strokeWidth={1.5} /> Help Center</Link></li>
+                <li><Link href="/orders" className="text-gray-300 hover:text-primary transition-colors flex items-center gap-2"><Truck className="w-4 h-4" strokeWidth={1.5} /> Track Order</Link></li>
+                <li><Link href="/disputes" className="text-gray-300 hover:text-primary transition-colors flex items-center gap-2"><AlertCircle className="w-4 h-4" strokeWidth={1.5} /> Report Issue</Link></li>
+                <li><Link href="/help" className="text-gray-300 hover:text-primary transition-colors flex items-center gap-2"><ShieldCheck className="w-4 h-4" strokeWidth={1.5} /> Buyer Protection</Link></li>
               </ul>
             </div>
 
-            {/* About Nafex */}
-            <div className="space-y-4">
-              <h4 className="font-semibold text-sm text-secondary-foreground uppercase tracking-wider">About Nafex</h4>
-              <ul className="space-y-2.5 text-sm text-secondary-foreground/70">
-                <li><Link href="/help" className="text-secondary-foreground/70 hover:text-primary transition-colors">About us</Link></li>
-                <li><Link href="/help" className="text-secondary-foreground/70 hover:text-primary transition-colors">Nafex careers</Link></li>
-                <li><Link href="/explore" className="text-secondary-foreground/70 hover:text-primary transition-colors">Nafex Express</Link></li>
-                <li><Link href="/help" className="text-secondary-foreground/70 hover:text-primary transition-colors">Terms and Conditions</Link></li>
-                <li><Link href="/help" className="text-secondary-foreground/70 hover:text-primary transition-colors">Privacy Notice</Link></li>
-                <li><Link href="/help" className="text-secondary-foreground/70 hover:text-primary transition-colors">Cookie Notice</Link></li>
-                <li><Link href="/discounts" className="text-secondary-foreground/70 hover:text-primary transition-colors">Flash Sales</Link></li>
+            {/* ABOUT */}
+            <div className="space-y-5">
+              <h4 className="font-bold text-[13px] text-white uppercase tracking-wider">ABOUT</h4>
+              <ul className="space-y-3.5 text-sm text-gray-300">
+                <li className="font-bold text-white mb-4 block">Nafex Hub Ghana Ltd</li>
+                <li className="flex items-center gap-2"><MapPin className="w-4 h-4" strokeWidth={1.5} /> Accra, Ghana</li>
+                <li className="flex items-center gap-2"><Mail className="w-4 h-4" strokeWidth={1.5} /> support@nafexhub.com</li>
+                <li className="flex items-center gap-2"><Clock className="w-4 h-4" strokeWidth={1.5} /> Mon–Sat · 8AM–8PM</li>
               </ul>
             </div>
 
-            {/* Make Money with Nafex */}
-            <div className="space-y-4">
-              <h4 className="font-semibold text-sm text-secondary-foreground uppercase tracking-wider">Make Money with Nafex</h4>
-              <ul className="space-y-2.5 text-sm">
-                <li><Link href="/list" className="text-secondary-foreground/70 hover:text-primary transition-colors">Sell on Nafex</Link></li>
-                <li><Link href="/trade" className="text-secondary-foreground/70 hover:text-primary transition-colors">Nafex Trade Connect</Link></li>
-                <li><Link href="/services" className="text-secondary-foreground/70 hover:text-primary transition-colors">Become a Sales Consultant</Link></li>
-                <li><Link href="/services" className="text-secondary-foreground/70 hover:text-primary transition-colors">Become a Logistics Service Partner</Link></li>
+            {/* MARKETPLACE */}
+            <div className="space-y-5">
+              <h4 className="font-bold text-[13px] text-white uppercase tracking-wider">MARKETPLACE</h4>
+              <ul className="space-y-3.5 text-sm">
+                <li><Link href="/explore" className="text-gray-300 hover:text-primary transition-colors block">Explore Brands</Link></li>
+                <li><Link href="/discounts" className="text-gray-300 hover:text-primary transition-colors block">Deals & Flash Sales</Link></li>
+                <li><Link href="/services" className="text-gray-300 hover:text-primary transition-colors block">Services</Link></li>
+                <li><Link href="/trade" className="text-gray-300 hover:text-primary transition-colors block">Nafex Trade Connect</Link></li>
+                <li><Link href="/list" className="text-gray-300 hover:text-primary transition-colors block">List Your Business</Link></li>
               </ul>
             </div>
 
-            {/* Nafex International */}
-            <div className="space-y-4">
-              <h4 className="font-semibold text-sm text-secondary-foreground uppercase tracking-wider">Nafex International</h4>
-              <ul className="space-y-2.5 text-sm">
-                <li><span className="text-secondary-foreground/70 hover:text-primary transition-colors cursor-pointer">Ghana</span></li>
-                <li><span className="text-secondary-foreground/70 hover:text-primary transition-colors cursor-pointer">Nigeria</span></li>
-                <li><span className="text-secondary-foreground/70 hover:text-primary transition-colors cursor-pointer">Kenya</span></li>
-                <li><span className="text-secondary-foreground/70 hover:text-primary transition-colors cursor-pointer">Egypt</span></li>
-                <li><span className="text-secondary-foreground/70 hover:text-primary transition-colors cursor-pointer">South Africa</span></li>
-                <li><span className="text-secondary-foreground/70 hover:text-primary transition-colors cursor-pointer">Senegal</span></li>
-                <li><span className="text-secondary-foreground/70 hover:text-primary transition-colors cursor-pointer">Uganda</span></li>
-                <li><span className="text-secondary-foreground/70 hover:text-primary transition-colors cursor-pointer">Ivory Coast</span></li>
-              </ul>
-            </div>
-            
-            {/* Payment Methods and Socials merged into a new row */}
-            <div className="col-span-1 sm:col-span-2 lg:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-secondary-foreground/10">
-              {/* Payment Methods */}
-              <div className="space-y-4">
-                <h4 className="font-semibold text-sm text-secondary-foreground uppercase tracking-wider">Payment Methods</h4>
-                <div className="flex flex-wrap gap-2.5">
-                  <div className="h-11 w-16 bg-white rounded-md flex items-center justify-center shadow-sm" title="Paystack">
-                    <PaystackLogo className="h-4 w-auto" />
-                  </div>
-                  <div className="h-11 w-16 bg-white rounded-md flex items-center justify-center shadow-sm" title="Mobile Money">
-                    <MobileMoneyLogo className="h-6 w-auto" />
-                  </div>
-                  <div className="h-11 w-16 bg-white rounded-md flex items-center justify-center shadow-sm" title="Visa">
-                    <VisaLogo className="h-4 w-auto" />
-                  </div>
-                  <div className="h-11 w-16 bg-white rounded-md flex items-center justify-center shadow-sm" title="Mastercard">
-                    <MastercardLogo className="h-6 w-auto" />
-                  </div>
-                  <div className="h-11 bg-white text-secondary rounded-md flex items-center justify-center gap-2 px-3 shadow-sm" title="Bank Transfer">
-                    <BankTransferLogo className="h-5 w-auto" />
-                    <span className="text-[10px] font-semibold tracking-wide">BANK TRANSFER</span>
-                  </div>
+            {/* PAYMENT METHODS */}
+            <div className="space-y-5">
+              <h4 className="font-bold text-[13px] text-white uppercase tracking-wider">PAYMENT METHODS</h4>
+              <div className="grid grid-cols-2 gap-3 max-w-[280px]">
+                <div className="h-[42px] bg-white rounded-md flex items-center justify-center px-2 shadow-sm" title="Paystack">
+                  <PaystackLogo className="h-4 w-auto" />
                 </div>
-              </div>
-
-              {/* Socials & Contact */}
-              <div className="space-y-4 md:text-right">
-                <h4 className="font-semibold text-sm text-secondary-foreground uppercase tracking-wider">Connect With Us</h4>
-                <div className="flex items-center md:justify-end gap-3 pt-1">
-                  {siteSettings.whatsappNumber?.trim() && (
-                    <a href={`https://wa.me/${siteSettings.whatsappNumber.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-secondary-foreground/10 hover:bg-green-500/20 hover:text-green-400 flex items-center justify-center text-secondary-foreground/70 transition-all" title="WhatsApp">
-                      <Phone className="w-5 h-5" strokeWidth={1.75} />
-                    </a>
-                  )}
-                  {siteSettings.instagramLink?.trim() && (
-                    <a href={siteSettings.instagramLink} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-secondary-foreground/10 hover:bg-pink-500/20 hover:text-pink-400 flex items-center justify-center text-secondary-foreground/70 transition-all" title="Instagram">
-                      <Instagram className="w-5 h-5" strokeWidth={1.75} />
-                    </a>
-                  )}
-                  {siteSettings.facebookLink?.trim() && (
-                    <a href={siteSettings.facebookLink} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-secondary-foreground/10 hover:bg-blue-500/20 hover:text-blue-400 flex items-center justify-center text-secondary-foreground/70 transition-all" title="Facebook">
-                      <Facebook className="w-5 h-5" strokeWidth={1.75} />
-                    </a>
-                  )}
-                  <a href={`mailto:${siteSettings.email?.trim() || "support@nafexhub.com"}`} className="w-10 h-10 rounded-full bg-secondary-foreground/10 hover:bg-primary/20 hover:text-primary flex items-center justify-center text-secondary-foreground/70 transition-all" title="Email Us">
-                    <Mail className="w-5 h-5" strokeWidth={1.75} />
-                  </a>
+                <div className="h-[42px] bg-white rounded-md flex items-center justify-center px-2 shadow-sm" title="Mobile Money">
+                  <MobileMoneyLogo className="h-6 w-auto" />
+                </div>
+                <div className="h-[42px] bg-white rounded-md flex items-center justify-center px-2 shadow-sm" title="Visa">
+                  <VisaLogo className="h-4 w-auto" />
+                </div>
+                <div className="h-[42px] bg-white rounded-md flex items-center justify-center px-2 shadow-sm" title="Mastercard">
+                  <MastercardLogo className="h-5 w-auto" />
+                </div>
+                <div className="col-span-2 h-[42px] bg-white text-[#0f172a] rounded-md flex items-center justify-center gap-2 px-3 shadow-sm" title="Bank Transfer">
+                  <BankTransferLogo className="h-5 w-auto" />
+                  <span className="text-xs font-bold tracking-wide">BANK TRANSFER</span>
                 </div>
               </div>
             </div>
