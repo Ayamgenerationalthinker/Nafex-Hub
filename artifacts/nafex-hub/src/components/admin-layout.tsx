@@ -17,6 +17,7 @@ import {
   Flame,
   Wallet,
 } from "lucide-react";
+import { Footer } from "@/components/footer";
 
 const NAV_ITEMS = [
   { path: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -189,7 +190,12 @@ export function AdminLayout({
 
         {/* Content */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6">
-          {children}
+          <div className="min-h-full">
+            {children}
+          </div>
+          <div className="mt-8">
+            <Footer />
+          </div>
         </main>
       </div>
     </div>
