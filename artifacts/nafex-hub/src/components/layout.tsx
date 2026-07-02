@@ -501,31 +501,31 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 py-10">
             {/* SUPPORT */}
             <div className="space-y-5">
-              <h4 className="font-bold text-[13px] text-white uppercase tracking-wider">SUPPORT</h4>
+              <h4 className="font-serif font-bold text-[15px] text-white uppercase tracking-wider">SUPPORT</h4>
               <ul className="space-y-3.5 text-sm">
-                <li><Link href="/support" className="text-gray-300 hover:text-primary transition-colors flex items-center gap-2"><MessageSquare className="w-4 h-4" strokeWidth={1.5} /> Live Chat Support</Link></li>
+                <li><Link href="/support" className="text-gray-300 hover:text-primary transition-colors flex items-center gap-2"><MessageCircle className="w-4 h-4" strokeWidth={1.5} /> Live Chat Support</Link></li>
                 <li><Link href="/support" className="text-gray-300 hover:text-primary transition-colors flex items-center gap-2"><Headphones className="w-4 h-4" strokeWidth={1.5} /> Contact Support</Link></li>
                 <li><Link href="/help" className="text-gray-300 hover:text-primary transition-colors flex items-center gap-2"><HelpCircle className="w-4 h-4" strokeWidth={1.5} /> Help Center</Link></li>
                 <li><Link href="/orders" className="text-gray-300 hover:text-primary transition-colors flex items-center gap-2"><Truck className="w-4 h-4" strokeWidth={1.5} /> Track Order</Link></li>
-                <li><Link href="/disputes" className="text-gray-300 hover:text-primary transition-colors flex items-center gap-2"><AlertCircle className="w-4 h-4" strokeWidth={1.5} /> Report Issue</Link></li>
+                <li><Link href="/disputes" className="text-gray-300 hover:text-primary transition-colors flex items-center gap-2"><ClipboardList className="w-4 h-4" strokeWidth={1.5} /> Report Issue</Link></li>
                 <li><Link href="/help" className="text-gray-300 hover:text-primary transition-colors flex items-center gap-2"><ShieldCheck className="w-4 h-4" strokeWidth={1.5} /> Buyer Protection</Link></li>
               </ul>
             </div>
 
             {/* ABOUT */}
             <div className="space-y-5">
-              <h4 className="font-bold text-[13px] text-white uppercase tracking-wider">ABOUT</h4>
+              <h4 className="font-serif font-bold text-[15px] text-white uppercase tracking-wider">ABOUT</h4>
               <ul className="space-y-3.5 text-sm text-gray-300">
                 <li className="font-bold text-white mb-4 block">Nafex Hub Ghana Ltd</li>
                 <li className="flex items-center gap-2"><MapPin className="w-4 h-4" strokeWidth={1.5} /> Accra, Ghana</li>
                 <li className="flex items-center gap-2"><Mail className="w-4 h-4" strokeWidth={1.5} /> support@nafexhub.com</li>
-                <li className="flex items-center gap-2"><Clock className="w-4 h-4" strokeWidth={1.5} /> Mon–Sat · 8AM–8PM</li>
+                <li className="flex items-center gap-2"><Clock className="w-4 h-4" strokeWidth={1.5} /> Mon-Sat · 8AM-8PM</li>
               </ul>
             </div>
 
             {/* MARKETPLACE */}
             <div className="space-y-5">
-              <h4 className="font-bold text-[13px] text-white uppercase tracking-wider">MARKETPLACE</h4>
+              <h4 className="font-serif font-bold text-[15px] text-white uppercase tracking-wider">MARKETPLACE</h4>
               <ul className="space-y-3.5 text-sm">
                 <li><Link href="/explore" className="text-gray-300 hover:text-primary transition-colors block">Explore Brands</Link></li>
                 <li><Link href="/discounts" className="text-gray-300 hover:text-primary transition-colors block">Deals & Flash Sales</Link></li>
@@ -537,13 +537,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
             {/* PAYMENT METHODS */}
             <div className="space-y-5">
-              <h4 className="font-bold text-[13px] text-white uppercase tracking-wider">PAYMENT METHODS</h4>
+              <h4 className="font-serif font-bold text-[15px] text-white uppercase tracking-wider">PAYMENT METHODS</h4>
               <div className="grid grid-cols-2 gap-3 max-w-[280px]">
                 <div className="h-[42px] bg-white rounded-md flex items-center justify-center px-2 shadow-sm" title="Paystack">
                   <PaystackLogo className="h-4 w-auto" />
                 </div>
-                <div className="h-[42px] bg-white rounded-md flex items-center justify-center px-2 shadow-sm" title="Mobile Money">
-                  <MobileMoneyLogo className="h-6 w-auto" />
+                <div className="h-[42px] flex items-center justify-center shadow-sm" title="Mobile Money">
+                  <MobileMoneyLogo className="h-full w-full" />
                 </div>
                 <div className="h-[42px] bg-white rounded-md flex items-center justify-center px-2 shadow-sm" title="Visa">
                   <VisaLogo className="h-4 w-auto" />
