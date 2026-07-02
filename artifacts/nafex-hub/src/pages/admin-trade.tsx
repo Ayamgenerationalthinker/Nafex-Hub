@@ -329,6 +329,7 @@ export default function AdminTrade() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </AdminLayout>
   );
 }
