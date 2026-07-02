@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm run typecheck:libs && pnpm --filter @workspace/api-server run build:vercel && pnpm --filter @workspace/nafex-hub run build",
+  "buildCommand": "pnpm run typecheck:libs && pnpm --filter @workspace/db run push && pnpm --filter @workspace/api-server run build:vercel && pnpm --filter @workspace/nafex-hub run build",
   "outputDirectory": "artifacts/nafex-hub/dist/public",
   "installCommand": "pnpm install",
   "headers": [

@@ -250,6 +250,57 @@ export declare const businessesTable: import("drizzle-orm/pg-core").PgTableWithC
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        paystackRecipientCode: import("drizzle-orm/pg-core").PgColumn<{
+            name: "paystack_recipient_code";
+            tableName: "businesses";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        settlementBank: import("drizzle-orm/pg-core").PgColumn<{
+            name: "settlement_bank";
+            tableName: "businesses";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        settlementAccount: import("drizzle-orm/pg-core").PgColumn<{
+            name: "settlement_account";
+            tableName: "businesses";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
         createdAt: import("drizzle-orm/pg-core").PgColumn<{
             name: "created_at";
             tableName: "businesses";
@@ -288,8 +339,8 @@ export declare const businessesTable: import("drizzle-orm/pg-core").PgTableWithC
     dialect: "pg";
 }>;
 export declare const insertBusinessSchema: z.ZodObject<{
-    ownerId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
     name: z.ZodString;
+    ownerId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
     category: z.ZodString;
     description: z.ZodString;
     location: z.ZodString;
@@ -300,6 +351,9 @@ export declare const insertBusinessSchema: z.ZodObject<{
     isFeatured: z.ZodOptional<z.ZodBoolean>;
     featuredType: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     featuredUntil: z.ZodOptional<z.ZodNullable<z.ZodDate>>;
+    paystackRecipientCode: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    settlementBank: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    settlementAccount: z.ZodOptional<z.ZodNullable<z.ZodString>>;
 }, {
     out: {};
     in: {};

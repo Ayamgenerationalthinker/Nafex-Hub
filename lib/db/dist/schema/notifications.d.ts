@@ -149,9 +149,9 @@ export declare const insertNotificationSchema: z.ZodObject<{
         order_update: "order_update";
         review: "review";
     }>;
+    isRead: z.ZodOptional<z.ZodBoolean>;
     title: z.ZodString;
     body: z.ZodString;
-    isRead: z.ZodOptional<z.ZodBoolean>;
     relatedId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
 }, {
     out: {};

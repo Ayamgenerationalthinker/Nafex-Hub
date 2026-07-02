@@ -76,7 +76,7 @@ export declare const deliveriesTable: import("drizzle-orm/pg-core").PgTableWithC
             tableName: "deliveries";
             dataType: "string";
             columnType: "PgText";
-            data: "created" | "assigned" | "picked_up" | "in_transit" | "delivered" | "failed" | "returned";
+            data: "delivered" | "created" | "assigned" | "picked_up" | "in_transit" | "failed" | "returned";
             driverParam: string;
             notNull: true;
             hasDefault: true;
@@ -287,7 +287,7 @@ export declare const deliveryEventsTable: import("drizzle-orm/pg-core").PgTableW
             tableName: "delivery_events";
             dataType: "string";
             columnType: "PgText";
-            data: "created" | "assigned" | "picked_up" | "in_transit" | "delivered" | "failed" | "returned";
+            data: "delivered" | "created" | "assigned" | "picked_up" | "in_transit" | "failed" | "returned";
             driverParam: string;
             notNull: true;
             hasDefault: false;
@@ -354,24 +354,24 @@ export declare const deliveryEventsTable: import("drizzle-orm/pg-core").PgTableW
     dialect: "pg";
 }>;
 export declare const insertDeliverySchema: z.ZodObject<{
-    orderId: z.ZodInt;
-    riderId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
-    trackingCode: z.ZodString;
     status: z.ZodOptional<z.ZodEnum<{
+        delivered: "delivered";
         created: "created";
         assigned: "assigned";
         picked_up: "picked_up";
         in_transit: "in_transit";
-        delivered: "delivered";
         failed: "failed";
         returned: "returned";
     }>>;
+    notes: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    orderId: z.ZodInt;
+    riderId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
+    trackingCode: z.ZodString;
     pickupAddress: z.ZodString;
     deliveryAddress: z.ZodString;
     deliveryZone: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     deliveryFee: z.ZodOptional<z.ZodString>;
     estimatedArrival: z.ZodOptional<z.ZodNullable<z.ZodDate>>;
-    notes: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     proofImageUrl: z.ZodOptional<z.ZodNullable<z.ZodString>>;
 }, {
     out: {};

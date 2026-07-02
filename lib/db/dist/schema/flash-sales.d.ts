@@ -177,14 +177,14 @@ export declare const flashSalesTable: import("drizzle-orm/pg-core").PgTableWithC
     dialect: "pg";
 }>;
 export declare const insertFlashSaleSchema: z.ZodObject<{
+    description: z.ZodOptional<z.ZodString>;
     productId: z.ZodInt;
     title: z.ZodString;
-    description: z.ZodOptional<z.ZodString>;
-    discountPercent: z.ZodInt;
-    startsAt: z.ZodDate;
-    endsAt: z.ZodDate;
     isActive: z.ZodOptional<z.ZodBoolean>;
     createdBy: z.ZodInt;
+    startsAt: z.ZodDate;
+    discountPercent: z.ZodInt;
+    endsAt: z.ZodDate;
 }, {
     out: {};
     in: {};

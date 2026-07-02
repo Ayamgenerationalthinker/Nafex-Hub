@@ -126,8 +126,8 @@ export declare const servicesTable: import("drizzle-orm/pg-core").PgTableWithCol
     dialect: "pg";
 }>;
 export declare const insertServiceSchema: z.ZodObject<{
-    title: z.ZodString;
     description: z.ZodString;
+    title: z.ZodString;
     image: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     isActive: z.ZodOptional<z.ZodBoolean>;
 }, {

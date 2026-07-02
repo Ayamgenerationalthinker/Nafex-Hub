@@ -214,14 +214,14 @@ export declare const insertRiderSchema: z.ZodObject<{
     userId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
     name: z.ZodString;
     phone: z.ZodString;
+    rating: z.ZodOptional<z.ZodString>;
+    isActive: z.ZodOptional<z.ZodBoolean>;
     vehicleType: z.ZodOptional<z.ZodEnum<{
         bike: "bike";
         car: "car";
         van: "van";
     }>>;
     isAvailable: z.ZodOptional<z.ZodBoolean>;
-    isActive: z.ZodOptional<z.ZodBoolean>;
-    rating: z.ZodOptional<z.ZodString>;
     zone: z.ZodOptional<z.ZodNullable<z.ZodString>>;
 }, {
     out: {};

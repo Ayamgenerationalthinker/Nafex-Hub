@@ -139,6 +139,23 @@ export declare const usersTable: import("drizzle-orm/pg-core").PgTableWithColumn
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        loyaltyPoints: import("drizzle-orm/pg-core").PgColumn<{
+            name: "loyalty_points";
+            tableName: "users";
+            dataType: "number";
+            columnType: "PgInteger";
+            data: number;
+            driverParam: string | number;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
         createdAt: import("drizzle-orm/pg-core").PgColumn<{
             name: "created_at";
             tableName: "users";
@@ -171,6 +188,7 @@ export declare const insertUserSchema: z.ZodObject<{
     emailVerified: z.ZodOptional<z.ZodBoolean>;
     emailVerificationCode: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     emailVerificationExpiry: z.ZodOptional<z.ZodNullable<z.ZodDate>>;
+    loyaltyPoints: z.ZodOptional<z.ZodInt>;
 }, {
     out: {};
     in: {};

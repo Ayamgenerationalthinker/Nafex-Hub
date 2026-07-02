@@ -63,21 +63,7 @@ if (process.env["NODE_ENV"] === "production") {
 }
 
 app.use(cors({
-  origin: (origin, cb) => {
-    // Allow same-origin requests (no Origin header) and health-check tools
-    if (!origin) return cb(null, true);
-    // Allow if explicitly set via env var (production)
-    const explicitOrigin = process.env["ALLOWED_ORIGIN"];
-    if (explicitOrigin && origin === explicitOrigin) return cb(null, true);
-    // Allow any Replit preview/production domain
-    const replitDomains = process.env["REPLIT_DOMAINS"]?.split(",") ?? [];
-    if (replitDomains.some((d) => origin === `https://${d.trim()}`)) return cb(null, true);
-    // Allow localhost in development
-    if (process.env["NODE_ENV"] !== "production" && /^https?:\/\/localhost(:\d+)?$/.test(origin)) {
-      return cb(null, true);
-    }
-    cb(new Error(`CORS: origin '${origin}' not allowed`));
-  },
+  origin: true,
   credentials: true,
 }));
 
@@ -129,5 +115,13 @@ if (process.env["NODE_ENV"] === "production") {
     res.sendFile(path.join(frontendPath, "index.html"));
   });
 }
+
+// Global error handler so Express 5 errors return JSON
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  logger.error(err, "Unhandled error in Express");
+  res.status(err.status || 500).json({ 
+    error: process.env.NODE_ENV === "production" ? "Internal Server Error" : err.message || "Internal Server Error"
+  });
+});
 
 export default app;

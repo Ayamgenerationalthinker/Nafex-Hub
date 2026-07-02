@@ -92,8 +92,8 @@ export declare const favoritesTable: import("drizzle-orm/pg-core").PgTableWithCo
     dialect: "pg";
 }>;
 export declare const insertFavoriteSchema: z.ZodObject<{
-    businessId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
     userId: z.ZodInt;
+    businessId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
     productId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
 }, {
     out: {};
