@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { AdminLayout } from "@/components/admin-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -139,7 +140,8 @@ export default function AdminTrade() {
   if (!user || user.role !== "admin") return null;
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <AdminLayout title="Global Trade">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">
@@ -327,6 +329,6 @@ export default function AdminTrade() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </AdminLayout>
   );
 }

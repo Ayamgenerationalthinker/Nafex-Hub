@@ -11,7 +11,6 @@ import Home from "@/pages/home";
 import Explore from "@/pages/explore";
 import BrandProfile from "@/pages/brand-profile";
 import ListBusiness from "@/pages/list-business";
-import Admin from "@/pages/admin";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import VerifyEmail from "@/pages/verify-email";
@@ -80,6 +79,12 @@ function ProtectedRoute({
 function Router() {
   return (
     <Switch>
+      <Route path="/admin">
+        {() => {
+          window.location.href = "/admin/dashboard";
+          return null;
+        }}
+      </Route>
       <Route path="/admin/dashboard">{() => <ProtectedRoute component={AdminDashboard} roles={["admin"]} to="/" />}</Route>
       <Route path="/admin/businesses">{() => <ProtectedRoute component={AdminBusinessesPage} roles={["admin"]} to="/" />}</Route>
       <Route path="/admin/analytics">{() => <ProtectedRoute component={AdminAnalytics} roles={["admin"]} to="/" />}</Route>
@@ -88,6 +93,9 @@ function Router() {
       <Route path="/admin/services">{() => <ProtectedRoute component={AdminServicesPage} roles={["admin"]} to="/" />}</Route>
       <Route path="/admin/payments">{() => <ProtectedRoute component={AdminPayments} roles={["admin"]} to="/" />}</Route>
       <Route path="/admin/flash-sales">{() => <ProtectedRoute component={AdminFlashSales} roles={["admin"]} to="/" />}</Route>
+      <Route path="/admin/deliveries">{() => <ProtectedRoute component={AdminDeliveries} roles={["admin"]} to="/" />}</Route>
+      <Route path="/admin/disputes">{() => <ProtectedRoute component={AdminDisputesPage} roles={["admin"]} to="/" />}</Route>
+      <Route path="/admin/trade">{() => <ProtectedRoute component={AdminTrade} roles={["admin"]} to="/" />}</Route>
       <Route>
         <Layout>
           <Switch>
@@ -103,7 +111,6 @@ function Router() {
             <Route path="/product/:id" component={ProductDetail} />
             <Route path="/dashboard">{() => <ProtectedRoute component={Dashboard} roles={["business_owner", "admin"]} to="/explore" />}</Route>
             <Route path="/list">{() => <ProtectedRoute component={ListBusiness} roles={["business_owner", "admin"]} to="/explore" />}</Route>
-            <Route path="/admin">{() => <ProtectedRoute component={Admin} roles={["admin"]} to="/" />}</Route>
             <Route path="/inbox">{() => <ProtectedRoute component={Inbox} />}</Route>
             <Route path="/orders">{() => <ProtectedRoute component={Orders} />}</Route>
             <Route path="/payments">{() => <ProtectedRoute component={Payments} />}</Route>
@@ -118,14 +125,11 @@ function Router() {
             <Route path="/track" component={Track} />
             <Route path="/track/:code" component={Track} />
             <Route path="/disputes">{() => <ProtectedRoute component={Disputes} />}</Route>
-            <Route path="/admin/deliveries">{() => <ProtectedRoute component={AdminDeliveries} roles={["admin"]} to="/" />}</Route>
-            <Route path="/admin/disputes">{() => <ProtectedRoute component={AdminDisputesPage} roles={["admin"]} to="/" />}</Route>
             <Route path="/trade">{() => <ProtectedRoute component={TradeConnect} />}</Route>
             <Route path="/trade/my-requests">{() => <ProtectedRoute component={TradeMyRequests} />}</Route>
             <Route path="/trade/board">{() => <ProtectedRoute component={TradeBoard} />}</Route>
             <Route path="/trade/order/:id">{() => <ProtectedRoute component={TradeOrderDetail} />}</Route>
             <Route path="/trade/seller-import">{() => <ProtectedRoute component={SellerBulkImport} roles={["business_owner", "admin"]} to="/login" />}</Route>
-            <Route path="/admin/trade">{() => <ProtectedRoute component={AdminTrade} roles={["admin"]} to="/" />}</Route>
             <Route component={NotFound} />
           </Switch>
         </Layout>

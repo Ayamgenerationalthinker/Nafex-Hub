@@ -39,5 +39,6 @@ export const useAuth = create<AuthState>((set) => ({
     localStorage.removeItem("nafex_token");
     localStorage.removeItem("nafex_user");
     set({ token: null, user: null });
+    window.location.href = "/";
   },
 }));
