@@ -16,6 +16,7 @@ import {
   Menu,
   Flame,
   Wallet,
+  Headphones,
 } from "lucide-react";
 import { Footer } from "@/components/footer";
 
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
   { path: "/admin/flash-sales", label: "Flash Sales", icon: Flame },
   { path: "/admin/payments", label: "Payments", icon: Wallet },
   { path: "/admin/analytics", label: "Analytics", icon: BarChart2 },
+  { path: "/admin/support", label: "Support Chats", icon: Headphones },
   { path: "/admin/settings", label: "Settings", icon: Settings },
 ];
 

@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { Heart, ArrowLeft, Store, ShoppingBag, ShoppingCart, Minus, Plus, Loader2, Zap, Star, ShieldCheck } from "lucide-react";
 import { useEffect, useState, type ChangeEvent } from "react";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, useAuthAction } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/hooks/use-cart";
 
@@ -14,6 +14,7 @@ export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const { user, token } = useAuth();
+  const requireAuth = useAuthAction();
   const { toast } = useToast();
   const addToCart = useCart((s) => s.addItem);
   const [selectedImg, setSelectedImg] = useState(0);
@@ -34,6 +35,12 @@ export default function ProductDetail() {
       },
     },
   });
+
+  const handleToggleFav = () => {
+    requireAuth(() => {
+      if (product) toggleFav({ data: { productId: product.id } });
+    });
+  };
 
   if (isLoading) {
     return (
@@ -111,26 +118,28 @@ export default function ProductDetail() {
   const reviewCount = (product as any).reviewCount as number | undefined;
 
   function handleAddToCart() {
-    if (!product) return;
-    addToCart(
-      {
-        productId: product.id,
-        businessId: product.businessId,
-        businessName: product.businessName ?? "Seller",
-        name: product.name,
-        price: Number(product.price),
-        image: product.images?.[0] ?? null,
-        stock: product.stock ?? null,
-      },
-      safeQty,
-    );
-    toast({ title: "Added to cart", description: `${safeQty} × ${product.name}` });
+    requireAuth(() => {
+      if (!product) return;
+      addToCart(
+        {
+          productId: product.id,
+          businessId: product.businessId,
+          businessName: product.businessName ?? "Seller",
+          name: product.name,
+          price: Number(product.price),
+          image: product.images?.[0] ?? null,
+          stock: product.stock ?? null,
+        },
+        safeQty,
+      );
+      toast({ title: "Added to cart", description: `${safeQty} × ${product.name}` });
+    });
   }
 
-  async function handleBuyNow() {
-    if (!product) return;
-    if (!user) { setLocation("/login"); return; }
-    if (!user.emailVerified) { setLocation("/verify-email"); return; }
+  function handleBuyNow() {
+    requireAuth(async () => {
+      if (!product) return;
+      if (!user?.emailVerified) { setLocation("/verify-email"); return; }
 
     setBuying(true);
     try {
@@ -155,12 +164,12 @@ export default function ProductDetail() {
     } finally {
       setBuying(false);
     }
+  });
   }
 
-  async function handleSendOffer() {
-    if (!product) return;
-    if (!user) { setLocation("/login"); return; }
-    if (!token) { setLocation("/login"); return; }
+  function handleSendOffer() {
+    requireAuth(async () => {
+      if (!product || !token) return;
 
     const offered = Number(offerPrice);
     if (!offerPrice.trim() || Number.isNaN(offered) || offered <= 0) {
@@ -194,10 +203,11 @@ export default function ProductDetail() {
       toast({ title: "Offer sent", description: "Your offer was sent to the seller chat." });
       setLocation(`/inbox?convId=${convData.id}&tab=buyer`);
     } catch (err) {
-      toast({ title: "Could not send offer", description: (err as Error).message, variant: "destructive" });
+      toast({ title: "Failed to send offer", description: (err as Error).message, variant: "destructive" });
     } finally {
       setSendingOffer(false);
     }
+  });
   }
 
   return (
@@ -382,7 +392,7 @@ export default function ProductDetail() {
                 variant="outline"
                 size="icon"
                 className={`shrink-0 ${isFav ? "border-red-400 text-red-500 hover:bg-red-50" : ""}`}
-                onClick={() => toggleFav({ data: { productId: product.id } })}
+                onClick={handleToggleFav}
               >
                 <Heart className={`w-4 h-4 ${isFav ? "fill-current" : ""}`} />
               </Button>

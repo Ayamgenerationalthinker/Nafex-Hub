@@ -42,3 +42,18 @@ export const useAuth = create<AuthState>((set) => ({
     window.location.href = "/";
   },
 }));
+
+import { useLocation } from "wouter";
+
+export function useAuthAction() {
+  const { user } = useAuth();
+  const [, setLocation] = useLocation();
+
+  return (action: () => void) => {
+    if (!user) {
+      setLocation("/login");
+      return;
+    }
+    action();
+  };
+}
