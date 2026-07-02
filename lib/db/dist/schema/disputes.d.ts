@@ -255,6 +255,7 @@ export declare const disputesTable: import("drizzle-orm/pg-core").PgTableWithCol
 }>;
 export declare const insertDisputeSchema: z.ZodObject<{
     userId: z.ZodInt;
+    description: z.ZodString;
     orderId: z.ZodInt;
     reason: z.ZodEnum<{
         item_not_received: "item_not_received";
@@ -264,7 +265,6 @@ export declare const insertDisputeSchema: z.ZodObject<{
         seller_unresponsive: "seller_unresponsive";
         other: "other";
     }>;
-    description: z.ZodString;
     evidenceUrls: z.ZodOptional<z.ZodArray<z.ZodString>>;
 }, {
     out: {};

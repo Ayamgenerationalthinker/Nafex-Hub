@@ -110,14 +110,14 @@ export declare const ordersTable: import("drizzle-orm/pg-core").PgTableWithColum
             tableName: "orders";
             dataType: "string";
             columnType: "PgText";
-            data: "unpaid" | "in_escrow" | "released" | "refunded";
+            data: "unpaid" | "partial" | "in_escrow" | "released" | "refunded";
             driverParam: string;
             notNull: true;
             hasDefault: true;
             isPrimaryKey: false;
             isAutoincrement: false;
             hasRuntimeDefault: false;
-            enumValues: ["unpaid", "in_escrow", "released", "refunded"];
+            enumValues: ["unpaid", "partial", "in_escrow", "released", "refunded"];
             baseColumn: never;
             identity: undefined;
             generated: undefined;
@@ -190,6 +190,57 @@ export declare const ordersTable: import("drizzle-orm/pg-core").PgTableWithColum
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        coinsApplied: import("drizzle-orm/pg-core").PgColumn<{
+            name: "coins_applied";
+            tableName: "orders";
+            dataType: "number";
+            columnType: "PgInteger";
+            data: number;
+            driverParam: string | number;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        isB2b: import("drizzle-orm/pg-core").PgColumn<{
+            name: "is_b2b";
+            tableName: "orders";
+            dataType: "boolean";
+            columnType: "PgBoolean";
+            data: boolean;
+            driverParam: boolean;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        milestones: import("drizzle-orm/pg-core").PgColumn<{
+            name: "milestones";
+            tableName: "orders";
+            dataType: "json";
+            columnType: "PgJsonb";
+            data: unknown;
+            driverParam: unknown;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
         createdAt: import("drizzle-orm/pg-core").PgColumn<{
             name: "created_at";
             tableName: "orders";
@@ -242,6 +293,7 @@ export declare const insertOrderSchema: z.ZodObject<{
     }>>;
     paymentStatus: z.ZodOptional<z.ZodEnum<{
         unpaid: "unpaid";
+        partial: "partial";
         in_escrow: "in_escrow";
         released: "released";
         refunded: "refunded";
@@ -250,6 +302,9 @@ export declare const insertOrderSchema: z.ZodObject<{
     deliveryOtp: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     deliveryOtpExpiry: z.ZodOptional<z.ZodNullable<z.ZodDate>>;
     notes: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    coinsApplied: z.ZodOptional<z.ZodInt>;
+    isB2b: z.ZodOptional<z.ZodBoolean>;
+    milestones: z.ZodOptional<z.ZodType<import("drizzle-zod").Json, unknown, z.core.$ZodTypeInternals<import("drizzle-zod").Json, unknown>>>;
 }, {
     out: {};
     in: {};

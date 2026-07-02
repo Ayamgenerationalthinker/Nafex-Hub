@@ -161,7 +161,7 @@ export declare const transactionsTable: import("drizzle-orm/pg-core").PgTableWit
             tableName: "transactions";
             dataType: "string";
             columnType: "PgText";
-            data: "failed" | "pending" | "success" | "reversed";
+            data: "pending" | "success" | "failed" | "reversed";
             driverParam: string;
             notNull: true;
             hasDefault: true;
@@ -229,11 +229,10 @@ export declare const transactionsTable: import("drizzle-orm/pg-core").PgTableWit
 }>;
 export declare const insertTransactionSchema: z.ZodObject<{
     userId: z.ZodInt;
-    orderId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
     status: z.ZodOptional<z.ZodEnum<{
-        failed: "failed";
         pending: "pending";
         success: "success";
+        failed: "failed";
         reversed: "reversed";
     }>>;
     type: z.ZodEnum<{
@@ -242,6 +241,7 @@ export declare const insertTransactionSchema: z.ZodObject<{
         payout: "payout";
         fee: "fee";
     }>;
+    orderId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
     amount: z.ZodString;
     currency: z.ZodOptional<z.ZodString>;
     provider: z.ZodEnum<{

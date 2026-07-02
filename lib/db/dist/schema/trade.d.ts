@@ -1174,20 +1174,21 @@ export declare const tradeTrackingEventsTable: import("drizzle-orm/pg-core").PgT
 }>;
 export declare const insertTradeRequestSchema: z.ZodObject<{
     userId: z.ZodInt;
+    category: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    description: z.ZodString;
+    images: z.ZodOptional<z.ZodArray<z.ZodString>>;
     productName: z.ZodString;
     quantity: z.ZodInt;
     budget: z.ZodString;
-    description: z.ZodString;
     targetPort: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     requiredByDate: z.ZodOptional<z.ZodNullable<z.ZodString>>;
-    category: z.ZodOptional<z.ZodNullable<z.ZodString>>;
-    images: z.ZodOptional<z.ZodArray<z.ZodString>>;
     requesterRole: z.ZodOptional<z.ZodString>;
 }, {
     out: {};
     in: {};
 }>;
 export declare const insertTradeQuoteSchema: z.ZodObject<{
+    notes: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     requestId: z.ZodInt;
     supplierId: z.ZodInt;
     supplierName: z.ZodString;
@@ -1195,18 +1196,17 @@ export declare const insertTradeQuoteSchema: z.ZodObject<{
     moq: z.ZodInt;
     shippingCost: z.ZodOptional<z.ZodString>;
     productionTime: z.ZodString;
-    notes: z.ZodOptional<z.ZodNullable<z.ZodString>>;
 }, {
     out: {};
     in: {};
 }>;
 export declare const insertTradeOrderSchema: z.ZodObject<{
+    notes: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     productName: z.ZodString;
     quantity: z.ZodInt;
     requestId: z.ZodInt;
     supplierId: z.ZodInt;
     supplierName: z.ZodString;
-    notes: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     quoteId: z.ZodInt;
     buyerId: z.ZodInt;
     totalAmount: z.ZodString;

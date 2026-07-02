@@ -127,7 +127,7 @@ export declare const adBoostsTable: import("drizzle-orm/pg-core").PgTableWithCol
             tableName: "ad_boosts";
             dataType: "string";
             columnType: "PgText";
-            data: "pending" | "paid" | "failed";
+            data: "pending" | "failed" | "paid";
             driverParam: string;
             notNull: true;
             hasDefault: true;
@@ -229,23 +229,23 @@ export declare const adBoostsTable: import("drizzle-orm/pg-core").PgTableWithCol
 }>;
 export declare const insertAdBoostSchema: z.ZodObject<{
     businessId: z.ZodInt;
+    paymentStatus: z.ZodOptional<z.ZodEnum<{
+        pending: "pending";
+        failed: "failed";
+        paid: "paid";
+    }>>;
+    isActive: z.ZodOptional<z.ZodBoolean>;
+    amount: z.ZodString;
+    currency: z.ZodOptional<z.ZodString>;
     tier: z.ZodEnum<{
         basic: "basic";
         pro: "pro";
         premium: "premium";
     }>;
     durationDays: z.ZodOptional<z.ZodInt>;
-    amount: z.ZodString;
-    currency: z.ZodOptional<z.ZodString>;
     paymentRef: z.ZodOptional<z.ZodNullable<z.ZodString>>;
-    paymentStatus: z.ZodOptional<z.ZodEnum<{
-        pending: "pending";
-        paid: "paid";
-        failed: "failed";
-    }>>;
     startsAt: z.ZodOptional<z.ZodNullable<z.ZodDate>>;
     expiresAt: z.ZodOptional<z.ZodNullable<z.ZodDate>>;
-    isActive: z.ZodOptional<z.ZodBoolean>;
 }, {
     out: {};
     in: {};
