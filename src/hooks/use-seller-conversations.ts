@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "./use-auth";
 
 export type SellerConv = {
@@ -11,6 +11,7 @@ export type SellerConv = {
   businessName: string | null;
   businessLogo: string | null;
   lastMessage: string | null;
+  unreadCount?: number;
 };
 
 export function useSellerConversations() {
@@ -18,7 +19,7 @@ export function useSellerConversations() {
   const [data, setData] = useState<SellerConv[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
+  const fetchConvs = useCallback(() => {
     if (!user || user.role !== "business_owner") return;
     const token = localStorage.getItem("nafex_token");
     if (!token) return;
@@ -31,7 +32,11 @@ export function useSellerConversations() {
       .then((d) => setData(d as SellerConv[]))
       .catch(() => {})
       .finally(() => setIsLoading(false));
-  }, [user?.id]);
+  }, [user?.id, user?.role]);
 
-  return { data, isLoading };
+  useEffect(() => {
+    fetchConvs();
+  }, [fetchConvs]);
+
+  return { data, isLoading, refetch: fetchConvs };
 }

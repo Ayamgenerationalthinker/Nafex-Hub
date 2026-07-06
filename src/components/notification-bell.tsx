@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useGetNotifications, getGetNotificationsQueryKey, useGetNotificationUnreadCount, getGetNotificationUnreadCountQueryKey, useMarkNotificationRead, useMarkAllNotificationsRead } from "@/api-client-react";
 import { Bell, MessageCircle, ShoppingBag, Star } from "lucide-react";
 import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
 
 const TYPE_ICON: Record<string, React.ReactNode> = {
   message: <MessageCircle className="w-4 h-4 text-blue-500" />,
@@ -21,6 +22,7 @@ function timeAgo(dateStr: string) {
 
 export function NotificationBell() {
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -93,8 +95,13 @@ export function NotificationBell() {
                   key={n.id}
                   onClick={() => {
                     if (!n.isRead) markRead({ id: n.id });
-                    if (n.type === "message") setLocation("/inbox");
-                    else if (n.type === "order_update") setLocation("/orders");
+                    if (n.type === "message") {
+                      if (user?.role === "admin" && n.relatedId) {
+                        setLocation(`/admin?tab=support&convId=${n.relatedId}`);
+                      } else {
+                        setLocation("/inbox");
+                      }
+                    } else if (n.type === "order_update") setLocation("/orders");
                     setOpen(false);
                   }}
                   className={`w-full text-left flex items-start gap-3 px-4 py-3 hover:bg-muted/50 transition-colors border-b border-border/50 last:border-0 ${

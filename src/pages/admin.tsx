@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Search, CheckCircle2, XCircle, Shield, Loader2, Upload, Image as ImageIcon, Users, Building2, Clock, UserCheck, UserX, Settings, MessageCircle, Globe, Mail, Phone, Trash2, Headphones, Send, X as XIcon, Truck, AlertTriangle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebounce } from "@/hooks/use-debounce";
+import { useSocket } from "@/hooks/use-socket";
 import { invalidateSettingsCache } from "@/hooks/use-site-settings";
 import {
   AlertDialog,
@@ -101,21 +102,27 @@ async function saveLogoSetting(base64: string, token: string): Promise<void> {
 }
 
 export default function Admin() {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
+  const searchParams = new URLSearchParams(location.split("?")[1] ?? "");
+  const tabFromQuery = searchParams.get("tab");
+  const convIdFromQuery = Number(searchParams.get("convId"));
+
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
   const [filter, setFilter] = useState<string>("all");
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const socket = useSocket();
 
-  const [activeTab, setActiveTab] = useState<"businesses" | "users" | "activity" | "settings" | "support">("businesses");
+  const initialTab = ["businesses", "users", "activity", "settings", "support"].includes(tabFromQuery as string) ? (tabFromQuery as any) : "businesses";
+  const [activeTab, setActiveTab] = useState<"businesses" | "users" | "activity" | "settings" | "support">(initialTab);
 
   // ── Support Chat State ──
   type SupportConvo = { id: number; userId: number; status: string; createdAt: string; updatedAt: string; userName: string | null; userEmail: string | null; userRole: string | null };
   type SupportMsg = { id: number; conversationId: number; senderId: number; senderRole: string; text: string; createdAt: string };
   const [supportConvos, setSupportConvos] = useState<SupportConvo[]>([]);
   const [supportLoading, setSupportLoading] = useState(false);
-  const [selectedConvoId, setSelectedConvoId] = useState<number | null>(null);
+  const [selectedConvoId, setSelectedConvoId] = useState<number | null>(Number.isFinite(convIdFromQuery) && convIdFromQuery > 0 ? convIdFromQuery : null);
   const [supportMessages, setSupportMessages] = useState<SupportMsg[]>([]);
   const [supportReply, setSupportReply] = useState("");
   const [supportReplying, setSupportReplying] = useState(false);
@@ -186,9 +193,26 @@ export default function Admin() {
         .then(setSupportMessages);
     };
     load();
-    const iv = setInterval(load, 5000);
-    return () => clearInterval(iv);
-  }, [selectedConvoId]);
+    
+    if (!socket) return;
+    socket.emit("join_room", selectedConvoId);
+    
+    const onMsg = (msg: SupportMsg) => {
+      if (msg.conversationId !== selectedConvoId) return;
+      setSupportMessages((prev) => {
+        if (prev.some((m) => m.id === msg.id)) return prev;
+        return [...prev, msg];
+      });
+      setSupportConvos((prev) => prev.map((c) => c.id === selectedConvoId ? { ...c, updatedAt: new Date().toISOString() } : c));
+    };
+    
+    socket.on("receive_message", onMsg);
+    
+    return () => {
+      socket.off("receive_message", onMsg);
+      socket.emit("leave_room", selectedConvoId);
+    };
+  }, [selectedConvoId, socket]);
 
   useEffect(() => {
     supportBottomRef.current?.scrollIntoView({ behavior: "smooth" });

@@ -1,8 +1,10 @@
 import { Router, type IRouter } from "express";
-import { db, supportConversationsTable, supportMessagesTable, usersTable } from "@workspace/db";
+import { db, supportConversationsTable, supportMessagesTable, usersTable, notificationsTable } from "@workspace/db";
 import { eq, desc, asc } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
+import { getIO } from "../lib/socket";
+import { notifyAllAdmins } from "../lib/notify";
 
 const IdParam = z.object({ id: z.coerce.number().int().positive() });
 
@@ -114,15 +116,16 @@ router.post("/support/conversations/:id/messages", requireAuth, async (req: Auth
 
   const isAdmin = caller?.role === "admin";
 
-  if (!isAdmin) {
-    const [convo] = await db
-      .select()
-      .from(supportConversationsTable)
-      .where(eq(supportConversationsTable.id, id));
-    if (!convo || convo.userId !== req.userId) {
-      res.status(403).json({ error: "Forbidden" });
-      return;
-    }
+  const [convo] = await db
+    .select()
+    .from(supportConversationsTable)
+    .where(eq(supportConversationsTable.id, id));
+
+  if (!convo) { res.status(404).json({ error: "Not found" }); return; }
+
+  if (!isAdmin && convo.userId !== req.userId) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
   }
 
   const [msg] = await db
@@ -139,6 +142,28 @@ router.post("/support/conversations/:id/messages", requireAuth, async (req: Auth
     .update(supportConversationsTable)
     .set({ updatedAt: new Date() })
     .where(eq(supportConversationsTable.id, id));
+
+  try { getIO()?.to(`conv_${id}`).emit("receive_message", msg); } catch {}
+
+  try {
+    if (isAdmin) {
+      await db.insert(notificationsTable).values({
+        userId: convo.userId,
+        type: "message",
+        title: "New support message",
+        body: parsed.data.text.slice(0, 100),
+        relatedId: id,
+        isRead: false,
+      });
+    } else {
+      await notifyAllAdmins({
+        type: "message",
+        title: "New support message",
+        body: parsed.data.text.slice(0, 100),
+        relatedId: id,
+      });
+    }
+  } catch {}
 
   res.status(201).json(msg);
 });

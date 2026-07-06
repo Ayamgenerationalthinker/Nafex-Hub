@@ -4,6 +4,7 @@ import { eq, and, desc, ne, count } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
 import { getIO } from "../lib/socket";
+import { notifyAllAdmins } from "../lib/notify";
 
 const router: IRouter = Router();
 
@@ -219,23 +220,42 @@ router.post("/conversations/:id/messages", requireAuth, async (req: AuthRequest,
 
   // Notify other party
   try {
-    let notifyUserId: number | null = null;
-    if (conv.type === "support" && req.userRole === "admin") {
-      notifyUserId = conv.userId;
-    } else if (conv.userId === req.userId && biz?.ownerId) {
-      notifyUserId = biz.ownerId;
-    } else if (biz?.ownerId !== req.userId) {
-      notifyUserId = conv.userId;
-    }
-    if (notifyUserId) {
-      await db.insert(notificationsTable).values({
-        userId: notifyUserId,
-        type: "message",
-        title: "New message",
-        body: parsed.data.text.slice(0, 100),
-        relatedId: params.data.id,
-        isRead: false,
-      });
+    if (conv.type === "support") {
+      if (req.userRole === "admin") {
+        await db.insert(notificationsTable).values({
+          userId: conv.userId,
+          type: "message",
+          title: "New message from Support",
+          body: parsed.data.text.slice(0, 100),
+          relatedId: params.data.id,
+          isRead: false,
+        });
+      } else {
+        await notifyAllAdmins({
+          type: "message",
+          title: "New support message",
+          body: parsed.data.text.slice(0, 100),
+          relatedId: params.data.id,
+        });
+      }
+    } else {
+      let notifyUserId: number | null = null;
+      if (conv.userId === req.userId) {
+        notifyUserId = biz?.ownerId ?? null;
+      } else if (biz?.ownerId === req.userId) {
+        notifyUserId = conv.userId;
+      }
+
+      if (notifyUserId) {
+        await db.insert(notificationsTable).values({
+          userId: notifyUserId,
+          type: "message",
+          title: "New message",
+          body: parsed.data.text.slice(0, 100),
+          relatedId: params.data.id,
+          isRead: false,
+        });
+      }
     }
   } catch {}
 

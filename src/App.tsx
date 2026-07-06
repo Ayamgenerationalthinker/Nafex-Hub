@@ -14,6 +14,7 @@ import BrandProfile from "@/pages/brand-profile";
 import ListBusiness from "@/pages/list-business";
 import Admin from "@/pages/admin";
 import Login from "@/pages/login";
+import Register from "@/pages/register";
 import ProductCatalog from "@/components/ProductCatalog";
 import Checkout from "@/pages/Checkout";
 import VerifyEmail from "@/pages/verify-email";
