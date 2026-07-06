@@ -58,7 +58,7 @@ export default function Inbox() {
     query: { enabled: !!user, queryKey: getGetConversationsQueryKey() },
   });
 
-  const { data: sellerConvs, isLoading: sellerLoading } = useSellerConversations();
+  const { data: sellerConvs, isLoading: sellerLoading, refetch: refetchSellerConvs } = useSellerConversations();
 
   const conversations: ConvData[] = (
     activeTab === "buyer" ? (buyerConvs ?? []) : (sellerConvs ?? [])
@@ -85,6 +85,7 @@ export default function Inbox() {
           return alreadyIn ? prev : [...prev, saved as MsgData];
         });
         queryClient.invalidateQueries({ queryKey: getGetConversationsQueryKey() });
+        refetchSellerConvs();
       },
     },
   });
@@ -100,8 +101,9 @@ export default function Inbox() {
       });
       // Refresh conversation list so unread badge disappears
       queryClient.invalidateQueries({ queryKey: getGetConversationsQueryKey() });
+      refetchSellerConvs();
     } catch {}
-  }, [queryClient]);
+  }, [queryClient, refetchSellerConvs]);
 
   const handleSelectConv = useCallback((convId: number) => {
     setSelectedConvId(convId);
@@ -162,6 +164,7 @@ export default function Inbox() {
         return [...prev, msg];
       });
       queryClient.invalidateQueries({ queryKey: getGetConversationsQueryKey() });
+      refetchSellerConvs();
       // Immediately mark as read since we're actively viewing this conversation
       if (msg.senderId !== myUserId) {
         markConvAsRead(selectedConvId);
@@ -184,7 +187,7 @@ export default function Inbox() {
       socket.off("stop_typing", onStopTyping);
       socket.emit("leave_room", selectedConvId);
     };
-  }, [socket, selectedConvId, user, markConvAsRead, queryClient]);
+  }, [socket, selectedConvId, user, markConvAsRead, queryClient, refetchSellerConvs]);
 
   const handleTyping = useCallback(() => {
     if (!socket || !selectedConvId) return;

