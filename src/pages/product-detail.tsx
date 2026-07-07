@@ -111,6 +111,7 @@ export default function ProductDetail() {
 
   function handleAddToCart() {
     if (!product) return;
+    if (!user) { setLocation("/login"); return; }
     addToCart(
       {
         productId: product.id,
@@ -376,7 +377,7 @@ export default function ProductDetail() {
           )}
 
           <div className="flex gap-2 pt-2">
-            {user && (
+            {user ? (
               <Button
                 variant="outline"
                 size="icon"
@@ -384,6 +385,15 @@ export default function ProductDetail() {
                 onClick={() => toggleFav({ data: { productId: product.id } })}
               >
                 <Heart className={`w-4 h-4 ${isFav ? "fill-current" : ""}`} />
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="icon"
+                className="shrink-0"
+                onClick={() => setLocation("/login")}
+              >
+                <Heart className="w-4 h-4" />
               </Button>
             )}
             <Button

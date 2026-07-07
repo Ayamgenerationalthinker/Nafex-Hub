@@ -71,8 +71,76 @@ export declare const messagesTable: import("drizzle-orm/pg-core").PgTableWithCol
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        attachmentUrl: import("drizzle-orm/pg-core").PgColumn<{
+            name: "attachment_url";
+            tableName: "messages";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        attachmentType: import("drizzle-orm/pg-core").PgColumn<{
+            name: "attachment_type";
+            tableName: "messages";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        referenceId: import("drizzle-orm/pg-core").PgColumn<{
+            name: "reference_id";
+            tableName: "messages";
+            dataType: "number";
+            columnType: "PgInteger";
+            data: number;
+            driverParam: string | number;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
         isRead: import("drizzle-orm/pg-core").PgColumn<{
             name: "is_read";
+            tableName: "messages";
+            dataType: "boolean";
+            columnType: "PgBoolean";
+            data: boolean;
+            driverParam: boolean;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        delivered: import("drizzle-orm/pg-core").PgColumn<{
+            name: "delivered";
             tableName: "messages";
             dataType: "boolean";
             columnType: "PgBoolean";
@@ -112,7 +180,11 @@ export declare const insertMessageSchema: z.ZodObject<{
     conversationId: z.ZodInt;
     senderId: z.ZodInt;
     text: z.ZodString;
+    attachmentUrl: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    attachmentType: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    referenceId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
     isRead: z.ZodOptional<z.ZodBoolean>;
+    delivered: z.ZodOptional<z.ZodBoolean>;
 }, {
     out: {};
     in: {};
