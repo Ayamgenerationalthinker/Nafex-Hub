@@ -25,6 +25,6 @@ export const usersTable = pgTable("users", {
 export const insertUserSchema = createInsertSchema(usersTable).omit({
   id: true,
   createdAt: true,
-});
-export type InsertUser = z.infer<typeof insertUserSchema>;
+}) as any;
+export type InsertUser = Omit<typeof usersTable.$inferInsert, "id" | "createdAt">;
 export type User = typeof usersTable.$inferSelect;

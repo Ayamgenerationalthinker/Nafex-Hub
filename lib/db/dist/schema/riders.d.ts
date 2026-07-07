@@ -211,9 +211,9 @@ export declare const ridersTable: import("drizzle-orm/pg-core").PgTableWithColum
     dialect: "pg";
 }>;
 export declare const insertRiderSchema: z.ZodObject<{
-    userId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
     name: z.ZodString;
     phone: z.ZodString;
+    userId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
     rating: z.ZodOptional<z.ZodString>;
     isActive: z.ZodOptional<z.ZodBoolean>;
     vehicleType: z.ZodOptional<z.ZodEnum<{

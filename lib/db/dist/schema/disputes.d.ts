@@ -254,8 +254,8 @@ export declare const disputesTable: import("drizzle-orm/pg-core").PgTableWithCol
     dialect: "pg";
 }>;
 export declare const insertDisputeSchema: z.ZodObject<{
-    userId: z.ZodInt;
     description: z.ZodString;
+    userId: z.ZodInt;
     orderId: z.ZodInt;
     reason: z.ZodEnum<{
         item_not_received: "item_not_received";

@@ -229,18 +229,18 @@ export declare const transactionsTable: import("drizzle-orm/pg-core").PgTableWit
 }>;
 export declare const insertTransactionSchema: z.ZodObject<{
     userId: z.ZodInt;
-    status: z.ZodOptional<z.ZodEnum<{
-        pending: "pending";
-        success: "success";
-        failed: "failed";
-        reversed: "reversed";
-    }>>;
     type: z.ZodEnum<{
         payment: "payment";
         refund: "refund";
         payout: "payout";
         fee: "fee";
     }>;
+    status: z.ZodOptional<z.ZodEnum<{
+        pending: "pending";
+        success: "success";
+        failed: "failed";
+        reversed: "reversed";
+    }>>;
     orderId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
     amount: z.ZodString;
     currency: z.ZodOptional<z.ZodString>;
