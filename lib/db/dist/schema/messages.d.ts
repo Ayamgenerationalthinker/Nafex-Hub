@@ -1,4 +1,3 @@
-import { z } from "zod/v4";
 export declare const messagesTable: import("drizzle-orm/pg-core").PgTableWithColumns<{
     name: "messages";
     schema: undefined;
@@ -176,19 +175,7 @@ export declare const messagesTable: import("drizzle-orm/pg-core").PgTableWithCol
     };
     dialect: "pg";
 }>;
-export declare const insertMessageSchema: z.ZodObject<{
-    conversationId: z.ZodInt;
-    senderId: z.ZodInt;
-    text: z.ZodString;
-    attachmentUrl: z.ZodOptional<z.ZodNullable<z.ZodString>>;
-    attachmentType: z.ZodOptional<z.ZodNullable<z.ZodString>>;
-    referenceId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
-    isRead: z.ZodOptional<z.ZodBoolean>;
-    delivered: z.ZodOptional<z.ZodBoolean>;
-}, {
-    out: {};
-    in: {};
-}>;
-export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export declare const insertMessageSchema: any;
+export type InsertMessage = Omit<typeof messagesTable.$inferInsert, "id" | "createdAt">;
 export type Message = typeof messagesTable.$inferSelect;
 //# sourceMappingURL=messages.d.ts.map

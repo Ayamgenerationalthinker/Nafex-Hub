@@ -93,7 +93,7 @@ export declare const ordersTable: import("drizzle-orm/pg-core").PgTableWithColum
             tableName: "orders";
             dataType: "string";
             columnType: "PgText";
-            data: "pending" | "confirmed" | "packed" | "out_for_delivery" | "delivered" | "cancelled";
+            data: "delivered" | "pending" | "confirmed" | "packed" | "out_for_delivery" | "cancelled";
             driverParam: string;
             notNull: true;
             hasDefault: true;
@@ -284,11 +284,11 @@ export declare const insertOrderSchema: z.ZodObject<{
     items: z.ZodOptional<z.ZodType<import("drizzle-zod").Json, unknown, z.core.$ZodTypeInternals<import("drizzle-zod").Json, unknown>>>;
     totalPrice: z.ZodOptional<z.ZodInt>;
     status: z.ZodOptional<z.ZodEnum<{
+        delivered: "delivered";
         pending: "pending";
         confirmed: "confirmed";
         packed: "packed";
         out_for_delivery: "out_for_delivery";
-        delivered: "delivered";
         cancelled: "cancelled";
     }>>;
     paymentStatus: z.ZodOptional<z.ZodEnum<{

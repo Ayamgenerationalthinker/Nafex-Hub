@@ -109,9 +109,9 @@ export declare const collectionsTable: import("drizzle-orm/pg-core").PgTableWith
     dialect: "pg";
 }>;
 export declare const insertCollectionSchema: z.ZodObject<{
-    businessId: z.ZodInt;
     name: z.ZodString;
     description: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    businessId: z.ZodInt;
     coverImage: z.ZodOptional<z.ZodNullable<z.ZodString>>;
 }, {
     out: {};

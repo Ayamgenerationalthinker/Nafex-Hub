@@ -1,4 +1,3 @@
-import { z } from "zod/v4";
 export declare const usersTable: import("drizzle-orm/pg-core").PgTableWithColumns<{
     name: "users";
     schema: undefined;
@@ -227,28 +226,7 @@ export declare const usersTable: import("drizzle-orm/pg-core").PgTableWithColumn
     };
     dialect: "pg";
 }>;
-export declare const insertUserSchema: z.ZodObject<{
-    name: z.ZodString;
-    email: z.ZodString;
-    password: z.ZodString;
-    role: z.ZodOptional<z.ZodEnum<{
-        user: "user";
-        business_owner: "business_owner";
-        admin: "admin";
-        support: "support";
-        rider: "rider";
-    }>>;
-    phone: z.ZodOptional<z.ZodNullable<z.ZodString>>;
-    avatar: z.ZodOptional<z.ZodNullable<z.ZodString>>;
-    twoFactorEnabled: z.ZodOptional<z.ZodBoolean>;
-    emailVerified: z.ZodOptional<z.ZodBoolean>;
-    emailVerificationCode: z.ZodOptional<z.ZodNullable<z.ZodString>>;
-    emailVerificationExpiry: z.ZodOptional<z.ZodNullable<z.ZodDate>>;
-    loyaltyPoints: z.ZodOptional<z.ZodInt>;
-}, {
-    out: {};
-    in: {};
-}>;
-export type InsertUser = z.infer<typeof insertUserSchema>;
+export declare const insertUserSchema: any;
+export type InsertUser = Omit<typeof usersTable.$inferInsert, "id" | "createdAt">;
 export type User = typeof usersTable.$inferSelect;
 //# sourceMappingURL=users.d.ts.map

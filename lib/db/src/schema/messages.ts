@@ -18,6 +18,6 @@ export const messagesTable = pgTable("messages", {
 export const insertMessageSchema = createInsertSchema(messagesTable).omit({
   id: true,
   createdAt: true,
-});
-export type InsertMessage = z.infer<typeof insertMessageSchema>;
+}) as any;
+export type InsertMessage = Omit<typeof messagesTable.$inferInsert, "id" | "createdAt">;
 export type Message = typeof messagesTable.$inferSelect;

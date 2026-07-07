@@ -17,6 +17,6 @@ export const insertConversationSchema = createInsertSchema(conversationsTable).o
   id: true,
   createdAt: true,
   updatedAt: true,
-});
-export type InsertConversation = z.infer<typeof insertConversationSchema>;
+}) as any;
+export type InsertConversation = Omit<typeof conversationsTable.$inferInsert, "id" | "createdAt" | "updatedAt">;
 export type Conversation = typeof conversationsTable.$inferSelect;

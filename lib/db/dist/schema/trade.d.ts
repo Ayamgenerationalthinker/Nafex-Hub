@@ -1173,10 +1173,10 @@ export declare const tradeTrackingEventsTable: import("drizzle-orm/pg-core").PgT
     dialect: "pg";
 }>;
 export declare const insertTradeRequestSchema: z.ZodObject<{
-    userId: z.ZodInt;
     category: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     description: z.ZodString;
     images: z.ZodOptional<z.ZodArray<z.ZodString>>;
+    userId: z.ZodInt;
     productName: z.ZodString;
     quantity: z.ZodInt;
     budget: z.ZodString;
