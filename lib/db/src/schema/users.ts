@@ -7,9 +7,12 @@ export const usersTable = pgTable("users", {
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
-  role: text("role", { enum: ["user", "business_owner", "admin"] })
+  role: text("role", { enum: ["user", "business_owner", "admin", "support", "rider"] })
     .notNull()
     .default("user"),
+  phone: text("phone"),
+  avatar: text("avatar"),
+  twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
   emailVerified: boolean("email_verified").notNull().default(false),
   emailVerificationCode: text("email_verification_code"),
   emailVerificationExpiry: timestamp("email_verification_expiry", { withTimezone: true }),

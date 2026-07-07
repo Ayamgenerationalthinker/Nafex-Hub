@@ -7,7 +7,11 @@ export const messagesTable = pgTable("messages", {
   conversationId: integer("conversation_id").notNull(),
   senderId: integer("sender_id").notNull(),
   text: text("text").notNull(),
+  attachmentUrl: text("attachment_url"),
+  attachmentType: text("attachment_type"), // 'image', 'pdf', 'voice', 'product', 'order'
+  referenceId: integer("reference_id"), // e.g. productId or orderId
   isRead: boolean("is_read").notNull().default(false),
+  delivered: boolean("delivered").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

@@ -18,6 +18,9 @@ const ConversationParams = z.object({
 
 const SendMessageBody = z.object({
   text: z.string().min(1).max(2000),
+  attachmentUrl: z.string().optional(),
+  attachmentType: z.enum(['image', 'pdf', 'voice', 'product', 'order']).optional(),
+  referenceId: z.number().int().positive().optional(),
 });
 
 function emitToRoom(conversationId: number, message: unknown) {
@@ -44,6 +47,8 @@ router.get("/conversations", requireAuth, async (req: AuthRequest, res): Promise
       userId: conversationsTable.userId,
       businessId: conversationsTable.businessId,
       type: conversationsTable.type,
+      flagged: conversationsTable.flagged,
+      adminStatus: conversationsTable.adminStatus,
       createdAt: conversationsTable.createdAt,
       updatedAt: conversationsTable.updatedAt,
       businessName: businessesTable.name,
@@ -85,6 +90,8 @@ router.get("/seller/conversations", requireAuth, async (req: AuthRequest, res): 
       userId: conversationsTable.userId,
       businessId: conversationsTable.businessId,
       type: conversationsTable.type,
+      flagged: conversationsTable.flagged,
+      adminStatus: conversationsTable.adminStatus,
       createdAt: conversationsTable.createdAt,
       updatedAt: conversationsTable.updatedAt,
     })
@@ -107,6 +114,44 @@ router.get("/seller/conversations", requireAuth, async (req: AuthRequest, res): 
 
   res.json(withDetails);
 });
+
+// ── Admin conversations (moderation) ──────────────────────────────────────────
+router.get("/admin/conversations", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  if (req.userRole !== "admin") { res.status(403).json({ error: "Access denied" }); return; }
+
+  const conversations = await db
+    .select({
+      id: conversationsTable.id,
+      userId: conversationsTable.userId,
+      businessId: conversationsTable.businessId,
+      type: conversationsTable.type,
+      flagged: conversationsTable.flagged,
+      adminStatus: conversationsTable.adminStatus,
+      createdAt: conversationsTable.createdAt,
+      updatedAt: conversationsTable.updatedAt,
+      businessName: businessesTable.name,
+      businessLogo: businessesTable.logo,
+    })
+    .from(conversationsTable)
+    .leftJoin(businessesTable, eq(conversationsTable.businessId, businessesTable.id))
+    .where(eq(conversationsTable.type, "buyer_seller"))
+    .orderBy(desc(conversationsTable.updatedAt));
+
+  const withDetails = await Promise.all(
+    conversations.map(async (conv) => {
+      const [last] = await db
+        .select()
+        .from(messagesTable)
+        .where(eq(messagesTable.conversationId, conv.id))
+        .orderBy(desc(messagesTable.createdAt))
+        .limit(1);
+      return { ...conv, lastMessage: last?.text ?? null };
+    })
+  );
+
+  res.json(withDetails);
+});
+
 
 // ── Start or get a buyer-seller conversation ─────────────────────────────────
 router.post("/conversations", requireAuth, async (req: AuthRequest, res): Promise<void> => {
@@ -208,118 +253,84 @@ router.post("/conversations/:id/messages", requireAuth, async (req: AuthRequest,
   const isParticipant = conv.userId === req.userId || biz?.ownerId === req.userId || req.userRole === "admin";
   if (!isParticipant) { res.status(403).json({ error: "Not a participant" }); return; }
 
+  // Keyword flagging logic
+  const flaggedKeywords = ["refund", "scam", "fraud", "fake", "stolen"];
+  const isFlagged = flaggedKeywords.some(kw => parsed.data.text.toLowerCase().includes(kw));
+
   // Save FIRST, emit second — no fake frontend-only messages
   const [message] = await db
     .insert(messagesTable)
-    .values({ conversationId: params.data.id, senderId: req.userId!, text: parsed.data.text, isRead: false })
+    .values({ 
+      conversationId: params.data.id, 
+      senderId: req.userId!, 
+      text: parsed.data.text,
+      attachmentUrl: parsed.data.attachmentUrl,
+      attachmentType: parsed.data.attachmentType,
+      referenceId: parsed.data.referenceId,
+      isRead: false 
+    })
     .returning();
 
-  await db.update(conversationsTable).set({ updatedAt: new Date() }).where(eq(conversationsTable.id, params.data.id));
+  let updateConv: any = { updatedAt: new Date() };
+  if (isFlagged && !conv.flagged) {
+    updateConv.flagged = true;
+    updateConv.adminStatus = "monitoring"; // alert admin
+  }
+
+  await db.update(conversationsTable).set(updateConv).where(eq(conversationsTable.id, params.data.id));
 
   emitToRoom(params.data.id, message);
 
   // Notify other party
   try {
-    if (conv.type === "support") {
-      if (req.userRole === "admin") {
-        await db.insert(notificationsTable).values({
-          userId: conv.userId,
-          type: "message",
-          title: "New message from Support",
-          body: parsed.data.text.slice(0, 100),
-          relatedId: params.data.id,
-          isRead: false,
-        });
-      } else {
-        await notifyAllAdmins({
-          type: "message",
-          title: "New support message",
-          body: parsed.data.text.slice(0, 100),
-          relatedId: params.data.id,
-        });
-      }
-    } else {
-      let notifyUserId: number | null = null;
-      if (conv.userId === req.userId) {
-        notifyUserId = biz?.ownerId ?? null;
-      } else if (biz?.ownerId === req.userId) {
-        notifyUserId = conv.userId;
-      }
+    let notifyUserId: number | null = null;
+    if (conv.userId === req.userId) {
+      notifyUserId = biz?.ownerId ?? null;
+    } else if (biz?.ownerId === req.userId) {
+      notifyUserId = conv.userId;
+    }
 
-      if (notifyUserId) {
-        await db.insert(notificationsTable).values({
-          userId: notifyUserId,
-          type: "message",
-          title: "New message",
-          body: parsed.data.text.slice(0, 100),
-          relatedId: params.data.id,
-          isRead: false,
-        });
-      }
+    if (notifyUserId) {
+      await db.insert(notificationsTable).values({
+        userId: notifyUserId,
+        type: "message",
+        title: "New message",
+        body: parsed.data.text.slice(0, 100),
+        relatedId: params.data.id,
+        isRead: false,
+      });
+    }
+
+    if (isFlagged && !conv.flagged) {
+      await notifyAllAdmins({
+        type: "message",
+        title: "Conversation Flagged",
+        body: `Conversation #${conv.id} was flagged for suspicious keywords.`,
+        relatedId: params.data.id,
+      });
     }
   } catch {}
 
   res.status(201).json(message);
 });
 
-// ── Support chat: get or create conversation ─────────────────────────────────
-router.post("/support/conversation", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const [existing] = await db
-    .select()
-    .from(conversationsTable)
-    .where(and(eq(conversationsTable.userId, req.userId!), eq(conversationsTable.type, "support")));
+// ── Admin: Intervene or Resolve ─────────────────────────────────────────────
+router.patch("/conversations/:id/admin-status", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  if (req.userRole !== "admin") { res.status(403).json({ error: "Admin only" }); return; }
+  
+  const params = ConversationParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid id" }); return; }
 
-  if (existing) { res.json(existing); return; }
+  const parsed = z.object({ status: z.enum(["monitoring", "intervened", "resolved"]) }).safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "Invalid status" }); return; }
 
-  const [conv] = await db
-    .insert(conversationsTable)
-    .values({ userId: req.userId!, businessId: 0, type: "support" })
+  const [updated] = await db
+    .update(conversationsTable)
+    .set({ adminStatus: parsed.data.status, updatedAt: new Date() })
+    .where(eq(conversationsTable.id, params.data.id))
     .returning();
 
-  res.status(201).json(conv);
-});
-
-// ── Support chat: user's own support messages ─────────────────────────────────
-router.get("/support/messages", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  const [conv] = await db
-    .select()
-    .from(conversationsTable)
-    .where(and(eq(conversationsTable.userId, req.userId!), eq(conversationsTable.type, "support")));
-
-  if (!conv) { res.json({ conversationId: null, messages: [] }); return; }
-
-  const messages = await db
-    .select()
-    .from(messagesTable)
-    .where(eq(messagesTable.conversationId, conv.id))
-    .orderBy(messagesTable.createdAt);
-
-  res.json({ conversationId: conv.id, messages });
-});
-
-// ── Admin: list all support conversations ────────────────────────────────────
-router.get("/admin/support-conversations", requireAuth, async (req: AuthRequest, res): Promise<void> => {
-  if (req.userRole !== "admin") { res.status(403).json({ error: "Admin only" }); return; }
-
-  const convs = await db
-    .select()
-    .from(conversationsTable)
-    .where(eq(conversationsTable.type, "support"))
-    .orderBy(desc(conversationsTable.updatedAt));
-
-  const withLastMsg = await Promise.all(
-    convs.map(async (conv) => {
-      const [last] = await db
-        .select()
-        .from(messagesTable)
-        .where(eq(messagesTable.conversationId, conv.id))
-        .orderBy(desc(messagesTable.createdAt))
-        .limit(1);
-      return { ...conv, lastMessage: last?.text ?? null };
-    })
-  );
-
-  res.json(withLastMsg);
+  res.json(updated);
 });
 
 export default router;

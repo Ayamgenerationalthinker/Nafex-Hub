@@ -71,6 +71,40 @@ export declare const conversationsTable: import("drizzle-orm/pg-core").PgTableWi
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        flagged: import("drizzle-orm/pg-core").PgColumn<{
+            name: "flagged";
+            tableName: "conversations";
+            dataType: "boolean";
+            columnType: "PgBoolean";
+            data: boolean;
+            driverParam: boolean;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        adminStatus: import("drizzle-orm/pg-core").PgColumn<{
+            name: "admin_status";
+            tableName: "conversations";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
         createdAt: import("drizzle-orm/pg-core").PgColumn<{
             name: "created_at";
             tableName: "conversations";
@@ -112,6 +146,8 @@ export declare const insertConversationSchema: z.ZodObject<{
     userId: z.ZodInt;
     businessId: z.ZodOptional<z.ZodInt>;
     type: z.ZodOptional<z.ZodString>;
+    flagged: z.ZodOptional<z.ZodBoolean>;
+    adminStatus: z.ZodOptional<z.ZodString>;
 }, {
     out: {};
     in: {};

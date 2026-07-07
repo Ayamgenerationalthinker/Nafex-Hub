@@ -54,6 +54,8 @@ import AdminTrade from "@/pages/admin-trade";
 import AdminPayments from "@/pages/admin-payments";
 import Payments from "@/pages/payments";
 import AdminFlashSales from "@/pages/admin-flash-sales";
+import AdminModeration from "@/pages/admin-moderation";
+import AdminSupport from "@/pages/admin-support";
 
 const queryClient = new QueryClient();
 
@@ -72,6 +74,8 @@ function Router() {
       <Route path="/admin/services">{() => <ProtectedRoute component={AdminServicesPage} roles={["admin"]} to="/" />}</Route>
       <Route path="/admin/payments">{() => <ProtectedRoute component={AdminPayments} roles={["admin"]} to="/" />}</Route>
       <Route path="/admin/flash-sales">{() => <ProtectedRoute component={AdminFlashSales} roles={["admin"]} to="/" />}</Route>
+      <Route path="/admin/moderation">{() => <ProtectedRoute component={AdminModeration} roles={["admin"]} to="/" />}</Route>
+      <Route path="/admin/support">{() => <ProtectedRoute component={AdminSupport} roles={["admin"]} to="/" />}</Route>
       <Route>
         <Layout>
           <Switch>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { useGetStatsSummary, useGetFeaturedBusinesses, useGetFeaturedTopBusinesses, useGetBusinesses } from "@workspace/api-client-react";
+import { useGetStatsSummary, useGetFeaturedBusinesses, useGetFeaturedTopBusinesses, useGetBusinesses, useGetCategories } from "@workspace/api-client-react";
 import { useAuth } from "@/hooks/use-auth";
 import { BrandCard } from "@/components/brand-card";
 import { Button } from "@/components/ui/button";
@@ -135,6 +135,7 @@ export default function Home() {
   const { data: trendingBrands, isLoading: trendingLoading } = useBrandSection("/api/businesses/trending");
   const { data: verifiedSellers, isLoading: verifiedLoading } = useBrandSection("/api/businesses/verified");
   const { data: allBrands, isLoading: allBrandsLoading } = useGetBusinesses({});
+  const { data: categories, isLoading: categoriesLoading } = useGetCategories();
   const { data: services } = useServices();
 
   const [discountedDeals, setDiscountedDeals] = useState<DiscountedProduct[]>([]);
@@ -312,6 +313,37 @@ export default function Home() {
                 loading="eager"
               />
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Categories Section */}
+      <section className="py-12 bg-background border-b z-20">
+        <div className="container mx-auto px-4 md:px-8">
+          <div className="flex items-center gap-2 mb-6">
+            <Tag className="w-5 h-5 text-primary" />
+            <h2 className="font-serif text-2xl font-bold text-foreground">Explore Categories</h2>
+          </div>
+          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-none">
+            {categoriesLoading ? (
+              Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="flex-shrink-0 w-32 h-32 rounded-xl" />
+              ))
+            ) : categories && categories.length > 0 ? (
+              categories.map((cat) => (
+                <Link key={cat.category} href={`/explore?category=${encodeURIComponent(cat.category)}`}>
+                  <div className="flex-shrink-0 w-32 h-32 rounded-xl border border-border/50 bg-card flex flex-col items-center justify-center p-4 hover:border-primary/40 hover:shadow-md transition-all cursor-pointer group">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
+                      <Store className="w-6 h-6 text-primary" />
+                    </div>
+                    <p className="text-sm font-semibold text-center text-foreground capitalize line-clamp-1">{cat.category}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{cat.count} Brands</p>
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <div className="text-muted-foreground text-sm w-full text-center">No categories found.</div>
+            )}
           </div>
         </div>
       </section>
