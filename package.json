@@ -17,7 +17,6 @@
     "typescript": "~5.9.2"
   },
   "dependencies": {
-    "@esbuild/win32-x64": "0.27.3",
     "@types/cookie-parser": "^1.4.10",
     "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",
@@ -34,5 +33,13 @@
     "supertest": "^7.2.2",
     "vitest": "^4.1.9",
     "zod": "catalog:"
+  },
+  "resolutions": {
+    "esbuild": "0.27.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "esbuild": "0.27.3"
+    }
   }
 }
