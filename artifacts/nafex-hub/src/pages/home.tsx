@@ -1,21 +1,57 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { useGetStatsSummary, useGetBusinesses } from "@workspace/api-client-react";
+import { 
+  useGetStatsSummary, 
+  useGetBusinesses, 
+  useListProducts 
+} from "@workspace/api-client-react";
 import { useAuth } from "@/hooks/use-auth";
 import { BrandCard } from "@/components/brand-card";
+import { ProductCard } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Store, TrendingUp, ShieldCheck, Tag } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { 
+  Search, 
+  Smartphone, 
+  Shirt, 
+  Monitor, 
+  Sofa, 
+  Briefcase, 
+  Heart,
+  Car,
+  ShoppingBag,
+  ArrowRight,
+  TrendingUp,
+  Store,
+  Tag
+} from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+
+const CATEGORIES = [
+  { name: "Phones & Tablets", icon: Smartphone, color: "bg-blue-100 text-blue-600" },
+  { name: "Fashion", icon: Shirt, color: "bg-pink-100 text-pink-600" },
+  { name: "Electronics", icon: Monitor, color: "bg-purple-100 text-purple-600" },
+  { name: "Home & Office", icon: Sofa, color: "bg-orange-100 text-orange-600" },
+  { name: "Health & Beauty", icon: Heart, color: "bg-red-100 text-red-600" },
+  { name: "Computing", icon: Briefcase, color: "bg-teal-100 text-teal-600" },
+  { name: "Automobile", icon: Car, color: "bg-gray-100 text-gray-600" },
+  { name: "Supermarket", icon: ShoppingBag, color: "bg-green-100 text-green-600" },
+];
 
 export default function Home() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
+  const [searchQuery, setSearchQuery] = useState("");
+  
   const isSeller = user?.role === "business_owner";
   const isAdmin = user?.role === "admin";
 
-  const { data: stats, isLoading: statsLoading } = useGetStatsSummary();
-  const { data: allBrands, isLoading: allBrandsLoading } = useGetBusinesses({});
+  const { data: stats } = useGetStatsSummary();
+  const { data: featuredBrands, isLoading: brandsLoading } = useGetBusinesses({ limit: 4, verified: "true" });
+  
+  // Use useListProducts if it's available in the generated API to get all products
+  const { data: allProducts, isLoading: productsLoading } = useListProducts({ limit: 20 });
 
   useEffect(() => {
     if (isSeller) setLocation("/dashboard");
@@ -24,143 +60,193 @@ export default function Home() {
 
   if (isSeller || isAdmin) return null;
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      setLocation(`/explore?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  // Filter flash sales (discounted items)
+  const flashSales = allProducts?.filter(p => p.discountPrice && Number(p.discountPrice) < Number(p.price)) || [];
+  // Top selling / trending (just taking the first 12 for now as placeholder for actual trending logic)
+  const trendingProducts = allProducts?.slice(0, 12) || [];
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="relative bg-[#1A1A1A] text-white overflow-hidden">
-        <div className="relative z-10 container mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center gap-8 md:gap-0 py-20 md:py-28 lg:py-32">
-          {/* Left: text */}
-          <div className="flex-1 space-y-7 text-center md:text-left animate-in fade-in slide-in-from-bottom-8 duration-700">
-            <Badge className="bg-primary text-primary-foreground border-0 w-fit mx-auto md:mx-0 px-4 py-1.5 text-sm font-medium font-sans tracking-normal hover:bg-primary">
-              Ghana's Premier Digital Marketplace
-            </Badge>
-            <h1 className="font-serif text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight text-balance leading-[1.1]">
-              Discover<br/>Trusted Sellers<br/>Across Ghana
-            </h1>
-            <p className="text-lg md:text-xl text-gray-300 max-w-xl font-medium mx-auto md:mx-0">
-              From fashion and electronics to home essentials and lifestyle goods, explore a curated marketplace of verified Ghanaian businesses and creators.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center md:items-start justify-center md:justify-start gap-4 pt-2">
-              <Link href="/explore">
-                <Button size="lg" className="text-base h-14 px-8 w-full sm:w-auto gap-2 bg-primary text-primary-foreground hover:bg-primary/90" data-testid="btn-hero-explore">
-                  Explore Brands <ArrowRight className="w-5 h-5" />
-                </Button>
-              </Link>
-              <Link href="/list">
-                <Button size="lg" variant="outline" className="text-base h-14 px-8 w-full sm:w-auto border-gray-600 text-white hover:bg-white/10 gap-2 bg-transparent" data-testid="btn-hero-list">
-                  <Store className="w-5 h-5" /> List Your Business
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          {/* Right: hero image */}
-          <div className="flex-1 flex justify-center md:justify-end animate-in fade-in slide-in-from-right-8 duration-700 delay-200">
-            <div className="relative w-72 md:w-[380px] lg:w-[440px] xl:w-[480px]">
-              <div className="absolute inset-0 rounded-3xl bg-primary/20 blur-3xl scale-90 opacity-60" />
-              <img
-                src="/hero-shopping.png"
-                alt="Woman shopping with colorful bags"
-                className="relative z-10 w-full h-auto object-cover object-top rounded-3xl shadow-2xl drop-shadow-[0_20px_40px_rgba(0,0,0,0.5)]"
-                loading="eager"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-12 bg-white relative z-20 -mt-12 mx-4 md:mx-auto max-w-5xl w-[calc(100%-2rem)] rounded-xl shadow-xl border border-gray-100">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 px-6 md:px-12 divide-x divide-gray-100 text-center">
-          {statsLoading ? (
-            Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex flex-col items-center justify-center space-y-2">
-                <Skeleton className="h-10 w-20" />
-                <Skeleton className="h-4 w-24" />
-              </div>
-            ))
-          ) : (
-            <>
-              <div className="flex flex-col items-center">
-                <span className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-primary">{stats?.totalBusinesses || 0}</span>
-                <span className="text-sm font-medium text-muted-foreground mt-2 flex items-center gap-1.5"><Store className="w-4 h-4"/> Brands</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <span className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-primary">{stats?.verifiedBusinesses || 0}</span>
-                <span className="text-sm font-medium text-muted-foreground mt-2 flex items-center gap-1.5"><ShieldCheck className="w-4 h-4"/> Verified</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <span className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-primary">{stats?.totalCategories || 0}</span>
-                <span className="text-sm font-medium text-muted-foreground mt-2 flex items-center gap-1.5"><Tag className="w-4 h-4"/> Categories</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <span className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-primary">{stats?.featuredBrands || 0}</span>
-                <span className="text-sm font-medium text-muted-foreground mt-2 flex items-center gap-1.5"><TrendingUp className="w-4 h-4"/> Featured</span>
-              </div>
-            </>
-          )}
-        </div>
-      </section>
-
-      {/* All Brands Section */}
-      <section className="py-20 md:py-32 px-4 md:px-8 container mx-auto bg-background">
-        <div className="flex items-end justify-between mb-12">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Store className="w-5 h-5 text-primary" />
-              <span className="text-xs font-bold uppercase tracking-widest text-primary">All Brands</span>
-            </div>
-            <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold text-foreground">Browse Every Brand on Nafex Hub</h2>
-            <p className="text-muted-foreground text-lg">Every business listed on our platform — from fashion to electronics.</p>
-          </div>
-          <Link href="/explore" className="hidden md:flex items-center text-primary font-medium hover:underline gap-1 text-sm">
-            View all <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-
-        {allBrandsLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex flex-col space-y-3">
-                <Skeleton className="h-[220px] w-full rounded-xl" />
-                <Skeleton className="h-5 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-              </div>
-            ))}
-          </div>
-        ) : allBrands && allBrands.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {allBrands.slice(0, 8).map((brand) => (
-              <BrandCard key={brand.id} business={brand} />
-            ))}
-          </div>
-        ) : null}
-
-        <div className="mt-16 flex justify-center">
-          <Link href="/explore">
-            <Button variant="outline" className="gap-2 px-8 py-6 rounded-lg text-foreground border-border hover:bg-muted/50">
-              Explore All Brands <ArrowRight className="w-4 h-4" />
-            </Button>
-          </Link>
-        </div>
-      </section>
-
-      {/* Grow Your Business Section */}
-      <section className="relative py-24 md:py-32 overflow-hidden bg-primary/90 text-primary-foreground">
-        <div className="absolute inset-0 bg-[url('/hero-shopping.png')] bg-cover bg-center opacity-10 mix-blend-multiply" />
-        <div className="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent" />
-        <div className="relative z-10 container mx-auto px-4 md:px-8 text-center max-w-3xl space-y-6">
-          <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">Grow Your Business with Nafex Hub</h2>
-          <p className="text-lg md:text-xl font-medium text-primary-foreground/90 pb-4">
-            Join hundreds of Ghanaian fashion creators reaching new customers online. Set up your store, accept payments securely via Paystack, and grow your brand.
+      {/* 1. Hero Section with Search */}
+      <section className="relative bg-[#1A1A1A] text-white overflow-hidden py-16 md:py-24">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-transparent opacity-50" />
+        <div className="relative z-10 container mx-auto px-4 md:px-8 flex flex-col items-center text-center space-y-8 max-w-4xl">
+          <Badge className="bg-primary text-primary-foreground border-0 px-4 py-1.5 text-sm font-medium tracking-wide">
+            Ghana's Premium Marketplace
+          </Badge>
+          
+          <h1 className="font-serif text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
+            Find Everything You Need
+          </h1>
+          
+          <p className="text-lg md:text-xl text-gray-300 max-w-2xl font-medium">
+            Shop from thousands of trusted Ghanaian sellers. From fashion to electronics, get the best deals delivered to you.
           </p>
+
+          <form onSubmit={handleSearch} className="w-full max-w-2xl relative flex items-center mt-6">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" />
+            <Input 
+              className="w-full h-16 pl-14 pr-32 rounded-full text-lg text-black bg-white border-0 shadow-xl focus-visible:ring-primary"
+              placeholder="What are you looking for?" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <Button 
+              type="submit" 
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-12 rounded-full px-8 bg-primary hover:bg-primary/90 text-white font-semibold"
+            >
+              Search
+            </Button>
+          </form>
+        </div>
+      </section>
+
+      {/* 2. Category Quick-Links */}
+      <section className="py-10 bg-white border-b border-gray-100">
+        <div className="container mx-auto px-4">
+          <div className="flex overflow-x-auto pb-4 hide-scrollbar gap-4 md:gap-8 justify-start md:justify-center">
+            {CATEGORIES.map((cat, idx) => {
+              const Icon = cat.icon;
+              return (
+                <Link key={idx} href={`/explore?category=${encodeURIComponent(cat.name)}`}>
+                  <div className="flex flex-col items-center gap-3 cursor-pointer group min-w-[80px]">
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm ${cat.color}`}>
+                      <Icon className="w-8 h-8" />
+                    </div>
+                    <span className="text-xs font-semibold text-center text-gray-700 group-hover:text-primary transition-colors">
+                      {cat.name}
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* 3. Flash Sales / Deals of the Day */}
+      {flashSales.length > 0 && (
+        <section className="py-12 bg-red-50">
+          <div className="container mx-auto px-4 md:px-8">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-red-600 rounded-lg text-white">
+                  <Tag className="w-6 h-6" />
+                </div>
+                <h2 className="font-serif text-2xl md:text-3xl font-bold text-red-950">Flash Sales</h2>
+              </div>
+              <div className="text-sm font-semibold text-red-600 bg-red-100 px-3 py-1 rounded-full animate-pulse">
+                Ending Soon!
+              </div>
+            </div>
+            
+            <div className="flex overflow-x-auto pb-6 gap-6 hide-scrollbar snap-x">
+              {flashSales.map(product => (
+                <div key={product.id} className="min-w-[240px] md:min-w-[280px] snap-start">
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 4. Trending Products */}
+      <section className="py-16 container mx-auto px-4 md:px-8 bg-background">
+        <div className="flex items-end justify-between mb-10">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-primary" />
+              <span className="text-xs font-bold uppercase tracking-widest text-primary">Trending Now</span>
+            </div>
+            <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground">Products You'll Love</h2>
+          </div>
+        </div>
+
+        {productsLoading ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-[280px] w-full rounded-xl" />
+            ))}
+          </div>
+        ) : trendingProducts.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 md:gap-6">
+            {trendingProducts.map(product => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 text-muted-foreground border-2 border-dashed rounded-xl">
+            No products available yet.
+          </div>
+        )}
+      </section>
+
+      {/* 5. Featured Stores (Smaller Brand Section) */}
+      <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4 md:px-8">
+          <div className="flex items-end justify-between mb-10">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Store className="w-5 h-5 text-primary" />
+                <span className="text-xs font-bold uppercase tracking-widest text-primary">Official Stores</span>
+              </div>
+              <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground">Top Rated Sellers</h2>
+            </div>
+            <Link href="/explore" className="text-primary font-medium hover:underline flex items-center gap-1 text-sm">
+              View all stores <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          {brandsLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-[220px] w-full rounded-xl" />
+              ))}
+            </div>
+          ) : featuredBrands && featuredBrands.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featuredBrands.slice(0, 4).map((brand) => (
+                <BrandCard key={brand.id} business={brand} />
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </section>
+
+      {/* 6. Minimized Seller CTA */}
+      <section className="py-12 bg-primary text-primary-foreground border-t border-primary/20">
+        <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="text-center md:text-left space-y-2">
+            <h3 className="text-2xl font-serif font-bold">Are you a merchant?</h3>
+            <p className="text-primary-foreground/90 max-w-xl">
+              Join thousands of sellers growing their business on Nafex Hub. Setup is completely free.
+            </p>
+          </div>
           <Link href="/list">
-            <Button size="lg" className="bg-[#1A1A1A] text-white hover:bg-[#1A1A1A]/90 border-0 h-14 px-8 text-base">
+            <Button size="lg" className="bg-white text-primary hover:bg-gray-100 font-bold px-8">
               Start Selling Today
             </Button>
           </Link>
         </div>
       </section>
+      
+      <style>{`
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 }
