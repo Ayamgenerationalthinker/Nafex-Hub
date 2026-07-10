@@ -8,10 +8,9 @@ import { useLocation, Link } from "wouter";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CheckCircle2, Loader2, ShoppingBag, Store, ScrollText, Truck, Package } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { CheckCircle2, Loader2, ShoppingBag, Store, Eye, EyeOff } from "lucide-react";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -22,178 +21,40 @@ const registerSchema = z.object({
     .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
     .regex(/[0-9]/, "Password must contain at least one number"),
   role: z.enum(["user", "business_owner"]).default("user"),
+  termsAccepted: z.boolean().refine((val) => val === true, {
+    message: "You must accept the terms and conditions",
+  }),
 });
 
 type RegisterForm = z.infer<typeof registerSchema>;
 
-// ── T&C content blocks ───────────────────────────────────────────────────────
-
-const TC_GENERAL = (
-  <div className="space-y-5">
-    <section>
-      <h3 className="font-semibold text-foreground mb-2">1. General Use</h3>
-      <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-        <li>Users must provide accurate information.</li>
-        <li>Buyers and sellers must act honestly and professionally.</li>
-        <li>Nafex may suspend accounts involved in fraud, abuse, fake orders, or suspicious activity.</li>
-      </ul>
-    </section>
-
-    <section>
-      <h3 className="font-semibold text-foreground mb-2">7. Prohibited Activities</h3>
-      <p className="text-sm text-muted-foreground mb-1">The following are strictly prohibited:</p>
-      <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-        <li>Fraud or scams</li>
-        <li>Fake products</li>
-        <li>Fake reviews</li>
-        <li>Illegal items</li>
-        <li>Harassment or abusive behavior</li>
-      </ul>
-      <p className="text-sm text-muted-foreground mt-1">Violations may result in permanent suspension.</p>
-    </section>
-
-    <section>
-      <h3 className="font-semibold text-foreground mb-2">8. Privacy</h3>
-      <p className="text-sm text-muted-foreground">
-        User information will only be used for platform operations, security, payments, and deliveries.
-      </p>
-    </section>
-  </div>
-);
-
-const TC_BUYER = (
-  <div className="space-y-5">
-    <section>
-      <h3 className="font-semibold text-foreground mb-2">3. Buyer Responsibilities</h3>
-      <p className="text-sm text-muted-foreground mb-1">As a buyer, you agree to:</p>
-      <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-        <li>Provide correct delivery details.</li>
-        <li>Avoid fake orders or payment fraud.</li>
-        <li>Treat sellers and delivery personnel respectfully.</li>
-      </ul>
-    </section>
-
-    <section>
-      <h3 className="font-semibold text-foreground mb-2">5. Customer Protection</h3>
-      <p className="text-sm text-muted-foreground">
-        Nafex may investigate complaints and restrict sellers where orders are repeatedly delayed, wrong or fake products
-        are delivered, or sellers fail to respond to disputes.
-      </p>
-    </section>
-
-    <section>
-      <h3 className="font-semibold text-foreground mb-2">6. Refunds & Disputes</h3>
-      <p className="text-sm text-muted-foreground mb-1">Refunds or returns may be approved for:</p>
-      <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-        <li>Undelivered orders</li>
-        <li>Wrong items</li>
-        <li>Damaged items</li>
-        <li>Fraudulent transactions</li>
-      </ul>
-      <p className="text-sm text-muted-foreground mt-1">Nafex reserves the right to review and decide disputes fairly.</p>
-    </section>
-  </div>
-);
-
-const TC_SELLER = (
-  <div className="space-y-5">
-    <section>
-      <h3 className="font-semibold text-foreground mb-2">2. Seller Responsibilities</h3>
-      <p className="text-sm text-muted-foreground mb-1">As a seller, you agree to:</p>
-      <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-        <li>List only genuine and legal products.</li>
-        <li>Use accurate descriptions and prices.</li>
-        <li>Deliver orders on time.</li>
-        <li>Respond professionally to customers.</li>
-      </ul>
-      <p className="text-sm text-muted-foreground mt-2">
-        Repeated complaints, failed deliveries, fake products, or misleading listings may lead to account restrictions,
-        payment holds, reduced visibility, or permanent suspension.
-      </p>
-    </section>
-
-    <section>
-      <h3 className="font-semibold text-foreground mb-2">4. Delivery Options</h3>
-      <p className="text-sm text-muted-foreground">
-        Before selling on Nafex, you must choose a delivery method. Where you manage deliveries yourself, you are fully
-        responsible for delays, failed deliveries, or customer complaints relating to delivery.
-      </p>
-    </section>
-
-    <section>
-      <h3 className="font-semibold text-foreground mb-2">5. Customer Protection</h3>
-      <p className="text-sm text-muted-foreground">
-        Nafex may investigate complaints and restrict your account where orders are repeatedly delayed, wrong or fake
-        products are delivered, buyers report delivery issues, or you fail to respond to disputes.
-      </p>
-    </section>
-
-    <section>
-      <h3 className="font-semibold text-foreground mb-2">6. Refunds & Disputes</h3>
-      <p className="text-sm text-muted-foreground mb-1">Refunds or returns may be approved for:</p>
-      <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-        <li>Undelivered orders</li>
-        <li>Wrong items</li>
-        <li>Damaged items</li>
-        <li>Fraudulent transactions</li>
-      </ul>
-      <p className="text-sm text-muted-foreground mt-1">Nafex reserves the right to review and decide disputes fairly.</p>
-    </section>
-  </div>
-);
-
-// ── Component ────────────────────────────────────────────────────────────────
-
 export default function Register() {
   const [, setLocation] = useLocation();
   const { setAuth } = useAuth();
+  const { toast } = useToast();
   const register = useRegister();
   const [successInfo, setSuccessInfo] = useState<{ name: string; role: string } | null>(null);
-
-  // T&C modal state
-  const [showTc, setShowTc] = useState(false);
-  const [pendingValues, setPendingValues] = useState<RegisterForm | null>(null);
-  const [tcGeneral, setTcGeneral] = useState(false);
-  const [tcSuspension, setTcSuspension] = useState(false);
-  const [deliveryChoice, setDeliveryChoice] = useState<"self" | "nafex" | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { name: "", email: "", password: "", role: "user" },
+    defaultValues: { name: "", email: "", password: "", role: "user", termsAccepted: false },
   });
 
-  const selectedRole = form.watch("role");
-  const isSeller = selectedRole === "business_owner";
-
-  // Step 1: validate form, open T&C modal
-  const handleFormSubmit = (values: RegisterForm) => {
-    setPendingValues(values);
-    setTcGeneral(false);
-    setTcSuspension(false);
-    setDeliveryChoice(null);
-    setShowTc(true);
-  };
-
-  // Step 2: user accepted T&C — actually create account
-  const canAccept =
-    tcGeneral &&
-    tcSuspension &&
-    (!isSeller || deliveryChoice !== null);
-
-  const handleAccept = () => {
-    if (!pendingValues || !canAccept) return;
+  const onSubmit = (values: RegisterForm) => {
+    // We don't send termsAccepted to the backend usually, just the required fields
+    const { termsAccepted, ...dataToSend } = values;
+    
     register.mutate(
-      { data: pendingValues },
+      { data: dataToSend as any },
       {
         onSuccess: (data) => {
-          setShowTc(false);
-          setAuth(data.token, data.user as Parameters<typeof setAuth>[1]);
+          setAuth(data.token, data.user as any);
           setSuccessInfo({ name: data.user.name, role: data.user.role });
         },
-        onError: (err: unknown) => {
-          setShowTc(false);
+        onError: (err: any) => {
           form.setError("root", {
-            message: (err as { data?: { error?: string } })?.data?.error ?? "Something went wrong. Please try again.",
+            message: err?.data?.error ?? "Something went wrong. Please try again.",
           });
         },
       }
@@ -205,10 +66,17 @@ export default function Register() {
     setLocation("/verify-email");
   };
 
+  const handleSocialLogin = (provider: string) => {
+    toast({
+      title: "Coming Soon",
+      description: `${provider} registration is currently being configured. Please use email.`,
+    });
+  };
+
   // ── Success screen ──────────────────────────────────────────────────────
   if (successInfo) {
     return (
-      <div className="min-h-[80vh] flex items-center justify-center px-4 py-16">
+      <div className="min-h-screen flex items-center justify-center px-4 py-16 bg-background">
         <div className="w-full max-w-md text-center space-y-6">
           <div className="flex justify-center">
             <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
@@ -223,7 +91,7 @@ export default function Register() {
                 : "Your account is ready. Start exploring Ghana's best fashion brands."}
             </p>
           </div>
-          <div className="bg-card rounded-2xl border p-6 space-y-3 text-left">
+          <div className="bg-card rounded-2xl border p-6 space-y-3 text-left shadow-sm">
             <p className="text-sm font-semibold text-foreground">What's next?</p>
             {successInfo.role === "business_owner" ? (
               <ul className="space-y-2 text-sm text-muted-foreground">
@@ -239,7 +107,7 @@ export default function Register() {
               </ul>
             )}
           </div>
-          <Button className="w-full h-12 text-base font-semibold" onClick={handleContinue}>
+          <Button className="w-full h-12 text-base font-semibold shadow-lg" onClick={handleContinue}>
             {successInfo.role === "business_owner" ? "List My Business" : "Explore Brands"}
           </Button>
         </div>
@@ -249,289 +117,227 @@ export default function Register() {
 
   // ── Registration form ───────────────────────────────────────────────────
   return (
-    <>
-      <div className="min-h-[80vh] flex items-center justify-center px-4 py-16">
-        <div className="w-full max-w-md space-y-8">
-          <div className="text-center space-y-3">
-            <div className="inline-flex w-14 h-14 rounded-2xl bg-primary items-center justify-center text-primary-foreground font-serif font-bold text-3xl shadow-lg mx-auto">
-              N
+    <div className="w-full min-h-screen lg:grid lg:grid-cols-2 bg-background">
+      {/* ── Left Side: Brand Imagery (Desktop Only) ── */}
+      <div className="hidden lg:flex flex-col justify-center bg-[#1A1A1A] text-white p-12 lg:p-24 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/30 to-transparent opacity-50" />
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-primary/20 blur-3xl rounded-full" />
+        
+        <div className="relative z-10 max-w-xl">
+          <Link href="/" className="inline-flex w-16 h-16 rounded-2xl bg-primary items-center justify-center text-primary-foreground font-serif font-bold text-4xl shadow-2xl mb-12 hover:scale-105 transition-transform cursor-pointer">
+            N
+          </Link>
+          <h1 className="text-5xl lg:text-6xl font-serif font-bold mb-6 leading-tight">
+            Join Ghana's premier <span className="text-primary">marketplace</span>.
+          </h1>
+          <p className="text-xl text-gray-300 font-medium max-w-md">
+            Whether you want to shop the best fashion or grow your business, Nafex Hub is the place to be.
+          </p>
+
+          <div className="mt-12 space-y-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
+                <ShoppingBag className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">Shop with confidence</h3>
+                <p className="text-sm text-gray-400">Verified sellers and secure payments.</p>
+              </div>
             </div>
-            <h1 className="font-serif text-3xl font-bold text-foreground">Join Nafex Hub</h1>
-            <p className="text-muted-foreground">Ghana's premier fashion marketplace</p>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
+                <Store className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">Grow your business</h3>
+                <p className="text-sm text-gray-400">Reach thousands of buyers across Ghana.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Right Side: Registration Form ── */}
+      <div className="flex items-center justify-center p-6 sm:p-12 lg:p-24 relative overflow-y-auto">
+        <div className="absolute top-8 left-6 lg:hidden">
+          <Link href="/" className="inline-flex w-10 h-10 rounded-xl bg-primary items-center justify-center text-primary-foreground font-serif font-bold text-xl shadow-lg">
+            N
+          </Link>
+        </div>
+
+        <div className="w-full max-w-md space-y-8 mt-12 lg:mt-0">
+          <div className="space-y-2">
+            <h2 className="font-serif text-3xl font-bold tracking-tight">Create an account</h2>
+            <p className="text-muted-foreground font-medium">
+              Join thousands of users on Nafex Hub
+            </p>
           </div>
 
-          <div className="bg-card rounded-2xl border shadow-sm p-8 space-y-6">
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <Button variant="outline" className="h-12 border-gray-300 shadow-sm" onClick={() => handleSocialLogin("Google")}>
+                <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                </svg>
+                Google
+              </Button>
+              <Button variant="outline" className="h-12 border-gray-300 shadow-sm" onClick={() => handleSocialLogin("Apple")}>
+                <svg className="mr-2 h-5 w-5" viewBox="0 0 384 512">
+                  <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" fill="currentColor"/>
+                </svg>
+                Apple
+              </Button>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-muted" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-4 text-muted-foreground font-medium">Or register with email</span>
+              </div>
+            </div>
+
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-5">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                
+                {/* Role Selection via large cards */}
+                <FormField
+                  control={form.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel className="font-semibold text-foreground">I want to...</FormLabel>
+                      <div className="grid grid-cols-2 gap-3">
+                        <label className={`relative flex flex-col items-center justify-center p-4 border rounded-xl cursor-pointer transition-all ${field.value === 'user' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-gray-200 hover:border-gray-300'}`}>
+                          <input type="radio" value="user" checked={field.value === 'user'} onChange={() => field.onChange('user')} className="sr-only" />
+                          <ShoppingBag className={`w-6 h-6 mb-2 ${field.value === 'user' ? 'text-primary' : 'text-gray-400'}`} />
+                          <span className={`font-semibold text-sm ${field.value === 'user' ? 'text-primary' : 'text-gray-600'}`}>Shop</span>
+                        </label>
+                        <label className={`relative flex flex-col items-center justify-center p-4 border rounded-xl cursor-pointer transition-all ${field.value === 'business_owner' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-gray-200 hover:border-gray-300'}`}>
+                          <input type="radio" value="business_owner" checked={field.value === 'business_owner'} onChange={() => field.onChange('business_owner')} className="sr-only" />
+                          <Store className={`w-6 h-6 mb-2 ${field.value === 'business_owner' ? 'text-primary' : 'text-gray-400'}`} />
+                          <span className={`font-semibold text-sm ${field.value === 'business_owner' ? 'text-primary' : 'text-gray-600'}`}>Sell</span>
+                        </label>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Full Name</FormLabel>
+                      <FormLabel className="font-semibold">Full Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Kofi Mensah" {...field} data-testid="input-name" className="h-12" />
+                        <Input placeholder="Kofi Mensah" {...field} data-testid="input-name" className="h-12 bg-muted/50 border-gray-200" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel className="font-semibold">Email address</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="you@example.com" {...field} data-testid="input-email" className="h-12" />
+                        <Input type="email" placeholder="you@example.com" {...field} data-testid="input-email" className="h-12 bg-muted/50 border-gray-200" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel className="font-semibold">Password</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder="Min 8 chars, 1 uppercase, 1 number" {...field} data-testid="input-password" className="h-12" />
+                        <div className="relative">
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Min 8 chars, 1 uppercase, 1 number"
+                            {...field}
+                            data-testid="input-password"
+                            className="h-12 bg-muted/50 border-gray-200 pr-10"
+                          />
+                          <button
+                            type="button"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                          </button>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
-                  name="role"
+                  name="termsAccepted"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>I want to</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="h-12" data-testid="select-role">
-                            <SelectValue placeholder="Select account type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="user">
-                            <div className="flex items-center gap-2">
-                              <ShoppingBag className="w-4 h-4 text-muted-foreground" />
-                              <div>
-                                <div className="font-medium">Shop — I want to buy</div>
-                                <div className="text-xs text-muted-foreground">Browse brands, place orders, get deals</div>
-                              </div>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="business_owner">
-                            <div className="flex items-center gap-2">
-                              <Store className="w-4 h-4 text-muted-foreground" />
-                              <div>
-                                <div className="font-medium">Sell — I have a business</div>
-                                <div className="text-xs text-muted-foreground">List products, manage orders, grow sales</div>
-                              </div>
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md py-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          className="mt-1"
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="text-sm font-medium text-muted-foreground">
+                          I agree to the{" "}
+                          <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link>{" "}
+                          and{" "}
+                          <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>.
+                        </FormLabel>
+                        <FormMessage />
+                      </div>
                     </FormItem>
                   )}
                 />
+
                 {form.formState.errors.root && (
-                  <p className="text-sm text-destructive text-center">{form.formState.errors.root.message}</p>
+                  <p className="text-sm text-destructive font-medium">{form.formState.errors.root.message}</p>
                 )}
+
                 <Button
                   type="submit"
-                  className="w-full h-12 text-base font-semibold gap-2"
+                  className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-shadow"
+                  disabled={register.isPending}
                   data-testid="btn-register"
                 >
-                  <ScrollText className="w-4 h-4" />
-                  Review Terms & Create Account
+                  {register.isPending ? (
+                    <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Creating account...</>
+                  ) : (
+                    "Create Account"
+                  )}
                 </Button>
               </form>
             </Form>
           </div>
 
-          <p className="text-center text-sm text-muted-foreground">
+          <p className="text-center text-sm font-medium text-muted-foreground">
             Already have an account?{" "}
-            <Link href="/login" className="text-primary font-medium hover:underline" data-testid="link-login">
+            <Link href="/login" className="text-primary font-bold hover:underline" data-testid="link-login">
               Sign in
             </Link>
           </p>
         </div>
       </div>
-
-      {/* ── Terms & Conditions Modal ─────────────────────────────────────── */}
-      <Dialog open={showTc} onOpenChange={(open) => { if (!register.isPending) setShowTc(open); }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 gap-0">
-          <DialogHeader className="px-6 pt-6 pb-4 border-b flex-shrink-0">
-            <DialogTitle className="flex items-center gap-2 text-lg font-serif">
-              <ScrollText className="w-5 h-5 text-primary" />
-              Nafex Marketplace — Terms &amp; Conditions
-            </DialogTitle>
-            <p className="text-xs text-muted-foreground mt-1">
-              {isSeller
-                ? "Please read the general terms and seller-specific terms below before creating your account."
-                : "Please read the general terms and buyer-specific terms below before creating your account."}
-            </p>
-          </DialogHeader>
-
-          {/* Scrollable body */}
-          <div className="flex-1 overflow-y-auto px-6 py-5 space-y-8 min-h-0">
-
-            {/* General terms — shown to everyone */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                  General — All Users
-                </span>
-              </div>
-              {TC_GENERAL}
-            </div>
-
-            <div className="border-t" />
-
-            {/* Role-specific terms */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                {isSeller ? (
-                  <span className="text-xs font-semibold uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded flex items-center gap-1">
-                    <Store className="w-3 h-3" /> Sellers Only
-                  </span>
-                ) : (
-                  <span className="text-xs font-semibold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded flex items-center gap-1">
-                    <ShoppingBag className="w-3 h-3" /> Buyers Only
-                  </span>
-                )}
-              </div>
-              {isSeller ? TC_SELLER : TC_BUYER}
-            </div>
-
-            {/* Delivery choice — sellers only */}
-            {isSeller && (
-              <>
-                <div className="border-t" />
-                <div className="space-y-3">
-                  <p className="text-sm font-semibold text-foreground">
-                    Section 4 — Choose Your Delivery Method <span className="text-destructive">*</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground">You must select one before continuing.</p>
-                  <div className="space-y-2">
-                    <label
-                      className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
-                        deliveryChoice === "self"
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-muted-foreground/40"
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="delivery"
-                        className="mt-0.5 accent-primary"
-                        checked={deliveryChoice === "self"}
-                        onChange={() => setDeliveryChoice("self")}
-                      />
-                      <div>
-                        <p className="text-sm font-medium text-foreground flex items-center gap-1.5">
-                          <Package className="w-3.5 h-3.5 text-muted-foreground" />
-                          I will handle my own deliveries
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          You are fully responsible for all delivery logistics, delays, and customer complaints.
-                        </p>
-                      </div>
-                    </label>
-                    <label
-                      className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
-                        deliveryChoice === "nafex"
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-muted-foreground/40"
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="delivery"
-                        className="mt-0.5 accent-primary"
-                        checked={deliveryChoice === "nafex"}
-                        onChange={() => setDeliveryChoice("nafex")}
-                      />
-                      <div>
-                        <p className="text-sm font-medium text-foreground flex items-center gap-1.5">
-                          <Truck className="w-3.5 h-3.5 text-muted-foreground" />
-                          I authorize Nafex to handle all deliveries
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          Nafex will coordinate delivery on your behalf. Terms apply.
-                        </p>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Acceptance checkboxes */}
-            <div className="border-t" />
-            <div className="space-y-3 pb-2">
-              <p className="text-sm font-semibold text-foreground">Section 9 — Acceptance</p>
-              <label className="flex items-start gap-3 cursor-pointer group">
-                <Checkbox
-                  checked={tcGeneral}
-                  onCheckedChange={(v) => setTcGeneral(!!v)}
-                  className="mt-0.5"
-                />
-                <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-                  I have read and accepted the Nafex Marketplace Terms &amp; Conditions.
-                </span>
-              </label>
-              <label className="flex items-start gap-3 cursor-pointer group">
-                <Checkbox
-                  checked={tcSuspension}
-                  onCheckedChange={(v) => setTcSuspension(!!v)}
-                  className="mt-0.5"
-                />
-                <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-                  I understand that violations may result in account suspension or removal from the platform.
-                </span>
-              </label>
-            </div>
-          </div>
-
-          {/* Sticky footer */}
-          <div className="px-6 py-4 border-t bg-muted/30 flex-shrink-0 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <p className="text-xs text-muted-foreground">
-              {!canAccept
-                ? isSeller
-                  ? "Check both boxes and select a delivery method to continue."
-                  : "Check both boxes above to continue."
-                : "You're ready to create your account."}
-            </p>
-            <div className="flex gap-2 w-full sm:w-auto">
-              <Button
-                variant="outline"
-                className="flex-1 sm:flex-none"
-                onClick={() => setShowTc(false)}
-                disabled={register.isPending}
-              >
-                Go Back
-              </Button>
-              <Button
-                className="flex-1 sm:flex-none gap-2"
-                disabled={!canAccept || register.isPending}
-                onClick={handleAccept}
-              >
-                {register.isPending ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> Creating account...</>
-                ) : (
-                  <><CheckCircle2 className="w-4 h-4" /> Accept &amp; Create Account</>
-                )}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+    </div>
   );
 }
