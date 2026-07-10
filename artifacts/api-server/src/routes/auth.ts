@@ -6,6 +6,7 @@ import { z } from "zod";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import rateLimit from "express-rate-limit";
+import jwt from "jsonwebtoken";
 import { sendAdminEmail, sendVerificationEmail } from "../lib/mailer";
 import { requireAuth } from "../lib/auth-middleware";
 
@@ -42,23 +43,16 @@ function validatePasswordStrength(password: string): string | null {
   return null;
 }
 
+const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_for_development_only";
+
 function generateToken(userId: number): string {
-  const expiresAt = Date.now() + TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
-  const random = crypto.randomBytes(16).toString("hex");
-  const payload = `${userId}:${expiresAt}:${random}`;
-  return Buffer.from(payload).toString("base64");
+  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: `${TOKEN_EXPIRY_DAYS}d` });
 }
 
 export function parseToken(token: string): { userId: number; expiresAt: number } | null {
   try {
-    const decoded = Buffer.from(token, "base64").toString("utf-8");
-    const parts = decoded.split(":");
-    if (parts.length < 2) return null;
-    const userId = parseInt(parts[0], 10);
-    const expiresAt = parseInt(parts[1], 10);
-    if (isNaN(userId) || isNaN(expiresAt)) return null;
-    if (Date.now() > expiresAt) return null;
-    return { userId, expiresAt };
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number; exp: number };
+    return { userId: decoded.userId, expiresAt: decoded.exp * 1000 };
   } catch {
     return null;
   }
