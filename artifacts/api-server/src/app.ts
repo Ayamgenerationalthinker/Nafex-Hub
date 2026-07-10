@@ -111,7 +111,10 @@ app.use("/api", router);
 if (process.env["NODE_ENV"] === "production") {
   const frontendPath = path.resolve(__dirname, "../../../artifacts/nafex-hub/dist/public");
   app.use(express.static(frontendPath));
-  app.get("*path", (_req, res) => {
+  app.get("*", (req, res) => {
+    if (req.path.startsWith("/assets/")) {
+      return res.status(404).send("Not found");
+    }
     res.sendFile(path.join(frontendPath, "index.html"));
   });
 }
