@@ -93,15 +93,15 @@ export default function Login() {
       </div>
 
       {/* ── Right Side: Login Form ── */}
-      <div className="flex items-center justify-center p-6 sm:p-12 lg:p-24 relative">
+      <div className="flex flex-col p-6 sm:p-12 lg:p-24 h-[100dvh] lg:h-screen overflow-y-auto">
         {/* Mobile Logo */}
-        <div className="absolute top-8 left-6 lg:hidden">
+        <div className="lg:hidden mb-8 mt-2">
           <Link href="/" className="inline-flex w-10 h-10 rounded-xl bg-primary items-center justify-center text-primary-foreground font-serif font-bold text-xl shadow-lg">
             N
           </Link>
         </div>
 
-        <div className="w-full max-w-md space-y-8 mt-12 lg:mt-0">
+        <div className="w-full max-w-md mx-auto my-auto space-y-8 pb-12">
           <div className="space-y-2">
             <h2 className="font-serif text-3xl font-bold tracking-tight">Sign In</h2>
             <p className="text-muted-foreground font-medium">

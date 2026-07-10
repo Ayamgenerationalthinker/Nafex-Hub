@@ -160,14 +160,15 @@ export default function VerifyEmail() {
       </div>
 
       {/* ── Right Side: Verification Form ── */}
-      <div className="flex items-center justify-center p-6 sm:p-12 lg:p-24 relative overflow-y-auto">
-        <div className="absolute top-8 left-6 lg:hidden">
+      <div className="flex flex-col p-6 sm:p-12 lg:p-24 h-[100dvh] lg:h-screen overflow-y-auto">
+        {/* Mobile Logo */}
+        <div className="lg:hidden mb-8 mt-2">
           <Link href="/" className="inline-flex w-10 h-10 rounded-xl bg-primary items-center justify-center text-primary-foreground font-serif font-bold text-xl shadow-lg">
             N
           </Link>
         </div>
 
-        <div className="w-full max-w-md space-y-8 mt-12 lg:mt-0">
+        <div className="w-full max-w-md mx-auto my-auto space-y-8 pb-12">
           <div className="text-center space-y-3">
             <div className="w-20 h-20 mx-auto rounded-full bg-amber-50 flex items-center justify-center shadow-inner border border-amber-100">
               <Mail className="w-10 h-10 text-amber-600" />
