@@ -13,7 +13,7 @@ import { requireAuth } from "../lib/auth-middleware";
 function generateVerificationCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
-const VERIFICATION_TTL_MS = 60 * 1000; // 1 minute
+const VERIFICATION_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
 const router: IRouter = Router();
 

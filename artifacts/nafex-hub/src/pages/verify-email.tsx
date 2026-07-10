@@ -1,14 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { useLocation } from "wouter";
-import { Mail, ShieldCheck, RefreshCw, Loader2, Clock } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useLocation, Link } from "wouter";
+import { Mail, ShieldCheck, RefreshCw, Loader2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 
-const CODE_TTL_SECONDS = 60;
+const RESEND_COOLDOWN_SECONDS = 60;
 
 export default function VerifyEmail() {
   const { user, token, updateUser } = useAuth();
@@ -17,17 +16,22 @@ export default function VerifyEmail() {
   const [code, setCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [resending, setResending] = useState(false);
-  const [secondsLeft, setSecondsLeft] = useState(CODE_TTL_SECONDS);
+  
+  // Cooldown for resend button, NOT code validity.
+  const [cooldown, setCooldown] = useState(0);
   const tickRef = useRef<number | null>(null);
 
-  // Start / restart the countdown.
   useEffect(() => {
-    if (tickRef.current) window.clearInterval(tickRef.current);
-    tickRef.current = window.setInterval(() => {
-      setSecondsLeft((s) => (s > 0 ? s - 1 : 0));
-    }, 1000);
+    if (cooldown > 0) {
+      if (tickRef.current) window.clearInterval(tickRef.current);
+      tickRef.current = window.setInterval(() => {
+        setCooldown((c) => (c > 0 ? c - 1 : 0));
+      }, 1000);
+    } else {
+      if (tickRef.current) window.clearInterval(tickRef.current);
+    }
     return () => { if (tickRef.current) window.clearInterval(tickRef.current); };
-  }, []);
+  }, [cooldown]);
 
   if (!user) {
     navigate("/login");
@@ -36,22 +40,47 @@ export default function VerifyEmail() {
 
   if (user.emailVerified) {
     return (
-      <div className="container mx-auto px-4 py-16 max-w-md">
-        <Card>
-          <CardContent className="p-8 text-center space-y-4">
-            <ShieldCheck className="w-14 h-14 mx-auto text-green-600" />
-            <h1 className="text-2xl font-bold">Email verified</h1>
-            <p className="text-muted-foreground text-sm">
-              Your email <strong>{user.email}</strong> is confirmed. You can now use everything on Nafex Hub.
+      <div className="w-full min-h-screen lg:grid lg:grid-cols-2 bg-background">
+        {/* Same left side as registration/login */}
+        <div className="hidden lg:flex flex-col justify-center bg-[#1A1A1A] text-white p-12 lg:p-24 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/30 to-transparent opacity-50" />
+          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-primary/20 blur-3xl rounded-full" />
+          <div className="relative z-10 max-w-xl">
+            <Link href="/" className="inline-flex w-16 h-16 rounded-2xl bg-primary items-center justify-center text-primary-foreground font-serif font-bold text-4xl shadow-2xl mb-12 hover:scale-105 transition-transform cursor-pointer">N</Link>
+            <h1 className="text-5xl lg:text-6xl font-serif font-bold mb-6 leading-tight">
+              You're all <span className="text-primary">set</span>.
+            </h1>
+            <p className="text-xl text-gray-300 font-medium max-w-md">
+              Welcome to Ghana's premium marketplace. Start exploring or setting up your shop.
             </p>
-            <Button onClick={() => navigate("/")} className="w-full">Go to homepage</Button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+
+        {/* Right side verified */}
+        <div className="flex items-center justify-center p-6 sm:p-12 lg:p-24 relative">
+          <div className="absolute top-8 left-6 lg:hidden">
+            <Link href="/" className="inline-flex w-10 h-10 rounded-xl bg-primary items-center justify-center text-primary-foreground font-serif font-bold text-xl shadow-lg">N</Link>
+          </div>
+          <div className="w-full max-w-md space-y-8 text-center mt-12 lg:mt-0">
+            <div className="flex justify-center">
+              <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center shadow-sm">
+                <ShieldCheck className="w-12 h-12 text-green-600" />
+              </div>
+            </div>
+            <div className="space-y-3">
+              <h2 className="font-serif text-4xl font-bold tracking-tight text-foreground">Email verified!</h2>
+              <p className="text-muted-foreground font-medium text-lg">
+                Your email <strong className="text-foreground">{user.email}</strong> is confirmed. You can now use everything on Nafex Hub.
+              </p>
+            </div>
+            <Button onClick={() => navigate("/")} className="w-full h-14 text-lg font-bold shadow-lg mt-8">
+              Go to Homepage <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
-
-  const expired = secondsLeft === 0;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -88,11 +117,11 @@ export default function VerifyEmail() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not resend");
       setCode("");
-      setSecondsLeft(CODE_TTL_SECONDS);
+      setCooldown(RESEND_COOLDOWN_SECONDS);
       toast({
         title: data.delivered ? "New code sent" : "Code generated",
         description: data.delivered
-          ? `A fresh 6-digit code was sent to ${user!.email}. It expires in 1 minute.`
+          ? `A fresh 6-digit code was sent to ${user!.email}. It expires in 15 minutes.`
           : "Email isn't configured on the server yet — ask the admin to set EMAIL_USER / EMAIL_PASS.",
       });
     } catch (err) {
@@ -103,34 +132,50 @@ export default function VerifyEmail() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-16 max-w-md">
-      <Card>
-        <CardContent className="p-8 space-y-6">
-          <div className="text-center space-y-2">
-            <div className="w-14 h-14 mx-auto rounded-full bg-amber-100 flex items-center justify-center">
-              <Mail className="w-7 h-7 text-amber-600" />
+    <div className="w-full min-h-screen lg:grid lg:grid-cols-2 bg-background">
+      {/* ── Left Side: Brand Imagery (Desktop Only) ── */}
+      <div className="hidden lg:flex flex-col justify-center bg-[#1A1A1A] text-white p-12 lg:p-24 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/30 to-transparent opacity-50" />
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-primary/20 blur-3xl rounded-full" />
+        
+        <div className="relative z-10 max-w-xl">
+          <Link href="/" className="inline-flex w-16 h-16 rounded-2xl bg-primary items-center justify-center text-primary-foreground font-serif font-bold text-4xl shadow-2xl mb-12 hover:scale-105 transition-transform cursor-pointer">
+            N
+          </Link>
+          <h1 className="text-5xl lg:text-6xl font-serif font-bold mb-6 leading-tight">
+            You're almost <span className="text-primary">there</span>.
+          </h1>
+          <p className="text-xl text-gray-300 font-medium max-w-md">
+            Check your email for a verification code to activate your account and start shopping or selling.
+          </p>
+        </div>
+      </div>
+
+      {/* ── Right Side: Verification Form ── */}
+      <div className="flex items-center justify-center p-6 sm:p-12 lg:p-24 relative overflow-y-auto">
+        <div className="absolute top-8 left-6 lg:hidden">
+          <Link href="/" className="inline-flex w-10 h-10 rounded-xl bg-primary items-center justify-center text-primary-foreground font-serif font-bold text-xl shadow-lg">
+            N
+          </Link>
+        </div>
+
+        <div className="w-full max-w-md space-y-8 mt-12 lg:mt-0">
+          <div className="text-center space-y-3">
+            <div className="w-20 h-20 mx-auto rounded-full bg-amber-50 flex items-center justify-center shadow-inner border border-amber-100">
+              <Mail className="w-10 h-10 text-amber-600" />
             </div>
-            <h1 className="text-2xl font-bold">Verify your email</h1>
-            <p className="text-sm text-muted-foreground">
-              We sent a 6-digit code to <strong>{user.email}</strong>. Enter it below to activate your account.
+            <h2 className="font-serif text-3xl font-bold tracking-tight mt-4">Check your email</h2>
+            <p className="text-muted-foreground font-medium">
+              We sent a 6-digit code to <strong className="text-foreground">{user.email}</strong>.
             </p>
-            <p className="text-xs text-muted-foreground">
-              Verification is required before you can place orders, message sellers, or list a shop.
+            <p className="text-xs text-muted-foreground bg-muted p-2 rounded-md">
+              Code expires in 15 minutes.
             </p>
           </div>
 
-          <div className={`flex items-center justify-center gap-2 text-sm font-mono ${expired ? "text-red-600" : "text-amber-700"}`}>
-            <Clock className="w-4 h-4" />
-            {expired ? (
-              <span>Code expired — request a new one</span>
-            ) : (
-              <span>Expires in {String(Math.floor(secondsLeft / 60)).padStart(2, "0")}:{String(secondsLeft % 60).padStart(2, "0")}</span>
-            )}
-          </div>
-
-          <form onSubmit={submit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="code">Verification code</Label>
+          <form onSubmit={submit} className="space-y-6">
+            <div className="space-y-3">
+              <Label htmlFor="code" className="text-center block font-bold text-muted-foreground uppercase tracking-wider">Verification Code</Label>
               <Input
                 id="code"
                 inputMode="numeric"
@@ -138,30 +183,37 @@ export default function VerifyEmail() {
                 maxLength={6}
                 value={code}
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                placeholder="••••••"
-                className="text-center text-2xl tracking-[0.5em] font-mono h-14"
+                placeholder="000000"
+                className="text-center text-4xl tracking-[0.75em] font-mono h-16 bg-muted/50 border-gray-200 shadow-inner"
                 data-testid="input-verification-code"
-                disabled={expired}
               />
             </div>
-            <Button type="submit" className="w-full" disabled={submitting || code.length !== 6 || expired} data-testid="btn-verify-email">
-              {submitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Verifying...</> : "Verify email"}
+            <Button type="submit" className="w-full h-14 text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow" disabled={submitting || code.length !== 6} data-testid="btn-verify-email">
+              {submitting ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Verifying...</> : "Verify Account"}
             </Button>
           </form>
 
-          <Button
-            type="button"
-            variant="outline"
-            onClick={resend}
-            disabled={resending}
-            className="w-full gap-1.5"
-            data-testid="btn-resend-code"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${resending ? "animate-spin" : ""}`} />
-            {resending ? "Sending..." : expired ? "Send a new code" : "Resend code"}
-          </Button>
-        </CardContent>
-      </Card>
+          <div className="pt-6 border-t border-muted text-center">
+            <p className="text-sm font-medium text-muted-foreground mb-4">Didn't receive the email?</p>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={resend}
+              disabled={resending || cooldown > 0}
+              className="w-full h-12 gap-2 border-gray-300 shadow-sm"
+              data-testid="btn-resend-code"
+            >
+              {resending ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Sending...</>
+              ) : cooldown > 0 ? (
+                <>Resend available in {cooldown}s</>
+              ) : (
+                <><RefreshCw className="w-4 h-4" /> Resend code</>
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
