@@ -4,10 +4,10 @@ import { Mail, ShieldCheck, RefreshCw, Loader2, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { Clock } from "lucide-react";
 
-const RESEND_COOLDOWN_SECONDS = 60;
+const CODE_TTL_SECONDS = 180;
 
 export default function VerifyEmail() {
   const { user, token, updateUser } = useAuth();
@@ -17,21 +17,18 @@ export default function VerifyEmail() {
   const [submitting, setSubmitting] = useState(false);
   const [resending, setResending] = useState(false);
   
-  // Cooldown for resend button, NOT code validity.
-  const [cooldown, setCooldown] = useState(0);
+  const [secondsLeft, setSecondsLeft] = useState(CODE_TTL_SECONDS);
   const tickRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (cooldown > 0) {
-      if (tickRef.current) window.clearInterval(tickRef.current);
-      tickRef.current = window.setInterval(() => {
-        setCooldown((c) => (c > 0 ? c - 1 : 0));
-      }, 1000);
-    } else {
-      if (tickRef.current) window.clearInterval(tickRef.current);
-    }
+    if (tickRef.current) window.clearInterval(tickRef.current);
+    tickRef.current = window.setInterval(() => {
+      setSecondsLeft((s) => (s > 0 ? s - 1 : 0));
+    }, 1000);
     return () => { if (tickRef.current) window.clearInterval(tickRef.current); };
-  }, [cooldown]);
+  }, []);
+
+  const expired = secondsLeft === 0;
 
   if (!user) {
     navigate("/login");
@@ -117,11 +114,11 @@ export default function VerifyEmail() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not resend");
       setCode("");
-      setCooldown(RESEND_COOLDOWN_SECONDS);
+      setSecondsLeft(CODE_TTL_SECONDS);
       toast({
         title: data.delivered ? "New code sent" : "Code generated",
         description: data.delivered
-          ? `A fresh 6-digit code was sent to ${user!.email}. It expires in 15 minutes.`
+          ? `A fresh 6-digit code was sent to ${user!.email}. It expires in 3 minutes.`
           : "Email isn't configured on the server yet — ask the admin to set EMAIL_USER / EMAIL_PASS.",
       });
     } catch (err) {
@@ -168,9 +165,14 @@ export default function VerifyEmail() {
             <p className="text-muted-foreground font-medium">
               We sent a 6-digit code to <strong className="text-foreground">{user.email}</strong>.
             </p>
-            <p className="text-xs text-muted-foreground bg-muted p-2 rounded-md">
-              Code expires in 15 minutes.
-            </p>
+            <div className={`flex items-center justify-center gap-2 text-sm font-mono p-2 rounded-md ${expired ? "bg-red-50 text-red-600" : "bg-muted text-muted-foreground"}`}>
+              <Clock className="w-4 h-4" />
+              {expired ? (
+                <span>Code expired — request a new one</span>
+              ) : (
+                <span>Code expires in {String(Math.floor(secondsLeft / 60)).padStart(2, "0")}:{String(secondsLeft % 60).padStart(2, "0")}</span>
+              )}
+            </div>
           </div>
 
           <form onSubmit={submit} className="space-y-6">
@@ -186,9 +188,10 @@ export default function VerifyEmail() {
                 placeholder="000000"
                 className="text-center text-4xl tracking-[0.75em] font-mono h-16 bg-muted/50 border-gray-200 shadow-inner"
                 data-testid="input-verification-code"
+                disabled={expired}
               />
             </div>
-            <Button type="submit" className="w-full h-14 text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow" disabled={submitting || code.length !== 6} data-testid="btn-verify-email">
+            <Button type="submit" className="w-full h-14 text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow" disabled={submitting || code.length !== 6 || expired} data-testid="btn-verify-email">
               {submitting ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Verifying...</> : "Verify Account"}
             </Button>
           </form>
@@ -199,14 +202,14 @@ export default function VerifyEmail() {
               type="button"
               variant="outline"
               onClick={resend}
-              disabled={resending || cooldown > 0}
+              disabled={resending || (!expired && secondsLeft > 120)} // Can only resend after 1 min (60s cooldown from 3 mins)
               className="w-full h-12 gap-2 border-gray-300 shadow-sm"
               data-testid="btn-resend-code"
             >
               {resending ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Sending...</>
-              ) : cooldown > 0 ? (
-                <>Resend available in {cooldown}s</>
+              ) : (!expired && secondsLeft > 120) ? (
+                <>Resend available in {secondsLeft - 120}s</>
               ) : (
                 <><RefreshCw className="w-4 h-4" /> Resend code</>
               )}
