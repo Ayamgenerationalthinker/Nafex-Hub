@@ -5,10 +5,7 @@ import { registerSW } from "virtual:pwa-register";
 
 registerSW({
   immediate: true,
-  onNeedRefresh() {
-    console.info("[PWA] New content available, reloading...");
-    window.location.reload();
-  },
+  onNeedRefresh() {},
   onOfflineReady() {
     console.info("[PWA] App ready to work offline");
   },
