@@ -90,17 +90,17 @@ export default function Home() {
             Shop from thousands of trusted Ghanaian sellers. From fashion to electronics, get the best deals delivered to you.
           </p>
 
-          <form onSubmit={handleSearch} className="w-full max-w-2xl relative flex items-center mt-6">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" />
-            <Input 
-              className="w-full h-16 pl-14 pr-32 rounded-full text-lg text-black bg-white border-0 shadow-xl focus-visible:ring-primary"
+          <form onSubmit={handleSearch} className="w-full max-w-2xl flex items-center bg-white rounded-full p-2 shadow-xl mt-6 focus-within:ring-2 focus-within:ring-primary/50 transition-all">
+            <Search className="ml-3 w-6 h-6 text-gray-400 shrink-0" />
+            <input 
+              className="flex-1 h-12 px-4 text-lg text-black bg-transparent border-0 outline-none focus:ring-0"
               placeholder="What are you looking for?" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
             <Button 
               type="submit" 
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-12 rounded-full px-8 bg-primary hover:bg-primary/90 text-white font-semibold"
+              className="h-12 rounded-full px-8 bg-primary hover:bg-primary/90 text-white font-semibold shrink-0"
             >
               Search
             </Button>
