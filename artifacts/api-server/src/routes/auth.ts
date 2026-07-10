@@ -261,6 +261,7 @@ router.get("/auth/me", async (req, res): Promise<void> => {
     email: user.email,
     role: user.role,
     emailVerified: user.emailVerified,
+    emailVerificationExpiry: user.emailVerificationExpiry,
     loyaltyPoints: user.loyaltyPoints,
     createdAt: user.createdAt,
   });
