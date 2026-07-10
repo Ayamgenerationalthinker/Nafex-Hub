@@ -51,7 +51,7 @@ export default function Home() {
   const { data: featuredBrands, isLoading: brandsLoading } = useGetBusinesses({ limit: 4, verified: "true" });
   
   // Use useListProducts if it's available in the generated API to get all products
-  const { data: allProducts, isLoading: productsLoading } = useListProducts({ limit: 20 });
+  const { data: allProducts, isLoading: productsLoading } = useListProducts({});
 
   useEffect(() => {
     if (isSeller) setLocation("/dashboard");
@@ -68,7 +68,7 @@ export default function Home() {
   };
 
   // Filter flash sales (discounted items)
-  const flashSales = allProducts?.filter(p => p.discountPrice && Number(p.discountPrice) < Number(p.price)) || [];
+  const flashSales = allProducts?.filter(p => (p as any).discountPrice && Number((p as any).discountPrice) < Number(p.price)) || [];
   // Top selling / trending (just taking the first 12 for now as placeholder for actual trending logic)
   const trendingProducts = allProducts?.slice(0, 12) || [];
 
