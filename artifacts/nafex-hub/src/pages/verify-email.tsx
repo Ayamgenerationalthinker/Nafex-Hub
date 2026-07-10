@@ -17,8 +17,18 @@ export default function VerifyEmail() {
   const [submitting, setSubmitting] = useState(false);
   const [resending, setResending] = useState(false);
   
-  const [secondsLeft, setSecondsLeft] = useState(CODE_TTL_SECONDS);
+  const [secondsLeft, setSecondsLeft] = useState(0);
   const tickRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const expiry = (user as any)?.emailVerificationExpiry;
+    if (expiry) {
+      const msLeft = new Date(expiry).getTime() - Date.now();
+      setSecondsLeft(msLeft > 0 ? Math.floor(msLeft / 1000) : 0);
+    } else {
+      setSecondsLeft(0);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (tickRef.current) window.clearInterval(tickRef.current);
