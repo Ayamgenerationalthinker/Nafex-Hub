@@ -89,7 +89,7 @@ function box(title: string, bodyHtml: string, accent = "#D4A537"): string {
 }
 
 export async function sendVerificationEmail(to: string, name: string, code: string): Promise<boolean> {
-  const text = `Hi ${name},\n\nWelcome to Nafex Hub! Please verify your email by entering this 6-digit code on the verification page:\n\n   ${code}\n\nThis code expires in 24 hours.\n\nIf you didn't sign up, you can ignore this email.\n\n— The Nafex Hub team`;
+  const text = `Hi ${name},\n\nWelcome to Nafex Hub! Please verify your email by entering this 6-digit code on the verification page:\n\n   ${code}\n\nThis code expires in 15 minutes.\n\nIf you didn't sign up, you can ignore this email.\n\n— The Nafex Hub team`;
   const html = box(
     "Verify your email",
     `<p style="margin:0 0 10px;font-size:14px;line-height:1.55;color:#444">Hi <strong>${name}</strong>, thanks for joining Nafex Hub. Use the code below to confirm your email address.</p>
@@ -97,7 +97,7 @@ export async function sendVerificationEmail(to: string, name: string, code: stri
        <div style="font-size:11px;letter-spacing:2px;color:#8a6d12;font-weight:700;margin-bottom:6px">VERIFICATION CODE</div>
        <div style="font-size:34px;letter-spacing:10px;font-weight:800;color:#1a1a1a;font-family:'Courier New',monospace">${code}</div>
      </div>
-     <p style="margin:0;font-size:12px;color:#888">This code expires in 24 hours. If you didn't sign up, ignore this email.</p>`
+     <p style="margin:0;font-size:12px;color:#888">This code expires in 15 minutes. If you didn't sign up, ignore this email.</p>`
   );
   return sendUserEmail({ to, subject: "Verify your email", text, html });
 }
