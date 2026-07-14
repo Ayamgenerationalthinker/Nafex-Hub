@@ -75,32 +75,32 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* 1. Hero Section with Search */}
-      <section className="relative bg-[#1A1A1A] text-white overflow-hidden py-16 md:py-24">
+      <section className="relative bg-[#1A1A1A] text-white overflow-hidden py-10 md:py-24">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-transparent opacity-50" />
-        <div className="relative z-10 container mx-auto px-4 md:px-8 flex flex-col items-center text-center space-y-8 max-w-4xl">
-          <Badge className="bg-primary text-primary-foreground border-0 px-4 py-1.5 text-sm font-medium tracking-wide">
+        <div className="relative z-10 container mx-auto px-4 md:px-8 flex flex-col items-center text-center space-y-6 md:space-y-8 max-w-4xl">
+          <Badge className="bg-primary text-primary-foreground border-0 px-4 py-1.5 text-xs md:text-sm font-medium tracking-wide">
             Ghana's Premium Marketplace
           </Badge>
           
-          <h1 className="font-serif text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.2] md:leading-[1.1]">
             Find Everything You Need
           </h1>
           
-          <p className="text-lg md:text-xl text-gray-300 max-w-2xl font-medium">
+          <p className="text-base sm:text-lg md:text-xl text-gray-300 max-w-2xl font-medium">
             Shop from thousands of trusted Ghanaian sellers. From fashion to electronics, get the best deals delivered to you.
           </p>
 
-          <form onSubmit={handleSearch} className="w-full max-w-2xl flex items-center bg-white rounded-full p-2 shadow-xl mt-6 focus-within:ring-2 focus-within:ring-primary/50 transition-all">
-            <Search className="ml-3 w-6 h-6 text-gray-400 shrink-0" />
+          <form onSubmit={handleSearch} className="w-full max-w-2xl flex items-center bg-white rounded-full p-1.5 md:p-2 shadow-xl mt-4 md:mt-6 focus-within:ring-2 focus-within:ring-primary/50 transition-all">
+            <Search className="ml-2 md:ml-3 w-5 h-5 md:w-6 md:h-6 text-gray-400 shrink-0" />
             <input 
-              className="flex-1 h-12 px-4 text-lg text-black bg-transparent border-0 outline-none focus:ring-0"
+              className="flex-1 h-10 md:h-12 px-2 md:px-4 text-base md:text-lg text-black bg-transparent border-0 outline-none focus:ring-0"
               placeholder="What are you looking for?" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
             <Button 
               type="submit" 
-              className="h-12 rounded-full px-8 bg-primary hover:bg-primary/90 text-white font-semibold shrink-0"
+              className="h-10 md:h-12 rounded-full px-5 md:px-8 bg-primary hover:bg-primary/90 text-white font-semibold shrink-0 text-sm md:text-base"
             >
               Search
             </Button>
@@ -111,16 +111,16 @@ export default function Home() {
       {/* 2. Category Quick-Links */}
       <section className="py-10 bg-white border-b border-gray-100">
         <div className="container mx-auto px-4">
-          <div className="flex overflow-x-auto pb-4 hide-scrollbar gap-4 md:gap-8 justify-start md:justify-center">
+          <div className="flex overflow-x-auto pb-4 hide-scrollbar gap-4 md:gap-8 justify-start md:justify-center snap-x snap-mandatory px-2">
             {CATEGORIES.map((cat, idx) => {
               const Icon = cat.icon;
               return (
-                <Link key={idx} href={`/explore?category=${encodeURIComponent(cat.name)}`}>
-                  <div className="flex flex-col items-center gap-3 cursor-pointer group min-w-[80px]">
-                    <div className={`w-16 h-16 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm ${cat.color}`}>
-                      <Icon className="w-8 h-8" />
+                <Link key={idx} href={`/explore?category=${encodeURIComponent(cat.name)}`} className="snap-start">
+                  <div className="flex flex-col items-center gap-2 md:gap-3 cursor-pointer group min-w-[72px] md:min-w-[80px]">
+                    <div className={`w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm ${cat.color}`}>
+                      <Icon className="w-6 h-6 md:w-8 md:h-8" />
                     </div>
-                    <span className="text-xs font-semibold text-center text-gray-700 group-hover:text-primary transition-colors">
+                    <span className="text-[11px] md:text-xs font-semibold text-center text-gray-700 group-hover:text-primary transition-colors">
                       {cat.name}
                     </span>
                   </div>
@@ -171,13 +171,13 @@ export default function Home() {
         </div>
 
         {productsLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
               <Skeleton key={i} className="h-[280px] w-full rounded-xl" />
             ))}
           </div>
         ) : trendingProducts.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 md:gap-6">
             {trendingProducts.map(product => (
               <ProductCard key={product.id} product={product} />
             ))}

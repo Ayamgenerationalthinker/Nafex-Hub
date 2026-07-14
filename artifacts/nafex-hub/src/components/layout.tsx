@@ -18,6 +18,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [headerSearch, setHeaderSearch] = useState("");
   const [siteLogo, setSiteLogo] = useState<string>(FALLBACK_LOGO);
   const siteSettings = useSiteSettings();
@@ -341,6 +342,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Mobile hamburger */}
           <div className="flex md:hidden items-center gap-2">
+            {!isBusinessOwner && !isAdmin && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+                className="text-secondary-foreground hover:bg-white/10 hover:text-primary h-8 w-8"
+              >
+                <Search className="w-5 h-5" />
+              </Button>
+            )}
             <CartIcon className="text-secondary-foreground/80 hover:text-primary" />
             {user && <NotificationBell />}
             {!user && (
@@ -456,6 +467,32 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
 
         </div>
+
+        {/* Mobile Search Bar Expandable */}
+        {mobileSearchOpen && !isBusinessOwner && !isAdmin && (
+          <div className="md:hidden border-t border-white/10 px-4 py-3 bg-secondary/95 backdrop-blur-lg">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-foreground/60 w-4 h-4" />
+              <input
+                type="search"
+                placeholder="Search brands, products, or categories..."
+                className="w-full h-10 pl-9 pr-3 rounded-full bg-secondary-foreground/5 border border-secondary-foreground/10 text-sm text-secondary-foreground placeholder:text-secondary-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/70 focus:border-primary/70"
+                value={headerSearch}
+                onChange={(e) => setHeaderSearch(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const value = headerSearch.trim();
+                    const base = "/explore";
+                    const next = value ? `${base}?search=${encodeURIComponent(value)}` : base;
+                    setLocation(next);
+                    setMobileSearchOpen(false);
+                  }
+                }}
+                autoFocus
+              />
+            </div>
+          </div>
+        )}
       </header>
 
       <main className="flex-1 flex flex-col w-full">

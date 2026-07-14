@@ -3,6 +3,7 @@ import { useGetBusinesses, useGetCategories, useListProducts, getListProductsQue
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Search, Filter, ChevronLeft, ChevronRight, Star, Heart, Check, ChevronDown, SlidersHorizontal, X, Tag } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -112,7 +113,7 @@ export default function Explore() {
         
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Sidebar */}
-          <aside className="w-full lg:w-64 flex-shrink-0 space-y-4">
+          <aside className="hidden lg:block w-full lg:w-64 flex-shrink-0 space-y-4">
             
             {/* Categories */}
             <div className="bg-white rounded-md shadow-sm overflow-hidden">
@@ -236,19 +237,74 @@ export default function Explore() {
                     onChange={(e) => handleSearch(e.target.value)}
                   />
                 </div>
-                <div className="flex items-center gap-3 w-full sm:w-auto text-sm text-muted-foreground">
-                  <span>Sort by:</span>
-                  <Select value={sortBy} onValueChange={(v) => handleSort(v as SortOption)}>
-                    <SelectTrigger className="w-[160px] h-9">
-                      <SelectValue placeholder="Popularity" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="popular">Popularity</SelectItem>
-                      <SelectItem value="price_low_high">Price: Low to High</SelectItem>
-                      <SelectItem value="price_high_low">Price: High to Low</SelectItem>
-                      <SelectItem value="newest">Newest Arrivals</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto text-sm text-muted-foreground">
+                  <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+                    <SheetTrigger asChild>
+                      <Button variant="outline" className="lg:hidden flex items-center gap-2 h-9 w-full sm:w-auto justify-center">
+                        <SlidersHorizontal className="w-4 h-4" /> Filters {activeFiltersCount > 0 && `(${activeFiltersCount})`}
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="w-80 bg-[#f5f5f5] p-0 overflow-y-auto">
+                      <SheetHeader className="p-4 border-b bg-white text-left">
+                        <SheetTitle>Filters</SheetTitle>
+                      </SheetHeader>
+                      <div className="p-4 space-y-4">
+                        {/* Categories */}
+                        <div className="bg-white rounded-md shadow-sm overflow-hidden">
+                          <div className="px-4 py-3 border-b bg-muted/20 font-medium text-sm text-foreground uppercase tracking-wider">
+                            Category
+                          </div>
+                          <div className="p-2 max-h-72 overflow-y-auto">
+                            <button 
+                              onClick={() => { setCategory("All"); setPage(1); }}
+                              className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${category === "All" ? "bg-primary/10 text-primary font-medium" : "text-foreground hover:bg-muted"}`}
+                            >
+                              All Categories
+                            </button>
+                            {categoryOptions.filter(c => c !== "All").map(cat => (
+                              <button 
+                                key={cat}
+                                onClick={() => { setCategory(cat); setPage(1); }}
+                                className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${category === cat ? "bg-primary/10 text-primary font-medium" : "text-foreground hover:bg-muted"}`}
+                              >
+                                {cat}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Price Filter */}
+                        <div className="bg-white rounded-md shadow-sm overflow-hidden">
+                          <div className="px-4 py-3 border-b bg-muted/20 font-medium text-sm text-foreground uppercase tracking-wider">
+                            Price (GHS)
+                          </div>
+                          <div className="p-4 flex items-center gap-2">
+                            <Input type="number" placeholder="Min" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} className="w-full h-9 text-sm" min="0" />
+                            <span className="text-muted-foreground text-sm">-</span>
+                            <Input type="number" placeholder="Max" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} className="w-full h-9 text-sm" min="0" />
+                            <Button size="icon" className="h-9 w-9 bg-primary flex-shrink-0"><ChevronRight className="w-4 h-4" /></Button>
+                          </div>
+                        </div>
+                        
+                        <Button className="w-full mt-4" onClick={() => setFiltersOpen(false)}>Apply Filters</Button>
+                      </div>
+                    </SheetContent>
+                  </Sheet>
+                  
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <span className="shrink-0 hidden sm:inline">Sort by:</span>
+                    <Select value={sortBy} onValueChange={(v) => handleSort(v as SortOption)}>
+                      <SelectTrigger className="w-full sm:w-[160px] h-9">
+                        <SelectValue placeholder="Popularity" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="popular">Popularity</SelectItem>
+                        <SelectItem value="price_low_high">Price: Low to High</SelectItem>
+                        <SelectItem value="price_high_low">Price: High to Low</SelectItem>
+                        <SelectItem value="newest">Newest Arrivals</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
               <div className="px-4 py-3 text-sm text-foreground font-medium flex items-center justify-between">
