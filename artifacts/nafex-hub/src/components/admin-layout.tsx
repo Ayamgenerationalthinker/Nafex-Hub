@@ -56,7 +56,7 @@ function SidebarContent({
             <Shield className="w-4 h-4 text-primary-foreground" />
           </div>
           <div>
-            <p className="font-serif font-bold text-sm leading-tight">
+            <p className="font-bold text-sm leading-tight tracking-tight">
               Nafex <span className="text-primary">Hub</span>
             </p>
             <p className="text-[10px] text-muted-foreground font-medium tracking-wide uppercase">
@@ -149,7 +149,7 @@ export function AdminLayout({
   return (
     <div className="flex h-[100dvh] bg-background overflow-hidden">
       {/* Desktop sidebar (md+) */}
-      <aside className="hidden md:flex w-64 flex-shrink-0 bg-card border-r border-border flex-col">
+      <aside className="hidden md:flex w-64 flex-shrink-0 bg-card border-r border-border flex-col overflow-y-auto">
         <SidebarContent location={location} onLogout={logout} />
       </aside>
 
@@ -197,7 +197,7 @@ export function AdminLayout({
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 scrollbar-thin">
           <div className="min-h-full">
             {children}
           </div>
