@@ -17,6 +17,9 @@ import {
   Flame,
   Wallet,
   Headphones,
+  Truck,
+  AlertTriangle,
+  Globe,
 } from "lucide-react";
 import { Footer } from "@/components/footer";
 
@@ -25,6 +28,9 @@ const NAV_ITEMS = [
   { path: "/admin/businesses", label: "Businesses", icon: Building2 },
   { path: "/admin/products", label: "Products", icon: Package },
   { path: "/admin/services", label: "Services", icon: Sparkles },
+  { path: "/admin/deliveries", label: "Deliveries", icon: Truck },
+  { path: "/admin/disputes", label: "Disputes", icon: AlertTriangle },
+  { path: "/admin/trade", label: "Global Trade", icon: Globe },
   { path: "/admin/flash-sales", label: "Flash Sales", icon: Flame },
   { path: "/admin/payments", label: "Payments", icon: Wallet },
   { path: "/admin/analytics", label: "Analytics", icon: BarChart2 },
