@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { AdminLayout } from "@/components/admin-layout";
 import {
   useGetAdminBusinesses,
@@ -14,6 +14,9 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DataTable } from "@/components/ui/data-table";
+import { ColumnDef } from "@tanstack/react-table";
 import {
   Dialog,
   DialogContent,
@@ -40,7 +43,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Search, CheckCircle2, XCircle, Loader2, Building2, Trash2, Star, Crown, Zap, CalendarDays } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useDebounce } from "@/hooks/use-debounce";
 
 type FeaturedType = "homepage_top" | "homepage_section" | "search_boost";
@@ -64,6 +66,18 @@ function FeaturedTypeBadge({ type }: { type: string | null | undefined }) {
     </span>
   );
 }
+
+type AdminBusiness = {
+  id: number;
+  name: string;
+  logo: string | null;
+  location: string;
+  category: string;
+  isVerified: boolean;
+  isFeatured: boolean;
+  featuredType: string | null;
+  featuredUntil: string | null;
+};
 
 export default function AdminBusinessesPage() {
   const [search, setSearch] = useState("");
@@ -186,186 +200,191 @@ export default function AdminBusinessesPage() {
     }
   };
 
+  const columns: ColumnDef<any>[] = useMemo(() => [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={table.getIsAllPageRowsSelected()}
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+          className="translate-y-[2px]"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+          className="translate-y-[2px]"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "name",
+      header: "Business",
+      cell: ({ row }) => {
+        const biz = row.original;
+        return (
+          <div className="flex items-center gap-3 min-w-0">
+            {biz.logo ? (
+              <img src={biz.logo} alt={biz.name} className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />
+            ) : (
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Building2 className="w-4 h-4 text-primary" />
+              </div>
+            )}
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <p className="text-sm font-medium text-foreground truncate">{biz.name}</p>
+                {biz.isFeatured && (
+                  <FeaturedTypeBadge type={biz.featuredType} />
+                )}
+              </div>
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="text-xs text-muted-foreground truncate">{biz.location}</p>
+                {biz.isFeatured && biz.featuredUntil && (
+                  <span className="text-[10px] text-muted-foreground flex items-center gap-0.5 flex-shrink-0">
+                    <CalendarDays className="w-2.5 h-2.5" />
+                    Until {new Date(biz.featuredUntil).toLocaleDateString()}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      }
+    },
+    {
+      accessorKey: "category",
+      header: "Category",
+      cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.category}</span>
+    },
+    {
+      accessorKey: "isVerified",
+      header: "Status",
+      cell: ({ row }) => {
+        const biz = row.original;
+        return biz.isVerified ? (
+          <Badge className="bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/10 gap-1">
+            <CheckCircle2 className="w-3 h-3" /> Verified
+          </Badge>
+        ) : (
+          <Badge variant="outline" className="text-muted-foreground gap-1">
+            <XCircle className="w-3 h-3" /> Unverified
+          </Badge>
+        );
+      }
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => {
+        const biz = row.original;
+        return (
+          <div className="flex items-center gap-1.5">
+            <Button
+              variant={biz.isVerified ? "outline" : "default"}
+              size="sm"
+              onClick={() => handleVerify(biz.id, !biz.isVerified)}
+              disabled={verify.isPending}
+              className="h-8 text-xs px-2.5"
+            >
+              {verify.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : biz.isVerified ? "Revoke" : "Verify"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openFeaturedDialog(biz)}
+              disabled={savingFeaturedId === biz.id}
+              title={biz.isFeatured ? "Edit featured placement" : "Add to featured"}
+              className={`h-8 w-8 p-0 ${biz.isFeatured ? "text-amber-500 border-amber-400/40 hover:bg-amber-50 dark:hover:bg-amber-950/20" : "text-muted-foreground hover:text-amber-500 hover:border-amber-400/40"}`}
+            >
+              {savingFeaturedId === biz.id
+                ? <Loader2 className="w-3 h-3 animate-spin" />
+                : <Star className={`w-3.5 h-3.5 ${biz.isFeatured ? "fill-amber-400" : ""}`} />
+              }
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={deletingId === biz.id}
+                  className="h-8 w-8 p-0 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                >
+                  {deletingId === biz.id
+                    ? <Loader2 className="w-3 h-3 animate-spin" />
+                    : <Trash2 className="w-3 h-3" />
+                  }
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete "{biz.name}"?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently remove the business and all its data from the platform. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => handleDelete(biz.id)}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Delete Business
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        );
+      }
+    }
+  ], [verify.isPending, savingFeaturedId, deletingId]);
+
   return (
     <AdminLayout title="Businesses">
-      <div className="space-y-5 max-w-5xl">
+      <div className="space-y-5">
         <div>
           <h2 className="text-xl font-bold text-foreground">Businesses</h2>
           <p className="text-sm text-muted-foreground mt-1">Manage, verify, and feature business listings</p>
         </div>
 
-        {/* Search + filter */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search businesses..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="pl-9 h-10"
-            />
-          </div>
-          <div className="flex gap-2">
-            {(["all", "verified", "unverified"] as const).map(f => (
-              <Button
-                key={f}
-                variant={filter === f ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilter(f)}
-                className="capitalize h-10"
-              >
-                {f}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        {/* Table */}
-        <div className="bg-card border border-border rounded-xl overflow-hidden">
-          <div className="overflow-x-auto">
-          <div className="grid grid-cols-[2fr_1fr_1fr_auto] gap-4 px-5 py-3 border-b border-border bg-muted/30 min-w-[720px]">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Business</span>
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Category</span>
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Status</span>
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Actions</span>
-          </div>
-
-          {isLoading ? (
-            <div className="divide-y divide-border min-w-[720px]">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="grid grid-cols-[2fr_1fr_1fr_auto] gap-4 px-5 py-4 items-center">
-                  <Skeleton className="h-4 w-40" />
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-5 w-20 rounded-full" />
-                  <Skeleton className="h-8 w-40 rounded-lg" />
-                </div>
-              ))}
+        <DataTable
+          columns={columns}
+          data={businesses ?? []}
+          actionSlot={
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <div className="relative flex-1 sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search businesses..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="pl-9 h-10 w-full"
+                />
+              </div>
+              <div className="flex gap-2">
+                {(["all", "verified", "unverified"] as const).map(f => (
+                  <Button
+                    key={f}
+                    variant={filter === f ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setFilter(f)}
+                    className="capitalize h-10"
+                  >
+                    {f}
+                  </Button>
+                ))}
+              </div>
             </div>
-          ) : !businesses?.length ? (
-            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-              <Building2 className="w-10 h-10 mb-3 opacity-30" />
-              <p className="text-sm">No businesses found</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-border min-w-[720px]">
-              {businesses.map(biz => (
-                <div key={biz.id} className="grid grid-cols-[2fr_1fr_1fr_auto] gap-4 px-5 py-4 items-center hover:bg-muted/20 transition-colors">
-                  <div className="flex items-center gap-3 min-w-0">
-                    {biz.logo ? (
-                      <img src={biz.logo} alt={biz.name} className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />
-                    ) : (
-                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <Building2 className="w-4 h-4 text-primary" />
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <p className="text-sm font-medium text-foreground truncate">{biz.name}</p>
-                        {biz.isFeatured && (
-                          <FeaturedTypeBadge type={biz.featuredType} />
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <p className="text-xs text-muted-foreground truncate">{biz.location}</p>
-                        {biz.isFeatured && biz.featuredUntil && (
-                          <span className="text-[10px] text-muted-foreground flex items-center gap-0.5 flex-shrink-0">
-                            <CalendarDays className="w-2.5 h-2.5" />
-                            Until {new Date(biz.featuredUntil).toLocaleDateString()}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <span className="text-sm text-muted-foreground">{biz.category}</span>
-                  <div>
-                    {biz.isVerified ? (
-                      <Badge className="bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/10 gap-1">
-                        <CheckCircle2 className="w-3 h-3" /> Verified
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-muted-foreground gap-1">
-                        <XCircle className="w-3 h-3" /> Unverified
-                      </Badge>
-                    )}
-                  </div>
-
-                  {/* Actions: Verify · Feature · Delete */}
-                  <div className="flex items-center gap-1.5">
-                    {/* Verify / Revoke */}
-                    <Button
-                      variant={biz.isVerified ? "outline" : "default"}
-                      size="sm"
-                      onClick={() => handleVerify(biz.id, !biz.isVerified)}
-                      disabled={verify.isPending}
-                      className="h-8 text-xs px-2.5"
-                    >
-                      {verify.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : biz.isVerified ? "Revoke" : "Verify"}
-                    </Button>
-
-                    {/* Feature button — opens dialog */}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openFeaturedDialog(biz)}
-                      disabled={savingFeaturedId === biz.id}
-                      title={biz.isFeatured ? "Edit featured placement" : "Add to featured"}
-                      className={`h-8 w-8 p-0 ${biz.isFeatured ? "text-amber-500 border-amber-400/40 hover:bg-amber-50 dark:hover:bg-amber-950/20" : "text-muted-foreground hover:text-amber-500 hover:border-amber-400/40"}`}
-                    >
-                      {savingFeaturedId === biz.id
-                        ? <Loader2 className="w-3 h-3 animate-spin" />
-                        : <Star className={`w-3.5 h-3.5 ${biz.isFeatured ? "fill-amber-400" : ""}`} />
-                      }
-                    </Button>
-
-                    {/* Delete */}
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={deletingId === biz.id}
-                          className="h-8 w-8 p-0 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
-                        >
-                          {deletingId === biz.id
-                            ? <Loader2 className="w-3 h-3 animate-spin" />
-                            : <Trash2 className="w-3 h-3" />
-                          }
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete "{biz.name}"?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This will permanently remove the business and all its data from the platform. This action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleDelete(biz.id)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            Delete Business
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          </div>
-          {businesses && businesses.length > 0 && (
-            <div className="px-5 py-3 border-t border-border bg-muted/20 text-xs text-muted-foreground">
-              {businesses.length} business{businesses.length !== 1 ? "es" : ""}
-            </div>
-          )}
-        </div>
+          }
+        />
       </div>
 
-      {/* Featured Placement Dialog */}
       <Dialog open={featuredDialog.open} onOpenChange={(o) => setFeaturedDialog(d => ({ ...d, open: o }))}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -374,9 +393,7 @@ export default function AdminBusinessesPage() {
               Featured Placement — {featuredDialog.bizName}
             </DialogTitle>
           </DialogHeader>
-
           <div className="space-y-4 py-2">
-            {/* Toggle */}
             <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/30">
               <div>
                 <p className="text-sm font-medium">Featured Status</p>
@@ -391,10 +408,8 @@ export default function AdminBusinessesPage() {
                 <span className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${featuredDialog.isFeatured ? "translate-x-6" : "translate-x-1"}`} />
               </button>
             </div>
-
             {featuredDialog.isFeatured && (
               <>
-                {/* Featured Type */}
                 <div className="space-y-1.5">
                   <Label>Placement Type</Label>
                   <Select
@@ -435,8 +450,6 @@ export default function AdminBusinessesPage() {
                     </SelectContent>
                   </Select>
                 </div>
-
-                {/* Expiry Date */}
                 <div className="space-y-1.5">
                   <Label htmlFor="featured-until">Expiry Date & Time</Label>
                   <p className="text-xs text-muted-foreground">Leave blank for no expiry. After this date the placement will stop automatically.</p>
@@ -452,7 +465,6 @@ export default function AdminBusinessesPage() {
               </>
             )}
           </div>
-
           <DialogFooter>
             <Button variant="outline" onClick={() => setFeaturedDialog(d => ({ ...d, open: false }))}>
               Cancel
