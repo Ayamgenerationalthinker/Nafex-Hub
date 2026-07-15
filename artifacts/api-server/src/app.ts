@@ -34,16 +34,14 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      // Allow Paystack inline popup script from their official CDN.
-      // SRI cannot be pinned because Paystack updates the file in-place.
-      // The domain allowlist in script-src mitigates supply-chain risk.
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://js.paystack.co"],
+      // Allow Paystack, Google, and Facebook SDKs from their official CDNs.
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://js.paystack.co", "https://accounts.google.com", "https://connect.facebook.net", "https://www.facebook.com"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:", "blob:"],
-      // Allow WebSocket connections and Paystack API calls from the browser
-      connectSrc: ["'self'", "ws:", "wss:", "https://api.paystack.co", "https://checkout.paystack.com"],
-      frameSrc: ["'self'", "https://checkout.paystack.com"],
+      // Allow WebSocket connections, Paystack API, Google, and Facebook identity validation calls
+      connectSrc: ["'self'", "ws:", "wss:", "https://api.paystack.co", "https://checkout.paystack.com", "https://accounts.google.com", "https://graph.facebook.com", "https://www.facebook.com"],
+      frameSrc: ["'self'", "https://checkout.paystack.com", "https://accounts.google.com", "https://www.facebook.com", "https://web.facebook.com"],
     },
   },
   // Additional hardening headers
