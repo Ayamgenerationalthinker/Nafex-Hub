@@ -4,12 +4,13 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail, Tag, Headphones, Settings, ChevronDown, HelpCircle, User2, ClipboardList, Star, Truck, TrendingUp, Globe2, Wallet, Clock, Search, Ticket, CreditCard, XCircle, RefreshCcw, Handshake, MessageSquare, AlertCircle, ShieldCheck, MapPin, Coins } from "lucide-react";
+import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail, Tag, Headphones, Settings, ChevronDown, HelpCircle, User2, ClipboardList, Star, Truck, TrendingUp, Globe2, Wallet, Clock, Search, Ticket, CreditCard, XCircle, RefreshCcw, Handshake, MessageSquare, AlertCircle, ShieldCheck, MapPin, Coins, Home } from "lucide-react";
 import { VisaLogo, MastercardLogo, PaystackLogo, MobileMoneyLogo, BankTransferLogo } from "@/components/payment-icons";
 import { NotificationBell } from "@/components/notification-bell";
 import { VerifyEmailBanner } from "@/components/verify-email-banner";
 import { CartIcon } from "@/components/cart-icon";
 import { useSiteSettings } from "@/hooks/use-site-settings";
+import { useCart } from "@/hooks/use-cart";
 import { Footer } from "@/components/footer";
 
 const FALLBACK_LOGO = "/nafex-verified-badge.png";
@@ -22,6 +23,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [headerSearch, setHeaderSearch] = useState("");
   const [siteLogo, setSiteLogo] = useState<string>(FALLBACK_LOGO);
   const siteSettings = useSiteSettings();
+  const totalItems = useCart((s) => s.totalItems());
 
   useEffect(() => {
     if (siteSettings.logo) setSiteLogo(siteSettings.logo);
@@ -495,9 +497,40 @@ export function Layout({ children }: { children: React.ReactNode }) {
         )}
       </header>
 
-      <main className="flex-1 flex flex-col w-full">
+      <main className="flex-1 flex flex-col w-full pb-16 md:pb-0">
         {children}
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      {!isBusinessOwner && !isAdmin && (
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0f172a]/95 backdrop-blur-md border-t border-white/10 h-16 flex items-center justify-around z-50 px-2 shadow-[0_-4px_24px_rgba(0,0,0,0.4)]">
+          <Link href="/" className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${location === "/" ? "text-primary font-semibold" : "text-white/60 hover:text-primary"}`}>
+            <Home className="w-5 h-5 mb-0.5" />
+            <span className="text-[10px] font-sans">Home</span>
+          </Link>
+          <Link href="/explore" className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${location.startsWith("/explore") ? "text-primary font-semibold" : "text-white/60 hover:text-primary"}`}>
+            <Search className="w-5 h-5 mb-0.5" />
+            <span className="text-[10px] font-sans">Explore</span>
+          </Link>
+          <Link href="/cart" className={`relative flex flex-col items-center justify-center flex-1 py-1 transition-colors ${location.startsWith("/cart") ? "text-primary font-semibold" : "text-white/60 hover:text-primary"}`}>
+            <ShoppingBag className="w-5 h-5 mb-0.5" />
+            {totalItems > 0 && (
+              <span className="absolute top-0.5 right-1/2 translate-x-4 min-w-[16px] h-[16px] px-1 rounded-full bg-primary text-secondary text-[9px] font-bold flex items-center justify-center shadow-md animate-pulse">
+                {totalItems > 99 ? "99+" : totalItems}
+              </span>
+            )}
+            <span className="text-[10px] font-sans">Cart</span>
+          </Link>
+          <Link href={user ? "/inbox" : "/login"} className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${location.startsWith("/inbox") ? "text-primary font-semibold" : "text-white/60 hover:text-primary"}`}>
+            <MessageSquare className="w-5 h-5 mb-0.5" />
+            <span className="text-[10px] font-sans">Inbox</span>
+          </Link>
+          <Link href={user ? "/account/settings" : "/login"} className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${location.startsWith("/account") || location === "/login" ? "text-primary font-semibold" : "text-white/60 hover:text-primary"}`}>
+            <User2 className="w-5 h-5 mb-0.5" />
+            <span className="text-[10px] font-sans">{user ? "Account" : "Login"}</span>
+          </Link>
+        </nav>
+      )}
 
       <Footer />
     </div>

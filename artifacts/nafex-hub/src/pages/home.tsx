@@ -75,14 +75,14 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* 1. Hero Section with Search */}
-      <section className="relative bg-[#1A1A1A] text-white overflow-hidden py-10 md:py-24">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-transparent opacity-50" />
-        <div className="relative z-10 container mx-auto px-4 md:px-8 flex flex-col items-center text-center space-y-6 md:space-y-8 max-w-4xl">
+      <section className="relative bg-[#1A1A1A] text-white md:overflow-hidden py-6 md:py-24 px-4">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-transparent opacity-50 hidden md:block" />
+        <div className="relative z-10 container mx-auto bg-gradient-to-br from-zinc-900 to-black rounded-3xl md:rounded-none p-6 md:p-0 md:bg-transparent border border-white/5 md:border-0 shadow-2xl md:shadow-none flex flex-col items-center text-center space-y-6 md:space-y-8 max-w-4xl">
           <Badge className="bg-primary text-primary-foreground border-0 px-4 py-1.5 text-xs md:text-sm font-medium tracking-wide">
             Ghana's Premium Marketplace
           </Badge>
           
-          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.2] md:leading-[1.1]">
+          <h1 className="font-serif text-2xl sm:text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.2] md:leading-[1.1]">
             Find Everything You Need
           </h1>
           
@@ -206,15 +206,17 @@ export default function Home() {
           </div>
 
           {brandsLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="flex overflow-x-auto pb-4 gap-6 hide-scrollbar snap-x md:grid md:grid-cols-2 lg:grid-cols-4 md:pb-0">
               {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-[220px] w-full rounded-xl" />
+                <Skeleton key={i} className="h-[220px] min-w-[280px] md:min-w-0 snap-start flex-shrink-0 w-4/5 sm:w-auto rounded-xl" />
               ))}
             </div>
           ) : featuredBrands && featuredBrands.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="flex overflow-x-auto pb-4 gap-6 hide-scrollbar snap-x md:grid md:grid-cols-2 lg:grid-cols-4 md:pb-0">
               {featuredBrands.slice(0, 4).map((brand) => (
-                <BrandCard key={brand.id} business={brand} />
+                <div key={brand.id} className="min-w-[260px] md:min-w-0 snap-start flex-shrink-0 w-[85%] sm:w-auto">
+                  <BrandCard business={brand} />
+                </div>
               ))}
             </div>
           ) : null}
