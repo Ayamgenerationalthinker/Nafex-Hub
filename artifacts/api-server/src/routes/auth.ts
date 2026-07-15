@@ -116,6 +116,12 @@ router.post("/auth/register", authLimiter, async (req, res): Promise<void> => {
 
   // Fire-and-forget verification email; user is still logged in either way.
   sendVerificationEmail(user.email, user.name, verificationCode).catch(() => {});
+  
+  if (!process.env.EMAIL_USER) {
+    console.log(`\n======================================================`);
+    console.log(`[DEV MODE] Verification code for ${user.email}: ${verificationCode}`);
+    console.log(`======================================================\n`);
+  }
 
   res.status(201).json({
     user: {
@@ -174,6 +180,12 @@ router.post("/auth/resend-verification", authLimiter, requireAuth, async (req, r
     .set({ emailVerificationCode: code, emailVerificationExpiry: expiry })
     .where(eq(usersTable.id, userId));
   const delivered = await sendVerificationEmail(user.email, user.name, code);
+  
+  if (!process.env.EMAIL_USER) {
+    console.log(`\n======================================================`);
+    console.log(`[DEV MODE] Resent Verification code for ${user.email}: ${code}`);
+    console.log(`======================================================\n`);
+  }
   res.json({
     message: delivered
       ? "Verification code sent. Check your email."
