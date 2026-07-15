@@ -493,4 +493,31 @@ router.post("/auth/facebook", async (req, res): Promise<void> => {
   }
 });
 
+import { readdirSync, existsSync } from "fs";
+import path from "path";
+
+router.get("/auth/debug-files", (_req, res) => {
+  try {
+    const frontendPath = path.resolve(__dirname, "../../../artifacts/nafex-hub/dist/public");
+    const assetsPath = path.join(frontendPath, "assets");
+    const result: any = {
+      frontendPath,
+      exists: existsSync(frontendPath),
+      files: [],
+      assetsExists: existsSync(assetsPath),
+      assetsFiles: []
+    };
+    if (result.exists) {
+      result.files = readdirSync(frontendPath);
+    }
+    if (result.assetsExists) {
+      result.assetsFiles = readdirSync(assetsPath);
+    }
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;
+
