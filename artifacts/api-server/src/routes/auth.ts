@@ -493,19 +493,21 @@ router.post("/auth/facebook", async (req, res): Promise<void> => {
   }
 });
 
-import { readdirSync, existsSync } from "fs";
+import { readdirSync, existsSync, readFileSync } from "fs";
 import path from "path";
 
 router.get("/auth/debug-files", (_req, res) => {
   try {
     const frontendPath = path.resolve(__dirname, "../../../artifacts/nafex-hub/dist/public");
     const assetsPath = path.join(frontendPath, "assets");
+    const indexPath = path.join(frontendPath, "index.html");
     const result: any = {
       frontendPath,
       exists: existsSync(frontendPath),
       files: [],
       assetsExists: existsSync(assetsPath),
-      assetsFiles: []
+      assetsFiles: [],
+      indexContent: ""
     };
     if (result.exists) {
       result.files = readdirSync(frontendPath);
@@ -513,11 +515,15 @@ router.get("/auth/debug-files", (_req, res) => {
     if (result.assetsExists) {
       result.assetsFiles = readdirSync(assetsPath);
     }
+    if (existsSync(indexPath)) {
+      result.indexContent = readFileSync(indexPath, "utf8");
+    }
     res.json(result);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 export default router;
 
