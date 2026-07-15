@@ -419,10 +419,9 @@ router.post("/auth/google", async (req, res): Promise<void> => {
   }
 });
 
-router.post("/auth/apple", async (req, res): Promise<void> => {
+router.post("/auth/facebook", async (req, res): Promise<void> => {
   const schema = z.object({
-    idToken: z.string().min(1, "idToken is required"),
-    name: z.string().optional(),
+    accessToken: z.string().min(1, "accessToken is required"),
     role: z.enum(["user", "business_owner"]).optional().default("user")
   });
   const parsed = schema.safeParse(req.body);
@@ -430,33 +429,27 @@ router.post("/auth/apple", async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.issues[0]?.message ?? "Invalid input" });
     return;
   }
-  const { idToken, name: nameInput, role } = parsed.data;
+  const { accessToken, role } = parsed.data;
 
   try {
-    const parts = idToken.split(".");
-    if (parts.length !== 3) {
-      res.status(400).json({ error: "Invalid Apple token format" });
+    const fbRes = await fetch(`https://graph.facebook.com/me?fields=id,name,email&access_token=${encodeURIComponent(accessToken)}`);
+    if (!fbRes.ok) {
+      res.status(400).json({ error: "Failed to verify Facebook token" });
       return;
     }
-    const payload = JSON.parse(Buffer.from(parts[1], "base64").toString("utf-8")) as {
+    const tokenInfo = (await fbRes.json()) as {
+      id?: string;
       email?: string;
-      email_verified?: boolean | string;
-      sub?: string;
-      name?: { firstName?: string; lastName?: string };
+      name?: string;
     };
 
-    if (!payload.email) {
-      res.status(400).json({ error: "Apple token did not contain an email" });
+    if (!tokenInfo.email) {
+      res.status(400).json({ error: "Facebook account did not return an email address" });
       return;
     }
 
-    const email = payload.email.toLowerCase().trim();
-    let name = nameInput || "Apple User";
-    if (payload.name) {
-      const first = payload.name.firstName || "";
-      const last = payload.name.lastName || "";
-      name = `${first} ${last}`.trim() || name;
-    }
+    const email = tokenInfo.email.toLowerCase().trim();
+    const name = tokenInfo.name || email.split("@")[0] || "Facebook User";
 
     let [user] = await db.select().from(usersTable).where(eq(usersTable.email, email));
 
@@ -476,8 +469,8 @@ router.post("/auth/apple", async (req, res): Promise<void> => {
         .returning();
       
       sendAdminEmail(
-        "New Apple User Signup",
-        `A new user has registered on Nafex Hub via Apple.\n\nName: ${user.name}\nEmail: ${user.email}\nRole: ${user.role}\nDate: ${new Date().toUTCString()}`
+        "New Facebook User Signup",
+        `A new user has registered on Nafex Hub via Facebook.\n\nName: ${user.name}\nEmail: ${user.email}\nRole: ${user.role}\nDate: ${new Date().toUTCString()}`
       );
     }
 
@@ -495,8 +488,8 @@ router.post("/auth/apple", async (req, res): Promise<void> => {
       token: appToken,
     });
   } catch (err) {
-    console.error("Apple auth error:", err);
-    res.status(500).json({ error: "Internal server error during Apple authentication" });
+    console.error("Facebook auth error:", err);
+    res.status(500).json({ error: "Internal server error during Facebook authentication" });
   }
 });
 

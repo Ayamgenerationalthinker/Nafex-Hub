@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Eye, EyeOff, Github, ChevronLeft } from "lucide-react";
+import { Loader2, Eye, EyeOff, Github, ChevronLeft, Facebook } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -96,62 +96,58 @@ export default function Login() {
     }
   };
 
-  const handleAppleLogin = () => {
-    const clientId = import.meta.env.VITE_APPLE_CLIENT_ID;
-    if (!clientId) {
+  const handleFacebookLogin = () => {
+    const appId = import.meta.env.VITE_FACEBOOK_APP_ID;
+    if (!appId) {
       toast({
-        title: "Apple Auth (Simulation)",
-        description: "Simulating successful Apple authentication. To configure real login, add VITE_APPLE_CLIENT_ID in Railway.",
+        title: "Facebook Auth (Simulation)",
+        description: "Simulating successful Facebook authentication. To configure real login, add VITE_FACEBOOK_APP_ID in Railway.",
       });
-      const mockIdToken = "header." + btoa(JSON.stringify({
-        email: `apple-user-${Math.floor(Math.random() * 1000)}@example.com`,
-        email_verified: true,
-        name: { firstName: "Apple", lastName: "User" }
-      })) + ".signature";
-      handleBackendAppleLogin(mockIdToken);
+      const mockAccessToken = "mock-facebook-access-token-" + Math.random().toString(36).substring(7);
+      handleBackendFacebookLogin(mockAccessToken);
       return;
     }
 
     try {
-      (window as any).AppleID.auth.init({
-        clientId: clientId,
-        scope: "name email",
-        redirectURI: window.location.origin + "/login",
-        usePopup: true,
+      if (!(window as any).FB) {
+        toast({ title: "Facebook SDK loading", description: "Please wait a moment and try again." });
+        return;
+      }
+
+      (window as any).FB.init({
+        appId: appId,
+        cookie: true,
+        xfbml: true,
+        version: "v18.0"
       });
-      (window as any).AppleID.auth.signIn().then(async (response: any) => {
-        if (response && response.authorization && response.authorization.id_token) {
-          await handleBackendAppleLogin(response.authorization.id_token, response.user);
+
+      (window as any).FB.login((response: any) => {
+        if (response.authResponse && response.authResponse.accessToken) {
+          handleBackendFacebookLogin(response.authResponse.accessToken);
+        } else {
+          toast({ title: "Facebook Login cancelled", description: "User cancelled login or did not authorize the app." });
         }
-      }).catch((err: any) => {
-        console.error("Apple signIn error:", err);
-      });
+      }, { scope: "public_profile,email" });
     } catch (err) {
-      console.error("Apple auth error:", err);
-      toast({ title: "Apple Login failed", description: "Failed to initialize Apple login.", variant: "destructive" });
+      console.error("Facebook login error:", err);
+      toast({ title: "Facebook Login failed", description: "Failed to initialize Facebook login.", variant: "destructive" });
     }
   };
 
-  const handleBackendAppleLogin = async (idToken: string, userObj?: any) => {
+  const handleBackendFacebookLogin = async (accessToken: string) => {
     try {
-      const payload: any = { idToken };
-      if (userObj && userObj.name) {
-        const first = userObj.name.firstName || "";
-        const last = userObj.name.lastName || "";
-        payload.name = `${first} ${last}`.trim();
-      }
-      const res = await fetch("/api/auth/apple", {
+      const res = await fetch("/api/auth/facebook", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ accessToken }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Apple authentication failed");
+      if (!res.ok) throw new Error(data.error ?? "Facebook authentication failed");
       setAuth(data.token, data.user as any);
-      toast({ title: "Welcome back!", description: `Logged in via Apple as ${data.user.name}` });
+      toast({ title: "Welcome back!", description: `Logged in via Facebook as ${data.user.name}` });
       setLocation("/");
     } catch (err) {
-      toast({ title: "Apple Login failed", description: (err as Error).message, variant: "destructive" });
+      toast({ title: "Facebook Login failed", description: (err as Error).message, variant: "destructive" });
     }
   };
 
@@ -222,11 +218,9 @@ export default function Login() {
                 </svg>
                 Google
               </Button>
-              <Button variant="outline" className="h-12 border-gray-200 shadow-sm rounded-xl" onClick={handleAppleLogin}>
-                <svg className="mr-2 h-5 w-5" viewBox="0 0 384 512">
-                  <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" fill="currentColor"/>
-                </svg>
-                Apple
+              <Button variant="outline" className="h-12 border-gray-200 shadow-sm rounded-xl hover:bg-blue-50/20 hover:border-blue-100" onClick={handleFacebookLogin}>
+                <Facebook className="mr-2 h-5 w-5 text-[#1877F2] fill-[#1877F2]" />
+                Facebook
               </Button>
             </div>
 
