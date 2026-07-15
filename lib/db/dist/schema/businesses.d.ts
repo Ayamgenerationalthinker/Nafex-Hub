@@ -250,6 +250,83 @@ export declare const businessesTable: import("drizzle-orm/pg-core").PgTableWithC
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        verificationTier: import("drizzle-orm/pg-core").PgColumn<{
+            name: "verification_tier";
+            tableName: "businesses";
+            dataType: "string";
+            columnType: "PgText";
+            data: "bronze" | "silver" | "gold";
+            driverParam: string;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: ["bronze", "silver", "gold"];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        kycDocuments: import("drizzle-orm/pg-core").PgColumn<{
+            name: "kyc_documents";
+            tableName: "businesses";
+            dataType: "array";
+            columnType: "PgArray";
+            data: string[];
+            driverParam: string | string[];
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: import("drizzle-orm").Column<{
+                name: "kyc_documents";
+                tableName: "businesses";
+                dataType: "string";
+                columnType: "PgText";
+                data: string;
+                driverParam: string;
+                notNull: false;
+                hasDefault: false;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: [string, ...string[]];
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {}>;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {
+            baseBuilder: import("drizzle-orm/pg-core").PgColumnBuilder<{
+                name: "kyc_documents";
+                dataType: "string";
+                columnType: "PgText";
+                data: string;
+                enumValues: [string, ...string[]];
+                driverParam: string;
+            }, {}, {}, import("drizzle-orm").ColumnBuilderExtraConfig>;
+            size: undefined;
+        }>;
+        kycNotes: import("drizzle-orm/pg-core").PgColumn<{
+            name: "kyc_notes";
+            tableName: "businesses";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
         paystackRecipientCode: import("drizzle-orm/pg-core").PgColumn<{
             name: "paystack_recipient_code";
             tableName: "businesses";
@@ -351,6 +428,13 @@ export declare const insertBusinessSchema: z.ZodObject<{
     isFeatured: z.ZodOptional<z.ZodBoolean>;
     featuredType: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     featuredUntil: z.ZodOptional<z.ZodNullable<z.ZodDate>>;
+    verificationTier: z.ZodOptional<z.ZodEnum<{
+        bronze: "bronze";
+        silver: "silver";
+        gold: "gold";
+    }>>;
+    kycDocuments: z.ZodOptional<z.ZodArray<z.ZodString>>;
+    kycNotes: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     paystackRecipientCode: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     settlementBank: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     settlementAccount: z.ZodOptional<z.ZodNullable<z.ZodString>>;

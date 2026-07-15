@@ -23,6 +23,9 @@ export const businessesTable = pgTable("businesses", {
   isFeatured: boolean("is_featured").notNull().default(false),
   featuredType: text("featured_type"), // "homepage_top" | "homepage_section" | "search_boost"
   featuredUntil: timestamp("featured_until", { withTimezone: true }),
+  verificationTier: text("verification_tier", { enum: ["bronze", "silver", "gold"] }).notNull().default("bronze"),
+  kycDocuments: text("kyc_documents").array().notNull().default([]),
+  kycNotes: text("kyc_notes"),
   paystackRecipientCode: text("paystack_recipient_code"),
   settlementBank: text("settlement_bank"),
   settlementAccount: text("settlement_account"),

@@ -12,6 +12,8 @@ export const productsTable = pgTable("products", {
   discountPrice: numeric("discount_price", { precision: 10, scale: 2 }),
   images: text("images").array().notNull().default([]),
   stock: integer("stock"),
+  approvalStatus: text("approval_status", { enum: ["pending", "approved", "rejected"] }).notNull().default("approved"),
+  rejectionReason: text("rejection_reason"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });

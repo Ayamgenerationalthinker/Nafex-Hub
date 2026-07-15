@@ -27,6 +27,7 @@ import tradeOrdersRouter from "./trade-orders";
 import tradeMessagesRouter from "./trade-messages";
 import boostsRouter from "./boosts";
 import flashSalesRouter from "./flash-sales";
+import adminModerationRouter from "./admin-moderation";
 
 const router: IRouter = Router();
 
@@ -58,5 +59,6 @@ router.use(tradeOrdersRouter);
 router.use(tradeMessagesRouter);
 router.use(boostsRouter);
 router.use(flashSalesRouter);
+router.use(adminModerationRouter);
 
 export default router;
