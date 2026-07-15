@@ -323,4 +323,181 @@ router.delete("/auth/account", requireAuth, async (req, res): Promise<void> => {
   res.json({ message: "Account deleted" });
 });
 
+router.post("/auth/google", async (req, res): Promise<void> => {
+  const schema = z.object({
+    idToken: z.string().optional(),
+    accessToken: z.string().optional(),
+    role: z.enum(["user", "business_owner"]).optional().default("user")
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.issues[0]?.message ?? "Invalid input" });
+    return;
+  }
+  const { idToken, accessToken, role } = parsed.data;
+
+  try {
+    let email: string | undefined;
+    let name: string | undefined;
+
+    if (accessToken) {
+      const googleRes = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${encodeURIComponent(accessToken)}`);
+      if (!googleRes.ok) {
+        res.status(400).json({ error: "Failed to verify Google access token" });
+        return;
+      }
+      const userInfo = (await googleRes.json()) as {
+        email?: string;
+        name?: string;
+      };
+      email = userInfo.email;
+      name = userInfo.name;
+    } else if (idToken) {
+      const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`);
+      if (!googleRes.ok) {
+        res.status(400).json({ error: "Failed to verify Google ID token" });
+        return;
+      }
+      const tokenInfo = (await googleRes.json()) as {
+        email?: string;
+        name?: string;
+      };
+      email = tokenInfo.email;
+      name = tokenInfo.name;
+    } else {
+      res.status(400).json({ error: "Either idToken or accessToken is required" });
+      return;
+    }
+
+    if (!email) {
+      res.status(400).json({ error: "Google verification did not return an email" });
+      return;
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const finalName = name || normalizedEmail.split("@")[0] || "Google User";
+
+    let [user] = await db.select().from(usersTable).where(eq(usersTable.email, normalizedEmail));
+
+    if (!user) {
+      const randomPassword = crypto.randomBytes(16).toString("hex");
+      const hashedPassword = await hashPassword(randomPassword);
+
+      [user] = await db
+        .insert(usersTable)
+        .values({
+          name: finalName,
+          email: normalizedEmail,
+          password: hashedPassword,
+          role,
+          emailVerified: true,
+        })
+        .returning();
+      
+      sendAdminEmail(
+        "New Google User Signup",
+        `A new user has registered on Nafex Hub via Google.\n\nName: ${user.name}\nEmail: ${user.email}\nRole: ${user.role}\nDate: ${new Date().toUTCString()}`
+      );
+    }
+
+    const appToken = generateToken(user.id);
+
+    res.json({
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        emailVerified: user.emailVerified,
+        createdAt: user.createdAt,
+      },
+      token: appToken,
+    });
+  } catch (err) {
+    console.error("Google auth error:", err);
+    res.status(500).json({ error: "Internal server error during Google authentication" });
+  }
+});
+
+router.post("/auth/apple", async (req, res): Promise<void> => {
+  const schema = z.object({
+    idToken: z.string().min(1, "idToken is required"),
+    name: z.string().optional(),
+    role: z.enum(["user", "business_owner"]).optional().default("user")
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.issues[0]?.message ?? "Invalid input" });
+    return;
+  }
+  const { idToken, name: nameInput, role } = parsed.data;
+
+  try {
+    const parts = idToken.split(".");
+    if (parts.length !== 3) {
+      res.status(400).json({ error: "Invalid Apple token format" });
+      return;
+    }
+    const payload = JSON.parse(Buffer.from(parts[1], "base64").toString("utf-8")) as {
+      email?: string;
+      email_verified?: boolean | string;
+      sub?: string;
+      name?: { firstName?: string; lastName?: string };
+    };
+
+    if (!payload.email) {
+      res.status(400).json({ error: "Apple token did not contain an email" });
+      return;
+    }
+
+    const email = payload.email.toLowerCase().trim();
+    let name = nameInput || "Apple User";
+    if (payload.name) {
+      const first = payload.name.firstName || "";
+      const last = payload.name.lastName || "";
+      name = `${first} ${last}`.trim() || name;
+    }
+
+    let [user] = await db.select().from(usersTable).where(eq(usersTable.email, email));
+
+    if (!user) {
+      const randomPassword = crypto.randomBytes(16).toString("hex");
+      const hashedPassword = await hashPassword(randomPassword);
+
+      [user] = await db
+        .insert(usersTable)
+        .values({
+          name,
+          email,
+          password: hashedPassword,
+          role,
+          emailVerified: true,
+        })
+        .returning();
+      
+      sendAdminEmail(
+        "New Apple User Signup",
+        `A new user has registered on Nafex Hub via Apple.\n\nName: ${user.name}\nEmail: ${user.email}\nRole: ${user.role}\nDate: ${new Date().toUTCString()}`
+      );
+    }
+
+    const appToken = generateToken(user.id);
+
+    res.json({
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        emailVerified: user.emailVerified,
+        createdAt: user.createdAt,
+      },
+      token: appToken,
+    });
+  } catch (err) {
+    console.error("Apple auth error:", err);
+    res.status(500).json({ error: "Internal server error during Apple authentication" });
+  }
+});
+
 export default router;

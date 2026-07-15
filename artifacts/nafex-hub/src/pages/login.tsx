@@ -50,11 +50,109 @@ export default function Login() {
     );
   };
 
-  const handleSocialLogin = (provider: string) => {
-    toast({
-      title: "Coming Soon",
-      description: `${provider} login is currently being configured. Please use email/password.`,
-    });
+  const handleGoogleLogin = () => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      toast({
+        title: "Google Auth (Simulation)",
+        description: "Simulating successful Google authentication. To configure real login, add VITE_GOOGLE_CLIENT_ID in Railway.",
+      });
+      const mockAccessToken = "mock-google-access-token-" + Math.random().toString(36).substring(7);
+      handleBackendGoogleLogin(mockAccessToken);
+      return;
+    }
+
+    try {
+      const client = (window as any).google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: "email profile openid",
+        callback: async (tokenResponse: any) => {
+          if (tokenResponse && tokenResponse.access_token) {
+            await handleBackendGoogleLogin(tokenResponse.access_token);
+          }
+        },
+      });
+      client.requestAccessToken();
+    } catch (err) {
+      console.error("Google auth error:", err);
+      toast({ title: "Google Login failed", description: "Failed to initialize Google login.", variant: "destructive" });
+    }
+  };
+
+  const handleBackendGoogleLogin = async (accessToken: string) => {
+    try {
+      const res = await fetch("/api/auth/google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accessToken }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Google authentication failed");
+      setAuth(data.token, data.user as any);
+      toast({ title: "Welcome back!", description: `Logged in via Google as ${data.user.name}` });
+      setLocation("/");
+    } catch (err) {
+      toast({ title: "Google Login failed", description: (err as Error).message, variant: "destructive" });
+    }
+  };
+
+  const handleAppleLogin = () => {
+    const clientId = import.meta.env.VITE_APPLE_CLIENT_ID;
+    if (!clientId) {
+      toast({
+        title: "Apple Auth (Simulation)",
+        description: "Simulating successful Apple authentication. To configure real login, add VITE_APPLE_CLIENT_ID in Railway.",
+      });
+      const mockIdToken = "header." + btoa(JSON.stringify({
+        email: `apple-user-${Math.floor(Math.random() * 1000)}@example.com`,
+        email_verified: true,
+        name: { firstName: "Apple", lastName: "User" }
+      })) + ".signature";
+      handleBackendAppleLogin(mockIdToken);
+      return;
+    }
+
+    try {
+      (window as any).AppleID.auth.init({
+        clientId: clientId,
+        scope: "name email",
+        redirectURI: window.location.origin + "/login",
+        usePopup: true,
+      });
+      (window as any).AppleID.auth.signIn().then(async (response: any) => {
+        if (response && response.authorization && response.authorization.id_token) {
+          await handleBackendAppleLogin(response.authorization.id_token, response.user);
+        }
+      }).catch((err: any) => {
+        console.error("Apple signIn error:", err);
+      });
+    } catch (err) {
+      console.error("Apple auth error:", err);
+      toast({ title: "Apple Login failed", description: "Failed to initialize Apple login.", variant: "destructive" });
+    }
+  };
+
+  const handleBackendAppleLogin = async (idToken: string, userObj?: any) => {
+    try {
+      const payload: any = { idToken };
+      if (userObj && userObj.name) {
+        const first = userObj.name.firstName || "";
+        const last = userObj.name.lastName || "";
+        payload.name = `${first} ${last}`.trim();
+      }
+      const res = await fetch("/api/auth/apple", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Apple authentication failed");
+      setAuth(data.token, data.user as any);
+      toast({ title: "Welcome back!", description: `Logged in via Apple as ${data.user.name}` });
+      setLocation("/");
+    } catch (err) {
+      toast({ title: "Apple Login failed", description: (err as Error).message, variant: "destructive" });
+    }
   };
 
   return (
@@ -115,7 +213,7 @@ export default function Login() {
           <div className="space-y-6">
             {/* Social Logins */}
             <div className="grid grid-cols-2 gap-4">
-              <Button variant="outline" className="h-12 border-gray-200 shadow-sm rounded-xl" onClick={() => handleSocialLogin("Google")}>
+              <Button variant="outline" className="h-12 border-gray-200 shadow-sm rounded-xl" onClick={handleGoogleLogin}>
                 <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
                   <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
@@ -124,7 +222,7 @@ export default function Login() {
                 </svg>
                 Google
               </Button>
-              <Button variant="outline" className="h-12 border-gray-200 shadow-sm rounded-xl" onClick={() => handleSocialLogin("Apple")}>
+              <Button variant="outline" className="h-12 border-gray-200 shadow-sm rounded-xl" onClick={handleAppleLogin}>
                 <svg className="mr-2 h-5 w-5" viewBox="0 0 384 512">
                   <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" fill="currentColor"/>
                 </svg>
