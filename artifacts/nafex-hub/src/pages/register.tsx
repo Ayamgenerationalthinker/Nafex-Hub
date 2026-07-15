@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle2, Loader2, ShoppingBag, Store, Eye, EyeOff } from "lucide-react";
+import { CheckCircle2, Loader2, ShoppingBag, Store, Eye, EyeOff, ChevronLeft } from "lucide-react";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -107,7 +107,7 @@ export default function Register() {
               </ul>
             )}
           </div>
-          <Button className="w-full h-12 text-base font-semibold shadow-lg" onClick={handleContinue}>
+          <Button className="w-full h-12 text-base font-semibold shadow-lg rounded-xl" onClick={handleContinue}>
             {successInfo.role === "business_owner" ? "List My Business" : "Explore Brands"}
           </Button>
         </div>
@@ -158,24 +158,28 @@ export default function Register() {
       </div>
 
       {/* ── Right Side: Registration Form ── */}
-      <div className="flex items-center justify-center p-6 sm:p-12 lg:p-24 relative overflow-y-auto">
-        <div className="absolute top-8 left-6 lg:hidden">
-          <Link href="/" className="inline-flex w-10 h-10 rounded-xl bg-primary items-center justify-center text-primary-foreground font-serif font-bold text-xl shadow-lg">
-            N
+      <div className="flex flex-col lg:items-center lg:justify-center p-4 sm:p-12 lg:p-24 relative overflow-y-auto min-h-screen bg-slate-50/50 lg:bg-background">
+        {/* Mobile App Header (Top bar) */}
+        <div className="flex items-center justify-between py-4 lg:hidden border-b border-gray-100 bg-white px-4 -mx-4 -mt-4 mb-6 sticky top-0 z-30 w-screen">
+          <Link href="/" className="flex items-center gap-0.5 text-muted-foreground hover:text-foreground">
+            <ChevronLeft className="w-5 h-5" />
+            <span className="text-xs font-semibold">Back</span>
           </Link>
+          <span className="font-serif font-bold text-base text-foreground">Sign Up</span>
+          <div className="w-10"></div> {/* Spacer to center title */}
         </div>
 
-        <div className="w-full max-w-md space-y-8 mt-12 lg:mt-0">
-          <div className="space-y-2">
-            <h2 className="font-serif text-3xl font-bold tracking-tight">Create an account</h2>
-            <p className="text-muted-foreground font-medium">
+        <div className="w-full max-w-md bg-white lg:bg-transparent rounded-3xl p-6 sm:p-0 shadow-sm border border-gray-100/80 lg:border-0 lg:shadow-none space-y-6">
+          <div className="space-y-1.5 text-center lg:text-left">
+            <h2 className="font-serif text-2xl lg:text-3xl font-bold tracking-tight">Create an account</h2>
+            <p className="text-muted-foreground text-sm font-medium">
               Join thousands of users on Nafex Hub
             </p>
           </div>
 
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
-              <Button variant="outline" className="h-12 border-gray-300 shadow-sm" onClick={() => handleSocialLogin("Google")}>
+              <Button variant="outline" className="h-12 border-gray-200 shadow-sm rounded-xl" onClick={() => handleSocialLogin("Google")}>
                 <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
                   <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
@@ -184,7 +188,7 @@ export default function Register() {
                 </svg>
                 Google
               </Button>
-              <Button variant="outline" className="h-12 border-gray-300 shadow-sm" onClick={() => handleSocialLogin("Apple")}>
+              <Button variant="outline" className="h-12 border-gray-200 shadow-sm rounded-xl" onClick={() => handleSocialLogin("Apple")}>
                 <svg className="mr-2 h-5 w-5" viewBox="0 0 384 512">
                   <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" fill="currentColor"/>
                 </svg>
@@ -194,10 +198,10 @@ export default function Register() {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-muted" />
+                <span className="w-full border-t border-gray-100" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-4 text-muted-foreground font-medium">Or register with email</span>
+                <span className="bg-white lg:bg-background px-4 text-muted-foreground font-medium">Or register with email</span>
               </div>
             </div>
 
@@ -235,7 +239,7 @@ export default function Register() {
                     <FormItem>
                       <FormLabel className="font-semibold">Full Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Kofi Mensah" {...field} data-testid="input-name" className="h-12 bg-muted/50 border-gray-200" />
+                        <Input placeholder="Kofi Mensah" {...field} data-testid="input-name" className="h-12 bg-muted/50 border-gray-200 rounded-xl" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -249,7 +253,7 @@ export default function Register() {
                     <FormItem>
                       <FormLabel className="font-semibold">Email address</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="you@example.com" {...field} data-testid="input-email" className="h-12 bg-muted/50 border-gray-200" />
+                        <Input type="email" placeholder="you@example.com" {...field} data-testid="input-email" className="h-12 bg-muted/50 border-gray-200 rounded-xl" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -269,7 +273,7 @@ export default function Register() {
                             placeholder="Min 8 chars, 1 uppercase, 1 number"
                             {...field}
                             data-testid="input-password"
-                            className="h-12 bg-muted/50 border-gray-200 pr-10"
+                            className="h-12 bg-muted/50 border-gray-200 pr-10 rounded-xl"
                           />
                           <button
                             type="button"
@@ -316,7 +320,7 @@ export default function Register() {
 
                 <Button
                   type="submit"
-                  className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-shadow"
+                  className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-shadow rounded-xl"
                   disabled={register.isPending}
                   data-testid="btn-register"
                 >
