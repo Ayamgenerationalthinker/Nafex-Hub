@@ -143,12 +143,17 @@ export default function AdminDashboard() {
       .finally(() => setActivityLoading(false));
   }, []);
 
+  const pendingVerifications = stats
+    ? Math.max(stats.totalBusinesses - stats.verifiedBusinesses, 0)
+    : 0;
+
   const CARDS = [
-    { label: "Total Users", key: "totalUsers" as const, icon: Users, color: "bg-blue-500/10 text-blue-500", linkTo: "/admin" },
-    { label: "Total Businesses", key: "totalBusinesses" as const, icon: Building2, color: "bg-primary/10 text-primary", linkTo: "/admin/businesses" },
-    { label: "Verified Businesses", key: "verifiedBusinesses" as const, icon: CheckCircle2, color: "bg-green-500/10 text-green-500", linkTo: "/admin/businesses" },
-    { label: "Total Orders", key: "totalOrders" as const, icon: ShoppingBag, color: "bg-purple-500/10 text-purple-500" },
-    { label: "Total Messages", key: "totalMessages" as const, icon: MessageSquare, color: "bg-orange-500/10 text-orange-500" },
+    { label: "Total Users", key: "totalUsers" as const, icon: Users, color: "bg-blue-500/10 text-blue-500", linkTo: "/admin", computed: false },
+    { label: "Total Businesses", key: "totalBusinesses" as const, icon: Building2, color: "bg-primary/10 text-primary", linkTo: "/admin/businesses", computed: false },
+    { label: "Verified", key: "verifiedBusinesses" as const, icon: CheckCircle2, color: "bg-green-500/10 text-green-500", linkTo: "/admin/businesses", computed: false },
+    { label: "Pending Verification", key: "_pending" as any, icon: Clock, color: "bg-amber-500/10 text-amber-600", linkTo: "/admin/businesses", computed: true, computedValue: pendingVerifications },
+    { label: "Total Orders", key: "totalOrders" as const, icon: ShoppingBag, color: "bg-purple-500/10 text-purple-500", computed: false },
+    { label: "Total Messages", key: "totalMessages" as const, icon: MessageSquare, color: "bg-orange-500/10 text-orange-500", computed: false },
   ];
 
   // Verification rate
@@ -193,13 +198,13 @@ export default function AdminDashboard() {
           </Link>
         </div>
 
-        {/* Stat cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          {CARDS.map(({ label, key, icon, color, linkTo }) => (
+        {/* Stat cards — clean 3×2 grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {CARDS.map(({ label, key, icon, color, linkTo, computed, computedValue }) => (
             <StatCard
               key={key}
               label={label}
-              value={stats?.[key] ?? 0}
+              value={computed ? (computedValue ?? 0) : (stats?.[key as keyof AdminStats] ?? 0)}
               icon={icon}
               color={color}
               loading={loading}
