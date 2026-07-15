@@ -42,7 +42,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Search, CheckCircle2, XCircle, Loader2, Building2, Trash2, Star, Crown, Zap, CalendarDays } from "lucide-react";
+import { Search, CheckCircle2, XCircle, Loader2, Building2, Trash2, Star, Crown, Zap, CalendarDays, ShieldCheck } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 
 type FeaturedType = "homepage_top" | "homepage_section" | "search_boost";
@@ -77,6 +77,14 @@ type AdminBusiness = {
   isFeatured: boolean;
   featuredType: string | null;
   featuredUntil: string | null;
+  verificationTier?: "bronze" | "silver" | "gold";
+  kycNotes?: string | null;
+};
+
+const KYC_TIER_META = {
+  bronze: { label: "Bronze", color: "bg-orange-100 text-orange-700 border-orange-300", desc: "Unverified listing" },
+  silver: { label: "Silver", color: "bg-gray-100 text-gray-700 border-gray-300", desc: "ID verified" },
+  gold: { label: "Gold", color: "bg-yellow-100 text-yellow-700 border-yellow-400", desc: "Full KYC + registered business" },
 };
 
 export default function AdminBusinessesPage() {
@@ -95,6 +103,47 @@ export default function AdminBusinessesPage() {
     featuredType: FeaturedType | "";
     featuredUntil: string;
   }>({ open: false, bizId: 0, bizName: "", isFeatured: false, featuredType: "", featuredUntil: "" });
+
+  // KYC tier dialog state
+  const [kycDialog, setKycDialog] = useState<{
+    open: boolean;
+    bizId: number;
+    bizName: string;
+    tier: "bronze" | "silver" | "gold";
+    notes: string;
+    loading: boolean;
+  }>({ open: false, bizId: 0, bizName: "", tier: "bronze", notes: "", loading: false });
+
+  const openKycDialog = (biz: AdminBusiness) => {
+    setKycDialog({
+      open: true,
+      bizId: biz.id,
+      bizName: biz.name,
+      tier: biz.verificationTier ?? "bronze",
+      notes: biz.kycNotes ?? "",
+      loading: false,
+    });
+  };
+
+  const handleSaveKyc = async () => {
+    const token = localStorage.getItem("nafex_token") ?? "";
+    setKycDialog(d => ({ ...d, loading: true }));
+    try {
+      const res = await fetch(`/api/admin/businesses/${kycDialog.bizId}/kyc`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ verificationTier: kycDialog.tier, kycNotes: kycDialog.notes }),
+      });
+      if (!res.ok) throw new Error();
+      toast({ title: `KYC tier updated to ${KYC_TIER_META[kycDialog.tier].label}` });
+      setKycDialog(d => ({ ...d, open: false }));
+      invalidateAll();
+    } catch {
+      toast({ title: "Failed to update KYC tier", variant: "destructive" });
+    } finally {
+      setKycDialog(d => ({ ...d, loading: false }));
+    }
+  };
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -279,6 +328,20 @@ export default function AdminBusinessesPage() {
       }
     },
     {
+      accessorKey: "verificationTier",
+      header: "KYC Tier",
+      cell: ({ row }) => {
+        const tier = row.original.verificationTier ?? "bronze";
+        const meta = KYC_TIER_META[tier as keyof typeof KYC_TIER_META];
+        return (
+          <Badge variant="outline" className={`text-xs gap-1 ${meta.color}`}>
+            <ShieldCheck className="w-3 h-3" />
+            {meta.label}
+          </Badge>
+        );
+      }
+    },
+    {
       id: "actions",
       header: "Actions",
       cell: ({ row }) => {
@@ -306,6 +369,15 @@ export default function AdminBusinessesPage() {
                 ? <Loader2 className="w-3 h-3 animate-spin" />
                 : <Star className={`w-3.5 h-3.5 ${biz.isFeatured ? "fill-amber-400" : ""}`} />
               }
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openKycDialog(biz)}
+              title="Update KYC / Verification Tier"
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-blue-600 hover:border-blue-400/40"
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
@@ -476,6 +548,56 @@ export default function AdminBusinessesPage() {
             >
               {savingFeaturedId === featuredDialog.bizId && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />}
               {featuredDialog.isFeatured ? "Save Placement" : "Remove Featured"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* KYC Tier Dialog */}
+      <Dialog open={kycDialog.open} onOpenChange={o => setKycDialog(d => ({ ...d, open: o }))}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-blue-600" />
+              KYC Verification — {kycDialog.bizName}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">
+              Set the verification tier based on the documents provided by this business.
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              {(["bronze", "silver", "gold"] as const).map(tier => {
+                const meta = KYC_TIER_META[tier];
+                const active = kycDialog.tier === tier;
+                return (
+                  <button
+                    key={tier}
+                    type="button"
+                    onClick={() => setKycDialog(d => ({ ...d, tier }))}
+                    className={`rounded-xl border-2 p-3 text-left transition-all ${active ? `border-current ${meta.color}` : "border-border hover:border-muted-foreground/30"}`}
+                  >
+                    <p className={`text-xs font-bold ${active ? "" : "text-foreground"}`}>{meta.label}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">{meta.desc}</p>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Internal Notes (optional)</Label>
+              <textarea
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring min-h-[80px] resize-none"
+                placeholder="e.g. Business registration submitted, awaiting utility bill..."
+                value={kycDialog.notes}
+                onChange={e => setKycDialog(d => ({ ...d, notes: e.target.value }))}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setKycDialog(d => ({ ...d, open: false }))}>Cancel</Button>
+            <Button onClick={handleSaveKyc} disabled={kycDialog.loading}>
+              {kycDialog.loading && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />}
+              Save KYC Tier
             </Button>
           </DialogFooter>
         </DialogContent>

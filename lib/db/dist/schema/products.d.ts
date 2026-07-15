@@ -182,6 +182,40 @@ export declare const productsTable: import("drizzle-orm/pg-core").PgTableWithCol
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        approvalStatus: import("drizzle-orm/pg-core").PgColumn<{
+            name: "approval_status";
+            tableName: "products";
+            dataType: "string";
+            columnType: "PgText";
+            data: "pending" | "approved" | "rejected";
+            driverParam: string;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: ["pending", "approved", "rejected"];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        rejectionReason: import("drizzle-orm/pg-core").PgColumn<{
+            name: "rejection_reason";
+            tableName: "products";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
         createdAt: import("drizzle-orm/pg-core").PgColumn<{
             name: "created_at";
             tableName: "products";
@@ -220,14 +254,20 @@ export declare const productsTable: import("drizzle-orm/pg-core").PgTableWithCol
     dialect: "pg";
 }>;
 export declare const insertProductSchema: z.ZodObject<{
-    name: z.ZodString;
-    description: z.ZodOptional<z.ZodString>;
-    images: z.ZodOptional<z.ZodArray<z.ZodString>>;
     businessId: z.ZodInt;
     collectionId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
+    name: z.ZodString;
+    description: z.ZodOptional<z.ZodString>;
     price: z.ZodString;
     discountPrice: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    images: z.ZodOptional<z.ZodArray<z.ZodString>>;
     stock: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
+    approvalStatus: z.ZodOptional<z.ZodEnum<{
+        pending: "pending";
+        approved: "approved";
+        rejected: "rejected";
+    }>>;
+    rejectionReason: z.ZodOptional<z.ZodNullable<z.ZodString>>;
 }, {
     out: {};
     in: {};
