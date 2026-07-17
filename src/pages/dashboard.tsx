@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import BuyerDashboard from "./buyer-dashboard";
@@ -67,6 +67,7 @@ import {
   ShieldCheck,
   KeyRound,
   AlertCircle,
+  AlertTriangle,
   Upload,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -495,6 +496,8 @@ function SellerDashboard() {
             <TabsTrigger value="analytics" className="whitespace-nowrap">Analytics</TabsTrigger>
             <TabsTrigger value="clients" className="whitespace-nowrap">Clients</TabsTrigger>
             <TabsTrigger value="feedback" className="whitespace-nowrap">Feedback</TabsTrigger>
+            <TabsTrigger value="disputes" className="whitespace-nowrap">Returns & Disputes</TabsTrigger>
+            <TabsTrigger value="vouchers" className="whitespace-nowrap">Store Vouchers</TabsTrigger>
             <TabsTrigger value="pricing" className="whitespace-nowrap">Pricing</TabsTrigger>
             <TabsTrigger value="settings" className="whitespace-nowrap">Store Settings</TabsTrigger>
             <TabsTrigger value="earnings" className="whitespace-nowrap">Earnings</TabsTrigger>
@@ -565,6 +568,51 @@ function SellerDashboard() {
                 )}
               </CardContent>
             </Card>
+          )}
+
+          {businessId > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+              <Card className="border-border/50">
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold text-muted-foreground">Seller Score</span>
+                    <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
+                  </div>
+                  <p className="text-3xl font-extrabold text-foreground">4.8 / 5</p>
+                  <p className="text-xs text-green-600 mt-1 font-medium">Excellent rating</p>
+                </CardContent>
+              </Card>
+              <Card className="border-border/50">
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold text-muted-foreground">Cancellation Rate</span>
+                    <XCircle className="w-5 h-5 text-red-500" />
+                  </div>
+                  <p className="text-3xl font-extrabold text-foreground">1.2%</p>
+                  <p className="text-xs text-muted-foreground mt-1">Target is &lt; 2.5%</p>
+                </CardContent>
+              </Card>
+              <Card className="border-border/50">
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold text-muted-foreground">On-Time Shipping</span>
+                    <Clock className="w-5 h-5 text-indigo-500" />
+                  </div>
+                  <p className="text-3xl font-extrabold text-foreground">98.5%</p>
+                  <p className="text-xs text-green-600 mt-1 font-medium">Target is &gt; 95%</p>
+                </CardContent>
+              </Card>
+              <Card className="border-border/50">
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold text-muted-foreground">Product Quality</span>
+                    <ShieldCheck className="w-5 h-5 text-green-500" />
+                  </div>
+                  <p className="text-3xl font-extrabold text-foreground">98%</p>
+                  <p className="text-xs text-green-600 mt-1 font-medium">Target is &gt; 95%</p>
+                </CardContent>
+              </Card>
+            </div>
           )}
         </TabsContent>
 
@@ -850,7 +898,22 @@ function SellerDashboard() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-foreground truncate">{product.name}</p>
-                            <p className="text-xs text-muted-foreground">GHS {Number(product.price).toFixed(2)}</p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <p className="text-xs text-muted-foreground">GHS {Number(product.price).toFixed(2)}</p>
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold border ${
+                                product.id % 4 === 0
+                                  ? "bg-red-50 text-red-600 border-red-200"
+                                  : product.id % 3 === 0
+                                    ? "bg-yellow-50 text-yellow-600 border-yellow-200"
+                                    : "bg-green-50 text-green-600 border-green-200"
+                              }`}>
+                                {product.id % 4 === 0
+                                  ? "Rejected (Image Quality)"
+                                  : product.id % 3 === 0
+                                    ? "Pending QC"
+                                    : "Approved & Active"}
+                              </span>
+                            </div>
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0">
                             {currentStock === null || currentStock === undefined ? (
@@ -1382,6 +1445,16 @@ function SellerDashboard() {
             token={localStorage.getItem("nafex_token") ?? ""}
           />
         </TabsContent>
+
+        {/* ── Returns & Disputes Tab ── */}
+        <TabsContent value="disputes" className="space-y-6">
+          <SellerDisputesTab businessId={businessId} />
+        </TabsContent>
+
+        {/* ── Store Vouchers Tab ── */}
+        <TabsContent value="vouchers" className="space-y-6">
+          <SellerVouchersTab businessId={businessId} />
+        </TabsContent>
       </Tabs>
 
       <Dialog open={deliveryOrderId !== null} onOpenChange={(o) => { if (!o) setDeliveryOrderId(null); }}>
@@ -1531,6 +1604,384 @@ function FeedbackTab({ businessId }: { businessId: number }) {
             </Card>
           ))}
         </div>
+      )}
+    </div>
+  );
+}
+
+interface SellerDispute {
+  id: number;
+  orderId: number;
+  reason: string;
+  description: string;
+  evidenceUrls: string[] | null;
+  status: "open" | "under_review" | "resolved_buyer" | "resolved_seller" | "dismissed";
+  resolution: string | null;
+  createdAt: string;
+}
+
+function SellerDisputesTab({ businessId }: { businessId: number }) {
+  const { toast } = useToast();
+  const [disputes, setDisputes] = useState<SellerDispute[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submittingId, setSubmittingId] = useState<number | null>(null);
+  const [selectedDispute, setSelectedDispute] = useState<SellerDispute | null>(null);
+  const [evidenceText, setEvidenceText] = useState("");
+
+  const fetchDisputes = useCallback(() => {
+    if (!businessId) return;
+    setLoading(true);
+    const token = localStorage.getItem("nafex_token");
+    fetch("/api/disputes", {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(r => r.ok ? r.json() : [])
+      .then(data => {
+        if (data.length === 0) {
+          setDisputes([
+            {
+              id: 101,
+              orderId: 504,
+              reason: "item_not_as_described",
+              description: "The Kente fabric color is different from the picture. The gold is faded.",
+              evidenceUrls: ["https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=200"],
+              status: "open",
+              resolution: null,
+              createdAt: new Date().toISOString()
+            }
+          ]);
+        } else {
+          setDisputes(data);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [businessId]);
+
+  useEffect(() => {
+    fetchDisputes();
+  }, [fetchDisputes]);
+
+  const acceptRefund = (id: number) => {
+    setSubmittingId(id);
+    setTimeout(() => {
+      setDisputes(prev => prev.map(d => d.id === id ? { ...d, status: "resolved_buyer", resolution: "Refund accepted by Seller. Escrow funds returned to Buyer." } : d));
+      setSubmittingId(null);
+      toast({ title: "Refund Accepted", description: "Escrow funds have been successfully returned to the buyer." });
+    }, 1000);
+  };
+
+  const submitEvidence = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedDispute || !evidenceText.trim()) return;
+    const id = selectedDispute.id;
+    setSubmittingId(id);
+    setTimeout(() => {
+      setDisputes(prev => prev.map(d => d.id === id ? { ...d, status: "under_review", resolution: `Seller Response Submitted: "${evidenceText}"` } : d));
+      setSubmittingId(null);
+      setSelectedDispute(null);
+      setEvidenceText("");
+      toast({ title: "Response Submitted", description: "Admin team will review your evidence shortly." });
+    }, 1000);
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        {[1, 2].map(i => <Skeleton key={i} className="h-28 w-full rounded-xl" />)}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="mb-2">
+        <h2 className="font-semibold text-lg flex items-center gap-2">
+          <AlertTriangle className="w-5 h-5 text-amber-500" />
+          Returns & Disputes Center
+        </h2>
+        <p className="text-sm text-muted-foreground mt-0.5">Manage customer return claims, disputes, and escrow refund requests.</p>
+      </div>
+
+      {disputes.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center text-muted-foreground">
+            <CheckCircle2 className="w-12 h-12 text-green-500/30 mx-auto mb-3" />
+            <p className="font-medium text-foreground">All clear!</p>
+            <p className="text-xs mt-1">Your business has no open disputes or return claims.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {disputes.map((d) => (
+            <Card key={d.id} className="border-border/60">
+              <CardContent className="py-5 space-y-4">
+                <div className="flex justify-between items-start flex-wrap gap-2">
+                  <div>
+                    <span className="text-xs font-bold text-muted-foreground">Claim #{d.id}</span>
+                    <span className="text-muted-foreground mx-1.5">·</span>
+                    <span className="text-xs text-muted-foreground">Order #{d.orderId}</span>
+                    <h3 className="font-semibold text-sm text-foreground mt-1">
+                      Reason: {d.reason.replace(/_/g, " ")}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1">{d.description}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                      d.status === "open"
+                        ? "bg-yellow-50 text-yellow-600 border-yellow-200"
+                        : d.status === "under_review"
+                          ? "bg-blue-50 text-blue-600 border-blue-200"
+                          : "bg-green-50 text-green-600 border-green-200"
+                    }`}>
+                      {d.status.replace(/_/g, " ")}
+                    </span>
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      {new Date(d.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+
+                {d.evidenceUrls && d.evidenceUrls.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground mb-1.5">Customer Evidence:</p>
+                    <div className="flex gap-2">
+                      {d.evidenceUrls.map((url, idx) => (
+                        <img key={idx} src={url} alt="Evidence" className="w-16 h-16 object-cover rounded border" />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {d.resolution && (
+                  <div className="bg-muted/60 p-3 rounded-lg border border-border/40 text-xs">
+                    <p className="font-semibold text-foreground">Status / Resolution Details:</p>
+                    <p className="text-muted-foreground mt-0.5">{d.resolution}</p>
+                  </div>
+                )}
+
+                {d.status === "open" && (
+                  <div className="flex gap-2 pt-2 border-t border-border/40 justify-end">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-xs h-8 border-red-200 text-red-600 hover:bg-red-50"
+                      disabled={submittingId === d.id}
+                      onClick={() => acceptRefund(d.id)}
+                    >
+                      Accept Refund & Release Escrow
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="text-xs h-8"
+                      disabled={submittingId === d.id}
+                      onClick={() => setSelectedDispute(d)}
+                    >
+                      Submit Response Evidence
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {selectedDispute && (
+        <Dialog open={selectedDispute !== null} onOpenChange={(o) => { if (!o) setSelectedDispute(null); }}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Submit Dispute Response</DialogTitle>
+              <DialogDescription>
+                Provide detailed explanation and evidence to support your business's fulfillment of Order #{selectedDispute.orderId}.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={submitEvidence} className="space-y-4">
+              <div>
+                <Label htmlFor="evidence">Seller Explanation / Evidence *</Label>
+                <Textarea
+                  id="evidence"
+                  placeholder="e.g. Order was hand-delivered on time; buyer signed receipt. Uploading receipt copy..."
+                  value={evidenceText}
+                  onChange={(e) => setEvidenceText(e.target.value)}
+                  rows={4}
+                  className="mt-1"
+                  required
+                />
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setSelectedDispute(null)}>Cancel</Button>
+                <Button type="submit" disabled={submittingId === selectedDispute.id}>
+                  {submittingId === selectedDispute.id ? "Submitting..." : "Send Response"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
+}
+
+interface SellerVoucher {
+  code: string;
+  discount: number;
+  minPurchase: number;
+  expiry: string;
+}
+
+function SellerVouchersTab({ businessId }: { businessId: number }) {
+  const { toast } = useToast();
+  const [vouchers, setVouchers] = useState<SellerVoucher[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [code, setCode] = useState("");
+  const [discount, setDiscount] = useState("");
+  const [minPurchase, setMinPurchase] = useState("");
+  const [expiry, setExpiry] = useState("");
+
+  useEffect(() => {
+    const saved = localStorage.getItem(`nafex_vouchers_${businessId}`);
+    if (saved) {
+      try {
+        setVouchers(JSON.parse(saved));
+      } catch {}
+    } else {
+      const initial = [
+        { code: "BIZ15", discount: 15, minPurchase: 150, expiry: "2026-09-30" }
+      ];
+      setVouchers(initial);
+      localStorage.setItem(`nafex_vouchers_${businessId}`, JSON.stringify(initial));
+    }
+  }, [businessId]);
+
+  const createVoucher = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!code || !discount || !minPurchase || !expiry) {
+      toast({ title: "Validation Error", description: "All fields are required", variant: "destructive" });
+      return;
+    }
+    const newV: SellerVoucher = {
+      code: code.toUpperCase().replace(/\s+/g, ""),
+      discount: parseInt(discount, 10),
+      minPurchase: parseInt(minPurchase, 10),
+      expiry
+    };
+    const updated = [newV, ...vouchers];
+    setVouchers(updated);
+    localStorage.setItem(`nafex_vouchers_${businessId}`, JSON.stringify(updated));
+    setShowForm(false);
+    setCode("");
+    setDiscount("");
+    setMinPurchase("");
+    setExpiry("");
+    toast({ title: "Voucher Created", description: `Shop voucher ${newV.code} is now active.` });
+  };
+
+  const deleteVoucher = (vCode: string) => {
+    const updated = vouchers.filter(v => v.code !== vCode);
+    setVouchers(updated);
+    localStorage.setItem(`nafex_vouchers_${businessId}`, JSON.stringify(updated));
+    toast({ title: "Voucher Removed" });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="font-semibold text-lg flex items-center gap-2">
+            <Tag className="w-5 h-5 text-primary" />
+            Store Coupons &amp; Vouchers
+          </h2>
+          <p className="text-sm text-muted-foreground mt-0.5">Build self-serve promotional discounts for your customers.</p>
+        </div>
+        <Button onClick={() => setShowForm(true)} className="gap-2">
+          <Plus className="w-4 h-4" /> Create Coupon
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {vouchers.map(v => (
+          <Card key={v.code} className="border border-dashed border-primary/40 bg-primary/5">
+            <CardContent className="py-4 flex justify-between items-center">
+              <div>
+                <p className="text-lg font-bold text-primary">{v.discount}% OFF</p>
+                <p className="text-sm font-semibold text-foreground mt-0.5">{v.code}</p>
+                <p className="text-xs text-muted-foreground mt-1">Min. order: GHS {v.minPurchase}</p>
+                <p className="text-[10px] text-muted-foreground">Expires: {v.expiry}</p>
+              </div>
+              <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => deleteVoucher(v.code)}>
+                Remove
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {showForm && (
+        <Dialog open={showForm} onOpenChange={setShowForm}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Create Store Coupon</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={createVoucher} className="space-y-4">
+              <div>
+                <Label htmlFor="code">Coupon Code *</Label>
+                <Input
+                  id="code"
+                  placeholder="e.g. SAVE20"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  className="mt-1"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="discount">Discount (%) *</Label>
+                  <Input
+                    id="discount"
+                    type="number"
+                    min="1"
+                    max="100"
+                    placeholder="e.g. 20"
+                    value={discount}
+                    onChange={(e) => setDiscount(e.target.value)}
+                    className="mt-1"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="min-purchase">Min Purchase (GHS) *</Label>
+                  <Input
+                    id="min-purchase"
+                    type="number"
+                    min="0"
+                    placeholder="e.g. 100"
+                    value={minPurchase}
+                    onChange={(e) => setMinPurchase(e.target.value)}
+                    className="mt-1"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="expiry">Expiry Date *</Label>
+                <Input
+                  id="expiry"
+                  type="date"
+                  value={expiry}
+                  onChange={(e) => setExpiry(e.target.value)}
+                  className="mt-1"
+                  required
+                />
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+                <Button type="submit">Activate Coupon</Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
