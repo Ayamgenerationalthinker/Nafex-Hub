@@ -49,13 +49,10 @@ const { isDarkMode, toggleDarkMode } = useDarkMode();
       ]
     : user
     ? [
+        { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
         { href: "/explore", label: "Explore Brands", icon: <Store className="w-4 h-4" />, testId: "mobile-nav-explore" },
         { href: "/discounts", label: "Deals", icon: <Tag className="w-4 h-4" /> },
         { href: "/trade", label: "Trade Connect", icon: <Globe2 className="w-4 h-4" /> },
-        { href: "/inbox", label: "Inbox", icon: <MessageCircle className="w-4 h-4" /> },
-        { href: "/orders", label: "Orders", icon: <ShoppingBag className="w-4 h-4" /> },
-        { href: "/payments", label: "Payments", icon: <Wallet className="w-4 h-4" /> },
-        { href: "/favorites", label: "Favorites", icon: <Heart className="w-4 h-4" /> },
         { href: "/support", label: "Support", icon: <Headphones className="w-4 h-4" /> },
       ]
     : [
@@ -75,12 +72,10 @@ const { isDarkMode, toggleDarkMode } = useDarkMode();
       ]
     : user
     ? [
+        { href: "/dashboard", label: "Dashboard" },
         { href: "/explore", label: "Explore Brands" },
         { href: "/discounts", label: "Deals" },
         { href: "/trade", label: "Trade Connect" },
-        { href: "/inbox", label: "Inbox" },
-        { href: "/orders", label: "Orders" },
-        { href: "/payments", label: "Payments" },
       ]
     : [
         { href: "/explore", label: "Explore Brands" },
@@ -187,22 +182,22 @@ const { isDarkMode, toggleDarkMode } = useDarkMode();
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
                         <DropdownMenuItem asChild>
-                          <Link href="/account/settings" className="flex items-center gap-2 cursor-pointer">
+                          <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
                             <User2 className="w-4 h-4 text-muted-foreground" /> My Account
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/orders" className="flex items-center gap-2 cursor-pointer">
+                          <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
                             <ClipboardList className="w-4 h-4 text-muted-foreground" /> Orders
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/inbox" className="flex items-center gap-2 cursor-pointer">
+                          <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
                             <MessageCircle className="w-4 h-4 text-muted-foreground" /> Inbox
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/favorites" className="flex items-center gap-2 cursor-pointer">
+                          <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
                             <Heart className="w-4 h-4 text-muted-foreground" /> Wishlist
                           </Link>
                         </DropdownMenuItem>
