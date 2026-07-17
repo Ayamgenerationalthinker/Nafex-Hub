@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -33,6 +34,7 @@ const statusTone: Record<Txn["status"], string> = {
 };
 
 export default function Payments() {
+  const { user } = useAuth();
   const [txns, setTxns] = useState<Txn[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,7 +49,10 @@ export default function Payments() {
       .catch((e) => setError((e as Error).message));
   }, []);
 
-  const totals = (txns ?? []).reduce(
+  const isBuyer = user?.role === "user";
+  const filteredTxns = (txns ?? []).filter(t => !isBuyer || (t.type !== "payout" && t.type !== "fee"));
+
+  const totals = filteredTxns.reduce(
     (acc, t) => {
       if (t.status !== "success") return acc;
       const v = Number(t.amount);
@@ -97,7 +102,7 @@ export default function Payments() {
               <Skeleton key={i} className="h-16 w-full" />
             ))}
           </div>
-        ) : txns.length === 0 ? (
+        ) : filteredTxns.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center text-sm text-muted-foreground">
               No transactions yet. Once you pay for an order it will show up here.
@@ -105,7 +110,7 @@ export default function Payments() {
           </Card>
         ) : (
           <div className="space-y-2" data-testid="list-transactions">
-            {txns.map((t) => {
+            {filteredTxns.map((t) => {
               const meta = typeMeta[t.type];
               return (
                 <Card key={t.id} data-testid={`row-txn-${t.id}`}>

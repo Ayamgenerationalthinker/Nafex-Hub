@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import BuyerDashboard from "./buyer-dashboard";
 import {
   useGetDashboardStats,
   useGetBusinessAnalytics,
@@ -101,7 +102,7 @@ const PAYMENT_BADGE: Record<string, { label: string; color: string }> = {
   refunded:  { label: "Refunded",   color: "bg-red-100 text-red-600" },
 };
 
-export default function Dashboard() {
+function SellerDashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -1533,4 +1534,12 @@ function FeedbackTab({ businessId }: { businessId: number }) {
       )}
     </div>
   );
+}
+
+export default function Dashboard() {
+  const { user } = useAuth();
+  if (user?.role === "user") {
+    return <BuyerDashboard />;
+  }
+  return <SellerDashboard />;
 }
