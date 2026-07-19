@@ -90,19 +90,20 @@ export default function Home() {
             Shop from thousands of trusted Ghanaian sellers. From fashion to electronics, get the best deals delivered to you.
           </p>
 
-          <form onSubmit={handleSearch} className="w-full max-w-2xl flex items-center bg-white rounded-full p-1.5 md:p-2 shadow-xl mt-4 md:mt-6 focus-within:ring-2 focus-within:ring-primary/50 transition-all">
-            <Search className="ml-2 md:ml-3 w-5 h-5 md:w-6 md:h-6 text-gray-400 shrink-0" />
+          <form onSubmit={handleSearch} className="w-full max-w-2xl flex items-center bg-white rounded-full p-1 md:p-2 shadow-xl mt-4 md:mt-6 focus-within:ring-2 focus-within:ring-primary/50 transition-all">
+            <Search className="hidden md:block ml-3 w-6 h-6 text-gray-400 shrink-0" />
             <input 
-              className="flex-1 h-10 md:h-12 px-2 md:px-4 text-base md:text-lg text-black bg-transparent border-0 outline-none focus:ring-0"
+              className="flex-1 h-10 md:h-12 px-3 md:px-4 text-base md:text-lg text-black bg-transparent border-0 outline-none focus:ring-0 w-full"
               placeholder="What are you looking for?" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
             <Button 
               type="submit" 
-              className="h-10 md:h-12 rounded-full px-5 md:px-8 bg-primary hover:bg-primary/90 text-white font-semibold shrink-0 text-sm md:text-base"
+              className="h-10 w-10 md:w-auto md:h-12 rounded-full bg-primary hover:bg-primary/90 text-white font-semibold shrink-0 text-sm md:text-base flex items-center justify-center p-0 md:px-8 transition-all gap-2"
             >
-              Search
+              <Search className="w-5 h-5 md:w-6 md:h-6" />
+              <span className="hidden md:inline">Search</span>
             </Button>
           </form>
         </div>
