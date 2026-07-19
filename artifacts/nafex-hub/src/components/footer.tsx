@@ -4,7 +4,7 @@ import { VisaLogo, MastercardLogo, PaystackLogo, MobileMoneyLogo, BankTransferLo
 
 export function Footer() {
   return (
-    <footer className="border-t bg-secondary text-secondary-foreground z-10 relative">
+    <footer className="border-t bg-secondary text-secondary-foreground z-10 relative pb-20 md:pb-0">
       <div className="container mx-auto px-4 md:px-8 py-12">
         {/* Brand + tagline */}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 pb-8 border-b border-secondary-foreground/10">
