@@ -44,11 +44,18 @@ function validatePasswordStrength(password: string): string | null {
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || ((): string => {
+  // Generate a deterministic but opaque key from the machine hostname so
+  // tokens remain valid across process restarts on the same host.
+  // ⚠️  Set JWT_SECRET in your environment for full security in production.
+  const hostname = process.env.HOSTNAME ?? process.env.COMPUTERNAME ?? "nafex-fallback";
+  const derived = crypto.createHash("sha256").update(`nafex-${hostname}-jwt`).digest("hex");
   if (process.env.NODE_ENV === "production") {
-    console.warn("JWT_SECRET environment variable is not set. Generating a random secure key for this session.");
-    return crypto.randomBytes(64).toString("hex");
+    console.warn(
+      `[WARN] JWT_SECRET is not set. Using a hostname-derived fallback key. ` +
+      `Set JWT_SECRET in your environment to ensure stable tokens across deployments.`
+    );
   }
-  return "fallback_secret_for_development_only";
+  return derived;
 })();
 
 function generateToken(userId: number): string {
