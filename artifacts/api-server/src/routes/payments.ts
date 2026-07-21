@@ -66,6 +66,32 @@ export async function payoutToSeller(businessId: number, amountPesewas: number, 
   }
 }
 
+export async function payoutToTradeSupplier(supplierId: number, amountPesewas: number, orderId: number): Promise<boolean> {
+  const [biz] = await db
+    .select({ paystackRecipientCode: businessesTable.paystackRecipientCode, name: businessesTable.name })
+    .from(businessesTable)
+    .where(eq(businessesTable.ownerId, supplierId));
+
+  if (!biz || !biz.paystackRecipientCode) {
+    console.error(`Cannot payout to supplier ${supplierId}: No Paystack recipient code found for their business.`);
+    return false;
+  }
+
+  try {
+    await paystackPost("/transfer", {
+      source: "balance",
+      amount: amountPesewas,
+      recipient: biz.paystackRecipientCode,
+      reason: `Escrow release for Trade Order #${orderId} from Nafex Hub`,
+    });
+    return true;
+  } catch (error) {
+    console.error(`Failed to transfer to supplier ${supplierId}:`, error);
+    return false;
+  }
+}
+
+
 // ── Schemas ─────────────────────────────────────────────────────────────────
 
 const InitiatePaymentBody = z.object({
@@ -328,17 +354,32 @@ router.post("/admin/payouts/:orderId", requireAuth, requireAdmin, async (req: Au
   }
   const order = updated;
 
+  // Calculate Tiered Commission
+  const totalPriceGhs = order.totalPrice / 100;
+  let commissionRate = 0.05; // 5% default for 501+
+  if (totalPriceGhs <= 100) {
+    commissionRate = 0.015; // 1.5% for 1 - 100 GHS
+  } else if (totalPriceGhs <= 500) {
+    commissionRate = 0.03;  // 3% for 101 - 500 GHS
+  }
+
+  const commissionPesewas = Math.floor(order.totalPrice * commissionRate);
+  const payoutAmount = order.totalPrice - commissionPesewas;
+
+  // Execute actual Paystack transfer
+  await payoutToSeller(order.businessId, payoutAmount, order.id);
+
   // Log payout transaction
   await db.insert(transactionsTable).values({
     orderId: order.id,
     userId: req.userId!,
     type: "payout",
-    amount: (order.totalPrice / 100).toString(),
+    amount: (payoutAmount / 100).toString(),
     currency: "GHS",
-    provider: "system",
+    provider: "paystack",
     providerRef: `PAYOUT-${order.id}-${Date.now()}`,
     status: "success",
-    metadata: { releasedBy: req.userId, reason: "Admin manual release" },
+    metadata: { releasedBy: req.userId, reason: "Admin manual release", commissionPesewas },
   });
 
   // Notify seller
@@ -352,7 +393,7 @@ router.post("/admin/payouts/:orderId", requireAuth, requireAdmin, async (req: Au
         userId: biz.ownerId,
         type: "order_update",
         title: `Payout released for Order #${order.id}`,
-        body: `GHS ${(order.totalPrice / 100).toFixed(2)} has been released from escrow to your account.`,
+        body: `GHS ${(payoutAmount / 100).toFixed(2)} has been released from escrow to your account (minus GHS ${(commissionPesewas / 100).toFixed(2)} platform commission).`,
         relatedId: order.id,
         isRead: false,
       });
