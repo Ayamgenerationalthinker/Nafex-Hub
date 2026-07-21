@@ -35,7 +35,7 @@ type ConvData = {
   unreadCount?: number;
 };
 
-export default function Inbox() {
+export default function Inbox({ isEmbedded = false }: { isEmbedded?: boolean }) {
   const [location, setLocation] = useLocation();
   const { user } = useAuth();
   const socket = useSocket();
@@ -216,13 +216,16 @@ export default function Inbox() {
   const convsLoading = activeTab === "buyer" ? buyerLoading : sellerLoading;
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-4rem)]">
+    <div className={isEmbedded ? "flex flex-col h-[calc(100vh-220px)] border rounded-xl overflow-hidden bg-card" : "flex flex-col h-[calc(100dvh-4rem)]"}>
       {/* ── Header ── */}
-      <div className="px-4 pt-4 pb-2 flex-shrink-0">
-        <div className="flex items-center gap-3 mb-3">
-          <MessageCircle className="w-5 h-5 text-primary" />
-          <h1 className="font-serif text-xl font-bold text-foreground">Inbox</h1>
-        </div>
+      {(!isEmbedded || isSeller) && (
+        <div className="px-4 pt-4 pb-2 flex-shrink-0">
+          {!isEmbedded && (
+            <div className="flex items-center gap-3 mb-3">
+              <MessageCircle className="w-5 h-5 text-primary" />
+              <h1 className="font-serif text-xl font-bold text-foreground">Inbox</h1>
+            </div>
+          )}
 
         {/* Tab switcher for sellers */}
         {isSeller && (

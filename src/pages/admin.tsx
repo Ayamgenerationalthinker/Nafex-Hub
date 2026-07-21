@@ -280,7 +280,7 @@ export default function Admin() {
           fetch("/api/admin/settings", {
             method: "PUT",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-            body: JSON.stringify({ key, value: value || " " }),
+            body: JSON.stringify({ key, value }),
           })
         )
       );

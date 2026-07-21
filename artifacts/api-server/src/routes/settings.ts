@@ -20,7 +20,7 @@ router.put("/admin/settings", requireAuth, async (req: AuthRequest, res): Promis
     return;
   }
 
-  const body = z.object({ key: z.string().min(1), value: z.string().min(1) }).safeParse(req.body);
+  const body = z.object({ key: z.string().min(1), value: z.string() }).safeParse(req.body);
   if (!body.success) {
     res.status(400).json({ error: "Invalid body" });
     return;

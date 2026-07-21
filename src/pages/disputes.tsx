@@ -52,7 +52,7 @@ const STATUS_CONFIG: Record<DisputeStatus, { label: string; color: string; icon:
   dismissed:        { label: "Dismissed",       color: "bg-gray-100 text-gray-700 border-gray-200",       icon: <XCircle className="w-3 h-3" /> },
 };
 
-export default function Disputes() {
+export default function Disputes({ isEmbedded = false }: { isEmbedded?: boolean }) {
   const [location, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -124,17 +124,27 @@ export default function Disputes() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-3xl">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="font-serif text-2xl md:text-3xl font-bold text-foreground">My Disputes</h1>
-          <p className="text-muted-foreground mt-1">Raise and track issues with your orders</p>
+    <div className={isEmbedded ? "space-y-6" : "container mx-auto px-4 py-8 max-w-3xl"}>
+      {!isEmbedded && (
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="font-serif text-2xl md:text-3xl font-bold text-foreground">My Disputes</h1>
+            <p className="text-muted-foreground mt-1">Raise and track issues with your orders</p>
+          </div>
+          <Button onClick={() => setShowForm(true)} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Raise Dispute
+          </Button>
         </div>
-        <Button onClick={() => setShowForm(true)} className="gap-2">
-          <Plus className="w-4 h-4" />
-          Raise Dispute
-        </Button>
-      </div>
+      )}
+      {isEmbedded && (
+        <div className="flex justify-end">
+          <Button onClick={() => setShowForm(true)} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Raise Dispute
+          </Button>
+        </div>
+      )}
 
       {/* How it works */}
       <Card className="mb-6 bg-primary/5 border-primary/20">

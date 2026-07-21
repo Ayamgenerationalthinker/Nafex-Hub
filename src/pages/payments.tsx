@@ -33,7 +33,7 @@ const statusTone: Record<Txn["status"], string> = {
   reversed: "bg-gray-100 text-gray-700 border-gray-200",
 };
 
-export default function Payments() {
+export default function Payments({ isEmbedded = false }: { isEmbedded?: boolean }) {
   const { user } = useAuth();
   const [txns, setTxns] = useState<Txn[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -64,7 +64,8 @@ export default function Payments() {
   );
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+    <div className={isEmbedded ? "space-y-6" : "max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6"}>
+      {!isEmbedded && (
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
             <Wallet className="w-5 h-5 text-primary" />
@@ -74,6 +75,7 @@ export default function Payments() {
             <p className="text-sm text-muted-foreground">All your payments, refunds and escrow activity.</p>
           </div>
         </div>
+      )}
 
         <div className="grid grid-cols-2 gap-3">
           <Card>
