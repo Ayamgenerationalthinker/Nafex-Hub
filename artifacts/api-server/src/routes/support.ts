@@ -443,6 +443,10 @@ router.post("/support/conversations/:id/messages", requireAuth, async (req: Auth
       ...message,
       senderRole: caller?.role ?? "admin"
     });
+    getIO()?.to("admin_support").emit("support_message", {
+      ...message,
+      senderRole: caller?.role ?? "admin"
+    });
   } catch {}
 
   res.status(201).json(message);

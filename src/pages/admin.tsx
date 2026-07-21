@@ -197,22 +197,51 @@ export default function Admin() {
     if (!socket) return;
     socket.emit("join_room", selectedConvoId);
     
-    const onMsg = (msg: SupportMsg) => {
-      if (msg.conversationId !== selectedConvoId) return;
-      setSupportMessages((prev) => {
-        if (prev.some((m) => m.id === msg.id)) return prev;
-        return [...prev, msg];
-      });
-      setSupportConvos((prev) => prev.map((c) => c.id === selectedConvoId ? { ...c, updatedAt: new Date().toISOString() } : c));
-    };
-    
-    socket.on("receive_message", onMsg);
-    
     return () => {
-      socket.off("receive_message", onMsg);
       socket.emit("leave_room", selectedConvoId);
     };
   }, [selectedConvoId, socket]);
+
+  // Join admin_support room globally when Support tab is active
+  useEffect(() => {
+    if (activeTab !== "support" || !socket) return;
+    
+    socket.emit("join_room", "admin_support");
+    
+    const onSupportMsg = (msg: SupportMsg) => {
+      // 1. If currently viewing this convo, append the message
+      if (selectedConvoId && msg.conversationId === selectedConvoId) {
+        setSupportMessages((prev) => {
+          if (prev.some((m) => m.id === msg.id)) return prev;
+          return [...prev, msg];
+        });
+      }
+      
+      // 2. Update sidebar conversations list
+      setSupportConvos((prev) => {
+        const exists = prev.some((c) => c.id === msg.conversationId);
+        if (!exists) {
+          const token = localStorage.getItem("nafex_token") ?? "";
+          fetch("/api/support/conversations", { headers: { Authorization: `Bearer ${token}` } })
+            .then((r) => (r.ok ? r.json() : []))
+            .then(setSupportConvos);
+          return prev;
+        }
+        return prev.map((c) =>
+          c.id === msg.conversationId
+            ? { ...c, updatedAt: msg.createdAt, status: msg.senderRole === "admin" ? c.status : "open" }
+            : c
+        ).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+      });
+    };
+    
+    socket.on("support_message", onSupportMsg);
+    
+    return () => {
+      socket.off("support_message", onSupportMsg);
+      socket.emit("leave_room", "admin_support");
+    };
+  }, [activeTab, socket, selectedConvoId]);
 
   useEffect(() => {
     supportBottomRef.current?.scrollIntoView({ behavior: "smooth" });

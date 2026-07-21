@@ -24,7 +24,7 @@ function parseId(param: string | string[]): number {
    ───────────────────────────────────────────────────── */
 
 // GET /api/admin/products/pending — listing moderation queue
-router.get("/api/admin/products/pending", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+router.get("/admin/products/pending", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   if (!adminOnly(req, res)) return;
   try {
     const rows = await db
@@ -54,7 +54,7 @@ router.get("/api/admin/products/pending", requireAuth, async (req: AuthRequest, 
 });
 
 // PATCH /api/admin/product/:id/approve — approve a product
-router.patch("/api/admin/product/:id/approve", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+router.patch("/admin/product/:id/approve", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   if (!adminOnly(req, res)) return;
   const id = parseId(req.params.id);
   if (!Number.isFinite(id)) { res.status(400).json({ error: "Invalid id" }); return; }
@@ -80,7 +80,7 @@ router.patch("/api/admin/product/:id/approve", requireAuth, async (req: AuthRequ
 // PATCH /api/admin/product/:id/reject — reject a product with reason
 const rejectSchema = z.object({ reason: z.string().min(1, "Reason is required") });
 
-router.patch("/api/admin/product/:id/reject", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+router.patch("/admin/product/:id/reject", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   if (!adminOnly(req, res)) return;
   const id = parseId(req.params.id);
   if (!Number.isFinite(id)) { res.status(400).json({ error: "Invalid id" }); return; }
@@ -118,7 +118,7 @@ const kycSchema = z.object({
 });
 
 // PATCH /api/admin/businesses/:id/kyc — set verification tier
-router.patch("/api/admin/businesses/:id/kyc", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+router.patch("/admin/businesses/:id/kyc", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   if (!adminOnly(req, res)) return;
   const id = parseId(req.params.id);
   if (!Number.isFinite(id)) { res.status(400).json({ error: "Invalid id" }); return; }
@@ -158,7 +158,7 @@ router.patch("/api/admin/businesses/:id/kyc", requireAuth, async (req: AuthReque
    ───────────────────────────────────────────────────── */
 
 // GET /api/admin/financial-summary — GMV, net revenue, pending payouts
-router.get("/api/admin/financial-summary", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+router.get("/admin/financial-summary", requireAuth, async (req: AuthRequest, res): Promise<void> => {
   if (!adminOnly(req, res)) return;
   try {
     const rows = await db.select().from(transactionsTable);

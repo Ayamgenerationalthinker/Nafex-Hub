@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, conversationsTable, messagesTable, businessesTable, notificationsTable } from "@workspace/db";
+import { db, conversationsTable, messagesTable, businessesTable, notificationsTable, usersTable } from "@workspace/db";
 import { eq, and, desc, ne, count } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
@@ -280,6 +280,20 @@ router.post("/conversations/:id/messages", requireAuth, async (req: AuthRequest,
   await db.update(conversationsTable).set(updateConv).where(eq(conversationsTable.id, params.data.id));
 
   emitToRoom(params.data.id, message);
+
+  if (conv.type === "support") {
+    try {
+      const [sender] = await db
+        .select({ role: usersTable.role })
+        .from(usersTable)
+        .where(eq(usersTable.id, req.userId!));
+
+      getIO()?.to("admin_support").emit("support_message", {
+        ...message,
+        senderRole: sender?.role ?? "user"
+      });
+    } catch {}
+  }
 
   // Notify other party
   try {
