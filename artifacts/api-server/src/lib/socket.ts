@@ -43,14 +43,16 @@ export function initSocketIO(httpServer: HttpServer): Server {
   io.on("connection", (socket: Socket) => {
     logger.info({ userId: socket.data.userId }, "Socket connected");
 
-    // Join a conversation room
-    socket.on("join_room", (conversationId: number) => {
-      socket.join(`conv_${conversationId}`);
+    // Join a conversation room (numeric id) or a named admin room (e.g. "admin_support")
+    socket.on("join_room", (conversationId: number | string) => {
+      const room = conversationId === "admin_support" ? "admin_support" : `conv_${conversationId}`;
+      socket.join(room);
     });
 
     // Leave a conversation room
-    socket.on("leave_room", (conversationId: number) => {
-      socket.leave(`conv_${conversationId}`);
+    socket.on("leave_room", (conversationId: number | string) => {
+      const room = conversationId === "admin_support" ? "admin_support" : `conv_${conversationId}`;
+      socket.leave(room);
     });
 
     // Typing indicator
