@@ -442,26 +442,38 @@ function SellerDashboard() {
     {
       label: "Total Orders",
       value: stats?.totalOrders ?? 0,
-      icon: <ShoppingBag className="w-5 h-5 text-primary" />,
+      icon: <ShoppingBag className="w-5 h-5 text-white" />,
+      iconBg: "bg-gradient-to-br from-primary to-primary/70",
       sub: `${stats?.pendingOrders ?? 0} pending`,
+      trend: "+12%",
+      trendUp: true,
     },
     {
       label: "Conversations",
       value: stats?.totalMessages ?? 0,
-      icon: <MessageCircle className="w-5 h-5 text-primary" />,
+      icon: <MessageCircle className="w-5 h-5 text-white" />,
+      iconBg: "bg-gradient-to-br from-blue-500 to-blue-600",
       sub: "customer chats",
+      trend: "active",
+      trendUp: true,
     },
     {
       label: "Reviews",
       value: stats?.totalReviews ?? 0,
-      icon: <Star className="w-5 h-5 text-primary" />,
+      icon: <Star className="w-5 h-5 text-white" />,
+      iconBg: "bg-gradient-to-br from-amber-500 to-orange-500",
       sub: `avg ${stats?.averageRating ?? 0}/5`,
+      trend: `${stats?.averageRating ?? 0}/5`,
+      trendUp: true,
     },
     {
       label: "Profile Views",
       value: stats?.profileViews ?? 0,
-      icon: <Eye className="w-5 h-5 text-primary" />,
+      icon: <Eye className="w-5 h-5 text-white" />,
+      iconBg: "bg-gradient-to-br from-purple-500 to-purple-700",
       sub: "last 30 days",
+      trend: "last 30d",
+      trendUp: true,
     },
   ];
 
@@ -474,165 +486,201 @@ function SellerDashboard() {
   if (!user) return null;
 
   return (
+    <div className="min-h-screen bg-muted/20">
     <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <div className="mb-8">
-        <h1 className="font-serif text-3xl font-bold text-foreground">Seller Dashboard</h1>
-        <p className="text-muted-foreground mt-1">
-          {businessId ? "Managing your business" : "No business found — list your business first"}
-        </p>
-        {!businessId && !statsLoading && (
-          <Button className="mt-4" onClick={() => setLocation("/list")}>
-            List Your Business
-          </Button>
-        )}
+
+      {/* ── Premium Header ── */}
+      <div className="relative rounded-2xl overflow-hidden mb-8 bg-gradient-to-br from-primary via-primary/90 to-primary/70 shadow-lg">
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }} />
+        <div className="relative px-6 py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                <ShoppingBag className="w-4 h-4 text-white" />
+              </div>
+              <span className="text-white/70 text-sm font-medium">Seller Dashboard</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+              {businessId ? `Welcome back, ${user?.name?.split(" ")[0] ?? "Seller"}` : "Start Selling"}
+            </h1>
+            <p className="text-white/70 text-sm mt-1">
+              {businessId ? "Monitor your store performance and manage orders." : "List your business to start selling on Nafex Hub."}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {!businessId && !statsLoading && (
+              <Button
+                onClick={() => setLocation("/list")}
+                className="bg-white text-primary hover:bg-white/90 font-semibold shadow-sm"
+              >
+                List Your Business
+              </Button>
+            )}
+            {businessId > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-white/10 border-white/30 text-white hover:bg-white/20 gap-2"
+                onClick={() => setActiveTab("settings")}
+              >
+                <MapPin className="w-3.5 h-3.5" />
+                Store Settings
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
+        {/* ── Premium Tab Bar ── */}
         <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 mb-6">
-          <TabsList className="flex-nowrap h-auto gap-1 w-max">
-            <TabsTrigger value="overview" className="whitespace-nowrap">Overview</TabsTrigger>
-            <TabsTrigger value="orders" className="whitespace-nowrap">Orders</TabsTrigger>
-            <TabsTrigger value="inbox" className="whitespace-nowrap">Inbox</TabsTrigger>
-            <TabsTrigger value="inventory" className="whitespace-nowrap">Inventory</TabsTrigger>
-            <TabsTrigger value="collections" className="whitespace-nowrap">Collections</TabsTrigger>
-            <TabsTrigger value="analytics" className="whitespace-nowrap">Analytics</TabsTrigger>
-            <TabsTrigger value="clients" className="whitespace-nowrap">Clients</TabsTrigger>
-            <TabsTrigger value="feedback" className="whitespace-nowrap">Feedback</TabsTrigger>
-            <TabsTrigger value="disputes" className="whitespace-nowrap">Returns & Disputes</TabsTrigger>
-            <TabsTrigger value="vouchers" className="whitespace-nowrap">Store Vouchers</TabsTrigger>
-            <TabsTrigger value="pricing" className="whitespace-nowrap">Pricing</TabsTrigger>
-            <TabsTrigger value="settings" className="whitespace-nowrap">Store Settings</TabsTrigger>
-            <TabsTrigger value="earnings" className="whitespace-nowrap">Earnings</TabsTrigger>
-            <TabsTrigger value="boost" className="whitespace-nowrap">Boost</TabsTrigger>
-          </TabsList>
+          <div className="bg-card border border-border rounded-xl p-1 flex items-center gap-0.5 w-max shadow-sm">
+            {([
+              { value: "overview", label: "Overview" },
+              { value: "orders", label: "Orders" },
+              { value: "inbox", label: "Inbox" },
+              { value: "inventory", label: "Inventory" },
+              { value: "collections", label: "Collections" },
+              { value: "analytics", label: "Analytics" },
+              { value: "clients", label: "Clients" },
+              { value: "feedback", label: "Feedback" },
+              { value: "disputes", label: "Disputes" },
+              { value: "vouchers", label: "Vouchers" },
+              { value: "pricing", label: "Pricing" },
+              { value: "settings", label: "Settings" },
+              { value: "earnings", label: "Earnings" },
+              { value: "boost", label: "Boost" },
+            ] as const).map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => setActiveTab(tab.value)}
+                className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 ${
+                  activeTab === tab.value
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* ── Overview Tab ── */}
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {statsLoading
-              ? Array.from({ length: 4 }).map((_, i) => (
-                  <Skeleton key={i} className="h-32 rounded-xl" />
-                ))
-              : statCards.map((card) => {
-                  const isConvo = card.label === "Conversations";
-                  return (
-                    <Card
-                      key={card.label}
-                      onClick={() => isConvo && setActiveTab("inbox")}
-                      className={`border-border/50 hover:border-primary/30 transition-colors ${
-                        isConvo ? "cursor-pointer hover:bg-primary/5 transition-all" : ""
-                      }`}
-                    >
-                      <CardContent className="pt-6">
+        {activeTab === "overview" && (
+          <div className="space-y-6">
+            {/* Stat Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {statsLoading
+                ? Array.from({ length: 4 }).map((_, i) => (
+                    <Skeleton key={i} className="h-32 rounded-xl" />
+                  ))
+                : statCards.map((card) => {
+                    const isConvo = card.label === "Conversations";
+                    return (
+                      <div
+                        key={card.label}
+                        onClick={() => isConvo && setActiveTab("inbox")}
+                        className={`bg-card border border-border rounded-xl p-4 shadow-sm transition-all ${
+                          isConvo ? "cursor-pointer hover:border-primary/40 hover:shadow-md" : "hover:shadow-md"
+                        }`}
+                      >
                         <div className="flex items-center justify-between mb-3">
-                          {card.icon}
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${card.iconBg} shadow-sm`}>
+                            {card.icon}
+                          </div>
                           <span className="text-2xl font-bold text-foreground">{card.value}</span>
                         </div>
-                        <p className="text-sm font-medium text-foreground">{card.label}</p>
+                        <p className="text-sm font-semibold text-foreground">{card.label}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">{card.sub}</p>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-          </div>
-
-          {businessId > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-primary" />
-                  Profile Views — Last 14 Days
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {analyticsLoading ? (
-                  <Skeleton className="h-48 w-full" />
-                ) : (
-                  <ResponsiveContainer width="100%" height={200}>
-                    <LineChart data={last14Days}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis
-                        dataKey="date"
-                        tick={{ fontSize: 11 }}
-                        tickFormatter={(v: string) => v.slice(5)}
-                        stroke="hsl(var(--muted-foreground))"
-                      />
-                      <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                      <Tooltip
-                        contentStyle={{
-                          background: "hsl(var(--card))",
-                          border: "1px solid hsl(var(--border))",
-                          borderRadius: "8px",
-                          fontSize: "12px",
-                        }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="views"
-                        stroke="hsl(var(--primary))"
-                        strokeWidth={2}
-                        dot={false}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {businessId > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-              <Card className="border-border/50">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold text-muted-foreground">Seller Score</span>
-                    <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
-                  </div>
-                  <p className="text-3xl font-extrabold text-foreground">4.8 / 5</p>
-                  <p className="text-xs text-green-600 mt-1 font-medium">Excellent rating</p>
-                </CardContent>
-              </Card>
-              <Card className="border-border/50">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold text-muted-foreground">Cancellation Rate</span>
-                    <XCircle className="w-5 h-5 text-red-500" />
-                  </div>
-                  <p className="text-3xl font-extrabold text-foreground">1.2%</p>
-                  <p className="text-xs text-muted-foreground mt-1">Target is &lt; 2.5%</p>
-                </CardContent>
-              </Card>
-              <Card className="border-border/50">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold text-muted-foreground">On-Time Shipping</span>
-                    <Clock className="w-5 h-5 text-indigo-500" />
-                  </div>
-                  <p className="text-3xl font-extrabold text-foreground">98.5%</p>
-                  <p className="text-xs text-green-600 mt-1 font-medium">Target is &gt; 95%</p>
-                </CardContent>
-              </Card>
-              <Card className="border-border/50">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold text-muted-foreground">Product Quality</span>
-                    <ShieldCheck className="w-5 h-5 text-green-500" />
-                  </div>
-                  <p className="text-3xl font-extrabold text-foreground">98%</p>
-                  <p className="text-xs text-green-600 mt-1 font-medium">Target is &gt; 95%</p>
-                </CardContent>
-              </Card>
+                      </div>
+                    );
+                  })}
             </div>
-          )}
-        </TabsContent>
+
+            {/* Profile Views Chart */}
+            {businessId > 0 && (
+              <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+                <div className="px-5 py-4 border-b bg-muted/20 flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-primary" />
+                  <span className="font-semibold text-sm text-foreground">Profile Views — Last 14 Days</span>
+                </div>
+                <div className="p-5">
+                  {analyticsLoading ? (
+                    <Skeleton className="h-48 w-full" />
+                  ) : (
+                    <ResponsiveContainer width="100%" height={200}>
+                      <LineChart data={last14Days}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis
+                          dataKey="date"
+                          tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                          tickFormatter={(v: string) => v.slice(5)}
+                          stroke="hsl(var(--border))"
+                        />
+                        <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--border))" />
+                        <Tooltip
+                          contentStyle={{
+                            background: "hsl(var(--card))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: "8px",
+                            fontSize: "12px",
+                          }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="views"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={2.5}
+                          dot={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Performance Metrics */}
+            {businessId > 0 && (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { label: "Seller Score", value: "4.8 / 5", sub: "Excellent rating", subColor: "text-green-600", icon: <Star className="w-5 h-5 text-amber-400 fill-amber-400" />, bg: "bg-amber-50 dark:bg-amber-950/30" },
+                  { label: "Cancellation", value: "1.2%", sub: "Target < 2.5%", subColor: "text-muted-foreground", icon: <XCircle className="w-5 h-5 text-red-500" />, bg: "bg-red-50 dark:bg-red-950/30" },
+                  { label: "On-Time Ship", value: "98.5%", sub: "Target > 95%", subColor: "text-green-600", icon: <Clock className="w-5 h-5 text-indigo-500" />, bg: "bg-indigo-50 dark:bg-indigo-950/30" },
+                  { label: "Product Quality", value: "98%", sub: "Target > 95%", subColor: "text-green-600", icon: <ShieldCheck className="w-5 h-5 text-green-500" />, bg: "bg-green-50 dark:bg-green-950/30" },
+                ].map((m) => (
+                  <div key={m.label} className="bg-card border border-border rounded-xl p-4 shadow-sm">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{m.label}</span>
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${m.bg}`}>{m.icon}</div>
+                    </div>
+                    <p className="text-2xl font-bold text-foreground">{m.value}</p>
+                    <p className={`text-xs mt-1 font-medium ${m.subColor}`}>{m.sub}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* ── Orders Tab ── */}
-        <TabsContent value="orders" className="space-y-4">
+        {activeTab === "orders" && (
+          <div className="space-y-4">
+          <div className="bg-card border border-border rounded-xl px-5 py-4 shadow-sm flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <ShoppingBag className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <p className="font-semibold text-foreground text-sm">Orders</p>
+              <p className="text-xs text-muted-foreground">Manage and track all customer orders</p>
+            </div>
+          </div>
           {!orders || orders.length === 0 ? (
-            <div className="text-center py-16 text-muted-foreground">
+            <div className="bg-card border border-border rounded-xl text-center py-16 text-muted-foreground">
               <Package className="w-12 h-12 mx-auto mb-4 opacity-30" />
-              <p>No orders yet</p>
+              <p className="font-medium text-foreground">No orders yet</p>
+              <p className="text-sm mt-1">Orders will appear here when customers purchase from you</p>
             </div>
           ) : (
             (orders as (typeof orders[0] & { paymentStatus?: string; paymentReference?: string | null })[]).map((order) => {
@@ -787,21 +835,42 @@ function SellerDashboard() {
               );
             })
           )}
-        </TabsContent>
+          </div>
+        )}
 
         {/* ── Inbox Tab ── */}
-        <TabsContent value="inbox" className="space-y-4">
-          <Inbox isEmbedded />
-        </TabsContent>
+        {activeTab === "inbox" && (
+          <div className="space-y-4">
+            <div className="bg-card border border-border rounded-xl px-5 py-4 shadow-sm flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                <MessageCircle className="w-4 h-4 text-blue-500" />
+              </div>
+              <div>
+                <p className="font-semibold text-foreground text-sm">Customer Inbox</p>
+                <p className="text-xs text-muted-foreground">Chat with buyers about their inquiries</p>
+              </div>
+            </div>
+            <Inbox isEmbedded />
+          </div>
+        )}
 
         {/* ── Inventory Tab ── */}
-        <TabsContent value="inventory" className="space-y-4">
+        {activeTab === "inventory" && (
+          <div className="space-y-4">
           {!businessId ? (
-            <div className="text-center py-16 text-muted-foreground">List your business to manage inventory</div>
+            <div className="bg-card border border-dashed border-border rounded-xl text-center py-16 text-muted-foreground">List your business to manage inventory</div>
           ) : (
             <div className="space-y-4">
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <p className="text-sm text-muted-foreground">Manage your products and stock levels.</p>
+              <div className="bg-card border border-border rounded-xl px-5 py-4 shadow-sm flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                    <Boxes className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground text-sm">Inventory</p>
+                    <p className="text-xs text-muted-foreground">Manage products and stock levels</p>
+                  </div>
+                </div>
                 <div className="flex items-center gap-2">
                   <Button size="sm" variant="outline" className="gap-2" onClick={() => setShowBulkUpload(true)}>
                     <Upload className="w-4 h-4" /> Bulk Upload
@@ -973,16 +1042,26 @@ function SellerDashboard() {
               )}
             </div>
           )}
-        </TabsContent>
+          </div>
+        )}
 
         {/* ── Collections Tab ── */}
-        <TabsContent value="collections" className="space-y-4">
+        {activeTab === "collections" && (
+          <div className="space-y-4">
           {!businessId ? (
-            <div className="text-center py-16 text-muted-foreground">List your business to manage collections</div>
+            <div className="bg-card border border-dashed border-border rounded-xl text-center py-16 text-muted-foreground">List your business to manage collections</div>
           ) : (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">Organize your products into themed collections visible on your brand page.</p>
+              <div className="bg-card border border-border rounded-xl px-5 py-4 shadow-sm flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                    <FolderOpen className="w-4 h-4 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground text-sm">Collections</p>
+                    <p className="text-xs text-muted-foreground">Organize products into themed groups visible on your brand page</p>
+                  </div>
+                </div>
                 <Button size="sm" className="gap-2" onClick={() => setShowCreateCollection(true)}>
                   <Plus className="w-4 h-4" />
                   New Collection
@@ -1144,47 +1223,47 @@ function SellerDashboard() {
               )}
             </div>
           )}
-        </TabsContent>
+          </div>
+        )}
 
         {/* ── Analytics Tab ── */}
-        <TabsContent value="analytics" className="space-y-6">
+        {activeTab === "analytics" && (
+          <div className="space-y-6">
           {!businessId ? (
-            <div className="text-center py-16 text-muted-foreground">List your business to see analytics</div>
+            <div className="bg-card border border-dashed border-border rounded-xl text-center py-16 text-muted-foreground">List your business to see analytics</div>
           ) : analyticsLoading ? (
             <Skeleton className="h-64 w-full" />
           ) : (
             <>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                  { label: "Total Views", value: analytics?.totalViews ?? 0 },
-                  { label: "Messages", value: analytics?.totalMessages ?? 0 },
-                  { label: "Orders", value: analytics?.totalOrders ?? 0 },
-                  { label: "Conversion Rate", value: `${analytics?.conversionRate ?? 0}%` },
+                  { label: "Total Views", value: analytics?.totalViews ?? 0, color: "text-primary", bg: "bg-primary/10" },
+                  { label: "Messages", value: analytics?.totalMessages ?? 0, color: "text-blue-600", bg: "bg-blue-500/10" },
+                  { label: "Orders", value: analytics?.totalOrders ?? 0, color: "text-emerald-600", bg: "bg-emerald-500/10" },
+                  { label: "Conversion Rate", value: `${analytics?.conversionRate ?? 0}%`, color: "text-purple-600", bg: "bg-purple-500/10" },
                 ].map((m) => (
-                  <Card key={m.label}>
-                    <CardContent className="pt-5">
-                      <p className="text-2xl font-bold text-foreground">{m.value}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{m.label}</p>
-                    </CardContent>
-                  </Card>
+                  <div key={m.label} className="bg-card border border-border rounded-xl p-4 shadow-sm">
+                    <p className={`text-2xl font-bold ${m.color}`}>{m.value}</p>
+                    <p className="text-sm font-medium text-foreground mt-1">{m.label}</p>
+                  </div>
                 ))}
               </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Daily Activity — Last 30 Days</CardTitle>
-                </CardHeader>
-                <CardContent>
+              <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+                <div className="px-5 py-4 border-b bg-muted/20">
+                  <p className="font-semibold text-foreground text-sm">Daily Activity — Last 30 Days</p>
+                </div>
+                <div className="p-5">
                   <ResponsiveContainer width="100%" height={280}>
                     <BarChart data={analytics?.dailyStats ?? []}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis
                         dataKey="date"
-                        tick={{ fontSize: 10 }}
+                        tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                         tickFormatter={(v: string) => v.slice(5)}
-                        stroke="hsl(var(--muted-foreground))"
+                        stroke="hsl(var(--border))"
                       />
-                      <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                      <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--border))" />
                       <Tooltip
                         contentStyle={{
                           background: "hsl(var(--card))",
@@ -1193,35 +1272,35 @@ function SellerDashboard() {
                           fontSize: "12px",
                         }}
                       />
-                      <Bar dataKey="views" fill="hsl(var(--primary))" radius={[2, 2, 0, 0]} />
-                      <Bar dataKey="messages" fill="#60a5fa" radius={[2, 2, 0, 0]} />
-                      <Bar dataKey="orders" fill="#34d399" radius={[2, 2, 0, 0]} />
+                      <Bar dataKey="views" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
+                      <Bar dataKey="messages" fill="#60a5fa" radius={[3, 3, 0, 0]} />
+                      <Bar dataKey="orders" fill="#34d399" radius={[3, 3, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
-                  <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-3 h-3 rounded-sm bg-primary inline-block" /> Views
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-3 h-3 rounded-sm bg-blue-400 inline-block" /> Messages
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-3 h-3 rounded-sm bg-emerald-400 inline-block" /> Orders
-                    </span>
+                  <div className="flex items-center gap-5 mt-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-primary inline-block" /><span className="font-medium text-foreground">Views</span></span>
+                    <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-blue-400 inline-block" /><span className="font-medium text-foreground">Messages</span></span>
+                    <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-emerald-400 inline-block" /><span className="font-medium text-foreground">Orders</span></span>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </>
           )}
-        </TabsContent>
+          </div>
+        )}
 
         {/* ── My Clients Tab ── */}
-        <TabsContent value="clients" className="space-y-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Users className="w-5 h-5 text-primary" />
-            <h2 className="font-semibold text-lg">My Clients</h2>
+        {activeTab === "clients" && (
+          <div className="space-y-4">
+          <div className="bg-card border border-border rounded-xl px-5 py-4 shadow-sm flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+              <Users className="w-4 h-4 text-indigo-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-foreground text-sm">My Clients</p>
+              <p className="text-xs text-muted-foreground">Customers who have placed orders with your business</p>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground -mt-2">Customers who have placed orders with your business.</p>
 
           {!businessId ? (
             <Card>
@@ -1285,28 +1364,47 @@ function SellerDashboard() {
               </CardContent>
             </Card>
           )}
-        </TabsContent>
+          </div>
+        )}
 
         {/* ── Feedback Tab ── */}
-        <TabsContent value="feedback" className="space-y-4">
-          <FeedbackTab businessId={businessId} />
-        </TabsContent>
+        {activeTab === "feedback" && (
+          <div className="space-y-4">
+            <div className="bg-card border border-border rounded-xl px-5 py-4 shadow-sm flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                <Star className="w-4 h-4 text-amber-500" />
+              </div>
+              <div>
+                <p className="font-semibold text-foreground text-sm">Customer Feedback</p>
+                <p className="text-xs text-muted-foreground">Reviews and ratings from your buyers</p>
+              </div>
+            </div>
+            <FeedbackTab businessId={businessId} />
+          </div>
+        )}
 
         {/* ── Pricing Tab ── */}
-        <TabsContent value="pricing" className="space-y-4">
+        {activeTab === "pricing" && (
+          <div className="space-y-4">
           {!businessId ? (
-            <div className="text-center py-16 text-muted-foreground">List your business to manage pricing</div>
+            <div className="bg-card border border-dashed border-border rounded-xl text-center py-16 text-muted-foreground">List your business to manage pricing</div>
           ) : !products || products.length === 0 ? (
-            <div className="text-center py-16 text-muted-foreground border-2 border-dashed rounded-xl">
+            <div className="bg-card border border-dashed border-border rounded-xl text-center py-16 text-muted-foreground">
               <Tag className="w-12 h-12 mx-auto mb-4 opacity-30" />
-              <p className="font-medium">No products yet</p>
+              <p className="font-medium text-foreground">No products yet</p>
               <p className="text-xs mt-1">Add products in the Inventory tab first</p>
             </div>
           ) : (
             <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Set the selling price and an optional sale price for each product. Products with a sale price appear in the <strong>Deals</strong> section.
-              </p>
+              <div className="bg-card border border-border rounded-xl px-5 py-4 shadow-sm flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                  <Tag className="w-4 h-4 text-orange-500" />
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground text-sm">Product Pricing</p>
+                  <p className="text-xs text-muted-foreground">Set prices and optional sale prices. Products with a sale price appear in the <strong>Deals</strong> section.</p>
+                </div>
+              </div>
               <div className="space-y-3">
                 {products.map((product) => {
                   const p = product as typeof product & { discountPrice?: string | null };
@@ -1376,16 +1474,28 @@ function SellerDashboard() {
               </div>
             </div>
           )}
-        </TabsContent>
+          </div>
+        )}
 
         {/* ── Store Settings Tab ── */}
-        <TabsContent value="settings" className="space-y-6">
+        {activeTab === "settings" && (
+          <div className="space-y-6">
           {!businessId ? (
-            <div className="text-center py-16 text-muted-foreground">List your business first to access store settings</div>
+            <div className="bg-card border border-dashed border-border rounded-xl text-center py-16 text-muted-foreground">List your business first to access store settings</div>
           ) : (
-            <div className="max-w-2xl space-y-5">
+            <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+              <div className="px-6 py-5 border-b bg-muted/20 flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <MapPin className="w-4 h-4 text-primary" />
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground text-sm">Store Settings</p>
+                  <p className="text-xs text-muted-foreground">Update your business profile and contact details</p>
+                </div>
+              </div>
+            <div className="p-6 max-w-2xl space-y-5">
               <div>
-                <Label htmlFor="biz-name">Store Name</Label>
+                <Label htmlFor="biz-name" className="text-sm font-medium text-foreground">Store Name</Label>
                 <Input
                   id="biz-name"
                   value={bizName}
@@ -1394,7 +1504,7 @@ function SellerDashboard() {
                 />
               </div>
               <div>
-                <Label htmlFor="biz-phone">Phone Number</Label>
+                <Label htmlFor="biz-phone" className="text-sm font-medium text-foreground">Phone Number</Label>
                 <Input
                   id="biz-phone"
                   value={bizPhone}
@@ -1404,7 +1514,7 @@ function SellerDashboard() {
                 />
               </div>
               <div>
-                <Label htmlFor="biz-location">Location / City</Label>
+                <Label htmlFor="biz-location" className="text-sm font-medium text-foreground">Location / City</Label>
                 <Input
                   id="biz-location"
                   value={bizLocation}
@@ -1414,7 +1524,7 @@ function SellerDashboard() {
                 />
               </div>
               <div>
-                <Label htmlFor="biz-desc">Description</Label>
+                <Label htmlFor="biz-desc" className="text-sm font-medium text-foreground">Description</Label>
                 <Textarea
                   id="biz-desc"
                   value={bizDescription}
@@ -1425,11 +1535,11 @@ function SellerDashboard() {
                 />
               </div>
               <div>
-                <Label className="block mb-2">Store Logo</Label>
+                <Label className="block mb-2 text-sm font-medium text-foreground">Store Logo</Label>
                 <ImageUpload value={bizLogo} onChange={setBizLogo} maxImages={1} label="Upload Logo" />
               </div>
               <div>
-                <Label className="block mb-2">Banner / Gallery Images</Label>
+                <Label className="block mb-2 text-sm font-medium text-foreground">Banner / Gallery Images</Label>
                 <ImageUpload value={bizImages} onChange={setBizImages} maxImages={6} label="Upload Images" />
               </div>
               <Button onClick={saveBizSettings} disabled={bizSaving} className="gap-2">
@@ -1437,40 +1547,69 @@ function SellerDashboard() {
                 Save Settings
               </Button>
             </div>
+            </div>
           )}
-        </TabsContent>
+          </div>
+        )}
 
         {/* ── Earnings Tab ── */}
-        <TabsContent value="earnings" className="space-y-6">
-          <div className="mb-2">
-            <h2 className="font-semibold text-lg">Earnings &amp; Revenue</h2>
-            <p className="text-sm text-muted-foreground mt-0.5">Track your income, escrow balance, and transaction history.</p>
+        {activeTab === "earnings" && (
+          <div className="space-y-6">
+            <div className="bg-card border border-border rounded-xl px-5 py-4 shadow-sm flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
+                <TrendingUp className="w-4 h-4 text-green-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-foreground text-sm">Earnings &amp; Revenue</p>
+                <p className="text-xs text-muted-foreground">Track your income, escrow balance, and transaction history</p>
+              </div>
+            </div>
+            <EarningsTab businessId={businessId} />
           </div>
-          <EarningsTab businessId={businessId} />
-        </TabsContent>
+        )}
 
         {/* ── Boost Tab ── */}
-        <TabsContent value="boost" className="space-y-6">
-          <div className="mb-2">
-            <h2 className="font-semibold text-lg">Boost Your Listing</h2>
-            <p className="text-sm text-muted-foreground mt-0.5">Pay to promote your store and reach more customers across Nafex Hub.</p>
+        {activeTab === "boost" && (
+          <div className="space-y-6">
+            <div className="bg-card border border-border rounded-xl px-5 py-4 shadow-sm flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                <TrendingUp className="w-4 h-4 text-orange-500" />
+              </div>
+              <div>
+                <p className="font-semibold text-foreground text-sm">Boost Your Listing</p>
+                <p className="text-xs text-muted-foreground">Pay to promote your store and reach more customers across Nafex Hub</p>
+              </div>
+            </div>
+            <BoostTab
+              businessId={businessId}
+              userEmail={user?.email ?? ""}
+              token={localStorage.getItem("nafex_token") ?? ""}
+            />
           </div>
-          <BoostTab
-            businessId={businessId}
-            userEmail={user?.email ?? ""}
-            token={localStorage.getItem("nafex_token") ?? ""}
-          />
-        </TabsContent>
+        )}
 
         {/* ── Returns & Disputes Tab ── */}
-        <TabsContent value="disputes" className="space-y-6">
-          <SellerDisputesTab businessId={businessId} />
-        </TabsContent>
+        {activeTab === "disputes" && (
+          <div className="space-y-4">
+            <div className="bg-card border border-border rounded-xl px-5 py-4 shadow-sm flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+                <AlertTriangle className="w-4 h-4 text-red-500" />
+              </div>
+              <div>
+                <p className="font-semibold text-foreground text-sm">Returns &amp; Disputes</p>
+                <p className="text-xs text-muted-foreground">Manage customer return claims and escrow refund requests</p>
+              </div>
+            </div>
+            <SellerDisputesTab businessId={businessId} />
+          </div>
+        )}
 
         {/* ── Store Vouchers Tab ── */}
-        <TabsContent value="vouchers" className="space-y-6">
-          <SellerVouchersTab businessId={businessId} />
-        </TabsContent>
+        {activeTab === "vouchers" && (
+          <div className="space-y-4">
+            <SellerVouchersTab businessId={businessId} />
+          </div>
+        )}
       </Tabs>
 
       <Dialog open={deliveryOrderId !== null} onOpenChange={(o) => { if (!o) setDeliveryOrderId(null); }}>
@@ -1531,6 +1670,7 @@ function SellerDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
     </div>
   );
 }
