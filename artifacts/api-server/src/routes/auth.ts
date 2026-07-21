@@ -43,7 +43,12 @@ function validatePasswordStrength(password: string): string | null {
   return null;
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_for_development_only";
+const JWT_SECRET = process.env.JWT_SECRET || ((): string => {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("JWT_SECRET environment variable is required in production mode");
+  }
+  return "fallback_secret_for_development_only";
+})();
 
 function generateToken(userId: number): string {
   return jwt.sign({ userId }, JWT_SECRET, { expiresIn: `${TOKEN_EXPIRY_DAYS}d` });
