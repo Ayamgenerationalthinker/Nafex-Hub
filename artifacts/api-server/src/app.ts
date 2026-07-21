@@ -25,8 +25,15 @@ app.get("/api/healthz", (_req, res) => {
 
 // Derive allowed origin from Replit domains env in production, fallback for dev
 const allowedOrigins = (() => {
-  const domains = process.env["REPLIT_DOMAINS"];
-  if (domains) return domains.split(",").map((d) => `https://${d.trim()}`);
+  // Explicit override — highest priority
+  const explicit = process.env["ALLOWED_ORIGINS"];
+  if (explicit) return explicit.split(",").map((d) => d.trim());
+
+  // Replit managed deployment
+  const replitDomains = process.env["REPLIT_DOMAINS"];
+  if (replitDomains) return replitDomains.split(",").map((d) => `https://${d.trim()}`);
+
+  // Local dev defaults
   return ["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"];
 })();
 
@@ -62,10 +69,13 @@ if (process.env["NODE_ENV"] === "production") {
 
 app.use(cors({
   origin: (origin, callback) => {
+    // Allow same-origin requests (no origin header) and all listed domains
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS"));
+      // Return a clean CORS blocked response, not a 500
+      logger.warn({ origin }, "CORS blocked request from unlisted origin");
+      callback(null, false);
     }
   },
   credentials: true,
