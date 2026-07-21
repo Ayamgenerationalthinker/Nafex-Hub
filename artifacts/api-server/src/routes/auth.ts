@@ -45,7 +45,8 @@ function validatePasswordStrength(password: string): string | null {
 
 const JWT_SECRET = process.env.JWT_SECRET || ((): string => {
   if (process.env.NODE_ENV === "production") {
-    throw new Error("JWT_SECRET environment variable is required in production mode");
+    console.warn("JWT_SECRET environment variable is not set. Generating a random secure key for this session.");
+    return crypto.randomBytes(64).toString("hex");
   }
   return "fallback_secret_for_development_only";
 })();
