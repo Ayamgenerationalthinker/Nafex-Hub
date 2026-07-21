@@ -3,6 +3,7 @@ import { db, disputesTable, ordersTable, transactionsTable, businessesTable, not
 import { eq, desc, and } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
+import { payoutToSeller, paystackPost } from "./payments";
 
 const router: IRouter = Router();
 
@@ -202,13 +203,29 @@ router.patch("/admin/disputes/:id/resolve", requireAuth, requireAdmin, async (re
       .set({ paymentStatus: "refunded", status: "cancelled", updatedAt: new Date() })
       .where(eq(ordersTable.id, dispute.orderId));
 
+    const PAYSTACK_SECRET = process.env["PAYSTACK_SECRET_KEY"] ?? "";
+    let providerName: "paystack" | "momo" | "manual" | "system" = "manual";
+    if (PAYSTACK_SECRET && order.paymentReference) {
+      try {
+        await paystackPost("/refund", {
+          transaction: order.paymentReference,
+          amount: order.totalPrice,
+          currency: "GHS",
+          merchant_note: parsed.data.resolution ?? "Buyer refund via Nafex Hub dispute resolution",
+        });
+        providerName = "paystack";
+      } catch (err) {
+        req.log?.warn({ err, orderId: order.id, ref: order.paymentReference }, "Paystack dispute refund call failed; DB marked refunded for manual handling");
+      }
+    }
+
     await db.insert(transactionsTable).values({
       orderId: order.id,
       userId: order.userId,
       type: "refund",
       amount: (order.totalPrice / 100).toString(),
       currency: "GHS",
-      provider: "system",
+      provider: providerName,
       providerRef: `REFUND-DISPUTE-${dispute.id}-${Date.now()}`,
       status: "success",
       metadata: { disputeId: dispute.id, resolution: parsed.data.status },
@@ -219,16 +236,28 @@ router.patch("/admin/disputes/:id/resolve", requireAuth, requireAdmin, async (re
       .set({ paymentStatus: "released", updatedAt: new Date() })
       .where(eq(ordersTable.id, dispute.orderId));
 
+    const totalPriceGhs = order.totalPrice / 100;
+    let commissionRate = 0.05;
+    if (totalPriceGhs <= 100) {
+      commissionRate = 0.015;
+    } else if (totalPriceGhs <= 500) {
+      commissionRate = 0.03;
+    }
+    const commissionPesewas = Math.floor(order.totalPrice * commissionRate);
+    const payoutAmount = order.totalPrice - commissionPesewas;
+
+    const payoutSuccess = await payoutToSeller(order.businessId, payoutAmount, order.id);
+
     await db.insert(transactionsTable).values({
       orderId: order.id,
       userId: req.userId!,
       type: "payout",
-      amount: (order.totalPrice / 100).toString(),
+      amount: (payoutAmount / 100).toString(),
       currency: "GHS",
-      provider: "system",
+      provider: "paystack",
       providerRef: `PAYOUT-DISPUTE-${dispute.id}-${Date.now()}`,
-      status: "success",
-      metadata: { disputeId: dispute.id, resolution: parsed.data.status },
+      status: payoutSuccess ? "success" : "failed",
+      metadata: { disputeId: dispute.id, resolution: parsed.data.status, commissionPesewas },
     });
   }
 

@@ -13,6 +13,7 @@ import { eq, desc, and, or, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
 import { getIO } from "../lib/socket";
+import { payoutToTradeSupplier } from "./payments";
 
 const router: IRouter = Router();
 
@@ -167,9 +168,15 @@ router.post("/trade/orders/:id/confirm-delivery", requireAuth, async (req: AuthR
     .where(eq(tradeOrdersTable.id, order.id))
     .returning();
 
-  await db.update(tradeEscrowTable)
+  const [escrow] = await db.update(tradeEscrowTable)
     .set({ releasedAt: new Date() })
-    .where(eq(tradeEscrowTable.orderId, order.id));
+    .where(eq(tradeEscrowTable.orderId, order.id))
+    .returning();
+
+  if (escrow) {
+    const amountPesewas = Math.round(parseFloat(escrow.amount) * 100);
+    await payoutToTradeSupplier(order.supplierId, amountPesewas, order.id);
+  }
 
   await db.insert(tradeTrackingEventsTable).values({
     orderId: order.id,
@@ -367,6 +374,11 @@ router.patch("/admin/trade-orders/:id", requireAuth, async (req: AuthRequest, re
     if (result.length === 0 && order.escrowStatus === "released") {
       res.status(409).json({ error: "Escrow already released" });
       return;
+    }
+    if (result.length > 0) {
+      const escrow = result[0];
+      const amountPesewas = Math.round(parseFloat(escrow.amount) * 100);
+      await payoutToTradeSupplier(order.supplierId, amountPesewas, order.id);
     }
     updates.escrowStatus = "released";
   } else if (body.data.escrowAction === "refund") {
