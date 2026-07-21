@@ -45,6 +45,9 @@ if (process.env.PG_SSL_INSECURE === "false") {
 export const pool = new Pool({
   connectionString: dbUrl,
   ...(useInsecureSsl ? { ssl: { rejectUnauthorized: false } } : {}),
+  max: process.env.DATABASE_POOL_SIZE ? parseInt(process.env.DATABASE_POOL_SIZE, 10) : (process.env.NODE_ENV === "production" ? 30 : 10),
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 });
 export const db = drizzle(pool, { schema });
 
