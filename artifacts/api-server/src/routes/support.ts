@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, supportConversationsTable, supportMessagesTable, usersTable, notificationsTable } from "@workspace/db";
+import { db, supportConversationsTable, supportMessagesTable, usersTable, notificationsTable, conversationsTable, messagesTable } from "@workspace/db";
 import { eq, desc, asc, and } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
@@ -247,6 +247,233 @@ router.patch("/support/tickets/:id/status", requireAuth, async (req: AuthRequest
     .returning();
 
   res.json(updated);
+});
+
+// ── Live Support Chat System ───────────────────────────────────────────────────
+
+// POST /support/conversation — Get or create the user's support conversation
+router.post("/support/conversation", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const userId = req.userId!;
+
+  // Find existing support conversation
+  const [existing] = await db
+    .select()
+    .from(conversationsTable)
+    .where(and(
+      eq(conversationsTable.userId, userId),
+      eq(conversationsTable.type, "support")
+    ));
+
+  if (existing) {
+    res.json({ id: existing.id });
+    return;
+  }
+
+  // Create new support conversation
+  const [conv] = await db
+    .insert(conversationsTable)
+    .values({
+      userId,
+      businessId: 0,
+      type: "support",
+      adminStatus: "monitoring"
+    })
+    .returning();
+
+  res.json({ id: conv.id });
+});
+
+// GET /support/messages — Get current user's support messages
+router.get("/support/messages", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const userId = req.userId!;
+
+  const [conv] = await db
+    .select()
+    .from(conversationsTable)
+    .where(and(
+      eq(conversationsTable.userId, userId),
+      eq(conversationsTable.type, "support")
+    ));
+
+  if (!conv) {
+    res.json({ conversationId: null, messages: [] });
+    return;
+  }
+
+  // Fetch all messages, joining with usersTable to get role
+  const messages = await db
+    .select({
+      id: messagesTable.id,
+      senderId: messagesTable.senderId,
+      text: messagesTable.text,
+      createdAt: messagesTable.createdAt,
+    })
+    .from(messagesTable)
+    .where(eq(messagesTable.conversationId, conv.id))
+    .orderBy(asc(messagesTable.createdAt));
+
+  res.json({ conversationId: conv.id, messages });
+});
+
+// GET /support/conversations — Admin: list all support chats
+router.get("/support/conversations", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const [caller] = await db
+    .select({ role: usersTable.role })
+    .from(usersTable)
+    .where(eq(usersTable.id, req.userId!));
+
+  if (caller?.role !== "admin" && caller?.role !== "support") {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+
+  // Fetch all support conversations with user details
+  const convos = await db
+    .select({
+      id: conversationsTable.id,
+      userId: conversationsTable.userId,
+      businessId: conversationsTable.businessId,
+      type: conversationsTable.type,
+      flagged: conversationsTable.flagged,
+      adminStatus: conversationsTable.adminStatus,
+      createdAt: conversationsTable.createdAt,
+      updatedAt: conversationsTable.updatedAt,
+      userName: usersTable.name,
+      userEmail: usersTable.email,
+      userRole: usersTable.role,
+    })
+    .from(conversationsTable)
+    .leftJoin(usersTable, eq(conversationsTable.userId, usersTable.id))
+    .where(eq(conversationsTable.type, "support"))
+    .orderBy(desc(conversationsTable.updatedAt));
+
+  // Map to include a `status` field for frontend compatibility
+  const mapped = convos.map(c => ({
+    ...c,
+    status: c.adminStatus === "resolved" ? "closed" : "open"
+  }));
+
+  res.json(mapped);
+});
+
+// GET /support/conversations/:id/messages — Admin: get support conversation messages
+router.get("/support/conversations/:id/messages", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const params = IdParam.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid id" }); return; }
+  const id = params.data.id;
+
+  const [caller] = await db
+    .select({ role: usersTable.role })
+    .from(usersTable)
+    .where(eq(usersTable.id, req.userId!));
+
+  if (caller?.role !== "admin" && caller?.role !== "support") {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+
+  const messages = await db
+    .select({
+      id: messagesTable.id,
+      conversationId: messagesTable.conversationId,
+      senderId: messagesTable.senderId,
+      text: messagesTable.text,
+      createdAt: messagesTable.createdAt,
+      senderRole: usersTable.role,
+    })
+    .from(messagesTable)
+    .leftJoin(usersTable, eq(messagesTable.senderId, usersTable.id))
+    .where(eq(messagesTable.conversationId, id))
+    .orderBy(asc(messagesTable.createdAt));
+
+  res.json(messages);
+});
+
+// POST /support/conversations/:id/messages — Admin: reply to support chat
+router.post("/support/conversations/:id/messages", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const params = IdParam.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid id" }); return; }
+  const id = params.data.id;
+
+  const parsed = z.object({
+    text: z.string().min(1).max(2000),
+  }).safeParse(req.body);
+
+  if (!parsed.success) { res.status(400).json({ error: "Invalid input" }); return; }
+
+  const [caller] = await db
+    .select({ role: usersTable.role })
+    .from(usersTable)
+    .where(eq(usersTable.id, req.userId!));
+
+  if (caller?.role !== "admin" && caller?.role !== "support") {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+
+  const [conv] = await db
+    .select()
+    .from(conversationsTable)
+    .where(eq(conversationsTable.id, id));
+
+  if (!conv) { res.status(404).json({ error: "Not found" }); return; }
+
+  const [message] = await db
+    .insert(messagesTable)
+    .values({
+      conversationId: id,
+      senderId: req.userId!,
+      text: parsed.data.text,
+      isRead: false
+    })
+    .returning();
+
+  // Reopen conversation status if closed and admin replies
+  await db
+    .update(conversationsTable)
+    .set({
+      updatedAt: new Date(),
+      adminStatus: "monitoring"
+    })
+    .where(eq(conversationsTable.id, id));
+
+  // Emit to socket
+  try {
+    getIO()?.to(`conv_${id}`).emit("receive_message", {
+      ...message,
+      senderRole: caller?.role ?? "admin"
+    });
+  } catch {}
+
+  res.status(201).json(message);
+});
+
+// PATCH /support/conversations/:id/close — Admin: close support chat
+router.patch("/support/conversations/:id/close", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+  const params = IdParam.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: "Invalid id" }); return; }
+  const id = params.data.id;
+
+  const [caller] = await db
+    .select({ role: usersTable.role })
+    .from(usersTable)
+    .where(eq(usersTable.id, req.userId!));
+
+  if (caller?.role !== "admin" && caller?.role !== "support") {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+
+  const [updated] = await db
+    .update(conversationsTable)
+    .set({
+      adminStatus: "resolved",
+      updatedAt: new Date()
+    })
+    .where(eq(conversationsTable.id, id))
+    .returning();
+
+  res.json({ ok: true, conversation: updated });
 });
 
 export default router;

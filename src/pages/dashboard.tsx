@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import BuyerDashboard from "./buyer-dashboard";
+import Inbox from "./inbox";
 import {
   useGetDashboardStats,
   useGetBusinessAnalytics,
@@ -491,6 +492,7 @@ function SellerDashboard() {
           <TabsList className="flex-nowrap h-auto gap-1 w-max">
             <TabsTrigger value="overview" className="whitespace-nowrap">Overview</TabsTrigger>
             <TabsTrigger value="orders" className="whitespace-nowrap">Orders</TabsTrigger>
+            <TabsTrigger value="inbox" className="whitespace-nowrap">Inbox</TabsTrigger>
             <TabsTrigger value="inventory" className="whitespace-nowrap">Inventory</TabsTrigger>
             <TabsTrigger value="collections" className="whitespace-nowrap">Collections</TabsTrigger>
             <TabsTrigger value="analytics" className="whitespace-nowrap">Analytics</TabsTrigger>
@@ -512,18 +514,27 @@ function SellerDashboard() {
               ? Array.from({ length: 4 }).map((_, i) => (
                   <Skeleton key={i} className="h-32 rounded-xl" />
                 ))
-              : statCards.map((card) => (
-                  <Card key={card.label} className="border-border/50 hover:border-primary/30 transition-colors">
-                    <CardContent className="pt-6">
-                      <div className="flex items-center justify-between mb-3">
-                        {card.icon}
-                        <span className="text-2xl font-bold text-foreground">{card.value}</span>
-                      </div>
-                      <p className="text-sm font-medium text-foreground">{card.label}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{card.sub}</p>
-                    </CardContent>
-                  </Card>
-                ))}
+              : statCards.map((card) => {
+                  const isConvo = card.label === "Conversations";
+                  return (
+                    <Card
+                      key={card.label}
+                      onClick={() => isConvo && setActiveTab("inbox")}
+                      className={`border-border/50 hover:border-primary/30 transition-colors ${
+                        isConvo ? "cursor-pointer hover:bg-primary/5 transition-all" : ""
+                      }`}
+                    >
+                      <CardContent className="pt-6">
+                        <div className="flex items-center justify-between mb-3">
+                          {card.icon}
+                          <span className="text-2xl font-bold text-foreground">{card.value}</span>
+                        </div>
+                        <p className="text-sm font-medium text-foreground">{card.label}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{card.sub}</p>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
           </div>
 
           {businessId > 0 && (
@@ -776,6 +787,11 @@ function SellerDashboard() {
               );
             })
           )}
+        </TabsContent>
+
+        {/* ── Inbox Tab ── */}
+        <TabsContent value="inbox" className="space-y-4">
+          <Inbox isEmbedded />
         </TabsContent>
 
         {/* ── Inventory Tab ── */}

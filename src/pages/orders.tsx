@@ -274,7 +274,7 @@ function ConfirmDeliveryDialog({
   );
 }
 
-export default function Orders() {
+export default function Orders({ isEmbedded = false }: { isEmbedded?: boolean }) {
   const [, setLocation] = useLocation();
   const { user, token } = useAuth();
   const { toast } = useToast();
@@ -318,11 +318,13 @@ export default function Orders() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="flex items-center gap-3 mb-8">
-        <ShoppingBag className="w-6 h-6 text-primary" />
-        <h1 className="font-serif text-2xl font-bold text-foreground">My Orders</h1>
-      </div>
+    <div className={isEmbedded ? "space-y-6" : "container mx-auto px-4 py-8 max-w-4xl"}>
+      {!isEmbedded && (
+        <div className="flex items-center gap-3 mb-8">
+          <ShoppingBag className="w-6 h-6 text-primary" />
+          <h1 className="font-serif text-2xl font-bold text-foreground">My Orders</h1>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="space-y-4">
