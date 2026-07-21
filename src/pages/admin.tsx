@@ -1158,25 +1158,28 @@ export default function Admin() {
                       {supportMessages.length === 0 ? (
                         <div className="flex items-center justify-center h-full text-muted-foreground text-sm">No messages yet</div>
                       ) : (
-                        supportMessages.map((msg) => (
-                          <div key={msg.id} className={`flex ${msg.senderRole === "admin" ? "justify-end" : "justify-start"}`}>
-                            {msg.senderRole === "user" && (
-                              <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center mr-2 flex-shrink-0 mt-1">
-                                <span className="text-[10px] font-bold text-primary">U</span>
+                        supportMessages.map((msg) => {
+                          const isAdmin = msg.senderRole === "admin";
+                          return (
+                            <div key={msg.id} className={`flex ${isAdmin ? "justify-end" : "justify-start"}`}>
+                              {!isAdmin && (
+                                <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center mr-2 flex-shrink-0 mt-1">
+                                  <span className="text-[10px] font-bold text-primary">{msg.senderRole === "business_owner" ? "S" : "U"}</span>
+                                </div>
+                              )}
+                              <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${
+                                isAdmin
+                                  ? "bg-primary text-primary-foreground rounded-br-sm"
+                                  : "bg-muted text-foreground rounded-bl-sm"
+                              }`}>
+                                <p className="leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                                <p className={`text-[10px] mt-1 ${isAdmin ? "opacity-60" : "text-muted-foreground"}`}>
+                                  {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                </p>
                               </div>
-                            )}
-                            <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${
-                              msg.senderRole === "admin"
-                                ? "bg-primary text-primary-foreground rounded-br-sm"
-                                : "bg-muted text-foreground rounded-bl-sm"
-                            }`}>
-                              <p className="leading-relaxed whitespace-pre-wrap">{msg.text}</p>
-                              <p className={`text-[10px] mt-1 ${msg.senderRole === "admin" ? "opacity-60" : "text-muted-foreground"}`}>
-                                {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                              </p>
                             </div>
-                          </div>
-                        ))
+                          );
+                        })
                       )}
                       <div ref={supportBottomRef} />
                     </div>
