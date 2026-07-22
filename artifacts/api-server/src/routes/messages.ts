@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, conversationsTable, messagesTable, businessesTable, notificationsTable, usersTable } from "@workspace/db";
-import { eq, and, desc, ne, count } from "drizzle-orm";
+import { eq, and, desc, ne, count, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
 import { getIO } from "../lib/socket";
@@ -59,18 +59,44 @@ router.get("/conversations", requireAuth, async (req: AuthRequest, res): Promise
     .where(and(eq(conversationsTable.userId, req.userId!), eq(conversationsTable.type, "buyer_seller")))
     .orderBy(desc(conversationsTable.updatedAt));
 
-  const withLastMsg = await Promise.all(
-    conversations.map(async (conv) => {
-      const [last] = await db
-        .select()
-        .from(messagesTable)
-        .where(eq(messagesTable.conversationId, conv.id))
-        .orderBy(desc(messagesTable.createdAt))
-        .limit(1);
-      const unreadCount = await getUnreadCount(conv.id, req.userId!);
-      return { ...conv, lastMessage: last?.text ?? null, unreadCount };
+  const convIds = conversations.map((c) => c.id);
+
+  const lastMessages = convIds.length > 0 ? await db
+    .select()
+    .from(messagesTable)
+    .where(
+      inArray(
+        messagesTable.id,
+        db
+          .select({ id: sql<number>`max(${messagesTable.id})` })
+          .from(messagesTable)
+          .where(inArray(messagesTable.conversationId, convIds))
+          .groupBy(messagesTable.conversationId)
+      )
+    ) : [];
+
+  const unreadCounts = convIds.length > 0 ? await db
+    .select({
+      conversationId: messagesTable.conversationId,
+      count: count(),
     })
-  );
+    .from(messagesTable)
+    .where(and(
+      inArray(messagesTable.conversationId, convIds),
+      ne(messagesTable.senderId, req.userId!),
+      eq(messagesTable.isRead, false)
+    ))
+    .groupBy(messagesTable.conversationId) : [];
+
+  const withLastMsg = conversations.map((conv) => {
+    const last = lastMessages.find((m) => m.conversationId === conv.id);
+    const unread = unreadCounts.find((c) => c.conversationId === conv.id);
+    return {
+      ...conv,
+      lastMessage: last?.text ?? null,
+      unreadCount: Number(unread?.count ?? 0),
+    };
+  });
 
   res.json(withLastMsg);
 });
@@ -94,23 +120,53 @@ router.get("/seller/conversations", requireAuth, async (req: AuthRequest, res): 
       adminStatus: conversationsTable.adminStatus,
       createdAt: conversationsTable.createdAt,
       updatedAt: conversationsTable.updatedAt,
+      customerName: usersTable.name,
     })
     .from(conversationsTable)
+    .leftJoin(usersTable, eq(conversationsTable.userId, usersTable.id))
     .where(and(eq(conversationsTable.businessId, business.id), eq(conversationsTable.type, "buyer_seller")))
     .orderBy(desc(conversationsTable.updatedAt));
 
-  const withDetails = await Promise.all(
-    conversations.map(async (conv) => {
-      const [last] = await db
-        .select()
-        .from(messagesTable)
-        .where(eq(messagesTable.conversationId, conv.id))
-        .orderBy(desc(messagesTable.createdAt))
-        .limit(1);
-      const unreadCount = await getUnreadCount(conv.id, req.userId!);
-      return { ...conv, businessName: business.name, businessLogo: null as string | null, lastMessage: last?.text ?? null, unreadCount };
+  const convIds = conversations.map((c) => c.id);
+
+  const lastMessages = convIds.length > 0 ? await db
+    .select()
+    .from(messagesTable)
+    .where(
+      inArray(
+        messagesTable.id,
+        db
+          .select({ id: sql<number>`max(${messagesTable.id})` })
+          .from(messagesTable)
+          .where(inArray(messagesTable.conversationId, convIds))
+          .groupBy(messagesTable.conversationId)
+      )
+    ) : [];
+
+  const unreadCounts = convIds.length > 0 ? await db
+    .select({
+      conversationId: messagesTable.conversationId,
+      count: count(),
     })
-  );
+    .from(messagesTable)
+    .where(and(
+      inArray(messagesTable.conversationId, convIds),
+      ne(messagesTable.senderId, req.userId!),
+      eq(messagesTable.isRead, false)
+    ))
+    .groupBy(messagesTable.conversationId) : [];
+
+  const withDetails = conversations.map((conv) => {
+    const last = lastMessages.find((m) => m.conversationId === conv.id);
+    const unread = unreadCounts.find((c) => c.conversationId === conv.id);
+    return {
+      ...conv,
+      businessName: conv.customerName ?? "Customer",
+      businessLogo: null as string | null,
+      lastMessage: last?.text ?? null,
+      unreadCount: Number(unread?.count ?? 0),
+    };
+  });
 
   res.json(withDetails);
 });

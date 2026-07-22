@@ -28,9 +28,15 @@ export function useSellerConversations() {
     fetch("/api/seller/conversations", {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then((r) => r.json())
-      .then((d) => setData(d as SellerConv[]))
-      .catch(() => {})
+      .then((r) => (r.ok ? r.json() : []))
+      .then((d) => {
+        if (Array.isArray(d)) {
+          setData(d);
+        } else {
+          setData([]);
+        }
+      })
+      .catch(() => setData([]))
       .finally(() => setIsLoading(false));
   }, [user?.id, user?.role]);
 
