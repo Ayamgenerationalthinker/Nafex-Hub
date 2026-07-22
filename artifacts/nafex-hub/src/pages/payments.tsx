@@ -42,7 +42,15 @@ export default function Payments() {
     const token = localStorage.getItem("nafex_token") ?? "";
     fetch("/api/transactions", { headers: { Authorization: `Bearer ${token}` } })
       .then(async (r) => {
-        if (!r.ok) throw new Error(await r.text());
+        if (!r.ok) {
+          const txt = await r.text();
+          try {
+            const parsed = JSON.parse(txt);
+            throw new Error(parsed.error ?? txt);
+          } catch {
+            throw new Error(txt);
+          }
+        }
         return (await r.json()) as Txn[];
       })
       .then(setTxns)
