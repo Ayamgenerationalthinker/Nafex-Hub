@@ -12,11 +12,35 @@ function createTransport() {
 }
 
 export async function sendAdminEmail(subject: string, text: string): Promise<void> {
-  const to = process.env.EMAIL_USER;
-  if (!to) {
-    logger.warn("EMAIL_USER not configured — skipping admin notification");
+  const to = process.env.EMAIL_USER || "princefiebor10@gmail.com";
+  if (process.env.RESEND_API_KEY) {
+    const fromAddress = process.env.EMAIL_FROM || "onboarding@resend.dev";
+    try {
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: `Nafex Hub <${fromAddress}>`,
+          to,
+          subject: `[Nafex Hub] ${subject}`,
+          text,
+        }),
+      });
+      const data = await res.json() as any;
+      if (!res.ok) {
+        logger.error({ data, subject }, "Resend API returned error for admin email");
+      } else {
+        logger.info({ id: data.id, subject }, "Admin notification email sent via Resend API");
+      }
+    } catch (err) {
+      logger.error({ err, subject }, "Failed to send admin email via Resend API");
+    }
     return;
   }
+
   const transport = createTransport();
   if (!transport) {
     logger.warn("Email credentials not configured — skipping admin notification");
@@ -46,6 +70,36 @@ export async function sendUserEmail(opts: {
   text: string;
   html?: string;
 }): Promise<boolean> {
+  if (process.env.RESEND_API_KEY) {
+    const fromAddress = process.env.EMAIL_FROM || "onboarding@resend.dev";
+    try {
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: `Nafex Hub <${fromAddress}>`,
+          to: opts.to,
+          subject: `[Nafex Hub] ${opts.subject}`,
+          text: opts.text,
+          html: opts.html,
+        }),
+      });
+      const data = await res.json() as any;
+      if (!res.ok) {
+        logger.error({ data, to: opts.to, subject: opts.subject }, "Resend API returned error");
+        return false;
+      }
+      logger.info({ id: data.id, to: opts.to, subject: opts.subject }, "User email sent via Resend API");
+      return true;
+    } catch (err) {
+      logger.error({ err, to: opts.to, subject: opts.subject }, "Failed to send user email via Resend API");
+      return false;
+    }
+  }
+
   const from = process.env.EMAIL_USER;
   if (!from) {
     logger.warn({ to: opts.to, subject: opts.subject }, "EMAIL_USER not configured — skipping user email");
