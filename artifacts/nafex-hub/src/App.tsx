@@ -107,7 +107,7 @@ function Router() {
             <Route path="/login" component={Login} />
             <Route path="/register" component={Register} />
             <Route path="/verify-email" component={VerifyEmail} />
-            <Route path="/cart">{() => <ProtectedRoute component={Cart} />}</Route>
+            <Route path="/cart">{() => <ProtectedRoute component={Cart} roles={["user", "admin"]} to="/dashboard" />}</Route>
             <Route path="/discounts" component={Discounts} />
             <Route path="/services" component={ServicesPage} />
             <Route path="/product/:id" component={ProductDetail} />
@@ -116,7 +116,7 @@ function Router() {
             <Route path="/inbox">{() => <ProtectedRoute component={Inbox} />}</Route>
             <Route path="/orders">{() => <ProtectedRoute component={Orders} />}</Route>
             <Route path="/payments">{() => <ProtectedRoute component={Payments} />}</Route>
-            <Route path="/favorites">{() => <ProtectedRoute component={Favorites} />}</Route>
+            <Route path="/favorites">{() => <ProtectedRoute component={Favorites} roles={["user", "admin"]} to="/dashboard" />}</Route>
             <Route path="/support">{() => <ProtectedRoute component={SupportChat} />}</Route>
             <Route path="/seller/settings">{() => <ProtectedRoute component={SellerSettings} roles={["business_owner"]} to="/explore" />}</Route>
             <Route path="/my-shop">{() => <ProtectedRoute component={MyShop} roles={["business_owner"]} to="/explore" />}</Route>

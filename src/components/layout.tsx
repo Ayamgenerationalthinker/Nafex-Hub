@@ -135,7 +135,9 @@ const { isDarkMode, toggleDarkMode } = useDarkMode();
 
             {user ? (
               <div className="flex items-center gap-1 ml-2">
-                <CartIcon className="text-secondary-foreground/80 hover:text-primary" />
+                {!isBusinessOwner && !isAdmin && (
+                  <CartIcon className="text-secondary-foreground/80 hover:text-primary" />
+                )}
 <Button variant="ghost" size="sm" onClick={toggleDarkMode} className="text-secondary-foreground/80 hover:text-primary" data-testid="btn-dark-mode">{isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}</Button>
                 <NotificationBell />
 
@@ -299,7 +301,9 @@ const { isDarkMode, toggleDarkMode } = useDarkMode();
 
           {/* Mobile hamburger */}
           <div className="flex md:hidden items-center gap-2">
-            <CartIcon className="text-secondary-foreground/80 hover:text-primary" />
+            {!isBusinessOwner && !isAdmin && (
+              <CartIcon className="text-secondary-foreground/80 hover:text-primary" />
+            )}
             {user && <NotificationBell />}
             {!user && (
               <Link href="/register">

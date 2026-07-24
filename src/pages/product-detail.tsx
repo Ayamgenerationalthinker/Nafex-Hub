@@ -13,6 +13,9 @@ export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const { user, token } = useAuth();
+  const isBusinessOwner = user?.role === "business_owner";
+  const isAdmin = user?.role === "admin";
+  const isBuyer = !isBusinessOwner && !isAdmin;
   const { toast } = useToast();
   const addToCart = useCart((s) => s.addItem);
   const [selectedImg, setSelectedImg] = useState(0);
@@ -315,7 +318,7 @@ export default function ProductDetail() {
           </div>
 
           {/* Quantity + actions */}
-          {!outOfStock && (
+          {isBuyer && !outOfStock && (
             <div className="space-y-3 pt-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-foreground">Quantity</span>
@@ -351,7 +354,7 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {!outOfStock && (
+          {isBuyer && !outOfStock && (
             <div className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-2">
               <p className="text-xs font-semibold text-foreground">Negotiate with seller</p>
               <div className="flex items-center gap-2">
@@ -376,46 +379,48 @@ export default function ProductDetail() {
             </div>
           )}
 
-          <div className="flex gap-2 pt-2">
-            {user ? (
+          {isBuyer && (
+            <div className="flex gap-2 pt-2">
+              {user ? (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className={`shrink-0 ${isFav ? "border-red-400 text-red-500 hover:bg-red-50" : ""}`}
+                  onClick={() => toggleFav({ data: { productId: product.id } })}
+                >
+                  <Heart className={`w-4 h-4 ${isFav ? "fill-current" : ""}`} />
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0"
+                  onClick={() => setLocation("/login")}
+                >
+                  <Heart className="w-4 h-4" />
+                </Button>
+              )}
               <Button
                 variant="outline"
-                size="icon"
-                className={`shrink-0 ${isFav ? "border-red-400 text-red-500 hover:bg-red-50" : ""}`}
-                onClick={() => toggleFav({ data: { productId: product.id } })}
+                className="flex-1 gap-2"
+                onClick={handleAddToCart}
+                disabled={outOfStock}
+                data-testid="btn-add-to-cart"
               >
-                <Heart className={`w-4 h-4 ${isFav ? "fill-current" : ""}`} />
+                <ShoppingCart className="w-4 h-4" />
+                Add to Cart
               </Button>
-            ) : (
               <Button
-                variant="outline"
-                size="icon"
-                className="shrink-0"
-                onClick={() => setLocation("/login")}
+                className="flex-1 gap-2"
+                onClick={handleBuyNow}
+                disabled={outOfStock || buying}
+                data-testid="btn-buy-now"
               >
-                <Heart className="w-4 h-4" />
+                {buying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+                {buying ? "Placing…" : outOfStock ? "Out of stock" : "Buy Now"}
               </Button>
-            )}
-            <Button
-              variant="outline"
-              className="flex-1 gap-2"
-              onClick={handleAddToCart}
-              disabled={outOfStock}
-              data-testid="btn-add-to-cart"
-            >
-              <ShoppingCart className="w-4 h-4" />
-              Add to Cart
-            </Button>
-            <Button
-              className="flex-1 gap-2"
-              onClick={handleBuyNow}
-              disabled={outOfStock || buying}
-              data-testid="btn-buy-now"
-            >
-              {buying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-              {buying ? "Placing…" : outOfStock ? "Out of stock" : "Buy Now"}
-            </Button>
-          </div>
+            </div>
+          )}
         </div>
       </div>
 

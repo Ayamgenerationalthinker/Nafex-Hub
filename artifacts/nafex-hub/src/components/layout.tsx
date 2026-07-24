@@ -137,7 +137,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
             {user ? (
               <div className="flex items-center gap-1 ml-2">
-                <CartIcon className="text-secondary-foreground/80 hover:text-primary" />
+                {!isBusinessOwner && !isAdmin && (
+                  <CartIcon className="text-secondary-foreground/80 hover:text-primary" />
+                )}
                 <NotificationBell />
 
                 {/* Buyer: Help dropdown + user account dropdown */}
@@ -349,7 +351,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <Search className="w-5 h-5" />
               </Button>
             )}
-            <CartIcon className="text-secondary-foreground/80 hover:text-primary" />
+            {!isBusinessOwner && !isAdmin && (
+              <CartIcon className="text-secondary-foreground/80 hover:text-primary" />
+            )}
             {user && <NotificationBell />}
             {!user && (
               <Link href="/register">

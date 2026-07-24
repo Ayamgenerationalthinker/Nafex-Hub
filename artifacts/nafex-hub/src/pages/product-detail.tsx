@@ -14,6 +14,9 @@ export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const { user, token } = useAuth();
+  const isBusinessOwner = user?.role === "business_owner";
+  const isAdmin = user?.role === "admin";
+  const isBuyer = !isBusinessOwner && !isAdmin;
   const requireAuth = useAuthAction();
   const { toast } = useToast();
   const addToCart = useCart((s) => s.addItem);
@@ -325,7 +328,7 @@ export default function ProductDetail() {
           </div>
 
           {/* Quantity + actions */}
-          {!outOfStock && (
+          {isBuyer && !outOfStock && (
             <div className="space-y-3 pt-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-foreground">Quantity</span>
@@ -361,7 +364,7 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {!outOfStock && (
+          {isBuyer && !outOfStock && (
             <div className="rounded-xl border border-border/60 bg-muted/20 p-3 space-y-2">
               <p className="text-xs font-semibold text-foreground">Negotiate with seller</p>
               <div className="flex items-center gap-2">
@@ -386,8 +389,9 @@ export default function ProductDetail() {
             </div>
           )}
 
-          <div className="flex gap-2 pt-2">
-            {user && (
+          {isBuyer && (
+            <div className="flex gap-2 pt-2">
+              {user && (
               <Button
                 variant="outline"
                 size="icon"
@@ -421,6 +425,7 @@ export default function ProductDetail() {
               </Button>
             </motion.div>
           </div>
+          )}
         </div>
       </div>
 

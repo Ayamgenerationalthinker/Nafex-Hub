@@ -94,10 +94,11 @@ function Router() {
             <Route path="/dashboard">{() => <ProtectedRoute component={Dashboard} to="/login" />}</Route>
             <Route path="/list">{() => <ProtectedRoute component={ListBusiness} roles={["business_owner", "admin"]} to="/explore" />}</Route>
             <Route path="/admin">{() => <ProtectedRoute component={Admin} roles={["admin"]} to="/" />}</Route>
+            <Route path="/cart">{() => <ProtectedRoute component={Cart} roles={["user", "admin"]} to="/dashboard" />}</Route>
             <Route path="/inbox">{() => <ProtectedRoute component={Inbox} />}</Route>
             <Route path="/orders">{() => <ProtectedRoute component={Orders} />}</Route>
             <Route path="/payments">{() => <ProtectedRoute component={Payments} />}</Route>
-            <Route path="/favorites">{() => <ProtectedRoute component={Favorites} />}</Route>
+            <Route path="/favorites">{() => <ProtectedRoute component={Favorites} roles={["user", "admin"]} to="/dashboard" />}</Route>
             <Route path="/support">{() => <ProtectedRoute component={SupportChat} />}</Route>
             <Route path="/seller/settings">{() => <ProtectedRoute component={SellerSettings} roles={["business_owner"]} to="/explore" />}</Route>
             <Route path="/my-shop">{() => <ProtectedRoute component={MyShop} roles={["business_owner"]} to="/explore" />}</Route>
