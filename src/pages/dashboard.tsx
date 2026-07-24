@@ -2145,8 +2145,8 @@ function SellerVouchersTab({ businessId }: { businessId: number }) {
 
 export default function Dashboard() {
   const { user } = useAuth();
-  if (user?.role === "user") {
-    return <BuyerDashboard />;
+  if (user?.role === "business_owner" || user?.role === "admin") {
+    return <SellerDashboard />;
   }
-  return <SellerDashboard />;
+  return <BuyerDashboard />;
 }

@@ -187,6 +187,7 @@ export default function BuyerDashboard() {
                 { id: "overview", label: "My Account", icon: <User className="w-4 h-4" /> },
                 { id: "orders", label: "Orders", icon: <ShoppingBag className="w-4 h-4" />, badge: activeOrdersCount > 0 ? activeOrdersCount : undefined },
                 { id: "wishlist", label: "Saved Items", icon: <Heart className="w-4 h-4" /> },
+                { id: "vouchers", label: "Vouchers & Deals", icon: <Ticket className="w-4 h-4" /> },
                 { id: "inbox", label: "Inbox", icon: <MessageCircle className="w-4 h-4" /> },
                 { id: "payments", label: "Payments & Refunds", icon: <Wallet className="w-4 h-4" /> },
                 { id: "disputes", label: "Disputes", icon: <AlertTriangle className="w-4 h-4" /> },
@@ -272,8 +273,8 @@ export default function BuyerDashboard() {
                     <p className="text-xs text-muted-foreground mt-1">
                       Save GHS 50 on your next purchase
                     </p>
-                    <Button variant="link" size="sm" className="p-0 h-auto text-xs mt-3" onClick={() => setActiveTab("overview")}>
-                      Check vouchers below
+                    <Button variant="link" size="sm" className="p-0 h-auto text-xs mt-3" onClick={() => setActiveTab("vouchers")}>
+                      View active vouchers
                     </Button>
                   </CardContent>
                 </Card>
@@ -402,6 +403,36 @@ export default function BuyerDashboard() {
 
           {/* WISHLIST TAB */}
           {activeTab === "wishlist" && <Favorites isEmbedded />}
+
+          {/* VOUCHERS TAB */}
+          {activeTab === "vouchers" && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-serif text-2xl font-bold text-foreground">Active Coupons & Vouchers</h3>
+                <p className="text-sm text-muted-foreground">Redeem these discount codes during checkout to save money.</p>
+              </div>
+              <Card className="shadow-sm border-border/70">
+                <CardContent className="pt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {vouchers.map((v) => (
+                      <div key={v.code} className="border border-dashed border-primary/40 bg-primary/5 rounded-xl p-4 flex justify-between items-center">
+                        <div>
+                          <p className="text-sm font-bold text-primary">{v.discount}</p>
+                          <p className="text-xs font-semibold text-foreground mt-0.5">{v.code}</p>
+                          <p className="text-[10px] text-muted-foreground mt-1">{v.desc}</p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] bg-muted border text-muted-foreground px-2 py-0.5 rounded-full font-mono">
+                            Expires: {v.expiry}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* INBOX TAB */}
           {activeTab === "inbox" && <Inbox isEmbedded />}
