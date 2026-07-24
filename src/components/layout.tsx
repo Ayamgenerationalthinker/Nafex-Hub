@@ -11,6 +11,7 @@ import { NotificationBell } from "@/components/notification-bell";
 import { VerifyEmailBanner } from "@/components/verify-email-banner";
 import { CartIcon } from "@/components/cart-icon";
 import { useSiteSettings } from "@/hooks/use-site-settings";
+import { NafexCoinsModal } from "@/components/nafex-coins-modal";
 
 const FALLBACK_LOGO = "/nafex-verified-badge.png";
 
@@ -19,6 +20,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
 const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [coinsModalOpen, setCoinsModalOpen] = useState(false);
   const [headerSearch, setHeaderSearch] = useState("");
   const [siteLogo, setSiteLogo] = useState<string>(FALLBACK_LOGO);
   const siteSettings = useSiteSettings();
@@ -172,6 +174,11 @@ const { isDarkMode, toggleDarkMode } = useDarkMode();
                       </DropdownMenuContent>
                     </DropdownMenu>
 
+                    <Button variant="ghost" size="sm" onClick={() => setCoinsModalOpen(true)} className="gap-1.5 text-amber-500 hover:text-amber-600 hover:bg-amber-500/10 px-3 border border-amber-500/20" title="Nafex Coins Rewards Info" data-testid="btn-nafex-coins">
+                      <Coins className="w-4 h-4" />
+                      <span className="text-sm font-semibold">{(user as any).loyaltyPoints || 0}</span>
+                    </Button>
+
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm" className="gap-1.5 text-secondary-foreground/80 hover:text-primary hover:bg-white/10 px-2" data-testid="btn-user-menu">
@@ -202,6 +209,9 @@ const { isDarkMode, toggleDarkMode } = useDarkMode();
                           <Link href="/dashboard?tab=wishlist" className="flex items-center gap-2 cursor-pointer">
                             <Heart className="w-4 h-4 text-muted-foreground" /> Wishlist
                           </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setCoinsModalOpen(true)} className="flex items-center gap-2 cursor-pointer text-amber-600 dark:text-amber-400 font-medium">
+                          <Coins className="w-4 h-4 text-amber-500" /> Nafex Coins Info
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
@@ -629,6 +639,7 @@ const { isDarkMode, toggleDarkMode } = useDarkMode();
           </div>
         </div>
       </footer>
+      <NafexCoinsModal open={coinsModalOpen} onOpenChange={setCoinsModalOpen} />
     </div>
   );
 }

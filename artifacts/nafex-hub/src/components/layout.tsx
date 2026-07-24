@@ -12,6 +12,7 @@ import { CartIcon } from "@/components/cart-icon";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { useCart } from "@/hooks/use-cart";
 import { Footer } from "@/components/footer";
+import { NafexCoinsModal } from "@/components/nafex-coins-modal";
 
 const FALLBACK_LOGO = "/nafex-verified-badge.png";
 
@@ -20,6 +21,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [coinsModalOpen, setCoinsModalOpen] = useState(false);
   const [headerSearch, setHeaderSearch] = useState("");
   const [siteLogo, setSiteLogo] = useState<string>(FALLBACK_LOGO);
   const siteSettings = useSiteSettings();
@@ -200,11 +202,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       </DropdownMenuContent>
                     </DropdownMenu>
 
-                    <Button variant="ghost" size="sm" className="gap-1.5 text-amber-500 hover:text-amber-600 hover:bg-amber-500/10 px-3 border border-amber-500/20" title="Nafex Coins" asChild>
-                      <Link href="/account/settings">
-                        <Coins className="w-4 h-4" />
-                        <span className="text-sm font-semibold">{(user as any).loyaltyPoints || 0}</span>
-                      </Link>
+                    <Button variant="ghost" size="sm" onClick={() => setCoinsModalOpen(true)} className="gap-1.5 text-amber-500 hover:text-amber-600 hover:bg-amber-500/10 px-3 border border-amber-500/20" title="Nafex Coins Rewards Info" data-testid="btn-nafex-coins">
+                      <Coins className="w-4 h-4" />
+                      <span className="text-sm font-semibold">{(user as any).loyaltyPoints || 0}</span>
                     </Button>
 
                     <DropdownMenu>
@@ -242,6 +242,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
                           <Link href="/dashboard?tab=vouchers" className="flex items-center gap-2 cursor-pointer">
                             <Ticket className="w-4 h-4 text-muted-foreground" /> Vouchers
                           </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setCoinsModalOpen(true)} className="flex items-center gap-2 cursor-pointer text-amber-600 dark:text-amber-400 font-medium">
+                          <Coins className="w-4 h-4 text-amber-500" /> Nafex Coins Info
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
@@ -532,6 +535,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       )}
 
       <Footer />
+      <NafexCoinsModal open={coinsModalOpen} onOpenChange={setCoinsModalOpen} />
     </div>
   );
 }

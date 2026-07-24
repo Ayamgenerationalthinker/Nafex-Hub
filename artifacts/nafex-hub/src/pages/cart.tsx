@@ -7,6 +7,7 @@ import { useCart } from "@/hooks/use-cart";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
+import { NafexCoinsModal } from "@/components/nafex-coins-modal";
 
 export default function Cart() {
   const [, navigate] = useLocation();
@@ -17,6 +18,7 @@ export default function Cart() {
   const [promoCode, setPromoCode] = useState("");
   const [useCoins, setUseCoins] = useState(false);
   const [useB2bMilestones, setUseB2bMilestones] = useState(false);
+  const [coinsModalOpen, setCoinsModalOpen] = useState(false);
 
   const grouped = items.reduce<Record<number, { businessName: string; items: typeof items }>>(
     (acc, item) => {
@@ -229,7 +231,16 @@ export default function Cart() {
 
                 <div className="pt-2 border-t mt-4 border-dashed pb-2">
                    <div className="flex items-center justify-between mb-2">
-                     <p className="text-xs font-semibold text-secondary-foreground">NAFEX COINS</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-semibold text-secondary-foreground">NAFEX COINS</p>
+                        <button
+                          type="button"
+                          onClick={() => setCoinsModalOpen(true)}
+                          className="text-[10px] text-amber-600 dark:text-amber-400 hover:underline font-semibold"
+                        >
+                          (How it works?)
+                        </button>
+                      </div>
                      <span className="text-xs text-amber-600 font-bold">{(user as any)?.loyaltyPoints || 0} available</span>
                    </div>
                    {user && ((user as any).loyaltyPoints || 0) > 0 ? (
@@ -361,6 +372,7 @@ export default function Cart() {
         </div>
 
       </div>
+      <NafexCoinsModal open={coinsModalOpen} onOpenChange={setCoinsModalOpen} />
     </div>
   );
 }
