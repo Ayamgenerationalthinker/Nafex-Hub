@@ -184,22 +184,22 @@ const { isDarkMode, toggleDarkMode } = useDarkMode();
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
                         <DropdownMenuItem asChild>
-                          <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
+                          <Link href="/dashboard?tab=overview" className="flex items-center gap-2 cursor-pointer">
                             <User2 className="w-4 h-4 text-muted-foreground" /> My Account
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
+                          <Link href="/dashboard?tab=orders" className="flex items-center gap-2 cursor-pointer">
                             <ClipboardList className="w-4 h-4 text-muted-foreground" /> Orders
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
+                          <Link href="/dashboard?tab=inbox" className="flex items-center gap-2 cursor-pointer">
                             <MessageCircle className="w-4 h-4 text-muted-foreground" /> Inbox
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
+                          <Link href="/dashboard?tab=wishlist" className="flex items-center gap-2 cursor-pointer">
                             <Heart className="w-4 h-4 text-muted-foreground" /> Wishlist
                           </Link>
                         </DropdownMenuItem>

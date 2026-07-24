@@ -219,27 +219,27 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
                         <DropdownMenuItem asChild>
-                          <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
+                          <Link href="/dashboard?tab=overview" className="flex items-center gap-2 cursor-pointer">
                             <User2 className="w-4 h-4 text-muted-foreground" /> My Account
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
+                          <Link href="/dashboard?tab=orders" className="flex items-center gap-2 cursor-pointer">
                             <ClipboardList className="w-4 h-4 text-muted-foreground" /> Orders
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
+                          <Link href="/dashboard?tab=inbox" className="flex items-center gap-2 cursor-pointer">
                             <MessageCircle className="w-4 h-4 text-muted-foreground" /> Inbox
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
+                          <Link href="/dashboard?tab=wishlist" className="flex items-center gap-2 cursor-pointer">
                             <Heart className="w-4 h-4 text-muted-foreground" /> Wishlist
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/dashboard" className="flex items-center gap-2 cursor-pointer">
+                          <Link href="/dashboard?tab=vouchers" className="flex items-center gap-2 cursor-pointer">
                             <Ticket className="w-4 h-4 text-muted-foreground" /> Vouchers
                           </Link>
                         </DropdownMenuItem>
@@ -524,7 +524,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <MessageSquare className="w-5 h-5 mb-0.5" />
             <span className="text-[10px] font-sans">Inbox</span>
           </Link>
-          <Link href={user ? "/account/settings" : "/login"} className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${location.startsWith("/account") || location === "/login" ? "text-primary font-semibold" : "text-white/60 hover:text-primary"}`}>
+          <Link href={user ? "/dashboard" : "/login"} className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${location.startsWith("/dashboard") || location.startsWith("/account") || location === "/login" ? "text-primary font-semibold" : "text-white/60 hover:text-primary"}`}>
             <User2 className="w-5 h-5 mb-0.5" />
             <span className="text-[10px] font-sans">{user ? "Account" : "Login"}</span>
           </Link>

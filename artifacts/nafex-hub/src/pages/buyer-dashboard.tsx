@@ -51,7 +51,18 @@ export default function BuyerDashboard() {
   const { user, logout } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("tab") || "overview";
+  });
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get("tab");
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+  }, [window.location.search]);
 
   // Get orders and disputes to display summary metrics
   const { data: orders } = useGetUserOrders({ query: { enabled: !!user, queryKey: getGetUserOrdersQueryKey() } });
