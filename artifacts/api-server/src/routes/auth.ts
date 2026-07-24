@@ -44,14 +44,10 @@ function validatePasswordStrength(password: string): string | null {
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || ((): string => {
-  // Generate a deterministic but opaque key from the machine hostname so
-  // tokens remain valid across process restarts on the same host.
-  // ⚠️  Set JWT_SECRET in your environment for full security in production.
-  const hostname = process.env.HOSTNAME ?? process.env.COMPUTERNAME ?? "nafex-fallback";
-  const derived = crypto.createHash("sha256").update(`nafex-${hostname}-jwt`).digest("hex");
+  const derived = crypto.createHash("sha256").update(`nafex-static-fallback-key-jwt`).digest("hex");
   if (process.env.NODE_ENV === "production") {
     console.warn(
-      `[WARN] JWT_SECRET is not set. Using a hostname-derived fallback key. ` +
+      `[WARN] JWT_SECRET is not set. Using a static fallback key. ` +
       `Set JWT_SECRET in your environment to ensure stable tokens across deployments.`
     );
   }
@@ -128,9 +124,9 @@ router.post("/auth/register", authLimiter, async (req, res): Promise<void> => {
   );
 
   // Fire-and-forget verification email; user is still logged in either way.
-  sendVerificationEmail(user.email, user.name, verificationCode).catch(() => {});
+  const emailDelivered = await sendVerificationEmail(user.email, user.name, verificationCode).catch(() => false);
   
-  if (!process.env.EMAIL_USER) {
+  if (!emailDelivered || process.env.NODE_ENV !== "production") {
     console.log(`\n======================================================`);
     console.log(`[DEV MODE] Verification code for ${user.email}: ${verificationCode}`);
     console.log(`======================================================\n`);
@@ -194,7 +190,7 @@ router.post("/auth/resend-verification", authLimiter, requireAuth, async (req, r
     .where(eq(usersTable.id, userId));
   const delivered = await sendVerificationEmail(user.email, user.name, code);
   
-  if (!process.env.EMAIL_USER) {
+  if (!delivered || process.env.NODE_ENV !== "production") {
     console.log(`\n======================================================`);
     console.log(`[DEV MODE] Resent Verification code for ${user.email}: ${code}`);
     console.log(`======================================================\n`);
