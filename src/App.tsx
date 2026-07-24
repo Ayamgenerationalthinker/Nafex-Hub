@@ -26,6 +26,7 @@ import Orders from "@/pages/orders";
 import ProductDetail from "@/pages/product-detail";
 import Favorites from "@/pages/favorites";
 import AdminDashboard from "@/pages/admin-dashboard";
+import AdminUsersPage from "@/pages/admin-users";
 import AdminBusinessesPage from "@/pages/admin-businesses-page";
 import AdminAnalytics from "@/pages/admin-analytics";
 import AdminSettingsPage from "@/pages/admin-settings-page";
@@ -67,6 +68,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/admin/dashboard">{() => <ProtectedRoute component={AdminDashboard} roles={["admin"]} to="/" />}</Route>
+      <Route path="/admin/users">{() => <ProtectedRoute component={AdminUsersPage} roles={["admin"]} to="/" />}</Route>
       <Route path="/admin/businesses">{() => <ProtectedRoute component={AdminBusinessesPage} roles={["admin"]} to="/" />}</Route>
       <Route path="/admin/analytics">{() => <ProtectedRoute component={AdminAnalytics} roles={["admin"]} to="/" />}</Route>
       <Route path="/admin/settings">{() => <ProtectedRoute component={AdminSettingsPage} roles={["admin"]} to="/" />}</Route>

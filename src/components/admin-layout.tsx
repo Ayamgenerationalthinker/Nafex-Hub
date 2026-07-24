@@ -16,10 +16,12 @@ import {
   Menu,
   Flame,
   Wallet,
+  Users,
 } from "lucide-react";
 
 const NAV_ITEMS = [
   { path: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { path: "/admin/users", label: "Users", icon: Users },
   { path: "/admin/businesses", label: "Businesses", icon: Building2 },
   { path: "/admin/products", label: "Products", icon: Package },
   { path: "/admin/services", label: "Services", icon: Sparkles },

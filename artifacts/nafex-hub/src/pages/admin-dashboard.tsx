@@ -148,7 +148,7 @@ export default function AdminDashboard() {
     : 0;
 
   const CARDS = [
-    { label: "Total Users", key: "totalUsers" as const, icon: Users, color: "bg-blue-500/10 text-blue-500", linkTo: "/admin", computed: false },
+    { label: "Total Users", key: "totalUsers" as const, icon: Users, color: "bg-blue-500/10 text-blue-500", linkTo: "/admin/users", computed: false },
     { label: "Total Businesses", key: "totalBusinesses" as const, icon: Building2, color: "bg-primary/10 text-primary", linkTo: "/admin/businesses", computed: false },
     { label: "Verified", key: "verifiedBusinesses" as const, icon: CheckCircle2, color: "bg-green-500/10 text-green-500", linkTo: "/admin/businesses", computed: false },
     { label: "Pending Verification", key: "_pending" as any, icon: Clock, color: "bg-amber-500/10 text-amber-600", linkTo: "/admin/businesses", computed: true, computedValue: pendingVerifications },
@@ -283,113 +283,43 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Bottom Row: Quick Actions + Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
-          {/* Quick Actions */}
-          <div className="lg:col-span-3 bg-card border border-border rounded-xl p-5">
-            <h3 className="font-semibold text-foreground text-sm mb-4">Quick Actions</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Link href="/admin/payments" className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted hover:border-primary/30 transition-all group" data-testid="link-admin-payments">
-                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Wallet className="w-4 h-4 text-primary" />
+        {/* Recent Activity Feed */}
+        <div className="bg-card border border-border rounded-xl p-5">
+          <h3 className="font-semibold text-foreground text-sm mb-4 flex items-center gap-2">
+            <Clock className="w-4 h-4 text-muted-foreground" />
+            Recent Platform Activity
+          </h3>
+          {activityLoading ? (
+            <div className="space-y-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <Skeleton className="w-8 h-8 rounded-full" />
+                  <div className="flex-1 space-y-1">
+                    <Skeleton className="h-3.5 w-full" />
+                    <Skeleton className="h-3 w-20" />
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">Payments & Escrow</p>
-                  <p className="text-xs text-muted-foreground">Ledger & manual controls</p>
-                </div>
-                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-              </Link>
-              <Link href="/admin/businesses" className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted hover:border-primary/30 transition-all group">
-                <div className="w-9 h-9 rounded-lg bg-green-500/10 flex items-center justify-center">
-                  <Building2 className="w-4 h-4 text-green-500" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">Verify Businesses</p>
-                  <p className="text-xs text-muted-foreground">Review pending listings</p>
-                </div>
-                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-              </Link>
-              <Link href="/admin/products" className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted hover:border-primary/30 transition-all group">
-                <div className="w-9 h-9 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                  <Package className="w-4 h-4 text-purple-500" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">Manage Products</p>
-                  <p className="text-xs text-muted-foreground">View & moderate listings</p>
-                </div>
-                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-              </Link>
-              <Link href="/admin/support" className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted hover:border-primary/30 transition-all group">
-                <div className="w-9 h-9 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                  <Headphones className="w-4 h-4 text-orange-500" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">Support Chats</p>
-                  <p className="text-xs text-muted-foreground">Respond to user queries</p>
-                </div>
-                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-              </Link>
-              <Link href="/admin/analytics" className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted hover:border-primary/30 transition-all group">
-                <div className="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                  <TrendingUp className="w-4 h-4 text-blue-500" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">View Analytics</p>
-                  <p className="text-xs text-muted-foreground">Platform growth data</p>
-                </div>
-                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-              </Link>
-              <Link href="/admin/settings" className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted hover:border-primary/30 transition-all group">
-                <div className="w-9 h-9 rounded-lg bg-gray-500/10 flex items-center justify-center">
-                  <Users className="w-4 h-4 text-gray-500" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">Site Settings</p>
-                  <p className="text-xs text-muted-foreground">Update contact info</p>
-                </div>
-                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-              </Link>
+              ))}
             </div>
-          </div>
-
-          {/* Recent Activity Feed */}
-          <div className="lg:col-span-2 bg-card border border-border rounded-xl p-5">
-            <h3 className="font-semibold text-foreground text-sm mb-4 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-muted-foreground" />
-              Recent Activity
-            </h3>
-            {activityLoading ? (
-              <div className="space-y-4">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <Skeleton className="w-8 h-8 rounded-full" />
-                    <div className="flex-1 space-y-1">
-                      <Skeleton className="h-3.5 w-full" />
-                      <Skeleton className="h-3 w-20" />
-                    </div>
+          ) : recentActivity.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+              <Activity className="w-8 h-8 mb-2 opacity-20" />
+              <p className="text-sm font-medium">No recent activity</p>
+              <p className="text-xs mt-1">Activity will appear here as users interact with the platform.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {recentActivity.slice(0, 9).map((item) => (
+                <div key={item.id} className="flex items-start gap-3 p-3 rounded-lg border border-border/60 bg-muted/20">
+                  <ActivityIcon type={item.type} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-foreground leading-snug">{item.message}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{item.time}</p>
                   </div>
-                ))}
-              </div>
-            ) : recentActivity.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-                <Activity className="w-8 h-8 mb-2 opacity-20" />
-                <p className="text-sm font-medium">No recent activity</p>
-                <p className="text-xs mt-1">Activity will appear here as users interact with the platform.</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {recentActivity.slice(0, 8).map((item) => (
-                  <div key={item.id} className="flex items-start gap-3 py-1.5">
-                    <ActivityIcon type={item.type} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-foreground leading-snug">{item.message}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{item.time}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </AdminLayout>
