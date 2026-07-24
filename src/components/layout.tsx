@@ -588,7 +588,9 @@ const { isDarkMode, toggleDarkMode } = useDarkMode();
                 <li><Link href="/discounts" className="text-secondary-foreground/70 hover:text-primary transition-colors">Deals & Flash Sales</Link></li>
                 <li><Link href="/services" className="text-secondary-foreground/70 hover:text-primary transition-colors">Services</Link></li>
                 <li><Link href="/trade" className="text-secondary-foreground/70 hover:text-primary transition-colors">Nafex Trade Connect</Link></li>
-                <li><Link href="/list" className="text-secondary-foreground/70 hover:text-primary transition-colors">List Your Business</Link></li>
+                {!user || (user.role !== "user") ? (
+                  <li><Link href="/list" className="text-secondary-foreground/70 hover:text-primary transition-colors">List Your Business</Link></li>
+                ) : null}
               </ul>
             </div>
 
