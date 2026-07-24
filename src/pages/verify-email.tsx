@@ -17,6 +17,7 @@ export default function VerifyEmail() {
   const [code, setCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [resending, setResending] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(CODE_TTL_SECONDS);
   const tickRef = useRef<number | null>(null);
 
@@ -95,8 +96,10 @@ export default function VerifyEmail() {
           ? `A fresh 6-digit code was sent to ${user!.email}. It expires in 1 minute.`
           : "Email isn't configured on the server yet — ask the admin to set EMAIL_USER / EMAIL_PASS.",
       });
+      return true;
     } catch (err) {
       toast({ title: "Resend failed", description: (err as Error).message, variant: "destructive" });
+      return false;
     } finally {
       setResending(false);
     }
@@ -106,60 +109,87 @@ export default function VerifyEmail() {
     <div className="container mx-auto px-4 py-16 max-w-md">
       <Card>
         <CardContent className="p-8 space-y-6">
-          <div className="text-center space-y-2">
-            <div className="w-14 h-14 mx-auto rounded-full bg-amber-100 flex items-center justify-center">
-              <Mail className="w-7 h-7 text-amber-600" />
+          {!codeSent ? (
+            <div className="text-center space-y-4">
+              <div className="w-14 h-14 mx-auto rounded-full bg-amber-100 flex items-center justify-center">
+                <Mail className="w-7 h-7 text-amber-600" />
+              </div>
+              <h1 className="text-2xl font-bold">Verify your email</h1>
+              <p className="text-sm text-muted-foreground">
+                Click the button below to send a verification code to <strong className="text-foreground">{user.email}</strong>.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Verification is required before you can place orders, message sellers, or list a shop.
+              </p>
+              <Button 
+                onClick={async () => {
+                  const success = await resend();
+                  if (success) setCodeSent(true);
+                }} 
+                className="w-full" 
+                disabled={resending}
+              >
+                {resending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending...</> : "Send Code"}
+              </Button>
             </div>
-            <h1 className="text-2xl font-bold">Verify your email</h1>
-            <p className="text-sm text-muted-foreground">
-              We sent a 6-digit code to <strong>{user.email}</strong>. Enter it below to activate your account.
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Verification is required before you can place orders, message sellers, or list a shop.
-            </p>
-          </div>
+          ) : (
+            <>
+              <div className="text-center space-y-2">
+                <div className="w-14 h-14 mx-auto rounded-full bg-amber-100 flex items-center justify-center">
+                  <Mail className="w-7 h-7 text-amber-600" />
+                </div>
+                <h1 className="text-2xl font-bold">Verify your email</h1>
+                <p className="text-sm text-muted-foreground">
+                  We sent a 6-digit code to <strong>{user.email}</strong>. Enter it below to activate your account.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Verification is required before you can place orders, message sellers, or list a shop.
+                </p>
+              </div>
 
-          <div className={`flex items-center justify-center gap-2 text-sm font-mono ${expired ? "text-red-600" : "text-amber-700"}`}>
-            <Clock className="w-4 h-4" />
-            {expired ? (
-              <span>Code expired — request a new one</span>
-            ) : (
-              <span>Expires in {String(Math.floor(secondsLeft / 60)).padStart(2, "0")}:{String(secondsLeft % 60).padStart(2, "0")}</span>
-            )}
-          </div>
+              <div className={`flex items-center justify-center gap-2 text-sm font-mono ${expired ? "text-red-600" : "text-amber-700"}`}>
+                <Clock className="w-4 h-4" />
+                {expired ? (
+                  <span>Code expired — request a new one</span>
+                ) : (
+                  <span>Expires in {String(Math.floor(secondsLeft / 60)).padStart(2, "0")}:{String(secondsLeft % 60).padStart(2, "0")}</span>
+                )}
+              </div>
 
-          <form onSubmit={submit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="code">Verification code</Label>
-              <Input
-                id="code"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                maxLength={6}
-                value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                placeholder="••••••"
-                className="text-center text-2xl tracking-[0.5em] font-mono h-14"
-                data-testid="input-verification-code"
-                disabled={expired}
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={submitting || code.length !== 6 || expired} data-testid="btn-verify-email">
-              {submitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Verifying...</> : "Verify email"}
-            </Button>
-          </form>
+              <form onSubmit={submit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="code">Verification code</Label>
+                  <Input
+                    id="code"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    placeholder="••••••"
+                    className="text-center text-2xl tracking-[0.5em] font-mono h-14"
+                    data-testid="input-verification-code"
+                    disabled={expired}
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={submitting || code.length !== 6 || expired} data-testid="btn-verify-email">
+                  {submitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Verifying...</> : "Verify email"}
+                </Button>
+              </form>
 
-          <Button
-            type="button"
-            variant="outline"
-            onClick={resend}
-            disabled={resending}
-            className="w-full gap-1.5"
-            data-testid="btn-resend-code"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${resending ? "animate-spin" : ""}`} />
-            {resending ? "Sending..." : expired ? "Send a new code" : "Resend code"}
-          </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={resend}
+                disabled={resending}
+                className="w-full gap-1.5"
+                data-testid="btn-resend-code"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${resending ? "animate-spin" : ""}`} />
+                {resending ? "Sending..." : expired ? "Send a new code" : "Resend code"}
+              </Button>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>

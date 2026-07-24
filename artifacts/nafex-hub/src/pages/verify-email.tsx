@@ -17,6 +17,7 @@ export default function VerifyEmail() {
   const [code, setCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [resending, setResending] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
   
   const [secondsLeft, setSecondsLeft] = useState(0);
   const tickRef = useRef<number | null>(null);
@@ -132,8 +133,10 @@ export default function VerifyEmail() {
           ? `A fresh 6-digit code was sent to ${user!.email}. It expires in 3 minutes.`
           : "Email isn't configured on the server yet — ask the admin to set EMAIL_USER / EMAIL_PASS.",
       });
+      return true;
     } catch (err) {
       toast({ title: "Resend failed", description: (err as Error).message, variant: "destructive" });
+      return false;
     } finally {
       setResending(false);
     }
@@ -168,64 +171,88 @@ export default function VerifyEmail() {
         </div>
 
         <div className="w-full max-w-md space-y-8 mt-12 lg:mt-0">
-          <div className="text-center space-y-3">
-            <div className="w-20 h-20 mx-auto rounded-full bg-amber-50 flex items-center justify-center shadow-inner border border-amber-100">
-              <Mail className="w-10 h-10 text-amber-600" />
+          {!codeSent ? (
+            <div className="text-center space-y-6">
+              <div className="w-20 h-20 mx-auto rounded-full bg-amber-50 flex items-center justify-center shadow-inner border border-amber-100">
+                <Mail className="w-10 h-10 text-amber-600" />
+              </div>
+              <h2 className="font-serif text-3xl font-bold tracking-tight mt-4">Verify your email</h2>
+              <p className="text-muted-foreground font-medium">
+                Click the button below to send a verification code to <strong className="text-foreground">{user.email}</strong>.
+              </p>
+              <Button 
+                onClick={async () => {
+                  const success = await resend();
+                  if (success) setCodeSent(true);
+                }} 
+                className="w-full h-14 text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow" 
+                disabled={resending}
+              >
+                {resending ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Sending...</> : "Send Code"}
+              </Button>
             </div>
-            <h2 className="font-serif text-3xl font-bold tracking-tight mt-4">Check your email</h2>
-            <p className="text-muted-foreground font-medium">
-              We sent a 6-digit code to <strong className="text-foreground">{user.email}</strong>.
-            </p>
-            <div className={`flex items-center justify-center gap-2 text-sm font-mono p-2 rounded-md ${expired ? "bg-red-50 text-red-600" : "bg-muted text-muted-foreground"}`}>
-              <Clock className="w-4 h-4" />
-              {expired ? (
-                <span>Code expired — request a new one</span>
-              ) : (
-                <span>Code expires in {String(Math.floor(secondsLeft / 60)).padStart(2, "0")}:{String(secondsLeft % 60).padStart(2, "0")}</span>
-              )}
-            </div>
-          </div>
+          ) : (
+            <>
+              <div className="text-center space-y-3">
+                <div className="w-20 h-20 mx-auto rounded-full bg-amber-50 flex items-center justify-center shadow-inner border border-amber-100">
+                  <Mail className="w-10 h-10 text-amber-600" />
+                </div>
+                <h2 className="font-serif text-3xl font-bold tracking-tight mt-4">Check your email</h2>
+                <p className="text-muted-foreground font-medium">
+                  We sent a 6-digit code to <strong className="text-foreground">{user.email}</strong>.
+                </p>
+                <div className={`flex items-center justify-center gap-2 text-sm font-mono p-2 rounded-md ${expired ? "bg-red-50 text-red-600" : "bg-muted text-muted-foreground"}`}>
+                  <Clock className="w-4 h-4" />
+                  {expired ? (
+                    <span>Code expired — request a new one</span>
+                  ) : (
+                    <span>Code expires in {String(Math.floor(secondsLeft / 60)).padStart(2, "0")}:{String(secondsLeft % 60).padStart(2, "0")}</span>
+                  )}
+                </div>
+              </div>
 
-          <form onSubmit={submit} className="space-y-6">
-            <div className="space-y-3">
-              <Label htmlFor="code" className="text-center block font-bold text-muted-foreground uppercase tracking-wider">Verification Code</Label>
-              <Input
-                id="code"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                maxLength={6}
-                value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                placeholder="000000"
-                className="text-center text-4xl tracking-[0.75em] font-mono h-16 bg-muted/50 border-gray-200 shadow-inner"
-                data-testid="input-verification-code"
-                disabled={expired}
-              />
-            </div>
-            <Button type="submit" className="w-full h-14 text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow" disabled={submitting || code.length !== 6 || expired} data-testid="btn-verify-email">
-              {submitting ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Verifying...</> : "Verify Account"}
-            </Button>
-          </form>
+              <form onSubmit={submit} className="space-y-6">
+                <div className="space-y-3">
+                  <Label htmlFor="code" className="text-center block font-bold text-muted-foreground uppercase tracking-wider">Verification Code</Label>
+                  <Input
+                    id="code"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    placeholder="000000"
+                    className="text-center text-4xl tracking-[0.75em] font-mono h-16 bg-muted/50 border-gray-200 shadow-inner"
+                    data-testid="input-verification-code"
+                    disabled={expired}
+                  />
+                </div>
+                <Button type="submit" className="w-full h-14 text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow" disabled={submitting || code.length !== 6 || expired} data-testid="btn-verify-email">
+                  {submitting ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Verifying...</> : "Verify Account"}
+                </Button>
+              </form>
 
-          <div className="pt-6 border-t border-muted text-center">
-            <p className="text-sm font-medium text-muted-foreground mb-4">Didn't receive the email?</p>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={resend}
-              disabled={resending || (!expired && secondsLeft > 120)} // Can only resend after 1 min (60s cooldown from 3 mins)
-              className="w-full h-12 gap-2 border-gray-300 shadow-sm"
-              data-testid="btn-resend-code"
-            >
-              {resending ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Sending...</>
-              ) : (!expired && secondsLeft > 120) ? (
-                <>Resend available in {secondsLeft - 120}s</>
-              ) : (
-                <><RefreshCw className="w-4 h-4" /> Resend code</>
-              )}
-            </Button>
-          </div>
+              <div className="pt-6 border-t border-muted text-center">
+                <p className="text-sm font-medium text-muted-foreground mb-4">Didn't receive the email?</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={resend}
+                  disabled={resending || (!expired && secondsLeft > 120)} // Can only resend after 1 min (60s cooldown from 3 mins)
+                  className="w-full h-12 gap-2 border-gray-300 shadow-sm"
+                  data-testid="btn-resend-code"
+                >
+                  {resending ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Sending...</>
+                  ) : (!expired && secondsLeft > 120) ? (
+                    <>Resend available in {secondsLeft - 120}s</>
+                  ) : (
+                    <><RefreshCw className="w-4 h-4" /> Resend code</>
+                  )}
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
