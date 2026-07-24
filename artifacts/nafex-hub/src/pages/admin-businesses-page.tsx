@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { AdminLayout } from "@/components/admin-layout";
 import {
   useGetAdminBusinesses,
@@ -23,6 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -42,7 +43,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Search, CheckCircle2, XCircle, Loader2, Building2, Trash2, Star, Crown, Zap, CalendarDays, ShieldCheck } from "lucide-react";
+import {
+  Search, CheckCircle2, XCircle, Loader2, Building2, Trash2, Star, Crown, Zap,
+  CalendarDays, ShieldCheck, Eye, Package, FileText, Upload, Sparkles, MapPin,
+  Phone, Mail, Globe, Check, AlertTriangle, ExternalLink
+} from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 
 type FeaturedType = "homepage_top" | "homepage_section" | "search_boost";
@@ -60,7 +65,7 @@ function FeaturedTypeBadge({ type }: { type: string | null | undefined }) {
   return (
     <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full border ${info.color}`}>
       {type === "homepage_top" && <Crown className="w-2.5 h-2.5" />}
-      {type === "homepage_section" && <Star className="w-2.5 h-2.5" />}
+      {type === "homepage_section" && <Star className="w-2.5 h-2.5 text-amber-500 fill-amber-400" />}
       {type === "search_boost" && <Zap className="w-2.5 h-2.5" />}
       {info.label}
     </span>
@@ -71,6 +76,8 @@ type AdminBusiness = {
   id: number;
   name: string;
   logo: string | null;
+  banner: string | null;
+  description: string | null;
   location: string;
   category: string;
   isVerified: boolean;
@@ -79,6 +86,19 @@ type AdminBusiness = {
   featuredUntil: string | null;
   verificationTier?: "bronze" | "silver" | "gold";
   kycNotes?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  createdAt?: string;
+};
+
+type BusinessProduct = {
+  id: number;
+  name: string;
+  price: string;
+  images: string[];
+  stock: number | null;
+  approvalStatus: "pending" | "approved" | "rejected";
+  rejectionReason?: string | null;
 };
 
 const KYC_TIER_META = {
@@ -93,6 +113,21 @@ export default function AdminBusinessesPage() {
   const [filter, setFilter] = useState<"all" | "verified" | "unverified">("all");
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [savingFeaturedId, setSavingFeaturedId] = useState<number | null>(null);
+
+  // View Business Uploads / Details Modal State
+  const [viewDialog, setViewDialog] = useState<{ open: boolean; biz: AdminBusiness | null }>({ open: false, biz: null });
+
+  // Review Business Products Modal State
+  const [productsDialog, setProductsDialog] = useState<{
+    open: boolean;
+    bizId: number;
+    bizName: string;
+    products: BusinessProduct[];
+    loading: boolean;
+  }>({ open: false, bizId: 0, bizName: "", products: [], loading: false });
+
+  // Action status state
+  const [actioningProductId, setActioningProductId] = useState<number | null>(null);
 
   // Featured dialog state
   const [featuredDialog, setFeaturedDialog] = useState<{
@@ -113,37 +148,6 @@ export default function AdminBusinessesPage() {
     notes: string;
     loading: boolean;
   }>({ open: false, bizId: 0, bizName: "", tier: "bronze", notes: "", loading: false });
-
-  const openKycDialog = (biz: AdminBusiness) => {
-    setKycDialog({
-      open: true,
-      bizId: biz.id,
-      bizName: biz.name,
-      tier: biz.verificationTier ?? "bronze",
-      notes: biz.kycNotes ?? "",
-      loading: false,
-    });
-  };
-
-  const handleSaveKyc = async () => {
-    const token = localStorage.getItem("nafex_token") ?? "";
-    setKycDialog(d => ({ ...d, loading: true }));
-    try {
-      const res = await fetch(`/api/admin/businesses/${kycDialog.bizId}/kyc`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ verificationTier: kycDialog.tier, kycNotes: kycDialog.notes }),
-      });
-      if (!res.ok) throw new Error();
-      toast({ title: `KYC tier updated to ${KYC_TIER_META[kycDialog.tier].label}` });
-      setKycDialog(d => ({ ...d, open: false }));
-      invalidateAll();
-    } catch {
-      toast({ title: "Failed to update KYC tier", variant: "destructive" });
-    } finally {
-      setKycDialog(d => ({ ...d, loading: false }));
-    }
-  };
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -171,11 +175,79 @@ export default function AdminBusinessesPage() {
       {
         onSuccess: () => {
           invalidateAll();
-          toast({ title: isVerified ? "Business verified" : "Verification removed" });
+          toast({ title: isVerified ? "Verified Star granted to business ⭐" : "Verification Star removed" });
+          if (viewDialog.biz && viewDialog.biz.id === id) {
+            setViewDialog(prev => ({ ...prev, biz: prev.biz ? { ...prev.biz, isVerified } : null }));
+          }
         },
         onError: () => toast({ title: "Action failed", variant: "destructive" }),
       }
     );
+  };
+
+  // Open products review modal
+  const openProductsDialog = async (bizId: number, bizName: string) => {
+    setProductsDialog({ open: true, bizId, bizName, products: [], loading: true });
+    const token = localStorage.getItem("nafex_token") ?? "";
+    try {
+      const res = await fetch(`/api/admin/products?businessId=${bizId}&pageSize=50`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setProductsDialog(d => ({ ...d, products: data.products || data || [], loading: false }));
+      } else {
+        setProductsDialog(d => ({ ...d, loading: false }));
+      }
+    } catch {
+      setProductsDialog(d => ({ ...d, loading: false }));
+      toast({ title: "Failed to load products", variant: "destructive" });
+    }
+  };
+
+  const handleApproveProduct = async (productId: number) => {
+    setActioningProductId(productId);
+    const token = localStorage.getItem("nafex_token") ?? "";
+    try {
+      const res = await fetch(`/api/admin/product/${productId}/approve`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error();
+      toast({ title: "Product approved successfully!" });
+      setProductsDialog(d => ({
+        ...d,
+        products: d.products.map(p => p.id === productId ? { ...p, approvalStatus: "approved" } : p),
+      }));
+    } catch {
+      toast({ title: "Failed to approve product", variant: "destructive" });
+    } finally {
+      setActioningProductId(null);
+    }
+  };
+
+  const handleRejectProduct = async (productId: number) => {
+    const reason = prompt("Enter reason for product rejection:", "Does not meet marketplace quality guidelines");
+    if (reason === null) return;
+    setActioningProductId(productId);
+    const token = localStorage.getItem("nafex_token") ?? "";
+    try {
+      const res = await fetch(`/api/admin/product/${productId}/reject`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ reason }),
+      });
+      if (!res.ok) throw new Error();
+      toast({ title: "Product rejected" });
+      setProductsDialog(d => ({
+        ...d,
+        products: d.products.map(p => p.id === productId ? { ...p, approvalStatus: "rejected", rejectionReason: reason } : p),
+      }));
+    } catch {
+      toast({ title: "Failed to reject product", variant: "destructive" });
+    } finally {
+      setActioningProductId(null);
+    }
   };
 
   const openFeaturedDialog = (biz: {
@@ -231,6 +303,37 @@ export default function AdminBusinessesPage() {
     }
   };
 
+  const openKycDialog = (biz: AdminBusiness) => {
+    setKycDialog({
+      open: true,
+      bizId: biz.id,
+      bizName: biz.name,
+      tier: biz.verificationTier ?? "bronze",
+      notes: biz.kycNotes ?? "",
+      loading: false,
+    });
+  };
+
+  const handleSaveKyc = async () => {
+    const token = localStorage.getItem("nafex_token") ?? "";
+    setKycDialog(d => ({ ...d, loading: true }));
+    try {
+      const res = await fetch(`/api/admin/businesses/${kycDialog.bizId}/kyc`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ verificationTier: kycDialog.tier, kycNotes: kycDialog.notes }),
+      });
+      if (!res.ok) throw new Error();
+      toast({ title: `KYC tier updated to ${KYC_TIER_META[kycDialog.tier].label}` });
+      setKycDialog(d => ({ ...d, open: false }));
+      invalidateAll();
+    } catch {
+      toast({ title: "Failed to update KYC tier", variant: "destructive" });
+    } finally {
+      setKycDialog(d => ({ ...d, loading: false }));
+    }
+  };
+
   const handleDelete = async (id: number) => {
     const token = localStorage.getItem("nafex_token") ?? "";
     setDeletingId(id);
@@ -279,15 +382,20 @@ export default function AdminBusinessesPage() {
         return (
           <div className="flex items-center gap-3 min-w-0">
             {biz.logo ? (
-              <img src={biz.logo} alt={biz.name} className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />
+              <img src={biz.logo} alt={biz.name} className="w-9 h-9 rounded-lg object-cover flex-shrink-0 border" />
             ) : (
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                 <Building2 className="w-4 h-4 text-primary" />
               </div>
             )}
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <p className="text-sm font-medium text-foreground truncate">{biz.name}</p>
+                <p className="text-sm font-semibold text-foreground truncate">{biz.name}</p>
+                {biz.isVerified && (
+                  <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 border border-amber-500/30" title="Verified Star Account">
+                    <Star className="w-3 h-3 text-amber-500 fill-amber-400" /> Star Verified
+                  </span>
+                )}
                 {biz.isFeatured && (
                   <FeaturedTypeBadge type={biz.featuredType} />
                 )}
@@ -309,19 +417,19 @@ export default function AdminBusinessesPage() {
     {
       accessorKey: "category",
       header: "Category",
-      cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.category}</span>
+      cell: ({ row }) => <span className="text-xs font-medium text-muted-foreground">{row.original.category}</span>
     },
     {
       accessorKey: "isVerified",
-      header: "Status",
+      header: "Star Verification",
       cell: ({ row }) => {
         const biz = row.original;
         return biz.isVerified ? (
-          <Badge className="bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/10 gap-1">
-            <CheckCircle2 className="w-3 h-3" /> Verified
+          <Badge className="bg-amber-500/15 text-amber-600 border-amber-500/30 gap-1 font-semibold text-xs">
+            <Star className="w-3 h-3 text-amber-500 fill-amber-400" /> Star Verified
           </Badge>
         ) : (
-          <Badge variant="outline" className="text-muted-foreground gap-1">
+          <Badge variant="outline" className="text-muted-foreground gap-1 text-xs">
             <XCircle className="w-3 h-3" /> Unverified
           </Badge>
         );
@@ -349,14 +457,41 @@ export default function AdminBusinessesPage() {
         return (
           <div className="flex items-center gap-1.5">
             <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setViewDialog({ open: true, biz })}
+              title="View Business Details & Uploads"
+              className="h-8 text-xs px-2 gap-1"
+            >
+              <Eye className="w-3.5 h-3.5" /> View Uploads
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openProductsDialog(biz.id, biz.name)}
+              title="Review Listed Products"
+              className="h-8 text-xs px-2 gap-1 text-purple-600 border-purple-500/30 hover:bg-purple-50 dark:hover:bg-purple-950/20"
+            >
+              <Package className="w-3.5 h-3.5" /> Products
+            </Button>
+
+            <Button
               variant={biz.isVerified ? "outline" : "default"}
               size="sm"
               onClick={() => handleVerify(biz.id, !biz.isVerified)}
               disabled={verify.isPending}
-              className="h-8 text-xs px-2.5"
+              className={`h-8 text-xs px-2.5 gap-1 ${!biz.isVerified ? "bg-amber-500 hover:bg-amber-600 text-white font-semibold" : ""}`}
+              title={biz.isVerified ? "Revoke Verification Star" : "Grant Verification Star"}
             >
-              {verify.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : biz.isVerified ? "Revoke" : "Verify"}
+              {verify.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : (
+                <>
+                  <Star className={`w-3.5 h-3.5 ${biz.isVerified ? "" : "fill-white text-white"}`} />
+                  {biz.isVerified ? "Revoke Star" : "Grant Star"}
+                </>
+              )}
             </Button>
+
             <Button
               variant="outline"
               size="sm"
@@ -370,6 +505,7 @@ export default function AdminBusinessesPage() {
                 : <Star className={`w-3.5 h-3.5 ${biz.isFeatured ? "fill-amber-400" : ""}`} />
               }
             </Button>
+
             <Button
               variant="outline"
               size="sm"
@@ -379,6 +515,7 @@ export default function AdminBusinessesPage() {
             >
               <ShieldCheck className="w-3.5 h-3.5" />
             </Button>
+
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
@@ -421,8 +558,8 @@ export default function AdminBusinessesPage() {
     <AdminLayout title="Businesses">
       <div className="space-y-5">
         <div>
-          <h2 className="text-xl font-bold text-foreground">Businesses</h2>
-          <p className="text-sm text-muted-foreground mt-1">Manage, verify, and feature business listings</p>
+          <h2 className="text-xl font-bold text-foreground">Merchant Businesses & Verification</h2>
+          <p className="text-sm text-muted-foreground mt-1">Review business uploads, grant verified stars, and moderate product listings</p>
         </div>
 
         <DataTable
@@ -448,7 +585,7 @@ export default function AdminBusinessesPage() {
                     onClick={() => setFilter(f)}
                     className="capitalize h-10"
                   >
-                    {f}
+                    {f === "verified" ? "⭐ Star Verified" : f === "unverified" ? "Pending Star" : "All Businesses"}
                   </Button>
                 ))}
               </div>
@@ -457,6 +594,192 @@ export default function AdminBusinessesPage() {
         />
       </div>
 
+      {/* VIEW BUSINESS DETAILS & UPLOADS DIALOG */}
+      <Dialog open={viewDialog.open} onOpenChange={(o) => setViewDialog({ open: o, biz: null })}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0 rounded-2xl">
+          {viewDialog.biz && (
+            <>
+              {/* Header Banner */}
+              <div className="relative bg-muted h-32 w-full overflow-hidden">
+                {viewDialog.biz.banner ? (
+                  <img src={viewDialog.biz.banner} alt="Banner" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-r from-primary/20 to-amber-500/20 flex items-center justify-center">
+                    <Building2 className="w-12 h-12 text-primary/30" />
+                  </div>
+                )}
+              </div>
+
+              {/* Business Overview */}
+              <div className="px-6 pb-6 pt-0 relative">
+                <div className="flex items-end justify-between -mt-10 mb-4">
+                  <div className="relative w-20 h-20 rounded-2xl border-4 border-background bg-card shadow-md overflow-hidden flex items-center justify-center">
+                    {viewDialog.biz.logo ? (
+                      <img src={viewDialog.biz.logo} alt={viewDialog.biz.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <Building2 className="w-8 h-8 text-primary" />
+                    )}
+                  </div>
+
+                  <Button
+                    onClick={() => handleVerify(viewDialog.biz!.id, !viewDialog.biz!.isVerified)}
+                    disabled={verify.isPending}
+                    className={`gap-1.5 font-semibold ${viewDialog.biz.isVerified ? "bg-muted text-foreground hover:bg-muted/80" : "bg-amber-500 hover:bg-amber-600 text-white"}`}
+                  >
+                    <Star className={`w-4 h-4 ${viewDialog.biz.isVerified ? "text-amber-500 fill-amber-500" : "fill-white"}`} />
+                    {viewDialog.biz.isVerified ? "Revoke Verification Star" : "Grant Verified Star ⭐"}
+                  </Button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xl font-bold text-foreground">{viewDialog.biz.name}</h3>
+                      {viewDialog.biz.isVerified && (
+                        <Badge className="bg-amber-500/15 text-amber-600 border-amber-500/30 gap-1 font-bold">
+                          <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" /> Verified Merchant
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                      <MapPin className="w-3.5 h-3.5 text-primary" /> {viewDialog.biz.location} • Category: <strong className="text-foreground">{viewDialog.biz.category}</strong>
+                    </p>
+                  </div>
+
+                  {viewDialog.biz.description && (
+                    <div className="p-3.5 rounded-xl border border-border/70 bg-muted/20 text-xs text-foreground/90 space-y-1">
+                      <strong className="block text-muted-foreground uppercase text-[10px] tracking-wider">About Business</strong>
+                      <p className="leading-relaxed">{viewDialog.biz.description}</p>
+                    </div>
+                  )}
+
+                  {/* Uploads & Verification Credentials */}
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                      <Upload className="w-3.5 h-3.5 text-primary" /> Uploaded Documents & Credentials
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="p-3 rounded-xl border border-border/60 bg-card space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                            <FileText className="w-3.5 h-3.5 text-blue-500" /> Business Registration (TIN / GRA)
+                          </span>
+                          <Badge variant="outline" className="text-[10px] bg-green-50 text-green-700 border-green-300">Submitted</Badge>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">Verified Tax Identification & Registrar General Document</p>
+                      </div>
+
+                      <div className="p-3 rounded-xl border border-border/60 bg-card space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                            <ShieldCheck className="w-3.5 h-3.5 text-purple-500" /> National ID / Ghana Card
+                          </span>
+                          <Badge variant="outline" className="text-[10px] bg-green-50 text-green-700 border-green-300">Verified</Badge>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">Verified Ghana Card ID match with account owner</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* REVIEW BUSINESS PRODUCTS DIALOG */}
+      <Dialog open={productsDialog.open} onOpenChange={(o) => setProductsDialog(d => ({ ...d, open: o }))}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-6 gap-4 rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <Package className="w-5 h-5 text-purple-500" />
+              Products Listed by "{productsDialog.bizName}"
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Review, approve, or reject products uploaded by this merchant.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            {productsDialog.loading ? (
+              <div className="flex justify-center p-8">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : productsDialog.products.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <Package className="w-12 h-12 mx-auto mb-2 opacity-20" />
+                <p className="font-semibold text-sm">No products listed by this business yet.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-border/60 border rounded-xl overflow-hidden bg-card">
+                {productsDialog.products.map((prod) => (
+                  <div key={prod.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-muted/20 transition-colors">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-12 h-12 rounded-lg bg-muted border overflow-hidden flex-shrink-0">
+                        {prod.images && prod.images[0] ? (
+                          <img src={prod.images[0]} alt={prod.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <Package className="w-6 h-6 m-auto text-muted-foreground opacity-40" />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm text-foreground truncate">{prod.name}</p>
+                        <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
+                          <span className="font-bold text-foreground">GHS {parseFloat(prod.price).toFixed(2)}</span>
+                          <span>•</span>
+                          <span>Stock: {prod.stock ?? 0} units</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 justify-end">
+                      {prod.approvalStatus === "approved" ? (
+                        <Badge className="bg-green-500/15 text-green-600 border-green-500/30 gap-1 text-xs">
+                          <CheckCircle2 className="w-3 h-3" /> Approved
+                        </Badge>
+                      ) : prod.approvalStatus === "rejected" ? (
+                        <Badge className="bg-red-500/15 text-red-600 border-red-500/30 gap-1 text-xs">
+                          <XCircle className="w-3 h-3" /> Rejected
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-amber-500/15 text-amber-600 border-amber-500/30 gap-1 text-xs">
+                          Pending Review
+                        </Badge>
+                      )}
+
+                      {prod.approvalStatus !== "approved" && (
+                        <Button
+                          size="sm"
+                          onClick={() => handleApproveProduct(prod.id)}
+                          disabled={actioningProductId === prod.id}
+                          className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-semibold gap-1"
+                        >
+                          {actioningProductId === prod.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                          Approve
+                        </Button>
+                      )}
+
+                      {prod.approvalStatus !== "rejected" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleRejectProduct(prod.id)}
+                          disabled={actioningProductId === prod.id}
+                          className="h-8 text-xs text-red-500 border-red-500/30 hover:bg-red-50 dark:hover:bg-red-950/20 gap-1"
+                        >
+                          <XCircle className="w-3.5 h-3.5" /> Reject
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* FEATURED DIALOG */}
       <Dialog open={featuredDialog.open} onOpenChange={(o) => setFeaturedDialog(d => ({ ...d, open: o }))}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -503,7 +826,7 @@ export default function AdminBusinessesPage() {
                       </SelectItem>
                       <SelectItem value="homepage_section">
                         <div className="flex items-center gap-2">
-                          <Star className="w-3.5 h-3.5 text-amber-500" />
+                          <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
                           <div>
                             <p className="font-medium">Featured Section</p>
                             <p className="text-xs text-muted-foreground">Shown in the "Featured Collections" section</p>

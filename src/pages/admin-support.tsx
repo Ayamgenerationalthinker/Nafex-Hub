@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Headphones, Clock, CheckCircle } from "lucide-react";
+import { Eye, Headphones, Clock, CheckCircle, Loader2 } from "lucide-react";
 import { Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -67,8 +67,16 @@ export default function AdminSupport() {
     }
   };
 
+  if (loading) {
+    return (
+      <AdminLayout title="Support Chats">
+        <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin" /></div>
+      </AdminLayout>
+    );
+  }
+
   return (
-    <AdminLayout title="Support Center">
+    <AdminLayout title="Support Chats">
       <div className="space-y-6 max-w-6xl">
         <div className="flex items-center justify-between">
           <div>

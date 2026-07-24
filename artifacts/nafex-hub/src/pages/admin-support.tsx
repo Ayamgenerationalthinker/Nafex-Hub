@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useSocket } from "@/hooks/use-socket";
+import { AdminLayout } from "@/components/admin-layout";
 
 export default function AdminSupport() {
   const { token, user } = useAuth();
@@ -117,11 +118,16 @@ export default function AdminSupport() {
   const activeConvo = conversations.find(c => c.id === activeId);
 
   if (loading) {
-    return <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin" /></div>;
+    return (
+      <AdminLayout title="Support Chats">
+        <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin" /></div>
+      </AdminLayout>
+    );
   }
 
   return (
-    <div className="flex h-[calc(100vh-140px)] border rounded-xl overflow-hidden bg-card">
+    <AdminLayout title="Support Chats">
+      <div className="flex h-[calc(100vh-140px)] border rounded-xl overflow-hidden bg-card">
       {/* Sidebar */}
       <div className="w-1/3 border-r flex flex-col bg-muted/20">
         <div className="p-4 border-b bg-card">
@@ -211,6 +217,7 @@ export default function AdminSupport() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }
