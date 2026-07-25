@@ -5,7 +5,7 @@ import pinoHttp from "pino-http";
 import rateLimit from "express-rate-limit";
 import path from "path";
 import { fileURLToPath } from "url";
-import { mkdirSync } from "fs";
+import { mkdirSync, existsSync } from "fs";
 import router from "./routes";
 import { logger } from "./lib/logger";
 
