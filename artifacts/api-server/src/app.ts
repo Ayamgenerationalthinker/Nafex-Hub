@@ -123,7 +123,9 @@ app.use("/api/uploads", express.static(uploadsDir));
 app.use("/api", router);
 
 if (process.env["NODE_ENV"] === "production") {
-  const frontendPath = path.resolve(__dirname, "../../../artifacts/nafex-hub/dist/public");
+  const primaryPath = path.resolve(__dirname, "../../../artifacts/nafex-hub/dist/public");
+  const rootPath = path.resolve(__dirname, "../../../dist/public");
+  const frontendPath = existsSync(primaryPath) ? primaryPath : existsSync(rootPath) ? rootPath : primaryPath;
   app.use(express.static(frontendPath));
   app.get("*path", (_req, res) => {
     res.sendFile(path.join(frontendPath, "index.html"));
