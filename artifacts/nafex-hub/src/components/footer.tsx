@@ -9,10 +9,8 @@ export function Footer() {
         {/* Brand + tagline */}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 pb-8 border-b border-secondary-foreground/10">
           <div className="space-y-3 max-w-md">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-serif font-bold">
-                N
-              </div>
+            <div className="flex items-center gap-2.5">
+              <img src="/nafex-logo.png" alt="Nafex Hub" className="h-9 w-auto object-contain" />
               <span className="font-serif font-bold text-xl">Nafex <span className="text-primary">Hub</span></span>
             </div>
             <p className="text-sm text-secondary-foreground/70 leading-relaxed">

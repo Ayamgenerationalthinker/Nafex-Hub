@@ -144,8 +144,8 @@ export function SupportChatWidget() {
         >
           {/* Header */}
           <div className="bg-primary text-primary-foreground px-4 py-3 flex items-center gap-3 flex-shrink-0">
-            <div className="w-8 h-8 rounded-full bg-primary-foreground/20 flex items-center justify-center">
-              <Headphones className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-full bg-white/20 p-1 flex items-center justify-center overflow-hidden shrink-0">
+              <img src="/nafex-logo.png" alt="Nafex Support" className="w-full h-full object-contain" />
             </div>
             <div>
               <p className="text-sm font-semibold">Nafex Support</p>

@@ -254,13 +254,13 @@ export declare const productsTable: import("drizzle-orm/pg-core").PgTableWithCol
     dialect: "pg";
 }>;
 export declare const insertProductSchema: z.ZodObject<{
-    businessId: z.ZodInt;
-    collectionId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
     name: z.ZodString;
     description: z.ZodOptional<z.ZodString>;
+    images: z.ZodOptional<z.ZodArray<z.ZodString>>;
+    businessId: z.ZodInt;
+    collectionId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
     price: z.ZodString;
     discountPrice: z.ZodOptional<z.ZodNullable<z.ZodString>>;
-    images: z.ZodOptional<z.ZodArray<z.ZodString>>;
     stock: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
     approvalStatus: z.ZodOptional<z.ZodEnum<{
         pending: "pending";

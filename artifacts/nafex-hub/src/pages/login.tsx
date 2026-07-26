@@ -160,8 +160,8 @@ export default function Login() {
         <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-primary/20 blur-3xl rounded-full" />
         
         <div className="relative z-10 max-w-xl">
-          <Link href="/" className="inline-flex w-16 h-16 rounded-2xl bg-primary items-center justify-center text-primary-foreground font-serif font-bold text-4xl shadow-2xl mb-12 hover:scale-105 transition-transform cursor-pointer">
-            N
+          <Link href="/" className="inline-flex items-center justify-center mb-12 hover:scale-105 transition-transform cursor-pointer">
+            <img src="/nafex-logo.png" alt="Nafex Hub" className="h-16 w-auto object-contain" />
           </Link>
           <h1 className="text-5xl lg:text-6xl font-serif font-bold mb-6 leading-tight">
             Welcome back to <span className="text-primary">Nafex Hub</span>.

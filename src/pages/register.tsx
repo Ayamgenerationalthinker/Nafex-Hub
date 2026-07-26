@@ -253,9 +253,7 @@ export default function Register() {
       <div className="min-h-[80vh] flex items-center justify-center px-4 py-16">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center space-y-3">
-            <div className="inline-flex w-14 h-14 rounded-2xl bg-primary items-center justify-center text-primary-foreground font-serif font-bold text-3xl shadow-lg mx-auto">
-              N
-            </div>
+            <img src="/nafex-logo.png" alt="Nafex Hub" className="h-14 w-auto object-contain mx-auto" />
             <h1 className="font-serif text-3xl font-bold text-foreground">Join Nafex Hub</h1>
             <p className="text-muted-foreground">Ghana's premier fashion marketplace</p>
           </div>
