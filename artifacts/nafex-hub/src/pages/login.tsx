@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Eye, EyeOff, Github, ChevronLeft, Facebook } from "lucide-react";
+import { Logo } from "@/components/logo";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -161,7 +162,7 @@ export default function Login() {
         
         <div className="relative z-10 max-w-xl">
           <Link href="/" className="inline-flex items-center justify-center mb-12 hover:scale-105 transition-transform cursor-pointer">
-            <img src="/nafex-logo.png" alt="Nafex Hub" className="h-16 w-auto object-contain" />
+            <Logo size="lg" variant="badge" className="px-5 py-2.5 shadow-xl border-slate-200" />
           </Link>
           <h1 className="text-5xl lg:text-6xl font-serif font-bold mb-6 leading-tight">
             Welcome back to <span className="text-primary">Nafex Hub</span>.

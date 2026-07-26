@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CheckCircle2, Loader2, ShoppingBag, Store, ScrollText, Truck, Package } from "lucide-react";
+import { Logo } from "@/components/logo";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -253,7 +254,7 @@ export default function Register() {
       <div className="min-h-[80vh] flex items-center justify-center px-4 py-16">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center space-y-3">
-            <img src="/nafex-logo.png" alt="Nafex Hub" className="h-14 w-auto object-contain mx-auto" />
+            <Logo size="lg" variant="badge" className="mx-auto shadow-md border-slate-200" />
             <h1 className="font-serif text-3xl font-bold text-foreground">Join Nafex Hub</h1>
             <p className="text-muted-foreground">Ghana's premier fashion marketplace</p>
           </div>

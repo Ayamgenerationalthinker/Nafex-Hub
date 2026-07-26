@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle2, Loader2, ShoppingBag, Store, Eye, EyeOff, ChevronLeft, Facebook } from "lucide-react";
+import { CheckCircle2, Loader2, ShoppingBag, Store, ArrowLeft, ChevronLeft, Eye, EyeOff, Github, Facebook } from "lucide-react";
+import { Logo } from "@/components/logo";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -219,7 +220,7 @@ export default function Register() {
         
         <div className="relative z-10 max-w-xl">
           <Link href="/" className="inline-flex items-center justify-center mb-12 hover:scale-105 transition-transform cursor-pointer">
-            <img src="/nafex-logo.png" alt="Nafex Hub" className="h-16 w-auto object-contain" />
+            <Logo size="lg" variant="badge" className="px-5 py-2.5 shadow-xl border-slate-200" />
           </Link>
           <h1 className="text-5xl lg:text-6xl font-serif font-bold mb-6 leading-tight">
             Join Ghana's premier <span className="text-primary">marketplace</span>.

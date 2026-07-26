@@ -12,6 +12,7 @@ import { VerifyEmailBanner } from "@/components/verify-email-banner";
 import { CartIcon } from "@/components/cart-icon";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { NafexCoinsModal } from "@/components/nafex-coins-modal";
+import { Logo } from "@/components/logo";
 
 const FALLBACK_LOGO = "/nafex-logo.png";
 
@@ -93,10 +94,7 @@ const { isDarkMode, toggleDarkMode } = useDarkMode();
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5" data-testid="link-home" onClick={closeMenu}>
-            <img src={siteLogo} alt="Nafex Hub" className="w-9 h-9 object-contain" />
-            <span className="font-serif font-bold text-xl tracking-tight">
-              Nafex <span className="text-primary">Hub</span>
-            </span>
+            <Logo size="md" variant="badge" />
           </Link>
 
           {/* Desktop nav */}
@@ -338,10 +336,7 @@ const { isDarkMode, toggleDarkMode } = useDarkMode();
                 {/* Drawer header */}
                 <div className="flex items-center justify-between px-6 h-16 border-b border-secondary-foreground/10">
                   <Link href="/" className="flex items-center gap-2" onClick={closeMenu}>
-                    <img src="/nafex-logo.png" alt="Nafex" className="h-8 w-auto object-contain" />
-                    <span className="font-serif font-bold text-lg">
-                      Nafex <span className="text-primary">Hub</span>
-                    </span>
+                    <Logo size="sm" variant="badge" />
                   </Link>
                   <Button
                     variant="ghost"
@@ -440,8 +435,7 @@ const { isDarkMode, toggleDarkMode } = useDarkMode();
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 pb-8 border-b border-secondary-foreground/10">
             <div className="space-y-3 max-w-md">
               <div className="flex items-center gap-2.5">
-                <img src={siteLogo} alt="Nafex Hub" className="h-9 w-auto object-contain" />
-                <span className="font-serif font-bold text-xl">Nafex <span className="text-primary">Hub</span></span>
+                <Logo size="md" variant="badge" />
               </div>
               <p className="text-sm text-secondary-foreground/70 leading-relaxed">
                 From fashion and electronics to home essentials and lifestyle goods, Nafex Hub is a curated marketplace of verified Ghanaian businesses and creators — with escrow-protected payments, real-time logistics tracking, and direct sourcing through Nafex Trade Connect.

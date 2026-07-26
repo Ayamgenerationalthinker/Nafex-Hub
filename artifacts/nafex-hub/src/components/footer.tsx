@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { ShieldCheck, Shield, Truck, Star, Globe2, MessageCircle, Headphones, HelpCircle, ClipboardList, MapPin, Mail, Clock } from "lucide-react";
 import { VisaLogo, MastercardLogo, PaystackLogo, MobileMoneyLogo, BankTransferLogo } from "@/components/payment-icons";
+import { Logo } from "@/components/logo";
 
 export function Footer() {
   return (
@@ -10,8 +11,7 @@ export function Footer() {
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 pb-8 border-b border-secondary-foreground/10">
           <div className="space-y-3 max-w-md">
             <div className="flex items-center gap-2.5">
-              <img src="/nafex-logo.png" alt="Nafex Hub" className="h-9 w-auto object-contain" />
-              <span className="font-serif font-bold text-xl">Nafex <span className="text-primary">Hub</span></span>
+              <Logo size="md" variant="badge" />
             </div>
             <p className="text-sm text-secondary-foreground/70 leading-relaxed">
               From fashion and electronics to home essentials and lifestyle goods, Nafex Hub is a curated marketplace of verified Ghanaian businesses and creators — with escrow-protected payments, real-time logistics tracking, and direct sourcing through Nafex Trade Connect.

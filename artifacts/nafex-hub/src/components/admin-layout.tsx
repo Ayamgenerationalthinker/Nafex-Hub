@@ -23,6 +23,7 @@ import {
   Users,
 } from "lucide-react";
 import { Footer } from "@/components/footer";
+import { Logo } from "@/components/logo";
 
 const NAV_ITEMS = [
   { path: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -54,12 +55,9 @@ function SidebarContent({
       {/* Brand */}
       <div className="px-5 py-5 border-b border-border">
         <div className="flex items-center gap-2.5">
-          <img src="/nafex-logo.png" alt="Nafex Hub Admin" className="h-8 w-auto object-contain" />
+          <Logo size="sm" variant="badge" />
           <div>
-            <p className="font-bold text-sm leading-tight tracking-tight">
-              Nafex <span className="text-primary">Hub</span>
-            </p>
-            <p className="text-[10px] text-muted-foreground font-medium tracking-wide uppercase">
+            <p className="text-[10px] text-muted-foreground font-semibold tracking-wider uppercase">
               Admin Panel
             </p>
           </div>

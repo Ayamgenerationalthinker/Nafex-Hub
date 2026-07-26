@@ -13,6 +13,7 @@ import { useSiteSettings } from "@/hooks/use-site-settings";
 import { useCart } from "@/hooks/use-cart";
 import { Footer } from "@/components/footer";
 import { NafexCoinsModal } from "@/components/nafex-coins-modal";
+import { Logo } from "@/components/logo";
 
 const FALLBACK_LOGO = "/nafex-logo.png";
 
@@ -95,10 +96,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5" data-testid="link-home" onClick={closeMenu}>
-            <img src={siteLogo} alt="Nafex Hub" className="w-9 h-9 object-contain" />
-            <span className="font-serif font-bold text-xl tracking-tight">
-              Nafex <span className="text-primary">Hub</span>
-            </span>
+            <Logo size="md" variant="badge" />
           </Link>
 
           {/* Desktop nav */}

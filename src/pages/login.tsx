@@ -17,6 +17,8 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
+import { Logo } from "@/components/logo";
+
 export default function Login() {
   const [, setLocation] = useLocation();
   const { setAuth } = useAuth();
@@ -52,7 +54,7 @@ export default function Login() {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-3">
-          <img src="/nafex-logo.png" alt="Nafex Hub" className="h-14 w-auto object-contain mx-auto" />
+          <Logo size="lg" variant="badge" className="mx-auto shadow-md border-slate-200" />
           <h1 className="font-serif text-3xl font-bold text-foreground">Welcome back</h1>
           <p className="text-muted-foreground">Sign in to your Nafex Hub account</p>
         </div>
