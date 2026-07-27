@@ -187,7 +187,7 @@ export default function Waitlist() {
                     </h3>
                     <p className="text-sm text-[#6B7280] max-w-md mx-auto leading-relaxed">
                       {tab === "buy"
-                        ? "We've locked in your 15% discount code and 24h early access pass. Watch your inbox for launch announcements."
+                        ? "We've locked in your VIP 24h early access pass. Watch your inbox for launch announcements."
                         : "Your store profile has been placed in our founding seller queue for 0% commission status."}
                     </p>
                     <button
@@ -272,7 +272,7 @@ export default function Waitlist() {
                     {/* Perk Box */}
                     <div className="p-3.5 rounded-2xl bg-purple-50/70 border border-purple-100 text-xs text-[#5B21B6] leading-relaxed">
                       {tab === "buy" ? (
-                        <span>🎁 <strong>Buyer perk:</strong> Unlock a 15% launch discount code and VIP browsing access 24 hours before public launch.</span>
+                        <span>🎁 <strong>Buyer perk:</strong> Unlock exclusive early access and VIP browsing 24 hours before public launch.</span>
                       ) : (
                         <span>✨ <strong>Founding seller perk:</strong> Get 0% commission for your first 3 months and priority featured shop placement.</span>
                       )}
@@ -433,8 +433,8 @@ export default function Waitlist() {
                   <p className="text-[11px] text-[#6B7280]">Founding seller privilege</p>
                 </div>
                 <div className="bg-[#FAF8FC] p-6 rounded-2xl border border-purple-100/80 space-y-2">
-                  <div className="text-3xl font-extrabold text-[#D4A017]">15%</div>
-                  <div className="text-xs font-semibold text-[#111827]">Buyer Launch Discount</div>
+                  <div className="text-3xl font-extrabold text-[#D4A017]">VIP</div>
+                  <div className="text-xs font-semibold text-[#111827]">Early Access Pass</div>
                   <p className="text-[11px] text-[#6B7280]">Exclusive waitlist perk</p>
                 </div>
                 <div className="bg-[#FAF8FC] p-6 rounded-2xl border border-purple-100/80 space-y-2">
