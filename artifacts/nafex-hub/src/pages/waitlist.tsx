@@ -426,28 +426,6 @@ export default function Waitlist() {
                       </div>
                     </div>
 
-                    {/* Next Steps */}
-                    <div className="space-y-2 pt-1">
-                      <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Next Steps</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 text-xs space-y-1">
-                          <span className="w-5 h-5 rounded-full bg-[#6A1B9A] text-white font-bold text-[10px] inline-flex items-center justify-center">1</span>
-                          <strong className="block text-slate-900 font-semibold">Confirmation Autoresponder</strong>
-                          <p className="text-slate-500 text-[11px]">Details sent to {submissionInfo?.email || email}.</p>
-                        </div>
-                        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 text-xs space-y-1">
-                          <span className="w-5 h-5 rounded-full bg-[#6A1B9A] text-white font-bold text-[10px] inline-flex items-center justify-center">2</span>
-                          <strong className="block text-slate-900 font-semibold">Private Preview</strong>
-                          <p className="text-slate-500 text-[11px]">Invite link delivered before public release.</p>
-                        </div>
-                        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 text-xs space-y-1">
-                          <span className="w-5 h-5 rounded-full bg-[#6A1B9A] text-white font-bold text-[10px] inline-flex items-center justify-center">3</span>
-                          <strong className="block text-slate-900 font-semibold">Launch Day Access</strong>
-                          <p className="text-slate-500 text-[11px]">Activate your perks on Day 1.</p>
-                        </div>
-                      </div>
-                    </div>
-
                     {/* Footer Actions */}
                     <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
                       <p className="text-slate-500 text-[11px]">
