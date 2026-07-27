@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
+import emailjs from "@emailjs/browser";
 import { 
   ShoppingBag, 
   Store, 
@@ -168,32 +169,32 @@ Contact: nafexgroupltd@gmail.com`;
       botcheck: false
     };
 
-    // EmailJS Dispatch (Service: service_x5wv0z8, Template: template_0fqyiwm, Key: RI_Vy2fQxvrMk-hAs)
+    // EmailJS Dispatch using @emailjs/browser SDK
     const emailjsServiceId = import.meta.env.VITE_EMAILJS_SERVICE_ID || "service_x5wv0z8";
     const emailjsTemplateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "template_0fqyiwm";
     const emailjsPublicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "RI_Vy2fQxvrMk-hAs";
 
-    const emailjsPromise = (emailjsServiceId && emailjsTemplateId && emailjsPublicKey)
-      ? fetch("https://api.emailjs.com/api/v1.0/email/send", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            service_id: emailjsServiceId,
-            template_id: emailjsTemplateId,
-            user_id: emailjsPublicKey,
-            template_params: {
-              user_name: cleanName,
-              user_email: cleanEmail,
-              reply_to: cleanEmail,
-              user_role: userRoleTitle,
-              user_category: category || "Not Specified",
-              store_name: !isBuyer ? (storeName || "N/A") : "N/A",
-              store_link: !isBuyer ? (storeLink || "N/A") : "N/A",
-              autoresponder_message: autoresponseMessage,
-            }
-          })
-        })
-      : Promise.resolve(null);
+    const emailjsPromise = emailjs.send(
+      emailjsServiceId,
+      emailjsTemplateId,
+      {
+        user_name: cleanName,
+        user_email: cleanEmail,
+        reply_to: cleanEmail,
+        user_role: userRoleTitle,
+        user_category: category || "Not Specified",
+        store_name: !isBuyer ? (storeName || "N/A") : "N/A",
+        store_link: !isBuyer ? (storeLink || "N/A") : "N/A",
+        autoresponder_message: autoresponseMessage,
+      },
+      emailjsPublicKey
+    ).then((res) => {
+      console.log("EmailJS Sent Successfully:", res.status, res.text);
+      return res;
+    }).catch((err) => {
+      console.error("EmailJS Error:", err);
+      return null;
+    });
 
     try {
       await Promise.allSettled([
