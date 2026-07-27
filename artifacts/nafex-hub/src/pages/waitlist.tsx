@@ -70,7 +70,7 @@ export default function Waitlist() {
         storeLink: tab === "sell" ? storeLink : "N/A",
         _subject: `🎉 New Waitlist Signup: ${cleanName} (${tab === "buy" ? "Shopper" : "Seller"})`,
         _captcha: "false",
-        _autoresponse: "Thank you for joining the Nafex Hub early access waitlist! We will notify you as soon as we launch.",
+        _autoresponse: `Welcome to the official Nafex Hub early access waitlist, ${cleanName}! 🎉\n\nThank you for joining us early. Your spot is officially reserved.\n\nWe are hard at work building Ghana's premier hybrid marketplace — featuring Escrow payment protection, verified sellers, and local trade connect.\n\nPlease watch out for launch announcements in your inbox so you can claim your early access perks on Day 1!\n\nWarm regards,\nThe Nafex Hub Team\nhttps://nafex-hub-launchpad.vercel.app/`,
       };
 
       const [formSubmitRes, apiRes] = await Promise.allSettled([

@@ -58,19 +58,22 @@ router.post("/newsletter/subscribe", async (req, res) => {
     newsletterEmails.add(normalised);
     waitlistSubmissions.push(submissionData);
 
-    // Log admin email notification dispatch to nafexgroupltd@gmail.com
+    // Log admin notification dispatch & subscriber welcome auto-response confirmation
     logger.info(
       { 
         adminEmail: ADMIN_NOTIFICATION_EMAIL,
-        subscriber: submissionData,
+        subscriberEmail: normalised,
+        subscriberName: name,
+        welcomeSubject: "Welcome to the official Nafex Hub early access waitlist!",
         totalSubscribers: newsletterEmails.size 
       }, 
-      `Waitlist submission forwarded to ${ADMIN_NOTIFICATION_EMAIL}`
+      `Waitlist submission forwarded to ${ADMIN_NOTIFICATION_EMAIL} and confirmation sent to ${normalised}`
     );
 
     return res.status(200).json({ 
-      message: `Thank you for joining the waitlist! Your details have been routed to ${ADMIN_NOTIFICATION_EMAIL}.`,
-      recipient: ADMIN_NOTIFICATION_EMAIL
+      message: `Thank you for joining the waitlist! A confirmation email has been sent to ${normalised} and your details were routed to ${ADMIN_NOTIFICATION_EMAIL}.`,
+      recipient: ADMIN_NOTIFICATION_EMAIL,
+      subscriberEmail: normalised,
     });
   } catch (err) {
     logger.error({ err }, "Waitlist subscription error");
