@@ -110,11 +110,16 @@ app.use("/api/uploads", express.static(uploadsDir));
 
 app.use("/api", router);
 
-// Serve frontend static assets (compatible with Express 5 path matching)
-const primaryPath = path.resolve(__dirname, "../../../artifacts/nafex-hub/dist/public");
-const rootPath = path.resolve(__dirname, "../../../dist/public");
-const fallbackPath = path.resolve(__dirname, "../../nafex-hub/dist/public");
-const frontendPath = existsSync(primaryPath) ? primaryPath : existsSync(rootPath) ? rootPath : existsSync(fallbackPath) ? fallbackPath : primaryPath;
+// Serve frontend static assets (dynamically resolved from process.cwd() and __dirname)
+const cwd = process.cwd();
+const candidates = [
+  path.resolve(cwd, "dist/public"),
+  path.resolve(cwd, "artifacts/nafex-hub/dist/public"),
+  path.resolve(__dirname, "../../../artifacts/nafex-hub/dist/public"),
+  path.resolve(__dirname, "../../../dist/public"),
+  path.resolve(__dirname, "../../nafex-hub/dist/public"),
+];
+const frontendPath = candidates.find((p) => existsSync(path.join(p, "index.html"))) || candidates[0];
 
 if (existsSync(frontendPath)) {
   app.use(express.static(frontendPath));
