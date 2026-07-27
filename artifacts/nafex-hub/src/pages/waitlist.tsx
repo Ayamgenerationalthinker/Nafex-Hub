@@ -371,11 +371,11 @@ export default function Waitlist() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="bg-[#FAF8FC] rounded-3xl p-7 border border-purple-100/60 space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-white text-[#6A1B9A] flex items-center justify-center shadow-xs">
+              <div className="group bg-[#FAF8FC] hover:bg-white rounded-3xl p-7 border border-purple-100/60 hover:border-purple-300/80 shadow-xs hover:shadow-xl hover:shadow-purple-900/10 hover:-translate-y-2 transition-all duration-300 space-y-4 cursor-default">
+                <div className="w-12 h-12 rounded-2xl bg-white group-hover:bg-[#6A1B9A] text-[#6A1B9A] group-hover:text-white flex items-center justify-center shadow-xs group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
                   <ShieldCheck className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg font-bold text-[#111827]">
+                <h3 className="text-lg font-bold text-[#111827] group-hover:text-[#6A1B9A] transition-colors">
                   Verified Sellers & Authentic Products
                 </h3>
                 <p className="text-xs sm:text-sm text-[#4B5563] leading-relaxed">
@@ -383,11 +383,11 @@ export default function Waitlist() {
                 </p>
               </div>
 
-              <div className="bg-[#FAF8FC] rounded-3xl p-7 border border-purple-100/60 space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-white text-[#6A1B9A] flex items-center justify-center shadow-xs">
+              <div className="group bg-[#FAF8FC] hover:bg-white rounded-3xl p-7 border border-purple-100/60 hover:border-purple-300/80 shadow-xs hover:shadow-xl hover:shadow-purple-900/10 hover:-translate-y-2 transition-all duration-300 space-y-4 cursor-default">
+                <div className="w-12 h-12 rounded-2xl bg-white group-hover:bg-[#6A1B9A] text-[#6A1B9A] group-hover:text-white flex items-center justify-center shadow-xs group-hover:scale-110 group-hover:-rotate-3 transition-all duration-300">
                   <Zap className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg font-bold text-[#111827]">
+                <h3 className="text-lg font-bold text-[#111827] group-hover:text-[#6A1B9A] transition-colors">
                   Lightning-Fast Checkout
                 </h3>
                 <p className="text-xs sm:text-sm text-[#4B5563] leading-relaxed">
@@ -395,11 +395,11 @@ export default function Waitlist() {
                 </p>
               </div>
 
-              <div className="bg-[#FAF8FC] rounded-3xl p-7 border border-purple-100/60 space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-white text-[#6A1B9A] flex items-center justify-center shadow-xs">
+              <div className="group bg-[#FAF8FC] hover:bg-white rounded-3xl p-7 border border-purple-100/60 hover:border-purple-300/80 shadow-xs hover:shadow-xl hover:shadow-purple-900/10 hover:-translate-y-2 transition-all duration-300 space-y-4 cursor-default">
+                <div className="w-12 h-12 rounded-2xl bg-white group-hover:bg-[#6A1B9A] text-[#6A1B9A] group-hover:text-white flex items-center justify-center shadow-xs group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
                   <Shield className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg font-bold text-[#111827]">
+                <h3 className="text-lg font-bold text-[#111827] group-hover:text-[#6A1B9A] transition-colors">
                   Buyer Protection Guarantee
                 </h3>
                 <p className="text-xs sm:text-sm text-[#4B5563] leading-relaxed">
@@ -423,11 +423,11 @@ export default function Waitlist() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="bg-white rounded-3xl p-7 border border-purple-100/80 shadow-sm space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-purple-50 text-[#6A1B9A] flex items-center justify-center">
+              <div className="group bg-white hover:bg-[#FAF8FC] rounded-3xl p-7 border border-purple-100/80 hover:border-purple-300/80 shadow-sm hover:shadow-xl hover:shadow-purple-900/10 hover:-translate-y-2 transition-all duration-300 space-y-4 cursor-default">
+                <div className="w-12 h-12 rounded-2xl bg-purple-50 group-hover:bg-[#6A1B9A] text-[#6A1B9A] group-hover:text-white flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
                   <TrendingUp className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg font-bold text-[#111827]">
+                <h3 className="text-lg font-bold text-[#111827] group-hover:text-[#6A1B9A] transition-colors">
                   Zero Upfront Listing Fees
                 </h3>
                 <p className="text-xs sm:text-sm text-[#4B5563] leading-relaxed">
@@ -435,11 +435,11 @@ export default function Waitlist() {
                 </p>
               </div>
 
-              <div className="bg-white rounded-3xl p-7 border border-purple-100/80 shadow-sm space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-purple-50 text-[#6A1B9A] flex items-center justify-center">
+              <div className="group bg-white hover:bg-[#FAF8FC] rounded-3xl p-7 border border-purple-100/80 hover:border-purple-300/80 shadow-sm hover:shadow-xl hover:shadow-purple-900/10 hover:-translate-y-2 transition-all duration-300 space-y-4 cursor-default">
+                <div className="w-12 h-12 rounded-2xl bg-purple-50 group-hover:bg-[#6A1B9A] text-[#6A1B9A] group-hover:text-white flex items-center justify-center group-hover:scale-110 group-hover:-rotate-3 transition-all duration-300">
                   <BarChart3 className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg font-bold text-[#111827]">
+                <h3 className="text-lg font-bold text-[#111827] group-hover:text-[#6A1B9A] transition-colors">
                   Powerful Analytics & Dashboard
                 </h3>
                 <p className="text-xs sm:text-sm text-[#4B5563] leading-relaxed">
@@ -447,11 +447,11 @@ export default function Waitlist() {
                 </p>
               </div>
 
-              <div className="bg-white rounded-3xl p-7 border border-purple-100/80 shadow-sm space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-purple-50 text-[#6A1B9A] flex items-center justify-center">
+              <div className="group bg-white hover:bg-[#FAF8FC] rounded-3xl p-7 border border-purple-100/80 hover:border-purple-300/80 shadow-sm hover:shadow-xl hover:shadow-purple-900/10 hover:-translate-y-2 transition-all duration-300 space-y-4 cursor-default">
+                <div className="w-12 h-12 rounded-2xl bg-purple-50 group-hover:bg-[#6A1B9A] text-[#6A1B9A] group-hover:text-white flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
                   <Users className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg font-bold text-[#111827]">
+                <h3 className="text-lg font-bold text-[#111827] group-hover:text-[#6A1B9A] transition-colors">
                   Direct Access to Pre-Registered Buyers
                 </h3>
                 <p className="text-xs sm:text-sm text-[#4B5563] leading-relaxed">
@@ -483,23 +483,23 @@ export default function Waitlist() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-[#FAF8FC] p-6 rounded-2xl border border-purple-100/80 space-y-2">
-                  <div className="text-3xl font-extrabold text-[#6A1B9A]">0%</div>
+                <div className="group bg-[#FAF8FC] hover:bg-white p-6 rounded-2xl border border-purple-100/80 hover:border-purple-300/80 hover:shadow-md hover:-translate-y-1 transition-all duration-300 space-y-2 cursor-default">
+                  <div className="text-3xl font-extrabold text-[#6A1B9A] group-hover:scale-105 transition-transform origin-left">0%</div>
                   <div className="text-xs font-semibold text-[#111827]">Commission · 3 Months</div>
                   <p className="text-[11px] text-[#6B7280]">Founding seller privilege</p>
                 </div>
-                <div className="bg-[#FAF8FC] p-6 rounded-2xl border border-purple-100/80 space-y-2">
-                  <div className="text-3xl font-extrabold text-[#D4A017]">VIP</div>
+                <div className="group bg-[#FAF8FC] hover:bg-white p-6 rounded-2xl border border-purple-100/80 hover:border-purple-300/80 hover:shadow-md hover:-translate-y-1 transition-all duration-300 space-y-2 cursor-default">
+                  <div className="text-3xl font-extrabold text-[#D4A017] group-hover:scale-105 transition-transform origin-left">VIP</div>
                   <div className="text-xs font-semibold text-[#111827]">Early Access Pass</div>
                   <p className="text-[11px] text-[#6B7280]">Exclusive waitlist perk</p>
                 </div>
-                <div className="bg-[#FAF8FC] p-6 rounded-2xl border border-purple-100/80 space-y-2">
-                  <div className="text-3xl font-extrabold text-[#6A1B9A]">24h</div>
+                <div className="group bg-[#FAF8FC] hover:bg-white p-6 rounded-2xl border border-purple-100/80 hover:border-purple-300/80 hover:shadow-md hover:-translate-y-1 transition-all duration-300 space-y-2 cursor-default">
+                  <div className="text-3xl font-extrabold text-[#6A1B9A] group-hover:scale-105 transition-transform origin-left">24h</div>
                   <div className="text-xs font-semibold text-[#111827]">VIP Early Access</div>
                   <p className="text-[11px] text-[#6B7280]">Shop before public launch</p>
                 </div>
-                <div className="bg-[#FAF8FC] p-6 rounded-2xl border border-purple-100/80 space-y-2">
-                  <div className="text-3xl font-extrabold text-emerald-600">100%</div>
+                <div className="group bg-[#FAF8FC] hover:bg-white p-6 rounded-2xl border border-purple-100/80 hover:border-purple-300/80 hover:shadow-md hover:-translate-y-1 transition-all duration-300 space-y-2 cursor-default">
+                  <div className="text-3xl font-extrabold text-emerald-600 group-hover:scale-105 transition-transform origin-left">100%</div>
                   <div className="text-xs font-semibold text-[#111827]">Buyer Protection</div>
                   <p className="text-[11px] text-[#6B7280]">Escrow backed checkout</p>
                 </div>
