@@ -168,8 +168,36 @@ Contact: nafexgroupltd@gmail.com`;
       botcheck: false
     };
 
+    // EmailJS Dispatch (if VITE_EMAILJS_SERVICE_ID configured)
+    const emailjsServiceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const emailjsTemplateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+    const emailjsPublicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+    const emailjsPromise = (emailjsServiceId && emailjsTemplateId && emailjsPublicKey)
+      ? fetch("https://api.emailjs.com/api/v1.0/email/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            service_id: emailjsServiceId,
+            template_id: emailjsTemplateId,
+            user_id: emailjsPublicKey,
+            template_params: {
+              user_name: cleanName,
+              user_email: cleanEmail,
+              reply_to: cleanEmail,
+              user_role: userRoleTitle,
+              user_category: category || "Not Specified",
+              store_name: !isBuyer ? (storeName || "N/A") : "N/A",
+              store_link: !isBuyer ? (storeLink || "N/A") : "N/A",
+              autoresponder_message: autoresponseMessage,
+            }
+          })
+        })
+      : Promise.resolve(null);
+
     try {
       await Promise.allSettled([
+        emailjsPromise,
         fetch("https://api.web3forms.com/submit", {
           method: "POST",
           headers: {
