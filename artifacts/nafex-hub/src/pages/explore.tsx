@@ -4,7 +4,8 @@ import { BrandCard } from "@/components/brand-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, ChevronLeft, ChevronRight, ShieldCheck, Star, SlidersHorizontal, X, ChevronDown, ChevronUp, ShoppingBag, Package, Sparkles, Truck, Headphones } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Search, Filter, ChevronLeft, ChevronRight, ShieldCheck, Star, SlidersHorizontal, X, ChevronDown, ChevronUp, ShoppingBag, Package, Sparkles, Truck, Headphones, Grid, Layers, Tag } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLocation } from "wouter";
@@ -144,6 +145,8 @@ export default function Explore() {
   const [minPrice, setMinPrice] = useState(initialParams.minPrice);
   const [maxPrice, setMaxPrice] = useState(initialParams.maxPrice);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [allCategoriesOpen, setAllCategoriesOpen] = useState(false);
+  const [modalCategorySearch, setModalCategorySearch] = useState("");
 
   // Keep URL query string in sync with filters for sharable links without triggering re-render loops
   useEffect(() => {
@@ -314,40 +317,51 @@ export default function Explore() {
         </div>
       </div>
 
-      {/* ── SHOP BY CATEGORY (Exact Style from Img 3) ── */}
+      {/* ── SHOP BY CATEGORY (Realistic Images & View All Modal) ── */}
       <div id="categories-section" className="mb-10">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-[#222222]">Shop by Category</h2>
-          <button
-            onClick={() => handleCategory("All")}
-            className="text-xs font-semibold text-[#6A1B9A] hover:underline"
+          <div>
+            <h2 className="text-2xl font-bold text-[#222222]">Shop by Category</h2>
+            <p className="text-xs text-[#6B7280]">Explore top-rated products & brands across popular categories</p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setAllCategoriesOpen(true)}
+            className="text-xs font-bold text-[#6A1B9A] hover:bg-[#F6F2FF] hover:text-[#5B1687] gap-1"
           >
-            View all &gt;
-          </button>
+            View all categories <ChevronRight className="w-3.5 h-3.5" />
+          </Button>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
           {[
-            { label: "Electronics", icon: "💻", catName: "Electronics" },
-            { label: "Fashion", icon: "👜", catName: "Clothing" },
-            { label: "Home & Kitchen", icon: "🏡", catName: "Furniture" },
-            { label: "Beauty", icon: "💄", catName: "Beauty & Skincare" },
-            { label: "Groceries", icon: "🛒", catName: "Groceries & Supermarket" },
-            { label: "Health", icon: "💊", catName: "Health & Wellness" },
-            { label: "Sports", icon: "🏀", catName: "Sports & Fitness" },
-            { label: "Books", icon: "📚", catName: "Books & Stationery" },
+            { label: "Electronics", catName: "Electronics", image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=400&q=80" },
+            { label: "Fashion", catName: "Clothing", image: "https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=400&q=80" },
+            { label: "Home & Kitchen", catName: "Furniture", image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=400&q=80" },
+            { label: "Beauty", catName: "Beauty & Skincare", image: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=400&q=80" },
+            { label: "Groceries", catName: "Groceries & Supermarket", image: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80" },
+            { label: "Health", catName: "Health & Wellness", image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=400&q=80" },
+            { label: "Sports", catName: "Sports & Fitness", image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=400&q=80" },
+            { label: "Books", catName: "Books & Stationery", image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=400&q=80" },
           ].map((item) => (
             <button
               key={item.label}
               onClick={() => handleCategory(item.catName)}
-              className={`flex flex-col items-center justify-center p-4 rounded-2xl border transition-all text-center gap-2 group ${
+              className={`flex flex-col items-center justify-between p-3 rounded-2xl border transition-all text-center gap-2.5 group overflow-hidden ${
                 category === item.catName
                   ? "bg-[#6A1B9A] text-white border-[#6A1B9A] shadow-md scale-[1.02]"
-                  : "bg-[#FFF8E6] border-amber-100/80 hover:bg-[#F6F2FF] hover:border-purple-200 text-[#222222]"
+                  : "bg-white border-purple-100 hover:border-[#6A1B9A]/40 hover:bg-[#F6F2FF] text-[#222222] shadow-xs"
               }`}
             >
-              <span className="text-3xl transition-transform group-hover:scale-110">{item.icon}</span>
-              <span className="text-xs font-semibold leading-tight">{item.label}</span>
+              <div className="w-16 h-16 rounded-xl overflow-hidden shadow-xs relative bg-purple-50 shrink-0">
+                <img
+                  src={item.image}
+                  alt={item.label}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                />
+              </div>
+              <span className="text-xs font-bold leading-tight truncate w-full">{item.label}</span>
             </button>
           ))}
         </div>
@@ -662,6 +676,104 @@ export default function Explore() {
           )}
         </div>
       )}
+
+      {/* ── VIEW ALL CATEGORIES MODAL DIALOG ── */}
+      <Dialog open={allCategoriesOpen} onOpenChange={setAllCategoriesOpen}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto font-poppins rounded-3xl p-6 sm:p-8">
+          <DialogHeader className="mb-4">
+            <div className="flex items-center gap-2 text-[#6A1B9A]">
+              <Layers className="w-5 h-5" />
+              <span className="text-xs font-bold uppercase tracking-wider bg-[#F6F2FF] px-2.5 py-1 rounded-full border border-purple-200">
+                Marketplace Directory
+              </span>
+            </div>
+            <DialogTitle className="text-2xl font-bold text-[#222222] font-poppins mt-2">
+              All Categories & Departments
+            </DialogTitle>
+            <DialogDescription className="text-sm text-[#6B7280]">
+              Browse over 20+ specialized product & service categories across Ghana
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Search inside modal */}
+          <div className="relative mb-6">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input
+              type="search"
+              placeholder="Search category name (e.g., Electronics, Fashion, Beauty)..."
+              value={modalCategorySearch}
+              onChange={(e) => setModalCategorySearch(e.target.value)}
+              className="pl-10 h-11 bg-slate-50 border-slate-200 rounded-xl"
+            />
+          </div>
+
+          {/* Category Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {[
+              { title: "Electronics & Tech", catName: "Electronics", image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=400&q=80", count: "120+ Products", items: ["Phones & Gadgets", "Laptops & Computers", "Solar & Power"] },
+              { title: "Fashion & Style", catName: "Clothing", image: "https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=400&q=80", count: "350+ Products", items: ["African Print", "Footwear", "Accessories", "Jewelry & Bags"] },
+              { title: "Home & Furniture", catName: "Furniture", image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=400&q=80", count: "80+ Products", items: ["Living Room Sets", "Home Decor", "Bedding & Bath"] },
+              { title: "Beauty & Skincare", catName: "Beauty & Skincare", image: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=400&q=80", count: "190+ Products", items: ["Organic Oils", "Cosmetics", "Hair & Wigs", "Perfumes"] },
+              { title: "Groceries & Supermarket", catName: "Groceries & Supermarket", image: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80", count: "450+ Products", items: ["Fresh Produce", "Beverages", "Snacks & Pantry"] },
+              { title: "Health & Wellness", catName: "Health & Wellness", image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=400&q=80", count: "95+ Products", items: ["Supplements", "Pharmacy", "Fitness Equipment"] },
+              { title: "Sports & Fitness", catName: "Sports & Fitness", image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=400&q=80", count: "75+ Products", items: ["Activewear", "Sporting Goods", "Outdoor Gear"] },
+              { title: "Books & Stationery", catName: "Books & Stationery", image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=400&q=80", count: "140+ Products", items: ["Textbooks", "Office Supplies", "School Supplies"] },
+              { title: "Food & Beverages", catName: "Food & Drinks", image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80", count: "210+ Products", items: ["Restaurants", "Catering", "Bakery & Pastries"] },
+              { title: "Baby & Kids", catName: "Baby & Kids", image: "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=400&q=80", count: "110+ Products", items: ["Baby Wear", "Toys & Games", "Nursery Essentials"] },
+              { title: "Automotive & Parts", catName: "Cars & Vehicles", image: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=400&q=80", count: "65+ Products", items: ["Auto Parts", "Car Care", "Accessories"] },
+              { title: "Services & Cleaning", catName: "Cleaning Services", image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=400&q=80", count: "85+ Services", items: ["Cleaning", "Laundry", "Repairs & Logistics"] },
+              { title: "Education & Courses", catName: "Tutoring & Lessons", image: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=400&q=80", count: "40+ Courses", items: ["Private Tutoring", "Skill Training", "Books"] },
+              { title: "Agriculture & Farming", catName: "Agriculture & Farming", image: "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=400&q=80", count: "90+ Products", items: ["Farm Produce", "Seeds & Fertilisers", "Livestock"] },
+              { title: "Arts & Entertainment", catName: "Crafts & Handmade", image: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=400&q=80", count: "130+ Products", items: ["Handmade Art", "Kente Crafts", "Musical Gear"] },
+              { title: "Travel & Real Estate", catName: "Travel & Tours", image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=400&q=80", count: "50+ Listings", items: ["Tours & Rentals", "Property Listings"] },
+            ]
+              .filter(cat => !modalCategorySearch || cat.title.toLowerCase().includes(modalCategorySearch.toLowerCase()) || cat.items.some(i => i.toLowerCase().includes(modalCategorySearch.toLowerCase())))
+              .map((item) => (
+                <div
+                  key={item.title}
+                  onClick={() => {
+                    handleCategory(item.catName);
+                    setAllCategoriesOpen(false);
+                    const el = document.getElementById("catalog-section");
+                    el?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className={`group cursor-pointer rounded-2xl border p-3.5 transition-all flex flex-col justify-between hover:shadow-md ${
+                    category === item.catName
+                      ? "bg-[#F6F2FF] border-[#6A1B9A] ring-1 ring-[#6A1B9A]"
+                      : "bg-white border-slate-200 hover:border-purple-300"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 shadow-xs relative bg-slate-100">
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-bold text-sm text-[#222222] truncate group-hover:text-[#6A1B9A] transition-colors">
+                        {item.title}
+                      </h4>
+                      <p className="text-[11px] font-semibold text-[#6A1B9A] mt-0.5">{item.count}</p>
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {item.items.slice(0, 2).map((sub, i) => (
+                          <span key={i} className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-md font-medium truncate">
+                            {sub}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-[#6A1B9A]">
+                    <span>Explore Products</span>
+                    <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+              ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

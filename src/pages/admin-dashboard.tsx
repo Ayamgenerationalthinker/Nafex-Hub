@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { AdminLayout } from "@/components/admin-layout";
-import { Users, Building2, CheckCircle2, ShoppingBag, TrendingUp, ArrowRight, Wallet } from "lucide-react";
+import { Users, Building2, CheckCircle2, ShoppingBag, TrendingUp, ArrowRight, Clock, Activity } from "lucide-react";
 import { Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -52,6 +52,8 @@ function StatCard({
 export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activityLoading] = useState(false);
+  const [recentActivity] = useState<Array<{ id: string; message: string; time: string }>>([]);
 
   useEffect(() => {
     const token = localStorage.getItem("nafex_token") ?? "";

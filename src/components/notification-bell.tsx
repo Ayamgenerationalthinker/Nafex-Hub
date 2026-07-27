@@ -94,7 +94,7 @@ export function NotificationBell() {
                 <button
                   key={n.id}
                   onClick={() => {
-                    if (!n.isRead) markRead({ id: n.id });
+                    if (!n.isRead) (markRead as any)({ id: n.id });
                     if (n.type === "message") {
                       if (user?.role === "admin" && n.relatedId) {
                         setLocation(`/admin?tab=support&convId=${n.relatedId}`);

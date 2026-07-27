@@ -1,13 +1,13 @@
 // src/components/CartDrawer.tsx
 import { useCart } from "@/hooks/use-cart";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 import { X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
 
 export default function CartDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { items, totalPrice, clear } = useCart();
-  const [, navigate] = useNavigate();
+  const [, setLocation] = useLocation();
 
   // Close on Escape
   useEffect(() => {
@@ -20,17 +20,19 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
 
   const handleCheckout = () => {
     onClose();
-    navigate("/checkout");
+    setLocation("/checkout");
   };
 
   if (!open) return null;
+
+  const numericTotal = typeof totalPrice === "function" ? (totalPrice as any)() : (Number(totalPrice) || 0);
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end" data-testid="cart-drawer">
       {/* backdrop */}
       <div className="flex-1" onClick={onClose} />
       {/* drawer */}
-      <div className="w-[320px] h-full bg-white/30 backdrop-blur-md glass shadow-xl p-4 flex flex-col">
+      <div className="w-[320px] h-full bg-white/30 backdrop-blur-md glass shadow-xl p-4 flex flex-col font-poppins">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Your Cart</h2>
           <button onClick={onClose} className="p-1 hover:text-primary">
@@ -56,7 +58,7 @@ export default function CartDrawer({ open, onClose }: { open: boolean; onClose: 
           </div>
         )}
         <div className="mt-4 border-t pt-4">
-          <p className="font-medium mb-2" data-testid="cart-total">Total: {totalPrice.toFixed(2)} GHS</p>
+          <p className="font-medium mb-2" data-testid="cart-total">Total: {numericTotal.toFixed(2)} GHS</p>
           <Button
             className="w-full"
             onClick={handleCheckout}
