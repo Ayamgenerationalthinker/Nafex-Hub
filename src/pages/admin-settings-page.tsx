@@ -70,7 +70,7 @@ const DEFAULT_SETTINGS: ECommerceSettings = {
 
   maintenanceMode: "false",
   autoApproveProducts: "false",
-  adminAlertEmail: "admin@nafexhub.com",
+  adminAlertEmail: "nafexgroupltd@gmail.com",
 };
 
 export default function AdminSettingsPage() {
@@ -470,7 +470,7 @@ export default function AdminSettingsPage() {
                   <Input
                     value={settings.adminAlertEmail}
                     onChange={(e) => handleChange("adminAlertEmail", e.target.value)}
-                    placeholder="admin@nafexhub.com"
+                    placeholder="nafexgroupltd@gmail.com"
                   />
                   <p className="text-[11px] text-muted-foreground">System notifications, dispute alerts, and high-value orders will be sent here.</p>
                 </div>

@@ -72,22 +72,25 @@ export default function Terms() {
             },
             {
               title: "13. Contact Us",
-              content: `For questions about these Terms, please contact us at legal@nafexhub.com or through our Help Centre.`
+              content: `For questions about these Terms, please contact us at nafexgroupltd@gmail.com or through our Help Centre.`
             },
-          ].map((section) => (
-            <div key={section.title} className="space-y-2">
-              <h2 className="text-lg font-semibold text-[#222222]">{section.title}</h2>
-              <p className="text-[#4B5563] leading-relaxed text-sm">{section.content}</p>
+          ].map((section, idx) => (
+            <div key={idx} className="bg-card rounded-2xl border p-6 md:p-8 shadow-sm">
+              <h2 className="text-xl font-bold text-foreground mb-4">{section.title}</h2>
+              <div className="prose prose-sm md:prose-base prose-slate max-w-none text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                {section.content}
+              </div>
             </div>
           ))}
 
-          <div className="pt-4 border-t border-purple-100">
-            <p className="text-xs text-[#6B7280]">
-              For any questions, email us at{" "}
-              <a href="mailto:legal@nafexhub.com" className="text-[#6A1B9A] hover:underline">
-                legal@nafexhub.com
-              </a>
+          <div className="bg-purple-50 rounded-2xl p-6 md:p-8 border border-purple-100 text-center">
+            <h3 className="font-bold text-foreground mb-2">Still need help?</h3>
+            <p className="text-muted-foreground text-sm mb-4">
+              Our support team is available 24/7 to assist you.
             </p>
+            <a href="mailto:nafexgroupltd@gmail.com" className="text-[#6A1B9A] hover:underline">
+              nafexgroupltd@gmail.com
+            </a>
           </div>
         </div>
       </div>

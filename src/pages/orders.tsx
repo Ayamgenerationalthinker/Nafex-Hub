@@ -115,7 +115,7 @@ function PayWithPaystackDialog({
       // Step 3: open Paystack inline popup - no redirect, no secret key on frontend
       openPaystackPopup({
         publicKey,
-        email: user?.email ?? "customer@nafexhub.com",
+        email: user?.email ?? "nafexgroupltd@gmail.com",
         amountPesewas,
         reference,
         onSuccess: async (ref) => {
