@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
-import { AdminLayout } from "@/components/admin-layout";
 import {
   useGetAdminDeliveries,
   useGetAvailableRiders,
@@ -164,7 +163,7 @@ export default function AdminDeliveries() {
   };
 
   return (
-    <AdminLayout title="Deliveries">
+    <div className="min-h-screen bg-background p-4 md:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -465,6 +464,6 @@ export default function AdminDeliveries() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </div>
   );
 }

@@ -227,32 +227,33 @@ export default function Inbox({ isEmbedded = false }: { isEmbedded?: boolean }) 
             </div>
           )}
 
-        {/* Tab switcher for sellers */}
-        {isSeller && (
-          <div className="flex gap-1 bg-muted rounded-lg p-1 w-fit">
-            <button
-              onClick={() => { setActiveTab("buyer"); setSelectedConvId(null); }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                activeTab === "buyer"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <User className="w-3.5 h-3.5" /> My Chats
-            </button>
-            <button
-              onClick={() => { setActiveTab("seller"); setSelectedConvId(null); }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                activeTab === "seller"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Store className="w-3.5 h-3.5" /> Customer Chats
-            </button>
-          </div>
-        )}
-      </div>
+          {/* Tab switcher for sellers */}
+          {isSeller && (
+            <div className="flex gap-1 bg-muted rounded-lg p-1 w-fit">
+              <button
+                onClick={() => { setActiveTab("buyer"); setSelectedConvId(null); }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === "buyer"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <User className="w-3.5 h-3.5" /> My Chats
+              </button>
+              <button
+                onClick={() => { setActiveTab("seller"); setSelectedConvId(null); }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === "seller"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Store className="w-3.5 h-3.5" /> Customer Chats
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Main chat area ── */}
       <div className="flex flex-1 overflow-hidden mx-4 mb-4 border border-border rounded-2xl bg-card">

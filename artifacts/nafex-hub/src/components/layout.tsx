@@ -4,14 +4,13 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Instagram, Facebook, Mail, Tag, Headphones, Settings, ChevronDown, HelpCircle, User2, ClipboardList, Star, Truck, TrendingUp, Globe2, Wallet, Clock, Search, Ticket, CreditCard, XCircle, RefreshCcw, Handshake, MessageSquare, AlertCircle, ShieldCheck, MapPin, Coins, Home } from "lucide-react";
+import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Globe, Mail, Tag, Headphones, Settings, ChevronDown, HelpCircle, User2, ClipboardList, Star, Truck, TrendingUp, Globe2, Wallet, Clock, Search, Sun, Moon } from "lucide-react";
 import { VisaLogo, MastercardLogo, PaystackLogo, MobileMoneyLogo, BankTransferLogo } from "@/components/payment-icons";
+import useDarkMode from "@/hooks/use-dark-mode";
 import { NotificationBell } from "@/components/notification-bell";
 import { VerifyEmailBanner } from "@/components/verify-email-banner";
 import { CartIcon } from "@/components/cart-icon";
 import { useSiteSettings } from "@/hooks/use-site-settings";
-import { useCart } from "@/hooks/use-cart";
-import { Footer } from "@/components/footer";
 import { NafexCoinsModal } from "@/components/nafex-coins-modal";
 import { Logo } from "@/components/logo";
 
@@ -20,13 +19,12 @@ const FALLBACK_LOGO = "/nafex-logo.png";
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
   const { user, logout } = useAuth();
+const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [coinsModalOpen, setCoinsModalOpen] = useState(false);
   const [headerSearch, setHeaderSearch] = useState("");
   const [siteLogo, setSiteLogo] = useState<string>(FALLBACK_LOGO);
   const siteSettings = useSiteSettings();
-  const totalItems = useCart((s) => s.totalItems());
 
   useEffect(() => {
     if (siteSettings.logo) setSiteLogo(siteSettings.logo);
@@ -90,25 +88,24 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-[100dvh] flex flex-col w-full bg-background text-foreground font-sans">
       <VerifyEmailBanner />
-      {/* ── Header (dark charcoal matches reference design) ── */}
-      <header className="sticky top-0 z-50 w-full bg-secondary/80 backdrop-blur-lg text-secondary-foreground shadow-sm border-b border-white/10 transition-all duration-300">
+      {/* ── Header (clean white top navbar with purple brand highlights matching Img 1 style guide) ── */}
+      <header className="sticky top-0 z-50 w-full bg-white text-[#222222] shadow-sm border-b border-purple-100/80">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-8">
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5" data-testid="link-home" onClick={closeMenu}>
-            <Logo size="md" variant="badge" />
+            <Logo size="md" variant="raw" showTagline={false} />
           </Link>
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-6 flex-1 justify-end">
             {/* Global search (buyers / guests only) */}
             {!isBusinessOwner && !isAdmin && (
-              <div className="relative mr-4 max-w-sm w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-foreground/60 w-4 h-4" />
+              <div className="relative mr-4 max-w-sm w-full flex items-center">
                 <input
                   type="search"
-                  placeholder="Search brands, products, or categories..."
-                  className="w-full h-9 pl-9 pr-3 rounded-full bg-secondary-foreground/5 border border-secondary-foreground/10 text-sm text-secondary-foreground placeholder:text-secondary-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/70 focus:border-primary/70"
+                  placeholder="Search products, brands and more..."
+                  className="w-full h-10 pl-4 pr-11 rounded-full bg-[#F6F2FF] border border-purple-200 text-sm text-[#222222] placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#6A1B9A] focus:bg-white transition-all"
                   value={headerSearch}
                   onChange={(e) => setHeaderSearch(e.target.value)}
                   onKeyDown={(e) => {
@@ -120,6 +117,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     }
                   }}
                 />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const value = headerSearch.trim();
+                    const base = "/explore";
+                    const next = value ? `${base}?search=${encodeURIComponent(value)}` : base;
+                    setLocation(next);
+                  }}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-[#6A1B9A] hover:bg-[#5B1687] text-white flex items-center justify-center transition-colors shadow-xs"
+                >
+                  <Search className="w-4 h-4" />
+                </button>
               </div>
             )}
 
@@ -127,8 +136,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  location === link.href ? "text-primary" : "text-secondary-foreground/80"
+                className={`text-sm font-poppins font-medium transition-colors hover:text-[#6A1B9A] relative py-1 ${
+                  location === link.href ? "text-[#6A1B9A] font-semibold border-b-2 border-[#6A1B9A]" : "text-[#222222]/80"
                 }`}
               >
                 {link.label}
@@ -136,10 +145,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
             ))}
 
             {user ? (
-              <div className="flex items-center gap-1 ml-2">
+              <div className="flex items-center gap-1.5 ml-2">
                 {!isBusinessOwner && !isAdmin && (
-                  <CartIcon className="text-secondary-foreground/80 hover:text-primary" />
+                  <CartIcon className="text-[#222222] hover:text-[#6A1B9A]" />
                 )}
+                <Button variant="ghost" size="sm" onClick={toggleDarkMode} className="text-[#222222] hover:text-[#6A1B9A]" data-testid="btn-dark-mode">
+                  {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                </Button>
                 <NotificationBell />
 
                 {/* Buyer: Help dropdown + user account dropdown */}
@@ -153,35 +165,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
                           <ChevronDown className="w-3 h-3" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-60">
+                      <DropdownMenuContent align="end" className="w-52">
                         <DropdownMenuItem asChild>
                           <Link href="/help" className="flex items-center gap-2 cursor-pointer">
                             <HelpCircle className="w-4 h-4 text-muted-foreground" /> Help Center
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/explore" className="flex items-center gap-2 cursor-pointer">
-                            <ShoppingBag className="w-4 h-4 text-muted-foreground" /> Place an Order
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
                           <Link href="/orders" className="flex items-center gap-2 cursor-pointer">
-                            <CreditCard className="w-4 h-4 text-muted-foreground" /> Pay for Your Order
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/orders" className="flex items-center gap-2 cursor-pointer">
-                            <Truck className="w-4 h-4 text-muted-foreground" /> Track Your Order
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/orders" className="flex items-center gap-2 cursor-pointer">
-                            <XCircle className="w-4 h-4 text-muted-foreground" /> Cancel an Order
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/disputes" className="flex items-center gap-2 cursor-pointer">
-                            <RefreshCcw className="w-4 h-4 text-muted-foreground" /> Returns & Refunds
+                            <Truck className="w-4 h-4 text-muted-foreground" /> Track My Order
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
@@ -190,13 +182,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                             <MessageCircle className="w-4 h-4 text-muted-foreground" /> Live Chat
                           </Link>
                         </DropdownMenuItem>
-                        {siteSettings.whatsappNumber?.trim() && (
-                          <DropdownMenuItem asChild>
-                            <a href={`https://wa.me/${siteSettings.whatsappNumber.replace(/\D/g, "")}`} className="flex items-center gap-2 cursor-pointer" target="_blank" rel="noreferrer">
-                              <Phone className="w-4 h-4 text-green-500" /> WhatsApp
-                            </a>
-                          </DropdownMenuItem>
-                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
 
@@ -234,11 +219,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         <DropdownMenuItem asChild>
                           <Link href="/dashboard?tab=wishlist" className="flex items-center gap-2 cursor-pointer">
                             <Heart className="w-4 h-4 text-muted-foreground" /> Wishlist
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/dashboard?tab=vouchers" className="flex items-center gap-2 cursor-pointer">
-                            <Ticket className="w-4 h-4 text-muted-foreground" /> Vouchers
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => setCoinsModalOpen(true)} className="flex items-center gap-2 cursor-pointer text-amber-600 dark:text-amber-400 font-medium">
@@ -343,16 +323,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
           {/* Mobile hamburger */}
           <div className="flex md:hidden items-center gap-2">
             {!isBusinessOwner && !isAdmin && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
-                className="text-secondary-foreground hover:bg-white/10 hover:text-primary h-8 w-8"
-              >
-                <Search className="w-5 h-5" />
-              </Button>
-            )}
-            {!isBusinessOwner && !isAdmin && (
               <CartIcon className="text-secondary-foreground/80 hover:text-primary" />
             )}
             {user && <NotificationBell />}
@@ -379,10 +349,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 {/* Drawer header */}
                 <div className="flex items-center justify-between px-6 h-16 border-b border-secondary-foreground/10">
                   <Link href="/" className="flex items-center gap-2" onClick={closeMenu}>
-                    <img src="/nafex-logo.png" alt="Nafex" className="h-8 w-auto object-contain" />
-                    <span className="font-serif font-bold text-lg">
-                      Nafex <span className="text-primary">Hub</span>
-                    </span>
+                    <Logo size="sm" variant="badge" />
                   </Link>
                   <Button
                     variant="ghost"
@@ -469,70 +436,116 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
 
         </div>
-
-        {/* Mobile Search Bar Expandable */}
-        {mobileSearchOpen && !isBusinessOwner && !isAdmin && (
-          <div className="md:hidden border-t border-white/10 px-4 py-3 bg-secondary/95 backdrop-blur-lg">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-foreground/60 w-4 h-4" />
-              <input
-                type="search"
-                placeholder="Search brands, products, or categories..."
-                className="w-full h-10 pl-9 pr-3 rounded-full bg-secondary-foreground/5 border border-secondary-foreground/10 text-sm text-secondary-foreground placeholder:text-secondary-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/70 focus:border-primary/70"
-                value={headerSearch}
-                onChange={(e) => setHeaderSearch(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    const value = headerSearch.trim();
-                    const base = "/explore";
-                    const next = value ? `${base}?search=${encodeURIComponent(value)}` : base;
-                    setLocation(next);
-                    setMobileSearchOpen(false);
-                  }
-                }}
-                autoFocus
-              />
-            </div>
-          </div>
-        )}
       </header>
 
-      <main className="flex-1 flex flex-col w-full pb-16 md:pb-0">
+      <main className="flex-1 flex flex-col w-full">
         {children}
       </main>
 
-      {/* Mobile Bottom Navigation */}
-      {!isBusinessOwner && !isAdmin && (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0f172a]/95 backdrop-blur-md border-t border-white/10 h-16 flex items-center justify-around z-50 px-2 shadow-[0_-4px_24px_rgba(0,0,0,0.4)]">
-          <Link href="/" className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${location === "/" ? "text-primary font-semibold" : "text-white/60 hover:text-primary"}`}>
-            <Home className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px] font-sans">Home</span>
-          </Link>
-          <Link href="/explore" className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${location.startsWith("/explore") ? "text-primary font-semibold" : "text-white/60 hover:text-primary"}`}>
-            <Search className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px] font-sans">Explore</span>
-          </Link>
-          <Link href="/cart" className={`relative flex flex-col items-center justify-center flex-1 py-1 transition-colors ${location.startsWith("/cart") ? "text-primary font-semibold" : "text-white/60 hover:text-primary"}`}>
-            <ShoppingBag className="w-5 h-5 mb-0.5" />
-            {totalItems > 0 && (
-              <span className="absolute top-0.5 right-1/2 translate-x-4 min-w-[16px] h-[16px] px-1 rounded-full bg-primary text-secondary text-[9px] font-bold flex items-center justify-center shadow-md animate-pulse">
-                {totalItems > 99 ? "99+" : totalItems}
-              </span>
-            )}
-            <span className="text-[10px] font-sans">Cart</span>
-          </Link>
-          <Link href={user ? "/inbox" : "/login"} className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${location.startsWith("/inbox") ? "text-primary font-semibold" : "text-white/60 hover:text-primary"}`}>
-            <MessageSquare className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px] font-sans">Inbox</span>
-          </Link>
-          <Link href={user ? "/dashboard" : "/login"} className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${location.startsWith("/dashboard") || location.startsWith("/account") || location === "/login" ? "text-primary font-semibold" : "text-white/60 hover:text-primary"}`}>
-            <User2 className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px] font-sans">{user ? "Account" : "Login"}</span>
-          </Link>
-        </nav>
-      )}
+      {/* ── Footer (Deep Primary Purple #6A1B9A matching Img 1 reference style guide) ── */}
+      <footer className="bg-[#6A1B9A] text-white border-t border-purple-900">
+        <div className="container mx-auto px-4 md:px-8 py-12">
+          {/* Main Footer Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-purple-400/20">
+            {/* Column 1: Brand Info */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Logo size="md" variant="dark-badge" showTagline={true} />
+              </div>
+              <p className="text-xs text-purple-100/80 leading-relaxed font-poppins">
+                Quality products. Secure payments. Fast delivery. Ghana's premier trusted online marketplace.
+              </p>
+              <div className="flex items-center gap-3 pt-2">
+                {siteSettings.whatsappNumber?.trim() && (
+                  <a
+                    href={`https://wa.me/${siteSettings.whatsappNumber.replace(/\D/g, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full bg-white/10 hover:bg-[#D4A017] hover:text-white flex items-center justify-center text-purple-100 transition-all"
+                    title="WhatsApp"
+                  >
+                    <Phone className="w-4 h-4" />
+                  </a>
+                )}
+                {siteSettings.instagramLink?.trim() && (
+                  <a
+                    href={siteSettings.instagramLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full bg-white/10 hover:bg-[#D4A017] hover:text-white flex items-center justify-center text-purple-100 transition-all"
+                    title="Instagram"
+                  >
+                    <Globe className="w-4 h-4" />
+                  </a>
+                )}
+                {siteSettings.facebookLink?.trim() && (
+                  <a
+                    href={siteSettings.facebookLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full bg-white/10 hover:bg-[#D4A017] hover:text-white flex items-center justify-center text-purple-100 transition-all"
+                    title="Facebook"
+                  >
+                    <Globe className="w-4 h-4" />
+                  </a>
+                )}
+              </div>
+            </div>
 
-      <Footer />
+            {/* Column 2: Quick Links */}
+            <div className="space-y-3 font-poppins">
+              <h4 className="font-bold text-sm text-[#D4A017] uppercase tracking-wider">Quick Links</h4>
+              <ul className="space-y-2 text-sm text-purple-100/90">
+                <li><Link href="/" className="hover:text-[#D4A017] transition-colors">Home</Link></li>
+                <li><Link href="/explore" className="hover:text-[#D4A017] transition-colors">Shop</Link></li>
+                <li><Link href="/explore" className="hover:text-[#D4A017] transition-colors">Categories</Link></li>
+                <li><Link href="/about" className="hover:text-[#D4A017] transition-colors">About Us</Link></li>
+                <li><Link href="/support" className="hover:text-[#D4A017] transition-colors">Contact Us</Link></li>
+              </ul>
+            </div>
+
+            {/* Column 3: Customer Service */}
+            <div className="space-y-3 font-poppins">
+              <h4 className="font-bold text-sm text-[#D4A017] uppercase tracking-wider">Customer Service</h4>
+              <ul className="space-y-2 text-sm text-purple-100/90">
+                <li><Link href="/help" className="hover:text-[#D4A017] transition-colors">FAQs</Link></li>
+                <li><Link href="/track" className="hover:text-[#D4A017] transition-colors">Shipping & Delivery</Link></li>
+                <li><Link href="/disputes" className="hover:text-[#D4A017] transition-colors">Returns & Refunds</Link></li>
+                <li><Link href="/privacy" className="hover:text-[#D4A017] transition-colors">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="hover:text-[#D4A017] transition-colors">Terms & Conditions</Link></li>
+              </ul>
+            </div>
+
+            {/* Column 4: Newsletter Subscription (Exact style from Img 1) */}
+            <div className="space-y-3 font-poppins">
+              <h4 className="font-bold text-sm text-[#D4A017] uppercase tracking-wider">Newsletter</h4>
+              <p className="text-xs text-purple-100/90 leading-relaxed">
+                Subscribe to get updates on new products and offers.
+              </p>
+              <form onSubmit={(e) => e.preventDefault()} className="space-y-2 pt-1">
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="w-full h-10 px-3.5 rounded-lg bg-white text-[#222222] placeholder:text-[#6B7280] text-sm focus:outline-none focus:ring-2 focus:ring-[#D4A017]"
+                />
+                <button
+                  type="submit"
+                  className="w-full h-10 rounded-lg bg-[#D4A017] hover:bg-[#B88A12] text-white font-bold text-sm transition-all shadow-sm"
+                >
+                  Subscribe
+                </button>
+              </form>
+            </div>
+          </div>
+
+          {/* Bottom Copyright Bar */}
+          <div className="pt-6 text-center">
+            <p className="text-xs text-purple-200/80 font-poppins">
+              © {new Date().getFullYear()} NafexHub. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer>
       <NafexCoinsModal open={coinsModalOpen} onOpenChange={setCoinsModalOpen} />
     </div>
   );

@@ -35,7 +35,7 @@ type ConvData = {
   unreadCount?: number;
 };
 
-export default function Inbox() {
+export default function Inbox({ isEmbedded = false }: { isEmbedded?: boolean }) {
   const [location, setLocation] = useLocation();
   const { user } = useAuth();
   const socket = useSocket();
@@ -58,7 +58,7 @@ export default function Inbox() {
     query: { enabled: !!user, queryKey: getGetConversationsQueryKey() },
   });
 
-  const { data: sellerConvs, isLoading: sellerLoading } = useSellerConversations();
+  const { data: sellerConvs, isLoading: sellerLoading, refetch: refetchSellerConvs } = useSellerConversations();
 
   const conversations: ConvData[] = (
     activeTab === "buyer" ? (buyerConvs ?? []) : (sellerConvs ?? [])
@@ -85,6 +85,7 @@ export default function Inbox() {
           return alreadyIn ? prev : [...prev, saved as MsgData];
         });
         queryClient.invalidateQueries({ queryKey: getGetConversationsQueryKey() });
+        refetchSellerConvs();
       },
     },
   });
@@ -100,8 +101,9 @@ export default function Inbox() {
       });
       // Refresh conversation list so unread badge disappears
       queryClient.invalidateQueries({ queryKey: getGetConversationsQueryKey() });
+      refetchSellerConvs();
     } catch {}
-  }, [queryClient]);
+  }, [queryClient, refetchSellerConvs]);
 
   const handleSelectConv = useCallback((convId: number) => {
     setSelectedConvId(convId);
@@ -162,6 +164,7 @@ export default function Inbox() {
         return [...prev, msg];
       });
       queryClient.invalidateQueries({ queryKey: getGetConversationsQueryKey() });
+      refetchSellerConvs();
       // Immediately mark as read since we're actively viewing this conversation
       if (msg.senderId !== myUserId) {
         markConvAsRead(selectedConvId);
@@ -184,7 +187,7 @@ export default function Inbox() {
       socket.off("stop_typing", onStopTyping);
       socket.emit("leave_room", selectedConvId);
     };
-  }, [socket, selectedConvId, user, markConvAsRead, queryClient]);
+  }, [socket, selectedConvId, user, markConvAsRead, queryClient, refetchSellerConvs]);
 
   const handleTyping = useCallback(() => {
     if (!socket || !selectedConvId) return;
@@ -213,40 +216,44 @@ export default function Inbox() {
   const convsLoading = activeTab === "buyer" ? buyerLoading : sellerLoading;
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-4rem)]">
+    <div className={isEmbedded ? "flex flex-col h-[calc(100vh-220px)] border rounded-xl overflow-hidden bg-card" : "flex flex-col h-[calc(100dvh-4rem)]"}>
       {/* ── Header ── */}
-      <div className="px-4 pt-4 pb-2 flex-shrink-0">
-        <div className="flex items-center gap-3 mb-3">
-          <MessageCircle className="w-5 h-5 text-primary" />
-          <h1 className="font-serif text-xl font-bold text-foreground">Inbox</h1>
-        </div>
+      {(!isEmbedded || isSeller) && (
+        <div className="px-4 pt-4 pb-2 flex-shrink-0">
+          {!isEmbedded && (
+            <div className="flex items-center gap-3 mb-3">
+              <MessageCircle className="w-5 h-5 text-primary" />
+              <h1 className="font-serif text-xl font-bold text-foreground">Inbox</h1>
+            </div>
+          )}
 
-        {/* Tab switcher for sellers */}
-        {isSeller && (
-          <div className="flex gap-1 bg-muted rounded-lg p-1 w-fit">
-            <button
-              onClick={() => { setActiveTab("buyer"); setSelectedConvId(null); }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                activeTab === "buyer"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <User className="w-3.5 h-3.5" /> My Chats
-            </button>
-            <button
-              onClick={() => { setActiveTab("seller"); setSelectedConvId(null); }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                activeTab === "seller"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Store className="w-3.5 h-3.5" /> Customer Chats
-            </button>
-          </div>
-        )}
-      </div>
+          {/* Tab switcher for sellers */}
+          {isSeller && (
+            <div className="flex gap-1 bg-muted rounded-lg p-1 w-fit">
+              <button
+                onClick={() => { setActiveTab("buyer"); setSelectedConvId(null); }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === "buyer"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <User className="w-3.5 h-3.5" /> My Chats
+              </button>
+              <button
+                onClick={() => { setActiveTab("seller"); setSelectedConvId(null); }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === "seller"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Store className="w-3.5 h-3.5" /> Customer Chats
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Main chat area ── */}
       <div className="flex flex-1 overflow-hidden mx-4 mb-4 border border-border rounded-2xl bg-card">

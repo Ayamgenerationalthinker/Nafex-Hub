@@ -399,10 +399,10 @@ export default function BuyerDashboard() {
           )}
 
           {/* ORDERS TAB */}
-          {activeTab === "orders" && <Orders />}
+          {activeTab === "orders" && <Orders isEmbedded />}
 
           {/* WISHLIST TAB */}
-          {activeTab === "wishlist" && <Favorites />}
+          {activeTab === "wishlist" && <Favorites isEmbedded />}
 
           {/* VOUCHERS TAB */}
           {activeTab === "vouchers" && (
@@ -435,13 +435,13 @@ export default function BuyerDashboard() {
           )}
 
           {/* INBOX TAB */}
-          {activeTab === "inbox" && <Inbox />}
+          {activeTab === "inbox" && <Inbox isEmbedded />}
 
           {/* PAYMENTS TAB */}
-          {activeTab === "payments" && <Payments />}
+          {activeTab === "payments" && <Payments isEmbedded />}
 
           {/* DISPUTES TAB */}
-          {activeTab === "disputes" && <Disputes />}
+          {activeTab === "disputes" && <Disputes isEmbedded />}
 
           {/* ADDRESS BOOK TAB */}
           {activeTab === "addresses" && (
@@ -549,7 +549,7 @@ export default function BuyerDashboard() {
           )}
 
           {/* SETTINGS TAB */}
-          {activeTab === "settings" && <BuyerSettings />}
+          {activeTab === "settings" && <BuyerSettings isEmbedded />}
 
         </div>
 

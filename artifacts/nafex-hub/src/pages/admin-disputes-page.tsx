@@ -11,7 +11,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { AdminLayout } from "@/components/admin-layout";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -110,7 +109,7 @@ export default function AdminDisputesPage() {
   const openCount = (disputes ?? []).filter((d) => d.status === "open").length;
 
   return (
-    <AdminLayout title="Disputes">
+    <div className="min-h-screen bg-background p-4 md:p-6">
       <div className="max-w-5xl mx-auto space-y-6">
         <div>
           <h1 className="font-serif text-2xl md:text-3xl font-bold">Dispute Management</h1>
@@ -303,6 +302,6 @@ export default function AdminDisputesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AdminLayout>
+    </div>
   );
 }

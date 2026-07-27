@@ -8,9 +8,10 @@ import { useLocation, Link } from "wouter";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/hooks/use-toast";
-import { CheckCircle2, Loader2, ShoppingBag, Store, ArrowLeft, ChevronLeft, Eye, EyeOff, Github, Facebook } from "lucide-react";
+import { CheckCircle2, Loader2, ShoppingBag, Store, ScrollText, Truck, Package } from "lucide-react";
 import { Logo } from "@/components/logo";
 
 const registerSchema = z.object({
@@ -22,40 +23,178 @@ const registerSchema = z.object({
     .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
     .regex(/[0-9]/, "Password must contain at least one number"),
   role: z.enum(["user", "business_owner"]).default("user"),
-  termsAccepted: z.boolean().refine((val) => val === true, {
-    message: "You must accept the terms and conditions",
-  }),
 });
 
 type RegisterForm = z.infer<typeof registerSchema>;
 
+// ── T&C content blocks ───────────────────────────────────────────────────────
+
+const TC_GENERAL = (
+  <div className="space-y-5">
+    <section>
+      <h3 className="font-semibold text-foreground mb-2">1. General Use</h3>
+      <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+        <li>Users must provide accurate information.</li>
+        <li>Buyers and sellers must act honestly and professionally.</li>
+        <li>Nafex may suspend accounts involved in fraud, abuse, fake orders, or suspicious activity.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h3 className="font-semibold text-foreground mb-2">7. Prohibited Activities</h3>
+      <p className="text-sm text-muted-foreground mb-1">The following are strictly prohibited:</p>
+      <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+        <li>Fraud or scams</li>
+        <li>Fake products</li>
+        <li>Fake reviews</li>
+        <li>Illegal items</li>
+        <li>Harassment or abusive behavior</li>
+      </ul>
+      <p className="text-sm text-muted-foreground mt-1">Violations may result in permanent suspension.</p>
+    </section>
+
+    <section>
+      <h3 className="font-semibold text-foreground mb-2">8. Privacy</h3>
+      <p className="text-sm text-muted-foreground">
+        User information will only be used for platform operations, security, payments, and deliveries.
+      </p>
+    </section>
+  </div>
+);
+
+const TC_BUYER = (
+  <div className="space-y-5">
+    <section>
+      <h3 className="font-semibold text-foreground mb-2">3. Buyer Responsibilities</h3>
+      <p className="text-sm text-muted-foreground mb-1">As a buyer, you agree to:</p>
+      <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+        <li>Provide correct delivery details.</li>
+        <li>Avoid fake orders or payment fraud.</li>
+        <li>Treat sellers and delivery personnel respectfully.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h3 className="font-semibold text-foreground mb-2">5. Customer Protection</h3>
+      <p className="text-sm text-muted-foreground">
+        Nafex may investigate complaints and restrict sellers where orders are repeatedly delayed, wrong or fake products
+        are delivered, or sellers fail to respond to disputes.
+      </p>
+    </section>
+
+    <section>
+      <h3 className="font-semibold text-foreground mb-2">6. Refunds & Disputes</h3>
+      <p className="text-sm text-muted-foreground mb-1">Refunds or returns may be approved for:</p>
+      <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+        <li>Undelivered orders</li>
+        <li>Wrong items</li>
+        <li>Damaged items</li>
+        <li>Fraudulent transactions</li>
+      </ul>
+      <p className="text-sm text-muted-foreground mt-1">Nafex reserves the right to review and decide disputes fairly.</p>
+    </section>
+  </div>
+);
+
+const TC_SELLER = (
+  <div className="space-y-5">
+    <section>
+      <h3 className="font-semibold text-foreground mb-2">2. Seller Responsibilities</h3>
+      <p className="text-sm text-muted-foreground mb-1">As a seller, you agree to:</p>
+      <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+        <li>List only genuine and legal products.</li>
+        <li>Use accurate descriptions and prices.</li>
+        <li>Deliver orders on time.</li>
+        <li>Respond professionally to customers.</li>
+      </ul>
+      <p className="text-sm text-muted-foreground mt-2">
+        Repeated complaints, failed deliveries, fake products, or misleading listings may lead to account restrictions,
+        payment holds, reduced visibility, or permanent suspension.
+      </p>
+    </section>
+
+    <section>
+      <h3 className="font-semibold text-foreground mb-2">4. Delivery Options</h3>
+      <p className="text-sm text-muted-foreground">
+        Before selling on Nafex, you must choose a delivery method. Where you manage deliveries yourself, you are fully
+        responsible for delays, failed deliveries, or customer complaints relating to delivery.
+      </p>
+    </section>
+
+    <section>
+      <h3 className="font-semibold text-foreground mb-2">5. Customer Protection</h3>
+      <p className="text-sm text-muted-foreground">
+        Nafex may investigate complaints and restrict your account where orders are repeatedly delayed, wrong or fake
+        products are delivered, buyers report delivery issues, or you fail to respond to disputes.
+      </p>
+    </section>
+
+    <section>
+      <h3 className="font-semibold text-foreground mb-2">6. Refunds & Disputes</h3>
+      <p className="text-sm text-muted-foreground mb-1">Refunds or returns may be approved for:</p>
+      <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+        <li>Undelivered orders</li>
+        <li>Wrong items</li>
+        <li>Damaged items</li>
+        <li>Fraudulent transactions</li>
+      </ul>
+      <p className="text-sm text-muted-foreground mt-1">Nafex reserves the right to review and decide disputes fairly.</p>
+    </section>
+  </div>
+);
+
+// ── Component ────────────────────────────────────────────────────────────────
+
 export default function Register() {
   const [, setLocation] = useLocation();
   const { setAuth } = useAuth();
-  const { toast } = useToast();
   const register = useRegister();
   const [successInfo, setSuccessInfo] = useState<{ name: string; role: string } | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
+
+  // T&C modal state
+  const [showTc, setShowTc] = useState(false);
+  const [pendingValues, setPendingValues] = useState<RegisterForm | null>(null);
+  const [tcGeneral, setTcGeneral] = useState(false);
+  const [tcSuspension, setTcSuspension] = useState(false);
+  const [deliveryChoice, setDeliveryChoice] = useState<"self" | "nafex" | null>(null);
 
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { name: "", email: "", password: "", role: "user", termsAccepted: false },
+    defaultValues: { name: "", email: "", password: "", role: "user" },
   });
 
-  const onSubmit = (values: RegisterForm) => {
-    // We don't send termsAccepted to the backend usually, just the required fields
-    const { termsAccepted, ...dataToSend } = values;
-    
+  const selectedRole = form.watch("role");
+  const isSeller = selectedRole === "business_owner";
+
+  // Step 1: validate form, open T&C modal
+  const handleFormSubmit = (values: RegisterForm) => {
+    setPendingValues(values);
+    setTcGeneral(false);
+    setTcSuspension(false);
+    setDeliveryChoice(null);
+    setShowTc(true);
+  };
+
+  // Step 2: user accepted T&C — actually create account
+  const canAccept =
+    tcGeneral &&
+    tcSuspension &&
+    (!isSeller || deliveryChoice !== null);
+
+  const handleAccept = () => {
+    if (!pendingValues || !canAccept) return;
     register.mutate(
-      { data: dataToSend as any },
+      { data: pendingValues },
       {
         onSuccess: (data) => {
-          setAuth(data.token, data.user as any);
+          setShowTc(false);
+          setAuth(data.token, data.user as Parameters<typeof setAuth>[1]);
           setSuccessInfo({ name: data.user.name, role: data.user.role });
         },
-        onError: (err: any) => {
+        onError: (err: unknown) => {
+          setShowTc(false);
           form.setError("root", {
-            message: err?.data?.error ?? "Something went wrong. Please try again.",
+            message: (err as { data?: { error?: string } })?.data?.error ?? "Something went wrong. Please try again.",
           });
         },
       }
@@ -67,111 +206,10 @@ export default function Register() {
     setLocation("/verify-email");
   };
 
-  const handleGoogleLogin = () => {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    const currentRole = form.watch("role");
-    if (!clientId) {
-      toast({
-        title: "Google Auth (Simulation)",
-        description: "Simulating successful Google authentication. To configure real login, add VITE_GOOGLE_CLIENT_ID in Railway.",
-      });
-      const mockAccessToken = "mock-google-access-token-" + Math.random().toString(36).substring(7);
-      handleBackendGoogleLogin(mockAccessToken, currentRole);
-      return;
-    }
-
-    try {
-      const client = (window as any).google.accounts.oauth2.initTokenClient({
-        client_id: clientId,
-        scope: "email profile openid",
-        callback: async (tokenResponse: any) => {
-          if (tokenResponse && tokenResponse.access_token) {
-            await handleBackendGoogleLogin(tokenResponse.access_token, currentRole);
-          }
-        },
-      });
-      client.requestAccessToken();
-    } catch (err) {
-      console.error("Google auth error:", err);
-      toast({ title: "Google Registration failed", description: "Failed to initialize Google registration.", variant: "destructive" });
-    }
-  };
-
-  const handleBackendGoogleLogin = async (accessToken: string, role: string) => {
-    try {
-      const res = await fetch("/api/auth/google", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accessToken, role }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Google authentication failed");
-      setAuth(data.token, data.user as any);
-      setSuccessInfo({ name: data.user.name, role: data.user.role });
-    } catch (err) {
-      toast({ title: "Google Registration failed", description: (err as Error).message, variant: "destructive" });
-    }
-  };
-
-  const handleFacebookLogin = () => {
-    const appId = import.meta.env.VITE_FACEBOOK_APP_ID;
-    const currentRole = form.watch("role");
-    if (!appId) {
-      toast({
-        title: "Facebook Auth (Simulation)",
-        description: "Simulating successful Facebook authentication. To configure real login, add VITE_FACEBOOK_APP_ID in Railway.",
-      });
-      const mockAccessToken = "mock-facebook-access-token-" + Math.random().toString(36).substring(7);
-      handleBackendFacebookLogin(mockAccessToken, currentRole);
-      return;
-    }
-
-    try {
-      if (!(window as any).FB) {
-        toast({ title: "Facebook SDK loading", description: "Please wait a moment and try again." });
-        return;
-      }
-
-      (window as any).FB.init({
-        appId: appId,
-        cookie: true,
-        xfbml: true,
-        version: "v18.0"
-      });
-
-      (window as any).FB.login((response: any) => {
-        if (response.authResponse && response.authResponse.accessToken) {
-          handleBackendFacebookLogin(response.authResponse.accessToken, currentRole);
-        } else {
-          toast({ title: "Facebook Login cancelled", description: "User cancelled login or did not authorize the app." });
-        }
-      }, { scope: "public_profile,email" });
-    } catch (err) {
-      console.error("Facebook login error:", err);
-      toast({ title: "Facebook Login failed", description: "Failed to initialize Facebook login.", variant: "destructive" });
-    }
-  };
-
-  const handleBackendFacebookLogin = async (accessToken: string, role: string) => {
-    try {
-      const res = await fetch("/api/auth/facebook", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accessToken, role }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Facebook authentication failed");
-      setAuth(data.token, data.user as any);
-      setSuccessInfo({ name: data.user.name, role: data.user.role });
-    } catch (err) {
-      toast({ title: "Facebook Login failed", description: (err as Error).message, variant: "destructive" });
-    }
-  };
-
   // ── Success screen ──────────────────────────────────────────────────────
   if (successInfo) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4 py-16 bg-background">
+      <div className="min-h-[80vh] flex items-center justify-center px-4 py-16">
         <div className="w-full max-w-md text-center space-y-6">
           <div className="flex justify-center">
             <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
@@ -186,7 +224,7 @@ export default function Register() {
                 : "Your account is ready. Start exploring Ghana's best fashion brands."}
             </p>
           </div>
-          <div className="bg-card rounded-2xl border p-6 space-y-3 text-left shadow-sm">
+          <div className="bg-card rounded-2xl border p-6 space-y-3 text-left">
             <p className="text-sm font-semibold text-foreground">What's next?</p>
             {successInfo.role === "business_owner" ? (
               <ul className="space-y-2 text-sm text-muted-foreground">
@@ -202,7 +240,7 @@ export default function Register() {
               </ul>
             )}
           </div>
-          <Button className="w-full h-12 text-base font-semibold shadow-lg rounded-xl" onClick={handleContinue}>
+          <Button className="w-full h-12 text-base font-semibold" onClick={handleContinue}>
             {successInfo.role === "business_owner" ? "List My Business" : "Explore Brands"}
           </Button>
         </div>
@@ -212,229 +250,287 @@ export default function Register() {
 
   // ── Registration form ───────────────────────────────────────────────────
   return (
-    <div className="w-full min-h-screen lg:grid lg:grid-cols-2 bg-background">
-      {/* ── Left Side: Brand Imagery (Desktop Only) ── */}
-      <div className="hidden lg:flex flex-col justify-center bg-[#1A1A1A] text-white p-12 lg:p-24 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/30 to-transparent opacity-50" />
-        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-primary/20 blur-3xl rounded-full" />
-        
-        <div className="relative z-10 max-w-xl">
-          <Link href="/" className="inline-flex items-center justify-center mb-12 hover:scale-105 transition-transform cursor-pointer">
-            <Logo size="lg" variant="badge" className="px-5 py-2.5 shadow-xl border-slate-200" />
-          </Link>
-          <h1 className="text-5xl lg:text-6xl font-serif font-bold mb-6 leading-tight">
-            Join Ghana's premier <span className="text-primary">marketplace</span>.
-          </h1>
-          <p className="text-xl text-gray-300 font-medium max-w-md">
-            Whether you want to shop the best fashion or grow your business, Nafex Hub is the place to be.
-          </p>
-
-          <div className="mt-12 space-y-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
-                <ShoppingBag className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg">Shop with confidence</h3>
-                <p className="text-sm text-gray-400">Verified sellers and secure payments.</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
-                <Store className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg">Grow your business</h3>
-                <p className="text-sm text-gray-400">Reach thousands of buyers across Ghana.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Right Side: Registration Form ── */}
-      <div className="flex flex-col lg:items-center lg:justify-center p-4 sm:p-12 lg:p-24 relative overflow-y-auto min-h-screen bg-slate-50/50 lg:bg-background">
-        {/* Mobile App Header (Top bar) */}
-        <div className="flex items-center justify-between py-4 lg:hidden border-b border-gray-100 bg-white px-4 -mx-4 -mt-4 mb-6 sticky top-0 z-30 w-screen">
-          <Link href="/" className="flex items-center gap-0.5 text-muted-foreground hover:text-foreground">
-            <ChevronLeft className="w-5 h-5" />
-            <span className="text-xs font-semibold">Back</span>
-          </Link>
-          <span className="font-serif font-bold text-base text-foreground">Sign Up</span>
-          <div className="w-10"></div> {/* Spacer to center title */}
-        </div>
-
-        <div className="w-full max-w-md bg-white lg:bg-transparent rounded-3xl p-6 sm:p-0 shadow-sm border border-gray-100/80 lg:border-0 lg:shadow-none space-y-6">
-          <div className="space-y-1.5 text-center lg:text-left">
-            <h2 className="font-serif text-2xl lg:text-3xl font-bold tracking-tight">Create an account</h2>
-            <p className="text-muted-foreground text-sm font-medium">
-              Join thousands of users on Nafex Hub
-            </p>
+    <>
+      <div className="min-h-[80vh] flex items-center justify-center px-4 py-16">
+        <div className="w-full max-w-md space-y-8">
+          <div className="text-center space-y-3">
+            <Logo size="lg" variant="badge" className="mx-auto shadow-md border-slate-200" />
+            <h1 className="font-serif text-3xl font-bold text-foreground">Join Nafex Hub</h1>
+            <p className="text-muted-foreground">Ghana's premier fashion marketplace</p>
           </div>
 
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <Button variant="outline" className="h-12 border-gray-200 shadow-sm rounded-xl" onClick={handleGoogleLogin}>
-                <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                </svg>
-                Google
-              </Button>
-              <Button variant="outline" className="h-12 border-gray-200 shadow-sm rounded-xl hover:bg-blue-50/20 hover:border-blue-100" onClick={handleFacebookLogin}>
-                <Facebook className="mr-2 h-5 w-5 text-[#1877F2] fill-[#1877F2]" />
-                Facebook
-              </Button>
-            </div>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-100" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white lg:bg-background px-4 text-muted-foreground font-medium">Or register with email</span>
-              </div>
-            </div>
-
+          <div className="bg-card rounded-2xl border shadow-sm p-8 space-y-6">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-                
-                {/* Role Selection via large cards */}
-                <FormField
-                  control={form.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem className="space-y-3">
-                      <FormLabel className="font-semibold text-foreground">I want to...</FormLabel>
-                      <div className="grid grid-cols-2 gap-3">
-                        <label className={`relative flex flex-col items-center justify-center p-4 border rounded-xl cursor-pointer transition-all ${field.value === 'user' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-gray-200 hover:border-gray-300'}`}>
-                          <input type="radio" value="user" checked={field.value === 'user'} onChange={() => field.onChange('user')} className="sr-only" />
-                          <ShoppingBag className={`w-6 h-6 mb-2 ${field.value === 'user' ? 'text-primary' : 'text-gray-400'}`} />
-                          <span className={`font-semibold text-sm ${field.value === 'user' ? 'text-primary' : 'text-gray-600'}`}>Shop</span>
-                        </label>
-                        <label className={`relative flex flex-col items-center justify-center p-4 border rounded-xl cursor-pointer transition-all ${field.value === 'business_owner' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-gray-200 hover:border-gray-300'}`}>
-                          <input type="radio" value="business_owner" checked={field.value === 'business_owner'} onChange={() => field.onChange('business_owner')} className="sr-only" />
-                          <Store className={`w-6 h-6 mb-2 ${field.value === 'business_owner' ? 'text-primary' : 'text-gray-400'}`} />
-                          <span className={`font-semibold text-sm ${field.value === 'business_owner' ? 'text-primary' : 'text-gray-600'}`}>Sell</span>
-                        </label>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
+              <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-5">
                 <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-semibold">Full Name</FormLabel>
+                      <FormLabel>Full Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Kofi Mensah" {...field} data-testid="input-name" className="h-12 bg-muted/50 border-gray-200 rounded-xl" />
+                        <Input placeholder="Kofi Mensah" {...field} data-testid="input-name" className="h-12" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-semibold">Email address</FormLabel>
+                      <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="you@example.com" {...field} data-testid="input-email" className="h-12 bg-muted/50 border-gray-200 rounded-xl" />
+                        <Input type="email" placeholder="you@example.com" {...field} data-testid="input-email" className="h-12" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-semibold">Password</FormLabel>
+                      <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <div className="relative">
-                          <Input
-                            type={showPassword ? "text" : "password"}
-                            placeholder="Min 8 chars, 1 uppercase, 1 number"
-                            {...field}
-                            data-testid="input-password"
-                            className="h-12 bg-muted/50 border-gray-200 pr-10 rounded-xl"
-                          />
-                          <button
-                            type="button"
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                            onClick={() => setShowPassword(!showPassword)}
-                          >
-                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                          </button>
-                        </div>
+                        <Input type="password" placeholder="Min 8 chars, 1 uppercase, 1 number" {...field} data-testid="input-password" className="h-12" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
-                  name="termsAccepted"
+                  name="role"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md py-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          className="mt-1"
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel className="text-sm font-medium text-muted-foreground">
-                          I agree to the{" "}
-                          <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link>{" "}
-                          and{" "}
-                          <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>.
-                        </FormLabel>
-                        <FormMessage />
-                      </div>
+                    <FormItem>
+                      <FormLabel>I want to</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-12" data-testid="select-role">
+                            <SelectValue placeholder="Select account type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="user">
+                            <div className="flex items-center gap-2">
+                              <ShoppingBag className="w-4 h-4 text-muted-foreground" />
+                              <div>
+                                <div className="font-medium">Shop — I want to buy</div>
+                                <div className="text-xs text-muted-foreground">Browse brands, place orders, get deals</div>
+                              </div>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="business_owner">
+                            <div className="flex items-center gap-2">
+                              <Store className="w-4 h-4 text-muted-foreground" />
+                              <div>
+                                <div className="font-medium">Sell — I have a business</div>
+                                <div className="text-xs text-muted-foreground">List products, manage orders, grow sales</div>
+                              </div>
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
-
                 {form.formState.errors.root && (
-                  <p className="text-sm text-destructive font-medium">{form.formState.errors.root.message}</p>
+                  <p className="text-sm text-destructive text-center">{form.formState.errors.root.message}</p>
                 )}
-
                 <Button
                   type="submit"
-                  className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-shadow rounded-xl"
-                  disabled={register.isPending}
+                  className="w-full h-12 text-base font-semibold gap-2"
                   data-testid="btn-register"
                 >
-                  {register.isPending ? (
-                    <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Creating account...</>
-                  ) : (
-                    "Create Account"
-                  )}
+                  <ScrollText className="w-4 h-4" />
+                  Review Terms & Create Account
                 </Button>
               </form>
             </Form>
           </div>
 
-          <p className="text-center text-sm font-medium text-muted-foreground">
+          <p className="text-center text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link href="/login" className="text-primary font-bold hover:underline" data-testid="link-login">
+            <Link href="/login" className="text-primary font-medium hover:underline" data-testid="link-login">
               Sign in
             </Link>
           </p>
         </div>
       </div>
-    </div>
+
+      {/* ── Terms & Conditions Modal ─────────────────────────────────────── */}
+      <Dialog open={showTc} onOpenChange={(open) => { if (!register.isPending) setShowTc(open); }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b flex-shrink-0">
+            <DialogTitle className="flex items-center gap-2 text-lg font-serif">
+              <ScrollText className="w-5 h-5 text-primary" />
+              Nafex Marketplace — Terms &amp; Conditions
+            </DialogTitle>
+            <p className="text-xs text-muted-foreground mt-1">
+              {isSeller
+                ? "Please read the general terms and seller-specific terms below before creating your account."
+                : "Please read the general terms and buyer-specific terms below before creating your account."}
+            </p>
+          </DialogHeader>
+
+          {/* Scrollable body */}
+          <div className="flex-1 overflow-y-auto px-6 py-5 space-y-8 min-h-0">
+
+            {/* General terms — shown to everyone */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                  General — All Users
+                </span>
+              </div>
+              {TC_GENERAL}
+            </div>
+
+            <div className="border-t" />
+
+            {/* Role-specific terms */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                {isSeller ? (
+                  <span className="text-xs font-semibold uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded flex items-center gap-1">
+                    <Store className="w-3 h-3" /> Sellers Only
+                  </span>
+                ) : (
+                  <span className="text-xs font-semibold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded flex items-center gap-1">
+                    <ShoppingBag className="w-3 h-3" /> Buyers Only
+                  </span>
+                )}
+              </div>
+              {isSeller ? TC_SELLER : TC_BUYER}
+            </div>
+
+            {/* Delivery choice — sellers only */}
+            {isSeller && (
+              <>
+                <div className="border-t" />
+                <div className="space-y-3">
+                  <p className="text-sm font-semibold text-foreground">
+                    Section 4 — Choose Your Delivery Method <span className="text-destructive">*</span>
+                  </p>
+                  <p className="text-xs text-muted-foreground">You must select one before continuing.</p>
+                  <div className="space-y-2">
+                    <label
+                      className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
+                        deliveryChoice === "self"
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-muted-foreground/40"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="delivery"
+                        className="mt-0.5 accent-primary"
+                        checked={deliveryChoice === "self"}
+                        onChange={() => setDeliveryChoice("self")}
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-foreground flex items-center gap-1.5">
+                          <Package className="w-3.5 h-3.5 text-muted-foreground" />
+                          I will handle my own deliveries
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          You are fully responsible for all delivery logistics, delays, and customer complaints.
+                        </p>
+                      </div>
+                    </label>
+                    <label
+                      className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
+                        deliveryChoice === "nafex"
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-muted-foreground/40"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="delivery"
+                        className="mt-0.5 accent-primary"
+                        checked={deliveryChoice === "nafex"}
+                        onChange={() => setDeliveryChoice("nafex")}
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-foreground flex items-center gap-1.5">
+                          <Truck className="w-3.5 h-3.5 text-muted-foreground" />
+                          I authorize Nafex to handle all deliveries
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Nafex will coordinate delivery on your behalf. Terms apply.
+                        </p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Acceptance checkboxes */}
+            <div className="border-t" />
+            <div className="space-y-3 pb-2">
+              <p className="text-sm font-semibold text-foreground">Section 9 — Acceptance</p>
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <Checkbox
+                  checked={tcGeneral}
+                  onCheckedChange={(v) => setTcGeneral(!!v)}
+                  className="mt-0.5"
+                />
+                <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                  I have read and accepted the Nafex Marketplace Terms &amp; Conditions.
+                </span>
+              </label>
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <Checkbox
+                  checked={tcSuspension}
+                  onCheckedChange={(v) => setTcSuspension(!!v)}
+                  className="mt-0.5"
+                />
+                <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                  I understand that violations may result in account suspension or removal from the platform.
+                </span>
+              </label>
+            </div>
+          </div>
+
+          {/* Sticky footer */}
+          <div className="px-6 py-4 border-t bg-muted/30 flex-shrink-0 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p className="text-xs text-muted-foreground">
+              {!canAccept
+                ? isSeller
+                  ? "Check both boxes and select a delivery method to continue."
+                  : "Check both boxes above to continue."
+                : "You're ready to create your account."}
+            </p>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button
+                variant="outline"
+                className="flex-1 sm:flex-none"
+                onClick={() => setShowTc(false)}
+                disabled={register.isPending}
+              >
+                Go Back
+              </Button>
+              <Button
+                className="flex-1 sm:flex-none gap-2"
+                disabled={!canAccept || register.isPending}
+                onClick={handleAccept}
+              >
+                {register.isPending ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Creating account...</>
+                ) : (
+                  <><CheckCircle2 className="w-4 h-4" /> Accept &amp; Create Account</>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

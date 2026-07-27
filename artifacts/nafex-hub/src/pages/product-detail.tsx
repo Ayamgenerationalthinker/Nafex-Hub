@@ -3,10 +3,9 @@ import { useGetProduct, useToggleFavorite } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { motion } from "framer-motion";
 import { Heart, ArrowLeft, Store, ShoppingBag, ShoppingCart, Minus, Plus, Loader2, Zap, Star, ShieldCheck } from "lucide-react";
 import { useEffect, useState, type ChangeEvent } from "react";
-import { useAuth, useAuthAction } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/hooks/use-cart";
 
@@ -17,7 +16,6 @@ export default function ProductDetail() {
   const isBusinessOwner = user?.role === "business_owner";
   const isAdmin = user?.role === "admin";
   const isBuyer = !isBusinessOwner && !isAdmin;
-  const requireAuth = useAuthAction();
   const { toast } = useToast();
   const addToCart = useCart((s) => s.addItem);
   const [selectedImg, setSelectedImg] = useState(0);
@@ -38,12 +36,6 @@ export default function ProductDetail() {
       },
     },
   });
-
-  const handleToggleFav = () => {
-    requireAuth(() => {
-      if (product) toggleFav({ data: { productId: product.id } });
-    });
-  };
 
   if (isLoading) {
     return (
@@ -121,28 +113,27 @@ export default function ProductDetail() {
   const reviewCount = (product as any).reviewCount as number | undefined;
 
   function handleAddToCart() {
-    requireAuth(() => {
-      if (!product) return;
-      addToCart(
-        {
-          productId: product.id,
-          businessId: product.businessId,
-          businessName: product.businessName ?? "Seller",
-          name: product.name,
-          price: Number(product.price),
-          image: product.images?.[0] ?? null,
-          stock: product.stock ?? null,
-        },
-        safeQty,
-      );
-      toast({ title: "Added to cart", description: `${safeQty} × ${product.name}` });
-    });
+    if (!product) return;
+    if (!user) { setLocation("/login"); return; }
+    addToCart(
+      {
+        productId: product.id,
+        businessId: product.businessId,
+        businessName: product.businessName ?? "Seller",
+        name: product.name,
+        price: Number(product.price),
+        image: product.images?.[0] ?? null,
+        stock: product.stock ?? null,
+      },
+      safeQty,
+    );
+    toast({ title: "Added to cart", description: `${safeQty} × ${product.name}` });
   }
 
-  function handleBuyNow() {
-    requireAuth(async () => {
-      if (!product) return;
-      if (!user?.emailVerified) { setLocation("/verify-email"); return; }
+  async function handleBuyNow() {
+    if (!product) return;
+    if (!user) { setLocation("/login"); return; }
+    if (!user.emailVerified) { setLocation("/verify-email"); return; }
 
     setBuying(true);
     try {
@@ -167,12 +158,12 @@ export default function ProductDetail() {
     } finally {
       setBuying(false);
     }
-  });
   }
 
-  function handleSendOffer() {
-    requireAuth(async () => {
-      if (!product || !token) return;
+  async function handleSendOffer() {
+    if (!product) return;
+    if (!user) { setLocation("/login"); return; }
+    if (!token) { setLocation("/login"); return; }
 
     const offered = Number(offerPrice);
     if (!offerPrice.trim() || Number.isNaN(offered) || offered <= 0) {
@@ -206,11 +197,10 @@ export default function ProductDetail() {
       toast({ title: "Offer sent", description: "Your offer was sent to the seller chat." });
       setLocation(`/inbox?convId=${convData.id}&tab=buyer`);
     } catch (err) {
-      toast({ title: "Failed to send offer", description: (err as Error).message, variant: "destructive" });
+      toast({ title: "Could not send offer", description: (err as Error).message, variant: "destructive" });
     } finally {
       setSendingOffer(false);
     }
-  });
   }
 
   return (
@@ -391,17 +381,25 @@ export default function ProductDetail() {
 
           {isBuyer && (
             <div className="flex gap-2 pt-2">
-              {user && (
-              <Button
-                variant="outline"
-                size="icon"
-                className={`shrink-0 ${isFav ? "border-red-400 text-red-500 hover:bg-red-50" : ""}`}
-                onClick={handleToggleFav}
-              >
-                <Heart className={`w-4 h-4 ${isFav ? "fill-current" : ""}`} />
-              </Button>
-            )}
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1 flex">
+              {user ? (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className={`shrink-0 ${isFav ? "border-red-400 text-red-500 hover:bg-red-50" : ""}`}
+                  onClick={() => toggleFav({ data: { productId: product.id } })}
+                >
+                  <Heart className={`w-4 h-4 ${isFav ? "fill-current" : ""}`} />
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0"
+                  onClick={() => setLocation("/login")}
+                >
+                  <Heart className="w-4 h-4" />
+                </Button>
+              )}
               <Button
                 variant="outline"
                 className="flex-1 gap-2"
@@ -412,10 +410,8 @@ export default function ProductDetail() {
                 <ShoppingCart className="w-4 h-4" />
                 Add to Cart
               </Button>
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1 flex">
               <Button
-                className="flex-1 gap-2 shadow-md hover:shadow-lg transition-shadow"
+                className="flex-1 gap-2"
                 onClick={handleBuyNow}
                 disabled={outOfStock || buying}
                 data-testid="btn-buy-now"
@@ -423,8 +419,7 @@ export default function ProductDetail() {
                 {buying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
                 {buying ? "Placing…" : outOfStock ? "Out of stock" : "Buy Now"}
               </Button>
-            </motion.div>
-          </div>
+            </div>
           )}
         </div>
       </div>

@@ -27,8 +27,8 @@ export default defineConfig({
         name: "Nafex Hub",
         short_name: "Nafex",
         description: "Ghana's premier digital fashion marketplace",
-        theme_color: "#D4A017",
-        background_color: "#09090b",
+        theme_color: "#6A1B9A",
+        background_color: "#FFFFFF",
         display: "standalone",
         orientation: "portrait",
         start_url: ".",
@@ -95,19 +95,6 @@ export default defineConfig({
       },
       devOptions: { enabled: false },
     }),
-    ...(process.env.NODE_ENV !== "production" &&
-    process.env.REPL_ID !== undefined
-      ? [
-          await import("@replit/vite-plugin-cartographer").then((m) =>
-            m.cartographer({
-              root: path.resolve(__dirname, ".."),
-            }),
-          ),
-          await import("@replit/vite-plugin-dev-banner").then((m) =>
-            m.devBanner(),
-          ),
-        ]
-      : []),
   ],
   resolve: {
     alias: {

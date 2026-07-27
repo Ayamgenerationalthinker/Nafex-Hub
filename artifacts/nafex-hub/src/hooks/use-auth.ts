@@ -39,21 +39,5 @@ export const useAuth = create<AuthState>((set) => ({
     localStorage.removeItem("nafex_token");
     localStorage.removeItem("nafex_user");
     set({ token: null, user: null });
-    window.location.href = "/";
   },
 }));
-
-import { useLocation } from "wouter";
-
-export function useAuthAction() {
-  const { user } = useAuth();
-  const [, setLocation] = useLocation();
-
-  return (action: () => void) => {
-    if (!user) {
-      setLocation("/login");
-      return;
-    }
-    action();
-  };
-}

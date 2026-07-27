@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { User, KeyRound, Trash2, ShieldAlert, ShoppingBag, Heart, MessageCircle } from "lucide-react";
 import { Link } from "wouter";
 
-export default function BuyerSettings() {
+export default function BuyerSettings({ isEmbedded = false }: { isEmbedded?: boolean }) {
   const { user, logout } = useAuth();
   const { toast } = useToast();
 
@@ -65,27 +65,31 @@ export default function BuyerSettings() {
   });
 
   return (
-    <div className="container mx-auto px-4 md:px-8 py-10 max-w-3xl">
-      <div className="mb-8">
-        <h1 className="font-serif text-2xl md:text-3xl font-bold text-foreground">My Account</h1>
-        <p className="text-muted-foreground mt-1">Manage your profile, security, and account preferences.</p>
-      </div>
+    <div className={isEmbedded ? "space-y-6" : "container mx-auto px-4 md:px-8 py-10 max-w-3xl"}>
+      {!isEmbedded && (
+        <>
+          <div className="mb-8">
+            <h1 className="font-serif text-2xl md:text-3xl font-bold text-foreground">My Account</h1>
+            <p className="text-muted-foreground mt-1">Manage your profile, security, and account preferences.</p>
+          </div>
 
-      {/* Quick links */}
-      <div className="grid grid-cols-3 gap-3 mb-8">
-        {[
-          { href: "/orders", icon: <ShoppingBag className="w-5 h-5" />, label: "Orders" },
-          { href: "/favorites", icon: <Heart className="w-5 h-5" />, label: "Wishlist" },
-          { href: "/inbox", icon: <MessageCircle className="w-5 h-5" />, label: "Inbox" },
-        ].map((item) => (
-          <Link key={item.href} href={item.href}>
-            <div className="flex flex-col items-center gap-2 p-4 rounded-xl border border-border hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer text-center">
-              <span className="text-primary">{item.icon}</span>
-              <span className="text-sm font-medium text-foreground">{item.label}</span>
-            </div>
-          </Link>
-        ))}
-      </div>
+          {/* Quick links */}
+          <div className="grid grid-cols-3 gap-3 mb-8">
+            {[
+              { href: "/orders", icon: <ShoppingBag className="w-5 h-5" />, label: "Orders" },
+              { href: "/favorites", icon: <Heart className="w-5 h-5" />, label: "Wishlist" },
+              { href: "/inbox", icon: <MessageCircle className="w-5 h-5" />, label: "Inbox" },
+            ].map((item) => (
+              <Link key={item.href} href={item.href}>
+                <div className="flex flex-col items-center gap-2 p-4 rounded-xl border border-border hover:border-primary/40 hover:bg-primary/5 transition-all cursor-pointer text-center">
+                  <span className="text-primary">{item.icon}</span>
+                  <span className="text-sm font-medium text-foreground">{item.label}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
 
       <Tabs defaultValue="personal">
         <TabsList className="mb-6">

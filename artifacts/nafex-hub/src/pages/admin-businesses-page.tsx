@@ -219,8 +219,6 @@ export default function AdminBusinessesPage() {
         ...d,
         products: d.products.map(p => p.id === productId ? { ...p, approvalStatus: "approved" } : p),
       }));
-    } catch {
-      toast({ title: "Failed to approve product", variant: "destructive" });
     } finally {
       setActioningProductId(null);
     }

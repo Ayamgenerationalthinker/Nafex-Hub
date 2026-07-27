@@ -1,0 +1,60 @@
+/* src/design/tokens.css */
+:root {
+  /* Brand palette from reference style guide */
+  --color-primary-purple: #6A1B9A;
+  --color-accent-gold: #D4A017;
+  --color-soft-lavender: #F6F2FF;
+  --color-light-cream: #FFF8E6;
+  --color-text-dark: #222222;
+  --color-text-muted: #6B7280;
+  --color-soft-green: #E8F5E9;
+
+  --color-primary-500: #6A1B9A;
+  --color-primary-600: #5B1687;
+  --color-primary-700: #4A126B;
+
+  --color-accent-500: #D4A017;
+  --color-accent-600: #B88A12;
+
+  /* Backgrounds */
+  --color-bg-light: #FFFFFF;
+  --color-bg-cream: #FFF8E6;
+  --color-bg-lavender: #F6F2FF;
+
+  /* Border & shadow */
+  --border-radius: 0.75rem;
+  --shadow-elevate: 0 4px 16px rgba(106, 27, 154, 0.08);
+}
+
+/* Custom utility classes for brand styles */
+.bg-primary-purple {
+  background-color: #6A1B9A;
+}
+.text-primary-purple {
+  color: #6A1B9A;
+}
+.border-primary-purple {
+  border-color: #6A1B9A;
+}
+
+.bg-accent-gold {
+  background-color: #D4A017;
+}
+.text-accent-gold {
+  color: #D4A017;
+}
+.border-accent-gold {
+  border-color: #D4A017;
+}
+
+.bg-light-cream {
+  background-color: #FFF8E6;
+}
+
+.bg-soft-lavender {
+  background-color: #F6F2FF;
+}
+
+.font-poppins {
+  font-family: 'Poppins', sans-serif;
+}
