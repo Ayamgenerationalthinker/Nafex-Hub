@@ -9,7 +9,7 @@
     "./migrate": "./src/migrate.ts"
   },
   "scripts": {
-    "push": "drizzle-kit push --config ./drizzle.config.ts",
+    "push": "node -e \"if (process.env.DATABASE_URL) { require('child_process').execSync('drizzle-kit push --config ./drizzle.config.ts', { stdio: 'inherit' }); } else { console.log('DATABASE_URL not set — skipping DB push during build'); }\"",
     "push-force": "drizzle-kit push --force --config ./drizzle.config.ts",
     "generate": "drizzle-kit generate --config ./drizzle.config.ts",
     "migrate": "drizzle-kit migrate --config ./drizzle.config.ts"
