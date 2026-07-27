@@ -68,6 +68,13 @@ if ("serviceWorker" in navigator) {
       registration.unregister();
     }
   });
+  if ("caches" in window) {
+    caches.keys().then((names) => {
+      for (const name of names) {
+        caches.delete(name);
+      }
+    });
+  }
 }
 
 createRoot(document.getElementById("root")!).render(
