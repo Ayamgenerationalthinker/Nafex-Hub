@@ -71,18 +71,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
     ? [{ href: "/admin/dashboard", label: "Admin Panel" }]
     : isBusinessOwner
     ? [
-        { href: "/dashboard", label: "Dashboard" },
-        { href: "/trade/seller-import", label: "Nafex Trade Connect" },
-        { href: "/inbox", label: "Inbox" },
+        { href: "/my-shop", label: "My Shop" },
         { href: "/orders", label: "Orders" },
-        { href: "/payments", label: "Payments" },
+        { href: "/inbox", label: "Inbox" },
       ]
     : user
     ? [
-        { href: "/dashboard", label: "Dashboard" },
         { href: "/explore", label: "Explore Brands" },
         { href: "/discounts", label: "Deals" },
-        { href: "/trade", label: "Trade Connect" },
+        { href: "/trade", label: "Trade" },
       ]
     : [
         { href: "/explore", label: "Explore Brands" },
@@ -101,11 +98,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <Logo size="lg" variant="raw" showTagline={false} />
           </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-3 shrink-0">
-            {/* Global search (buyers / guests only) */}
+          {/* Desktop nav — 3-section layout: Logo | Search (flex) | Right actions */}
+          <nav className="hidden md:flex items-center gap-3 flex-1 justify-end">
+            {/* Search — centered, flexible */}
             {!isBusinessOwner && !isAdmin && (
-              <div className="relative flex items-center w-48 xl:w-72">
+              <div className="relative flex items-center flex-1 max-w-xs xl:max-w-sm mx-4">
                 <input
                   type="search"
                   placeholder="Search products..."
@@ -129,19 +126,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     const next = value ? `${base}?search=${encodeURIComponent(value)}` : base;
                     setLocation(next);
                   }}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#6A1B9A] hover:bg-[#5B1687] text-white flex items-center justify-center transition-colors shadow-xs"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#6A1B9A] hover:bg-[#5B1687] text-white flex items-center justify-center transition-colors"
                 >
                   <Search className="w-3.5 h-3.5" />
                 </button>
               </div>
             )}
 
+            {/* Nav text links */}
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-sm font-poppins font-medium transition-colors hover:text-[#6A1B9A] relative py-1 whitespace-nowrap ${
-                  location === link.href ? "text-[#6A1B9A] font-semibold border-b-2 border-[#6A1B9A]" : "text-[#222222]/80"
+                className={`text-sm font-poppins font-medium transition-colors hover:text-[#6A1B9A] whitespace-nowrap ${
+                  location === link.href ? "text-[#6A1B9A] font-semibold border-b-2 border-[#6A1B9A] pb-0.5" : "text-[#222222]/80"
                 }`}
               >
                 {link.label}
