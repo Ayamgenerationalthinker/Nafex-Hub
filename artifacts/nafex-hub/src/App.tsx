@@ -57,6 +57,8 @@ import Payments from "@/pages/payments";
 import AdminFlashSales from "@/pages/admin-flash-sales";
 import AdminModeration from "@/pages/admin-moderation";
 import AdminSupport from "@/pages/admin-support";
+import Privacy from "@/pages/privacy";
+import Terms from "@/pages/terms";
 
 const queryClient = new QueryClient();
 
@@ -111,6 +113,8 @@ function Router() {
             <Route path="/track" component={Track} />
             <Route path="/track/:code" component={Track} />
             <Route path="/disputes">{() => <ProtectedRoute component={Disputes} />}</Route>
+            <Route path="/privacy" component={Privacy} />
+            <Route path="/terms" component={Terms} />
             <Route path="/admin/deliveries">{() => <ProtectedRoute component={AdminDeliveries} roles={["admin"]} to="/" />}</Route>
             <Route path="/admin/disputes">{() => <ProtectedRoute component={AdminDisputesPage} roles={["admin"]} to="/" />}</Route>
             <Route path="/trade">{() => <ProtectedRoute component={TradeConnect} />}</Route>
