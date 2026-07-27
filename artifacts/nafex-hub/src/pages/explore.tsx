@@ -145,8 +145,9 @@ export default function Explore() {
   const [maxPrice, setMaxPrice] = useState(initialParams.maxPrice);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  // Keep URL query string in sync with filters for sharable links
+  // Keep URL query string in sync with filters for sharable links without triggering re-render loops
   useEffect(() => {
+    if (!location.startsWith("/explore")) return;
     const [pathname] = location.split("?");
     const params = new URLSearchParams();
     if (search.trim()) params.set("search", search.trim());
@@ -157,9 +158,9 @@ export default function Explore() {
     const query = params.toString();
     const next = query ? `${pathname}?${query}` : pathname;
     if (next !== location) {
-      setLocation(next);
+      window.history.replaceState(null, "", next);
     }
-  }, [search, category, verifiedOnly, minPrice, maxPrice, location, setLocation]);
+  }, [search, category, verifiedOnly, minPrice, maxPrice, location]);
 
   const { data: businesses, isLoading } = useGetBusinesses({
     search: debouncedSearch || undefined,
