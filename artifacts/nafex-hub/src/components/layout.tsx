@@ -300,23 +300,25 @@ const { isDarkMode, toggleDarkMode } = useDarkMode();
                 )}
               </div>
             ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="text-sm font-medium text-secondary-foreground/80 hover:text-primary transition-colors"
-                  data-testid="nav-login"
-                >
-                  Login
+              <div className="flex items-center gap-2">
+                <Link href="/login">
+                  <Button
+                    variant="outline"
+                    className="border-[#6A1B9A] text-[#6A1B9A] hover:bg-[#6A1B9A] hover:text-white font-semibold transition-all"
+                    data-testid="nav-login"
+                  >
+                    Sign In
+                  </Button>
                 </Link>
                 <Link href="/register">
                   <Button
-                    className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
+                    className="bg-[#6A1B9A] text-white hover:bg-[#5B1687] font-semibold shadow-sm"
                     data-testid="nav-register"
                   >
                     Sign Up
                   </Button>
                 </Link>
-              </>
+              </div>
             )}
           </nav>
 
@@ -449,8 +451,8 @@ const { isDarkMode, toggleDarkMode } = useDarkMode();
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-purple-400/20">
             {/* Column 1: Brand Info */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Logo size="md" variant="dark-badge" showTagline={true} />
+              <div className="flex items-start">
+                <Logo size="md" variant="raw" showTagline={false} imgClassName="brightness-0 invert" />
               </div>
               <p className="text-xs text-purple-100/80 leading-relaxed font-poppins">
                 Quality products. Secure payments. Fast delivery. Ghana's premier trusted online marketplace.
