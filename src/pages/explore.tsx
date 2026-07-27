@@ -490,20 +490,19 @@ export default function Explore() {
         </div>
       )}
 
-      {/* ── Category nav bar ── */}
+      {/* ── Category nav bar (Clean Icon-Free Pill Filters) ── */}
       <div className="mb-6 -mx-4 md:mx-0">
-        {/* Group icon row — horizontal scroll */}
-        <div className="flex gap-1 overflow-x-auto px-4 md:px-0 pb-1 hide-scrollbar">
+        {/* Group text pill row — horizontal scroll */}
+        <div className="flex gap-2 overflow-x-auto px-4 md:px-0 pb-2 hide-scrollbar">
           <button
             onClick={() => { handleCategory("All"); setActiveGroup(null); }}
-            className={`flex-shrink-0 flex flex-col items-center gap-1.5 px-3 py-2.5 rounded-xl border transition-all min-w-[68px] ${
+            className={`flex-shrink-0 px-4 py-2 rounded-full border text-xs font-bold transition-all shadow-xs ${
               category === "All" && !activeGroup
-                ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                : "bg-background border-border hover:border-primary/40 hover:bg-muted/50 text-foreground"
+                ? "bg-[#6A1B9A] text-white border-[#6A1B9A] shadow-sm scale-[1.02]"
+                : "bg-white border-purple-100 hover:border-[#6A1B9A]/40 hover:bg-[#F6F2FF] text-[#222222]"
             }`}
           >
-            <Package className="w-5 h-5" />
-            <span className="text-[10px] font-semibold leading-tight text-center whitespace-nowrap">All</span>
+            All
           </button>
 
           {CATEGORY_GROUPS.map((group) => {
@@ -514,22 +513,13 @@ export default function Explore() {
               <button
                 key={group.label}
                 onClick={() => handleGroupClick(group.label)}
-                className={`flex-shrink-0 flex flex-col items-center gap-1.5 px-2 py-2 rounded-xl border transition-all min-w-[72px] ${
+                className={`flex-shrink-0 px-4 py-2 rounded-full border text-xs font-bold transition-all whitespace-nowrap shadow-xs ${
                   active
-                    ? "bg-primary/10 border-primary shadow-sm"
-                    : "bg-background border-border hover:border-primary/40 hover:bg-muted/30"
+                    ? "bg-[#6A1B9A] text-white border-[#6A1B9A] shadow-sm scale-[1.02]"
+                    : "bg-white border-purple-100 hover:border-[#6A1B9A]/40 hover:bg-[#F6F2FF] text-[#222222]"
                 }`}
               >
-                <span
-                  className={`w-11 h-11 rounded-full flex items-center justify-center text-2xl shadow-md ring-2 ring-white bg-gradient-to-br ${group.gradient} ${active ? "scale-110" : ""} transition-transform`}
-                  aria-hidden
-                >
-                  {group.emoji}
-                </span>
-                <span className={`text-[10px] font-semibold leading-tight text-center ${active ? "text-primary" : "text-foreground"}`}
-                  style={{ maxWidth: 64, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                  {group.label}
-                </span>
+                {group.label}
               </button>
             );
           })}

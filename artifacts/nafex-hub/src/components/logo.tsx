@@ -12,17 +12,17 @@ export function Logo({
   className = "",
   imgClassName = "",
   variant = "raw",
-  size = "md",
+  size = "lg",
   showTagline = false,
 }: LogoProps) {
   const siteSettings = useSiteSettings();
   const logoUrl = siteSettings.logo || "/nafex-logo.svg";
 
   const heightClasses = {
-    sm: "h-7 sm:h-8",
-    md: "h-9 sm:h-11",
-    lg: "h-12 sm:h-14",
-    xl: "h-16 sm:h-20",
+    sm: "h-9 sm:h-10",
+    md: "h-12 sm:h-14",
+    lg: "h-14 sm:h-18",
+    xl: "h-20 sm:h-24",
   }[size];
 
   const logoMarkup = (
@@ -30,13 +30,13 @@ export function Logo({
       <img
         src={logoUrl}
         alt="Nafex Hub"
-        className={`${heightClasses} w-auto object-contain transition-transform duration-200 hover:scale-[1.02] ${imgClassName}`}
+        className={`${heightClasses} max-w-full object-contain transition-transform duration-200 hover:scale-[1.03] ${imgClassName}`}
         onError={(e) => {
           (e.currentTarget as HTMLImageElement).src = "/nafex-logo.svg";
         }}
       />
       {showTagline && (
-        <span className="text-[10px] text-[#6B7280] font-medium tracking-wide mt-1 font-poppins">
+        <span className="text-[11px] text-[#6B7280] font-medium tracking-wide mt-1 font-poppins">
           Quality products • Secure payments • Fast delivery
         </span>
       )}
@@ -45,7 +45,7 @@ export function Logo({
 
   if (variant === "badge") {
     return (
-      <div className={`bg-white rounded-2xl px-3 py-1.5 shadow-xs border border-purple-100/80 inline-flex items-center justify-center shrink-0 hover:shadow-sm transition-all ${className}`}>
+      <div className={`bg-white rounded-2xl px-4 py-2 shadow-sm border border-purple-100 inline-flex items-center justify-center shrink-0 hover:shadow-md transition-all ${className}`}>
         {logoMarkup}
       </div>
     );
@@ -53,7 +53,7 @@ export function Logo({
 
   if (variant === "dark-badge") {
     return (
-      <div className={`bg-[#4A126B] text-white rounded-2xl px-3.5 py-2 shadow-xs border border-purple-800/80 inline-flex items-center justify-center shrink-0 hover:shadow-sm transition-all ${className}`}>
+      <div className={`bg-[#4A126B] text-white rounded-2xl px-4 py-2.5 shadow-sm border border-purple-800/80 inline-flex items-center justify-center shrink-0 hover:shadow-md transition-all ${className}`}>
         {logoMarkup}
       </div>
     );

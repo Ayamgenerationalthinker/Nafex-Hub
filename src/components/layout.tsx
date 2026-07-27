@@ -90,11 +90,11 @@ const { isDarkMode, toggleDarkMode } = useDarkMode();
       <VerifyEmailBanner />
       {/* ── Header (clean white top navbar with purple brand highlights matching Img 1 style guide) ── */}
       <header className="sticky top-0 z-50 w-full bg-white text-[#222222] shadow-sm border-b border-purple-100/80">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-8">
+        <div className="container mx-auto flex h-20 md:h-24 items-center justify-between px-4 md:px-8">
 
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5" data-testid="link-home" onClick={closeMenu}>
-            <Logo size="md" variant="raw" showTagline={false} />
+          <Link href="/" className="flex items-center gap-2.5 shrink-0" data-testid="link-home" onClick={closeMenu}>
+            <Logo size="lg" variant="raw" showTagline={false} />
           </Link>
 
           {/* Desktop nav */}
