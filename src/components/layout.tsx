@@ -14,7 +14,7 @@ import { useSiteSettings } from "@/hooks/use-site-settings";
 import { NafexCoinsModal } from "@/components/nafex-coins-modal";
 import { Logo } from "@/components/logo";
 
-const FALLBACK_LOGO = "/nafex-logo.png";
+const FALLBACK_LOGO = "/nafex-logo.svg";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();

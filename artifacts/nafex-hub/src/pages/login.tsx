@@ -18,6 +18,7 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>;
 
 import { Logo } from "@/components/logo";
+import { SocialAuthButtons } from "@/components/social-auth-buttons";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -114,6 +115,8 @@ export default function Login() {
               </Button>
             </form>
           </Form>
+
+          <SocialAuthButtons action="sign in" />
         </div>
 
         <p className="text-center text-sm text-muted-foreground">

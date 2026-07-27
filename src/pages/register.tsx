@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Checkbox } from "@/components/ui/checkbox";
 import { CheckCircle2, Loader2, ShoppingBag, Store, ScrollText, Truck, Package } from "lucide-react";
 import { Logo } from "@/components/logo";
+import { SocialAuthButtons } from "@/components/social-auth-buttons";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -347,10 +348,12 @@ export default function Register() {
                   data-testid="btn-register"
                 >
                   <ScrollText className="w-4 h-4" />
-                  Review Terms & Create Account
+                  Review Terms &amp; Create Account
                 </Button>
               </form>
             </Form>
+
+            <SocialAuthButtons action="sign up" />
           </div>
 
           <p className="text-center text-sm text-muted-foreground">

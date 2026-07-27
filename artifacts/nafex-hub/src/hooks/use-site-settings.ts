@@ -9,7 +9,7 @@ export type SiteSettings = {
 };
 
 const DEFAULTS: SiteSettings = {
-  logo: "/nafex-logo.png",
+  logo: "/nafex-logo.svg",
   whatsappNumber: "",
   instagramLink: "",
   facebookLink: "",

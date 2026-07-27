@@ -1,44 +1,42 @@
-import { ShoppingBag } from "lucide-react";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 
 interface LogoProps {
   className?: string;
   imgClassName?: string;
   variant?: "badge" | "raw" | "dark-badge" | "full";
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
   showTagline?: boolean;
 }
 
 export function Logo({
   className = "",
   imgClassName = "",
-  variant = "badge",
+  variant = "raw",
   size = "md",
   showTagline = false,
 }: LogoProps) {
   const siteSettings = useSiteSettings();
+  const logoUrl = siteSettings.logo || "/nafex-logo.svg";
 
-  const sizeClasses = {
-    sm: { icon: "h-5 w-5", text: "text-lg", tagline: "text-[9px]" },
-    md: { icon: "h-7 w-7", text: "text-xl", tagline: "text-[10px]" },
-    lg: { icon: "h-9 w-9", text: "text-2xl", tagline: "text-xs" },
+  const heightClasses = {
+    sm: "h-7 sm:h-8",
+    md: "h-9 sm:h-11",
+    lg: "h-12 sm:h-14",
+    xl: "h-16 sm:h-20",
   }[size];
 
   const logoMarkup = (
     <div className={`inline-flex flex-col items-start ${className}`}>
-      <div className="inline-flex items-center gap-2 font-poppins font-bold tracking-tight">
-        {/* Shopping bag icon styled after the image */}
-        <div className="relative inline-flex items-center justify-center p-1.5 rounded-lg bg-[#6A1B9A] text-white shadow-sm">
-          <ShoppingBag className={`${sizeClasses.icon} text-white`} />
-          <div className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[#D4A017]" />
-        </div>
-        <div className={sizeClasses.text}>
-          <span className="text-[#6A1B9A]">Nafex</span>
-          <span className="text-[#D4A017]">Hub..</span>
-        </div>
-      </div>
+      <img
+        src={logoUrl}
+        alt="Nafex Hub"
+        className={`${heightClasses} w-auto object-contain transition-transform duration-200 hover:scale-[1.02] ${imgClassName}`}
+        onError={(e) => {
+          (e.currentTarget as HTMLImageElement).src = "/nafex-logo.svg";
+        }}
+      />
       {showTagline && (
-        <span className={`text-[#6B7280] font-medium tracking-wide mt-0.5 ${sizeClasses.tagline}`}>
+        <span className="text-[10px] text-[#6B7280] font-medium tracking-wide mt-1 font-poppins">
           Quality products • Secure payments • Fast delivery
         </span>
       )}
@@ -47,7 +45,7 @@ export function Logo({
 
   if (variant === "badge") {
     return (
-      <div className={`bg-white rounded-xl px-3 py-1.5 shadow-sm border border-purple-100 inline-flex items-center justify-center shrink-0 hover:shadow-md transition-all ${className}`}>
+      <div className={`bg-white rounded-2xl px-3 py-1.5 shadow-xs border border-purple-100/80 inline-flex items-center justify-center shrink-0 hover:shadow-sm transition-all ${className}`}>
         {logoMarkup}
       </div>
     );
@@ -55,7 +53,7 @@ export function Logo({
 
   if (variant === "dark-badge") {
     return (
-      <div className={`bg-[#4A126B] text-white rounded-xl px-3 py-1.5 shadow-sm border border-purple-800/80 inline-flex items-center justify-center shrink-0 hover:shadow-md transition-all ${className}`}>
+      <div className={`bg-[#4A126B] text-white rounded-2xl px-3.5 py-2 shadow-xs border border-purple-800/80 inline-flex items-center justify-center shrink-0 hover:shadow-sm transition-all ${className}`}>
         {logoMarkup}
       </div>
     );
