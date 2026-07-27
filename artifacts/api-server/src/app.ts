@@ -122,13 +122,24 @@ app.use("/api/uploads", express.static(uploadsDir));
 
 app.use("/api", router);
 
-if (process.env["NODE_ENV"] === "production") {
-  const primaryPath = path.resolve(__dirname, "../../../artifacts/nafex-hub/dist/public");
-  const rootPath = path.resolve(__dirname, "../../../dist/public");
-  const frontendPath = existsSync(primaryPath) ? primaryPath : existsSync(rootPath) ? rootPath : primaryPath;
+// Serve frontend static assets (compatible with Express 5 path matching)
+const primaryPath = path.resolve(__dirname, "../../../artifacts/nafex-hub/dist/public");
+const rootPath = path.resolve(__dirname, "../../../dist/public");
+const fallbackPath = path.resolve(__dirname, "../../nafex-hub/dist/public");
+const frontendPath = existsSync(primaryPath) ? primaryPath : existsSync(rootPath) ? rootPath : existsSync(fallbackPath) ? fallbackPath : primaryPath;
+
+if (existsSync(frontendPath)) {
   app.use(express.static(frontendPath));
-  app.get("*path", (_req, res) => {
-    res.sendFile(path.join(frontendPath, "index.html"));
+  app.use((req, res, next) => {
+    if (req.path.startsWith("/api")) {
+      return next();
+    }
+    const indexPath = path.join(frontendPath, "index.html");
+    if (existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      next();
+    }
   });
 }
 
