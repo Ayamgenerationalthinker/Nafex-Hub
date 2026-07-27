@@ -106,20 +106,63 @@ export default function Waitlist() {
     localStorage.setItem("nafex_waitlist_emails", JSON.stringify(existingEmails));
     localStorage.setItem("nafex_waitlist_submission_info", JSON.stringify(newSubmission));
 
-    const autoresponseMessage = `Welcome to the official Nafex Hub early access waitlist, ${cleanName}! 🎉\n\nThank you for joining us early. Your spot is officially reserved as a ${tab === "buy" ? "Shopper" : "Founding Seller"}.\n\nWe are hard at work building Ghana's premier hybrid marketplace — featuring Escrow payment protection, verified sellers, and local trade connect.\n\nPlease watch out for launch announcements in your inbox so you can claim your early access perks on Day 1!\n\nWarm regards,\nThe Nafex Hub Team\nhttps://nafex-hub-launchpad.vercel.app/`;
+    const isBuyer = tab === "buy";
+    const userRoleTitle = isBuyer ? "Early Access Shopper" : "Founding Seller / Merchant";
+
+    const autoresponseMessage = `Welcome to the official Nafex Hub Early Access Waitlist, ${cleanName}! 🎉
+
+Thank you for joining us early. Your spot is officially reserved as an ${userRoleTitle}.
+
+Nafex Hub is Ghana's premier hybrid marketplace — connecting verified fashion brands, tech, lifestyle merchants, and trade clients with 100% Escrow payment protection!
+
+Here is what your early access reservation includes:
+
+${isBuyer ? `
+🛍️ 24-HOUR VIP PRIORITY BROWSING
+Get early access to discover top products and claim deals 24 hours before the public launch.
+
+🛡️ 100% ESCROW PAYMENT PROTECTION
+Shop with total confidence — your payment is safely held until your order is delivered and verified.
+
+🏷️ GHS 50 WELCOME CREDIT
+Enjoy GHS 50 store credit applied automatically to your account on launch day.
+
+📦 VERIFIED LOCAL MERCHANT DISCOVERY
+Discover vetted fashion, tech, home goods, and local products from trusted sellers across Ghana.
+` : `
+🚀 0% SALES COMMISSION FOR 3 MONTHS
+Keep 100% of your store revenue for your first 3 full months after launch.
+
+🌟 FOUNDING SELLER VERIFIED BADGE
+Receive a permanent trusted merchant badge displayed on your storefront and product listings.
+
+🔝 PRIORITY SEARCH PLACEMENT
+Enjoy featured ranking in category search and discover pages to maximize your shop visibility.
+
+📞 1-ON-1 MERCHANT ONBOARDING
+Direct setup assistance from our team for catalog uploading and store customization.
+`}
+
+We are putting the final touches on our platform. Watch your inbox for your private preview invitation link!
+
+Warm regards,
+The Nafex Hub Team
+Ghana's Premier Hybrid Marketplace
+https://nafex-hub-launchpad.vercel.app/
+Contact: nafexgroupltd@gmail.com`;
 
     // 1. Web3Forms Payload
-    const web3Key = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || "87d9788d-5832-460a-ae78-aab6aae3fd95";
+    const web3Key = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || "b35567f8-fef3-44de-85a2-007fa1ef74df";
     const web3FormData = new FormData();
     web3FormData.append("access_key", web3Key);
-    web3FormData.append("subject", `🎉 New Waitlist Signup: ${cleanName} (${tab === "buy" ? "Shopper" : "Seller"})`);
-    web3FormData.append("from_name", "Nafex Hub Launchpad");
+    web3FormData.append("subject", `🎉 Welcome to Nafex Hub Early Access, ${cleanName}!`);
+    web3FormData.append("from_name", "Nafex Hub");
     web3FormData.append("name", cleanName);
     web3FormData.append("email", cleanEmail);
     web3FormData.append("replyto", cleanEmail);
-    web3FormData.append("role", tab === "buy" ? "Shopper / Client" : "Product Seller");
+    web3FormData.append("role", userRoleTitle);
     web3FormData.append("category", category || "Not Specified");
-    if (tab === "sell") {
+    if (!isBuyer) {
       web3FormData.append("storeName", storeName || "N/A");
       web3FormData.append("storeLink", storeLink || "N/A");
     }
@@ -130,13 +173,13 @@ export default function Waitlist() {
     formParams.append("name", cleanName);
     formParams.append("email", cleanEmail);
     formParams.append("_replyto", cleanEmail);
-    formParams.append("role", tab === "buy" ? "Shopper / Client" : "Product Seller");
+    formParams.append("role", userRoleTitle);
     formParams.append("category", category || "Not Specified");
-    if (tab === "sell") {
+    if (!isBuyer) {
       formParams.append("storeName", storeName || "N/A");
       formParams.append("storeLink", storeLink || "N/A");
     }
-    formParams.append("_subject", `🎉 New Waitlist Signup: ${cleanName} (${tab === "buy" ? "Shopper" : "Seller"})`);
+    formParams.append("_subject", `🎉 New Waitlist Signup: ${cleanName} (${userRoleTitle})`);
     formParams.append("_autoresponse", autoresponseMessage);
     formParams.append("_template", "table");
     formParams.append("_captcha", "false");
