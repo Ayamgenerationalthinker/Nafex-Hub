@@ -69,7 +69,49 @@ export async function sendUserEmail(opts: {
   subject: string;
   text: string;
   html?: string;
+  code?: string;
 }): Promise<boolean> {
+  // 1. EmailJS API Support (Server-side)
+  const emailjsService = process.env.EMAILJS_SERVICE_ID;
+  const emailjsTemplate = process.env.EMAILJS_TEMPLATE_ID;
+  const emailjsPublic = process.env.EMAILJS_PUBLIC_KEY || process.env.EMAILJS_USER_ID;
+
+  if (emailjsService && emailjsTemplate && emailjsPublic) {
+    try {
+      const payload: any = {
+        service_id: emailjsService,
+        template_id: emailjsTemplate,
+        user_id: emailjsPublic,
+        template_params: {
+          to_email: opts.to,
+          to_name: opts.to.split("@")[0],
+          subject: opts.subject,
+          verification_code: opts.code || "",
+          code: opts.code || "",
+          message: opts.text,
+          html_content: opts.html || "",
+        },
+      };
+      if (process.env.EMAILJS_PRIVATE_KEY) {
+        payload.accessToken = process.env.EMAILJS_PRIVATE_KEY;
+      }
+      const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        logger.info({ to: opts.to, subject: opts.subject }, "User email sent via EmailJS API");
+        return true;
+      }
+      const errText = await res.text();
+      logger.error({ errText, to: opts.to, subject: opts.subject }, "EmailJS API returned error");
+    } catch (err) {
+      logger.error({ err, to: opts.to, subject: opts.subject }, "Failed to send user email via EmailJS API");
+    }
+  }
+
+  // 2. Resend API Support
   if (process.env.RESEND_API_KEY) {
     const fromAddress = process.env.EMAIL_FROM || "onboarding@resend.dev";
     try {
@@ -153,7 +195,7 @@ export async function sendVerificationEmail(to: string, name: string, code: stri
      </div>
      <p style="margin:0;font-size:12px;color:#888">This code expires in 3 minutes. If you didn't sign up, ignore this email.</p>`
   );
-  return sendUserEmail({ to, subject: "Verify your email", text, html });
+  return sendUserEmail({ to, subject: "Verify your email", text, html, code });
 }
 
 export async function sendDeliveryOtpEmail(to: string, name: string, orderId: number, otp: string): Promise<boolean> {
