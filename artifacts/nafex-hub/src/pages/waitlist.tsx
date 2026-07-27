@@ -145,7 +145,6 @@ We are putting the final touches on our platform. Watch your inbox for your priv
 Warm regards,
 The Nafex Hub Team
 Ghana's Premier Hybrid Marketplace
-https://nafex-hub-launchpad.vercel.app/
 Contact: nafexgroupltd@gmail.com`;
 
     // Web3Forms Payload (Access Key: b35567f8-fef3-44de-85a2-007fa1ef74df)
@@ -164,7 +163,9 @@ Contact: nafexgroupltd@gmail.com`;
       store_link: !isBuyer ? (storeLink || "N/A") : undefined,
       message: `New waitlist submission for Nafex Hub!\n\nName: ${cleanName}\nEmail: ${cleanEmail}\nRole: ${userRoleTitle}\nCategory: ${category || "Not Specified"}${!isBuyer ? `\nStore Name: ${storeName || "N/A"}\nStore Link: ${storeLink || "N/A"}` : ""}`,
       autoresponder: autoresponseMessage,
-      _autoresponse: autoresponseMessage
+      _autoresponse: autoresponseMessage,
+      autoresponder_subject: `🎉 Welcome to Nafex Hub Early Access, ${cleanName}!`,
+      botcheck: false
     };
 
     try {
