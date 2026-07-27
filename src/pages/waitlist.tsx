@@ -499,17 +499,9 @@ Contact: nafexgroupltd@gmail.com`;
 
                     {/* Footer Actions */}
                     <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-                      <div className="flex items-center gap-2.5 text-slate-500 text-[11px]">
-                        <span>Need help? Email <a href="mailto:nafexgroupltd@gmail.com" className="text-[#6A1B9A] font-semibold underline">nafexgroupltd@gmail.com</a></span>
-                        <span>•</span>
-                        <button
-                          type="button"
-                          onClick={handleResetTesting}
-                          className="text-purple-700 hover:text-purple-900 font-semibold underline text-[11px]"
-                        >
-                          Reset form to test again
-                        </button>
-                      </div>
+                      <p className="text-slate-500 text-[11px]">
+                        Need help? Email <a href="mailto:nafexgroupltd@gmail.com" className="text-[#6A1B9A] font-semibold underline">nafexgroupltd@gmail.com</a>
+                      </p>
                       <a
                         href={`https://wa.me/?text=${encodeURIComponent("I just registered for early access on Nafex Hub — Ghana's premier marketplace! Join the waitlist here: https://nafex-hub-launchpad.vercel.app/")}`}
                         target="_blank"
