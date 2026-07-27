@@ -250,21 +250,20 @@ export default function Explore() {
               </Button>
             </div>
           </div>
-          <div className="lg:col-span-5 flex justify-center relative">
-            <div className="relative w-full max-w-md aspect-[4/3] rounded-2xl overflow-hidden shadow-lg border-4 border-white">
+          <div className="lg:col-span-5 flex justify-center relative items-end">
+            <div className="relative w-full max-w-md h-full flex items-end">
               <img
                 src="/hero-model.jpg"
                 alt="Nafex Hub Shopping"
-                className="w-full h-full object-cover object-center"
+                className="w-full h-auto object-contain max-h-[500px]"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-              <div className="absolute bottom-3 left-3 right-3 bg-white/90 backdrop-blur-md rounded-xl p-3 shadow-md flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-[#6A1B9A] text-white flex items-center justify-center font-bold">
+              <div className="absolute -bottom-6 sm:bottom-4 left-4 right-4 sm:left-auto sm:-left-8 sm:right-auto bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-xl flex items-center gap-4 z-10 border border-purple-100">
+                <div className="w-12 h-12 rounded-xl bg-[#6A1B9A] text-white flex items-center justify-center font-bold text-lg shadow-sm">
                   ✓
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-[#222222]">Nafex Verified</p>
-                  <p className="text-[11px] text-[#6B7280]">Quality • Fast Delivery • Support</p>
+                  <p className="text-sm font-bold text-[#222222]">Nafex Verified</p>
+                  <p className="text-xs text-[#6B7280]">Quality • Fast Delivery • Support</p>
                 </div>
               </div>
             </div>
@@ -492,7 +491,7 @@ export default function Explore() {
 
       {/* ── Category nav bar (Clean Icon-Free Pill Filters) ── */}
       <div className="mb-6 -mx-4 md:mx-0">
-        {/* Group text pill row — horizontal scroll */}
+        {/* Group text pill row - horizontal scroll */}
         <div className="flex gap-2 overflow-x-auto px-4 md:px-0 pb-2 hide-scrollbar">
           <button
             onClick={() => { handleCategory("All"); setActiveGroup(null); }}
@@ -525,7 +524,7 @@ export default function Explore() {
           })}
         </div>
 
-        {/* Sub-category chip row — slides in when a group is active */}
+        {/* Sub-category chip row - slides in when a group is active */}
         {activeGroup && (() => {
           const group = CATEGORY_GROUPS.find(g => g.label === activeGroup);
           if (!group) return null;

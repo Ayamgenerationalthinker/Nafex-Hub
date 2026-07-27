@@ -145,7 +145,7 @@ export default function Payments({ isEmbedded = false }: { isEmbedded?: boolean 
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground truncate">
-                        {t.provider} · {t.providerRef ?? "—"} · {new Date(t.createdAt).toLocaleString()}
+                        {t.provider} · {t.providerRef ?? "-"} · {new Date(t.createdAt).toLocaleString()}
                       </p>
                     </div>
                     <div className="text-right shrink-0">

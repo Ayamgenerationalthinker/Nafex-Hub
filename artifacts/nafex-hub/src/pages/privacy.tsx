@@ -44,7 +44,7 @@ export default function Privacy() {
             },
             {
               title: "6. Data Retention",
-              content: `We retain your personal data for as long as your account is active or as needed to provide services. You may request deletion of your account and associated data at any time by contacting us at support@nafexhub.com.`
+              content: `We retain your personal data for as long as your account is active or as needed to provide services. You may request deletion of your account and associated data at any time by contacting us at nafexgroupltd@gmail.com.`
             },
             {
               title: "7. Your Rights",
@@ -60,7 +60,7 @@ export default function Privacy() {
             },
             {
               title: "10. Contact Us",
-              content: `If you have any questions or concerns about this Privacy Policy, please contact us at support@nafexhub.com or visit our Help Centre.`
+              content: `If you have any questions or concerns about this Privacy Policy, please contact us at nafexgroupltd@gmail.com or visit our Help Centre.`
             },
           ].map((section) => (
             <div key={section.title} className="space-y-2">
@@ -72,8 +72,8 @@ export default function Privacy() {
           <div className="pt-4 border-t border-purple-100">
             <p className="text-xs text-[#6B7280]">
               For any questions, email us at{" "}
-              <a href="mailto:support@nafexhub.com" className="text-[#6A1B9A] hover:underline">
-                support@nafexhub.com
+              <a href="mailto:nafexgroupltd@gmail.com" className="text-[#6A1B9A] hover:underline">
+                nafexgroupltd@gmail.com
               </a>
             </p>
           </div>

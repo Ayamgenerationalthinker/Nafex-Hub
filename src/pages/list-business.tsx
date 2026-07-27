@@ -159,7 +159,7 @@ export default function ListBusiness() {
           </div>
           <h1 className="font-serif text-3xl md:text-4xl font-bold text-foreground">List Your Business</h1>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-            Join Nafex Hub and reach thousands of customers across Ghana — whatever you sell.
+            Join Nafex Hub and reach thousands of customers across Ghana - whatever you sell.
           </p>
         </div>
       </div>
@@ -267,7 +267,7 @@ export default function ListBusiness() {
                 value={bannerImages}
                 onChange={setBannerImages}
                 maxImages={5}
-                label="Store Images (optional) — shown on your brand page"
+                label="Store Images (optional) - shown on your brand page"
               />
 
               <Button

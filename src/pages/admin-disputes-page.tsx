@@ -234,8 +234,8 @@ export default function AdminDisputesPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="resolved_buyer">Resolved — Favour Buyer</SelectItem>
-                  <SelectItem value="resolved_seller">Resolved — Favour Seller</SelectItem>
+                  <SelectItem value="resolved_buyer">Resolved - Favour Buyer</SelectItem>
+                  <SelectItem value="resolved_seller">Resolved - Favour Seller</SelectItem>
                   <SelectItem value="dismissed">Dismissed</SelectItem>
                 </SelectContent>
               </Select>

@@ -94,7 +94,7 @@ export default function VerifyEmail() {
         title: data.delivered ? "New code sent" : "Code generated",
         description: data.delivered
           ? `A fresh 6-digit code was sent to ${user!.email}. It expires in 1 minute.`
-          : "Email isn't configured on the server yet — ask the admin to set EMAIL_USER / EMAIL_PASS.",
+          : "Email isn't configured on the server yet - ask the admin to set EMAIL_USER / EMAIL_PASS.",
       });
       return true;
     } catch (err) {
@@ -150,7 +150,7 @@ export default function VerifyEmail() {
               <div className={`flex items-center justify-center gap-2 text-sm font-mono ${expired ? "text-red-600" : "text-amber-700"}`}>
                 <Clock className="w-4 h-4" />
                 {expired ? (
-                  <span>Code expired — request a new one</span>
+                  <span>Code expired - request a new one</span>
                 ) : (
                   <span>Expires in {String(Math.floor(secondsLeft / 60)).padStart(2, "0")}:{String(secondsLeft % 60).padStart(2, "0")}</span>
                 )}

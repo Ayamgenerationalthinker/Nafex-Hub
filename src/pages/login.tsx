@@ -55,7 +55,7 @@ export default function Login() {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-3">
-          <Logo size="lg" variant="badge" className="mx-auto shadow-md border-slate-200" />
+          <Logo size="xl" variant="raw" className="mx-auto mb-2" />
           <h1 className="font-serif text-3xl font-bold text-foreground">Welcome back</h1>
           <p className="text-muted-foreground">Sign in to your Nafex Hub account</p>
         </div>

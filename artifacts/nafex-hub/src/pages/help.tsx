@@ -28,7 +28,7 @@ const FAQS = [
     items: [
       {
         q: "What payment methods are accepted?",
-        a: "Payment arrangements are made directly between you and the seller. Common options include Mobile Money (MTN, Vodafone Cash, AirtelTigo Money), bank transfer, or cash on delivery — confirm with the seller before completing your order.",
+        a: "Payment arrangements are made directly between you and the seller. Common options include Mobile Money (MTN, Vodafone Cash, AirtelTigo Money), bank transfer, or cash on delivery - confirm with the seller before completing your order.",
       },
       {
         q: "Is my payment secure?",
@@ -70,7 +70,7 @@ const FAQS = [
     items: [
       {
         q: "How do I return an item?",
-        a: "Contact the seller through our messaging system to discuss a return. Each seller sets their own return policy — check the brand's profile or message them before purchasing if you need to know the policy.",
+        a: "Contact the seller through our messaging system to discuss a return. Each seller sets their own return policy - check the brand's profile or message them before purchasing if you need to know the policy.",
       },
       {
         q: "How long do refunds take?",

@@ -38,7 +38,7 @@ export function TradeChat({ orderId, currentUserId }: TradeChatProps) {
       if (!r.ok) throw new Error("Failed to load messages");
       setMessages((await r.json()) as TradeMessage[]);
     } catch {
-      // silent — chat may not exist yet
+      // silent - chat may not exist yet
     } finally {
       setLoading(false);
     }
@@ -117,7 +117,7 @@ export function TradeChat({ orderId, currentUserId }: TradeChatProps) {
             </div>
           ) : messages.length === 0 ? (
             <p className="h-full flex items-center justify-center text-sm text-muted-foreground text-center px-4">
-              No messages yet. Start the conversation — buyer, supplier and sourcing agents can chat here.
+              No messages yet. Start the conversation - buyer, supplier and sourcing agents can chat here.
             </p>
           ) : (
             messages.map((m) => {

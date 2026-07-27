@@ -19,13 +19,13 @@ const SERVICES = [
     key: "manufacturing",
     icon: <Factory className="w-5 h-5" />,
     title: "Bulk Manufacturing",
-    desc: "Source ready-to-sell stock from verified China factories — apparel, accessories, leather, electronics.",
+    desc: "Source ready-to-sell stock from verified China factories - apparel, accessories, leather, electronics.",
   },
   {
     key: "private_label",
     icon: <Tag className="w-5 h-5" />,
     title: "Private Labeling",
-    desc: "Add your brand, tags and packaging to existing factory products — low MOQs for new sellers.",
+    desc: "Add your brand, tags and packaging to existing factory products - low MOQs for new sellers.",
   },
   {
     key: "wholesale",
@@ -37,7 +37,7 @@ const SERVICES = [
     key: "logistics",
     icon: <Ship className="w-5 h-5" />,
     title: "Logistics & Customs",
-    desc: "End-to-end shipping from China to Tema/Takoradi — sea or air, with customs clearance assistance.",
+    desc: "End-to-end shipping from China to Tema/Takoradi - sea or air, with customs clearance assistance.",
   },
 ] as const;
 
@@ -123,7 +123,7 @@ export default function SellerBulkImport() {
             Source Inventory from China
           </h1>
           <p className="text-background/70 text-base md:text-lg max-w-2xl mx-auto">
-            Grow your Nafex store with bulk manufacturing, private label and wholesale sourcing —
+            Grow your Nafex store with bulk manufacturing, private label and wholesale sourcing -
             fully managed shipping and customs clearance to Ghana.
           </p>
           <div className="flex flex-wrap gap-3 justify-center pt-2">
@@ -252,7 +252,7 @@ export default function SellerBulkImport() {
                       rows={5}
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      {form.description.length}/2000 — more detail = better quotes
+                      {form.description.length}/2000 - more detail = better quotes
                     </p>
                   </div>
                   <ImageUpload
@@ -284,7 +284,7 @@ export default function SellerBulkImport() {
             <h2 className="font-serif text-xl font-bold text-foreground">How It Works</h2>
             <div className="space-y-4">
               {[
-                { step: "1", title: "Pick a service", desc: "Manufacturing, private label, wholesale or logistics — choose what fits your store." },
+                { step: "1", title: "Pick a service", desc: "Manufacturing, private label, wholesale or logistics - choose what fits your store." },
                 { step: "2", title: "Describe the product", desc: "Specs, quantity, budget, target port and reference images." },
                 { step: "3", title: "Receive supplier quotes", desc: "Verified China factories and our trade desk send competitive quotes." },
                 { step: "4", title: "Pay via escrow & ship", desc: "Funds held safely. Tracked from factory to your warehouse in Ghana." },

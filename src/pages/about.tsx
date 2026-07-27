@@ -51,7 +51,7 @@ export default function About() {
             About <span className="text-[#D4A017]">Nafex Hub</span>
           </h1>
           <p className="text-lg text-purple-100 max-w-2xl mx-auto leading-relaxed">
-            Connecting Ghanaian buyers and sellers in a trusted, secure, and seamless digital marketplace — from fashion to electronics, food to home goods and beyond.
+            Connecting Ghanaian buyers and sellers in a trusted, secure, and seamless digital marketplace - from fashion to electronics, food to home goods and beyond.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
             <Link href="/explore">
@@ -93,10 +93,10 @@ export default function About() {
             Nafex Hub was founded with a simple yet powerful vision: to give every Ghanaian access to quality products and give every Ghanaian business owner the ability to reach customers beyond their neighbourhood.
           </p>
           <p className="text-[#4B5563] leading-relaxed">
-            We saw how talented entrepreneurs and craftspeople struggled to scale beyond their local markets, and how buyers struggled to find verified, quality goods with confidence. Nafex Hub bridges that gap — creating a trusted space where commerce thrives.
+            We saw how talented entrepreneurs and craftspeople struggled to scale beyond their local markets, and how buyers struggled to find verified, quality goods with confidence. Nafex Hub bridges that gap - creating a trusted space where commerce thrives.
           </p>
           <p className="text-[#4B5563] leading-relaxed">
-            Built with escrow payment protection, buyer-seller dispute resolution, and real-time logistics tracking, Nafex Hub is not just a marketplace — it's an ecosystem designed to make trade in Ghana safer, faster, and fairer for everyone.
+            Built with escrow payment protection, buyer-seller dispute resolution, and real-time logistics tracking, Nafex Hub is not just a marketplace - it's an ecosystem designed to make trade in Ghana safer, faster, and fairer for everyone.
           </p>
         </div>
       </section>
@@ -129,13 +129,13 @@ export default function About() {
           </div>
           <div className="space-y-4">
             {[
-              "Escrow-protected payments — your money is safe until you're satisfied",
-              "Verified sellers — every business is reviewed before listing",
-              "Real-time order tracking — know exactly where your order is",
-              "Nafex Coins loyalty rewards — earn while you shop",
-              "Trade Connect — for businesses looking to import & wholesale",
-              "Dedicated dispute resolution — fair outcomes for everyone",
-              "Multi-category marketplace — fashion, electronics, food, home & more",
+              "Escrow-protected payments - your money is safe until you're satisfied",
+              "Verified sellers - every business is reviewed before listing",
+              "Real-time order tracking - know exactly where your order is",
+              "Nafex Coins loyalty rewards - earn while you shop",
+              "Trade Connect - for businesses looking to import & wholesale",
+              "Dedicated dispute resolution - fair outcomes for everyone",
+              "Multi-category marketplace - fashion, electronics, food, home & more",
             ].map((point) => (
               <div key={point} className="flex items-start gap-3 bg-white rounded-xl p-4 border border-purple-100/60 shadow-xs">
                 <CheckCircle2 className="w-5 h-5 text-[#6A1B9A] mt-0.5 shrink-0" />

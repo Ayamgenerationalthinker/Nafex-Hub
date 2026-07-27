@@ -229,10 +229,10 @@ export default function AdminPayments() {
                     <tr key={t.id} className="border-t border-border" data-testid={`row-txn-${t.id}`}>
                       <td className="p-2 whitespace-nowrap text-xs text-muted-foreground">{new Date(t.createdAt).toLocaleString()}</td>
                       <td className="p-2 capitalize">{t.type}</td>
-                      <td className="p-2">{t.orderId ?? "—"}</td>
-                      <td className="p-2">{t.userId ?? "—"}</td>
+                      <td className="p-2">{t.orderId ?? "-"}</td>
+                      <td className="p-2">{t.userId ?? "-"}</td>
                       <td className="p-2">{t.provider}</td>
-                      <td className="p-2 max-w-[200px] truncate" title={t.providerRef ?? ""}>{t.providerRef ?? "—"}</td>
+                      <td className="p-2 max-w-[200px] truncate" title={t.providerRef ?? ""}>{t.providerRef ?? "-"}</td>
                       <td className="p-2"><Badge variant="outline" className={`text-xs ${statusTone[t.status]}`}>{t.status}</Badge></td>
                       <td className="p-2 text-right font-medium whitespace-nowrap">{t.currency} {Number(t.amount).toFixed(2)}</td>
                     </tr>

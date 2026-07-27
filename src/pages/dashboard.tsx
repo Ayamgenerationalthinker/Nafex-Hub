@@ -255,7 +255,7 @@ function SellerDashboard() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` },
         body: JSON.stringify({
           orderId,
-          pickupAddress: businessLocation || "Seller pickup — see order notes",
+          pickupAddress: businessLocation || "Seller pickup - see order notes",
           deliveryAddress: deliveryAddress.trim(),
           deliveryZone: deliveryZone === "default" ? undefined : deliveryZone,
           notes: deliveryNotes.trim() || undefined,
@@ -479,7 +479,7 @@ function SellerDashboard() {
 
   const last14Days = analytics?.dailyStats?.slice(-14) ?? [];
 
-  // Auth guard — after all hooks
+  // Auth guard - after all hooks
   useEffect(() => {
     if (!user) setLocation("/login");
   }, [user, setLocation]);
@@ -603,7 +603,7 @@ function SellerDashboard() {
               <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
                 <div className="px-5 py-4 border-b bg-muted/20 flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-primary" />
-                  <span className="font-semibold text-sm text-foreground">Profile Views — Last 14 Days</span>
+                  <span className="font-semibold text-sm text-foreground">Profile Views - Last 14 Days</span>
                 </div>
                 <div className="p-5">
                   {analyticsLoading ? (
@@ -821,7 +821,7 @@ function SellerDashboard() {
                     {order.paymentStatus === "released" && (
                       <div className="flex items-center gap-2 text-xs text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
                         <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0" />
-                        Escrow released — payment has been confirmed and funds are available.
+                        Escrow released - payment has been confirmed and funds are available.
                       </div>
                     )}
                     {paymentPending && (
@@ -1011,7 +1011,7 @@ function SellerDashboard() {
                             <input
                               type="number"
                               min="0"
-                              placeholder="—"
+                              placeholder="-"
                               value={editVal}
                               onChange={(e) => setStockEdits((prev) => ({ ...prev, [product.id]: e.target.value }))}
                               className="w-20 h-8 px-2 text-sm border border-border rounded-md bg-background text-center focus:outline-none focus:ring-1 focus:ring-primary"
@@ -1251,7 +1251,7 @@ function SellerDashboard() {
 
               <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
                 <div className="px-5 py-4 border-b bg-muted/20">
-                  <p className="font-semibold text-foreground text-sm">Daily Activity — Last 30 Days</p>
+                  <p className="font-semibold text-foreground text-sm">Daily Activity - Last 30 Days</p>
                 </div>
                 <div className="p-5">
                   <ResponsiveContainer width="100%" height={280}>
@@ -1448,7 +1448,7 @@ function SellerDashboard() {
                                 type="number"
                                 min="0"
                                 step="0.01"
-                                placeholder="—"
+                                placeholder="-"
                                 value={edit.discountPrice}
                                 onChange={(e) =>
                                   setPriceEdits((prev) => ({ ...prev, [product.id]: { ...edit, discountPrice: e.target.value } }))
@@ -1623,7 +1623,7 @@ function SellerDashboard() {
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label>Pickup (your shop)</Label>
-              <Input value={businessLocation || "—"} readOnly className="bg-muted/50" />
+              <Input value={businessLocation || "-"} readOnly className="bg-muted/50" />
             </div>
             <div className="space-y-1.5">
               <Label>Buyer delivery address</Label>

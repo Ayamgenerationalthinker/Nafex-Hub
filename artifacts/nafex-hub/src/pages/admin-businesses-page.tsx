@@ -783,7 +783,7 @@ export default function AdminBusinessesPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Star className="w-4 h-4 text-amber-500" />
-              Featured Placement — {featuredDialog.bizName}
+              Featured Placement - {featuredDialog.bizName}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -880,7 +880,7 @@ export default function AdminBusinessesPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-blue-600" />
-              KYC Verification — {kycDialog.bizName}
+              KYC Verification - {kycDialog.bizName}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">

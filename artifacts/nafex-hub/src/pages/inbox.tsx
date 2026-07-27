@@ -380,7 +380,7 @@ export default function Inbox({ isEmbedded = false }: { isEmbedded?: boolean }) 
                 )}
               </div>
 
-              {/* Messages area — scrollable */}
+              {/* Messages area - scrollable */}
               <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
                 {msgsLoading && localMessages.length === 0 ? (
                   <div className="space-y-3">
@@ -433,7 +433,7 @@ export default function Inbox({ isEmbedded = false }: { isEmbedded?: boolean }) 
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Message input — fixed at bottom */}
+              {/* Message input - fixed at bottom */}
               <div className="px-4 py-3 border-t border-border bg-card flex-shrink-0">
                 <form
                   onSubmit={(e) => {

@@ -50,7 +50,7 @@ const DEFAULT_SETTINGS: ECommerceSettings = {
   whatsappNumber: "+233 24 000 0000",
   instagramLink: "https://instagram.com/nafexhub",
   facebookLink: "https://facebook.com/nafexhub",
-  email: "support@nafexhub.com",
+  email: "nafexgroupltd@gmail.com",
   supportPhone: "+233 30 200 0000",
 
   marketplaceCommission: "5",
@@ -218,7 +218,7 @@ export default function AdminSettingsPage() {
                     <Input
                       value={settings.email}
                       onChange={(e) => handleChange("email", e.target.value)}
-                      placeholder="support@nafexhub.com"
+                      placeholder="nafexgroupltd@gmail.com"
                     />
                   </div>
 

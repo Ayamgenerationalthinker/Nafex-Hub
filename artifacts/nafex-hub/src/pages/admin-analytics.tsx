@@ -235,7 +235,7 @@ export default function AdminAnalytics() {
               { label: "Active Placements", value: featuredLoading ? null : totalActive, icon: Star, color: "text-amber-500", bg: "bg-amber-500/10" },
               { label: "Total Views (30d)", value: featuredLoading ? null : totalFeaturedViews, icon: Eye, color: "text-blue-500", bg: "bg-blue-500/10" },
               { label: "Orders via Featured", value: featuredLoading ? null : totalFeaturedOrders, icon: ShoppingBag, color: "text-green-500", bg: "bg-green-500/10" },
-              { label: "Top Performer", value: featuredLoading ? null : (topBiz?.name ?? "—"), icon: TrendingUp, color: "text-primary", bg: "bg-primary/10" },
+              { label: "Top Performer", value: featuredLoading ? null : (topBiz?.name ?? "-"), icon: TrendingUp, color: "text-primary", bg: "bg-primary/10" },
             ].map(({ label, value, icon: Icon, color, bg }) => (
               <div key={label} className="bg-card border border-border rounded-xl p-4 flex items-center gap-3">
                 <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${bg}`}>

@@ -105,7 +105,7 @@ export default function TradeConnect() {
           </h1>
           <p className="text-background/70 text-lg max-w-2xl mx-auto">
             Post your import requirements and receive competitive quotes from verified
-            Nafex sellers — fabric, accessories, bulk fashion, and more.
+            Nafex sellers - fabric, accessories, bulk fashion, and more.
           </p>
           <div className="flex flex-wrap gap-3 justify-center pt-2">
             <Link href="/trade/board">
@@ -212,12 +212,12 @@ export default function TradeConnect() {
                     <Textarea
                       value={form.description}
                       onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                      placeholder="Describe exactly what you need — material, colour, size, certifications, packaging, delivery timeline…"
+                      placeholder="Describe exactly what you need - material, colour, size, certifications, packaging, delivery timeline…"
                       className="mt-1 resize-none"
                       rows={5}
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      {form.description.length}/2000 — more detail = better quotes
+                      {form.description.length}/2000 - more detail = better quotes
                     </p>
                   </div>
                   <ImageUpload
@@ -253,7 +253,7 @@ export default function TradeConnect() {
             <h2 className="font-serif text-xl font-bold text-foreground">How It Works</h2>
             <div className="space-y-4">
               {[
-                { step: "1", title: "Post your request", desc: "Describe what you want to import — product, quantity, budget, and specs." },
+                { step: "1", title: "Post your request", desc: "Describe what you want to import - product, quantity, budget, and specs." },
                 { step: "2", title: "Receive quotes", desc: "Verified Nafex sellers review your request and send competitive quotes within 24–48 hours." },
                 { step: "3", title: "Compare & choose", desc: "Review unit price, MOQ, shipping cost, and production time side-by-side." },
                 { step: "4", title: "Place your order", desc: "Message the seller directly and place your order securely through Nafex escrow." },

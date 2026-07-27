@@ -65,7 +65,7 @@ export function SocialAuthButtons({ action = "sign in" }: { action?: "sign in" |
         <div className="border-t border-slate-200 w-full" />
       </div>
 
-      {/* T&C checkbox — only shown on sign-up */}
+      {/* T&C checkbox - only shown on sign-up */}
       {action === "sign up" && (
         <label className="flex items-start gap-2.5 cursor-pointer group">
           <input

@@ -98,9 +98,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <Logo size="lg" variant="raw" showTagline={false} />
           </Link>
 
-          {/* Desktop nav — 3-section layout: Logo | Search (flex) | Right actions */}
+          {/* Desktop nav - 3-section layout: Logo | Search (flex) | Right actions */}
           <nav className="hidden md:flex items-center gap-3 flex-1 justify-end">
-            {/* Search — centered, flexible */}
+            {/* Search - centered, flexible */}
             {!isBusinessOwner && !isAdmin && (
               <div className="relative flex items-center flex-1 max-w-xs xl:max-w-sm mx-4">
                 <input

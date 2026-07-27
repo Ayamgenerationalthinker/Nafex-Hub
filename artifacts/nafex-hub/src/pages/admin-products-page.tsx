@@ -191,7 +191,7 @@ export default function AdminProductsPage() {
                         </span>
                       </div>
                     )}
-                    <span className="text-sm text-muted-foreground truncate">{product.businessName ?? "—"}</span>
+                    <span className="text-sm text-muted-foreground truncate">{product.businessName ?? "-"}</span>
                   </div>
 
                   {/* Price */}
@@ -201,7 +201,7 @@ export default function AdminProductsPage() {
 
                   {/* Stock */}
                   {product.stock === null || product.stock === undefined ? (
-                    <span className="text-xs text-muted-foreground">—</span>
+                    <span className="text-xs text-muted-foreground">-</span>
                   ) : product.stock === 0 ? (
                     <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700">
                       Out of Stock

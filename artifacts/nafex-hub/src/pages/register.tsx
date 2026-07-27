@@ -176,7 +176,7 @@ export default function Register() {
     setShowTc(true);
   };
 
-  // Step 2: user accepted T&C — actually create account
+  // Step 2: user accepted T&C - actually create account
   const canAccept =
     tcGeneral &&
     tcSuspension &&
@@ -255,7 +255,7 @@ export default function Register() {
       <div className="min-h-[80vh] flex items-center justify-center px-4 py-16">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center space-y-3">
-            <Logo size="lg" variant="badge" className="mx-auto shadow-md border-slate-200" />
+            <Logo size="xl" variant="raw" className="mx-auto mb-2" />
             <h1 className="font-serif text-3xl font-bold text-foreground">Join Nafex Hub</h1>
             <p className="text-muted-foreground">Ghana's premier fashion marketplace</p>
           </div>
@@ -319,7 +319,7 @@ export default function Register() {
                             <div className="flex items-center gap-2">
                               <ShoppingBag className="w-4 h-4 text-muted-foreground" />
                               <div>
-                                <div className="font-medium">Shop — I want to buy</div>
+                                <div className="font-medium">Shop - I want to buy</div>
                                 <div className="text-xs text-muted-foreground">Browse brands, place orders, get deals</div>
                               </div>
                             </div>
@@ -328,7 +328,7 @@ export default function Register() {
                             <div className="flex items-center gap-2">
                               <Store className="w-4 h-4 text-muted-foreground" />
                               <div>
-                                <div className="font-medium">Sell — I have a business</div>
+                                <div className="font-medium">Sell - I have a business</div>
                                 <div className="text-xs text-muted-foreground">List products, manage orders, grow sales</div>
                               </div>
                             </div>
@@ -371,7 +371,7 @@ export default function Register() {
           <DialogHeader className="px-6 pt-6 pb-4 border-b flex-shrink-0">
             <DialogTitle className="flex items-center gap-2 text-lg font-serif">
               <ScrollText className="w-5 h-5 text-primary" />
-              Nafex Marketplace — Terms &amp; Conditions
+              Nafex Marketplace - Terms &amp; Conditions
             </DialogTitle>
             <p className="text-xs text-muted-foreground mt-1">
               {isSeller
@@ -383,11 +383,11 @@ export default function Register() {
           {/* Scrollable body */}
           <div className="flex-1 overflow-y-auto px-6 py-5 space-y-8 min-h-0">
 
-            {/* General terms — shown to everyone */}
+            {/* General terms - shown to everyone */}
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded">
-                  General — All Users
+                  General - All Users
                 </span>
               </div>
               {TC_GENERAL}
@@ -411,13 +411,13 @@ export default function Register() {
               {isSeller ? TC_SELLER : TC_BUYER}
             </div>
 
-            {/* Delivery choice — sellers only */}
+            {/* Delivery choice - sellers only */}
             {isSeller && (
               <>
                 <div className="border-t" />
                 <div className="space-y-3">
                   <p className="text-sm font-semibold text-foreground">
-                    Section 4 — Choose Your Delivery Method <span className="text-destructive">*</span>
+                    Section 4 - Choose Your Delivery Method <span className="text-destructive">*</span>
                   </p>
                   <p className="text-xs text-muted-foreground">You must select one before continuing.</p>
                   <div className="space-y-2">
@@ -477,7 +477,7 @@ export default function Register() {
             {/* Acceptance checkboxes */}
             <div className="border-t" />
             <div className="space-y-3 pb-2">
-              <p className="text-sm font-semibold text-foreground">Section 9 — Acceptance</p>
+              <p className="text-sm font-semibold text-foreground">Section 9 - Acceptance</p>
               <label className="flex items-start gap-3 cursor-pointer group">
                 <Checkbox
                   checked={tcGeneral}

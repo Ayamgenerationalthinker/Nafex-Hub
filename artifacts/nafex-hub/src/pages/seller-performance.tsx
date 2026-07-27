@@ -241,7 +241,7 @@ export default function SellerPerformance() {
           <CardContent className="p-5 flex items-start justify-between gap-4">
             <div>
               <p className="text-xs text-muted-foreground">Pending payout</p>
-              <p className="text-2xl font-bold text-foreground">{txnsLoading ? "—" : `GHS ${payoutTotals.pendingPayout.toFixed(2)}`}</p>
+              <p className="text-2xl font-bold text-foreground">{txnsLoading ? "-" : `GHS ${payoutTotals.pendingPayout.toFixed(2)}`}</p>
               <p className="text-xs text-muted-foreground mt-1">Awaiting release from escrow</p>
             </div>
             <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center">

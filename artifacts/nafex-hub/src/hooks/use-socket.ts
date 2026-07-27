@@ -47,7 +47,7 @@ export function useSocket(): Socket | null {
     socketRef.current = socket;
 
     return () => {
-      // Don't disconnect on unmount — keep alive for app lifetime
+      // Don't disconnect on unmount - keep alive for app lifetime
     };
   }, [user?.id]);
 

@@ -127,11 +127,11 @@ export default function Discounts() {
           <h1 className="font-serif text-2xl md:text-3xl font-bold text-foreground">Deals & Discounts</h1>
         </div>
         <p className="text-muted-foreground">
-          Exclusive deals from Ghana's top fashion brands — limited time offers.
+          Exclusive deals from Ghana's top fashion brands - limited time offers.
         </p>
       </div>
 
-      {/* Flash sales — live time-limited promos */}
+      {/* Flash sales - live time-limited promos */}
       <FlashSalesStrip />
 
       {/* Banner */}
@@ -182,7 +182,7 @@ export default function Discounts() {
           ) : (
             <>
               <p className="text-base font-medium">No deals right now</p>
-              <p className="text-sm mt-1">Check back soon — sellers add new discounts regularly.</p>
+              <p className="text-sm mt-1">Check back soon - sellers add new discounts regularly.</p>
               <Link href="/explore" className="mt-4 text-sm text-primary hover:underline font-medium">Browse all brands →</Link>
             </>
           )}

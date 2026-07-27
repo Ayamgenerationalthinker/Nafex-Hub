@@ -120,7 +120,7 @@ export default function ServicesPage() {
             <div className="text-center py-20 space-y-4">
               <Sparkles className="w-12 h-12 text-muted-foreground/30 mx-auto" />
               <h2 className="text-xl font-semibold text-muted-foreground">No services available yet</h2>
-              <p className="text-muted-foreground text-sm">Check back soon — we're adding new creative services.</p>
+              <p className="text-muted-foreground text-sm">Check back soon - we're adding new creative services.</p>
               <Link href="/">
                 <Button variant="outline" className="mt-2">Back to Home</Button>
               </Link>

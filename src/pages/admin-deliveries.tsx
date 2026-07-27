@@ -313,7 +313,7 @@ export default function AdminDeliveries() {
                                 <div key={event.id ?? idx} className="flex items-center gap-2 flex-shrink-0 text-xs text-muted-foreground">
                                   <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                                   <span className="font-medium">{STATUS_LABELS[event.status as DeliveryStatus] ?? event.status}</span>
-                                  {event.note && <span>— {event.note}</span>}
+                                  {event.note && <span>- {event.note}</span>}
                                 </div>
                               ))}
                             </div>
@@ -397,7 +397,7 @@ export default function AdminDeliveries() {
                 <SelectContent>
                   {availableRiders.map((r) => (
                     <SelectItem key={r.id} value={String(r.id)}>
-                      {r.name} — {r.phone} ({r.vehicleType})
+                      {r.name} - {r.phone} ({r.vehicleType})
                     </SelectItem>
                   ))}
                 </SelectContent>

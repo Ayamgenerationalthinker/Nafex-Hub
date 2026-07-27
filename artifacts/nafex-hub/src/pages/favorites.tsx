@@ -19,7 +19,7 @@ export default function Favorites({ isEmbedded = false }: { isEmbedded?: boolean
     mutation: { onSuccess: () => { toast({ title: "Removed from favorites" }); refetch(); } },
   });
 
-  // Auth guard — after all hooks
+  // Auth guard - after all hooks
   if (!user) {
     setLocation("/login");
     return null;

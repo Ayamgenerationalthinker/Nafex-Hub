@@ -389,7 +389,7 @@ export default function TradeOrderDetail() {
                 </p>
                 <Button className="w-full gap-2" onClick={initEscrow} disabled={payingEscrow}>
                   {payingEscrow ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
-                  Pay Escrow — GHS {parseFloat(order.totalAmount).toLocaleString()}
+                  Pay Escrow - GHS {parseFloat(order.totalAmount).toLocaleString()}
                 </Button>
               </div>
             )}
@@ -436,7 +436,7 @@ export default function TradeOrderDetail() {
                 {order.escrowStatus === "pending"
                   ? "Waiting for buyer to fund escrow before you can proceed."
                   : order.escrowStatus === "funded"
-                  ? "Escrow funded. Deliver the goods — funds will be released when buyer confirms."
+                  ? "Escrow funded. Deliver the goods - funds will be released when buyer confirms."
                   : order.escrowStatus === "released"
                   ? "Funds have been released to your account."
                   : "Escrow refunded to buyer."}
@@ -506,7 +506,7 @@ export default function TradeOrderDetail() {
         </CardContent>
       </Card>
 
-      {/* Order Chat — buyer ↔ supplier ↔ admin */}
+      {/* Order Chat - buyer ↔ supplier ↔ admin */}
       {user && (isBuyer || isSupplier || isAdmin) && (
         <TradeChat orderId={order.id} currentUserId={user.id} />
       )}

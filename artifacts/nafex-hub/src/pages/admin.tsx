@@ -1048,7 +1048,7 @@ export default function Admin() {
                   Contact Email
                 </label>
                 <Input
-                  placeholder="hello@nafexhub.com"
+                  placeholder="nafexgroupltd@gmail.com"
                   type="email"
                   value={contactSettings.email}
                   onChange={e => setContactSettings(s => ({ ...s, email: e.target.value }))}

@@ -112,7 +112,7 @@ function PayWithPaystackDialog({
       // Step 2: get Paystack public key from backend config
       const publicKey = await getPaystackPublicKey();
 
-      // Step 3: open Paystack inline popup — no redirect, no secret key on frontend
+      // Step 3: open Paystack inline popup - no redirect, no secret key on frontend
       openPaystackPopup({
         publicKey,
         email: user?.email ?? "customer@nafexhub.com",
@@ -157,7 +157,7 @@ function PayWithPaystackDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-amber-500" />
-            Pay Securely — Order #{order.id}
+            Pay Securely - Order #{order.id}
           </DialogTitle>
           <DialogDescription>
             <strong>GHS {(order.totalPrice / 100).toFixed(2)}</strong> will be held in escrow
@@ -460,7 +460,7 @@ export default function Orders({ isEmbedded = false }: { isEmbedded?: boolean })
                           <p className="text-sm font-semibold text-amber-900">Payment Required</p>
                           <p className="text-xs text-amber-700 mt-0.5">
                             Secure your order with escrow. Your payment is held safely until you
-                            confirm delivery — the seller only gets paid when you're happy.
+                            confirm delivery - the seller only gets paid when you're happy.
                           </p>
                         </div>
                         <Button
@@ -512,7 +512,7 @@ export default function Orders({ isEmbedded = false }: { isEmbedded?: boolean })
                   {isReleased && (
                     <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
                       <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-                      <span>Delivery confirmed — escrow released to seller.</span>
+                      <span>Delivery confirmed - escrow released to seller.</span>
                     </div>
                   )}
 
