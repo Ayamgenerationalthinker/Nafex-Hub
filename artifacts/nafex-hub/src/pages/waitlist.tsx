@@ -124,9 +124,6 @@ Get early access to discover top products and claim deals 24 hours before the pu
 🛡️ 100% ESCROW PAYMENT PROTECTION
 Shop with total confidence — your payment is safely held until your order is delivered and verified.
 
-🏷️ GHS 50 WELCOME CREDIT
-Enjoy GHS 50 store credit applied automatically to your account on launch day.
-
 📦 VERIFIED LOCAL MERCHANT DISCOVERY
 Discover vetted fashion, tech, home goods, and local products from trusted sellers across Ghana.
 ` : `
@@ -151,49 +148,34 @@ Ghana's Premier Hybrid Marketplace
 https://nafex-hub-launchpad.vercel.app/
 Contact: nafexgroupltd@gmail.com`;
 
-    // 1. Web3Forms Payload
+    // Web3Forms Payload (Access Key: b35567f8-fef3-44de-85a2-007fa1ef74df)
     const web3Key = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || "b35567f8-fef3-44de-85a2-007fa1ef74df";
-    const web3FormData = new FormData();
-    web3FormData.append("access_key", web3Key);
-    web3FormData.append("subject", `🎉 Welcome to Nafex Hub Early Access, ${cleanName}!`);
-    web3FormData.append("from_name", "Nafex Hub");
-    web3FormData.append("name", cleanName);
-    web3FormData.append("email", cleanEmail);
-    web3FormData.append("replyto", cleanEmail);
-    web3FormData.append("role", userRoleTitle);
-    web3FormData.append("category", category || "Not Specified");
-    if (!isBuyer) {
-      web3FormData.append("storeName", storeName || "N/A");
-      web3FormData.append("storeLink", storeLink || "N/A");
-    }
-    web3FormData.append("autoresponder", autoresponseMessage);
-
-    // 2. FormSubmit Payload
-    const formParams = new URLSearchParams();
-    formParams.append("name", cleanName);
-    formParams.append("email", cleanEmail);
-    formParams.append("_replyto", cleanEmail);
-    formParams.append("role", userRoleTitle);
-    formParams.append("category", category || "Not Specified");
-    if (!isBuyer) {
-      formParams.append("storeName", storeName || "N/A");
-      formParams.append("storeLink", storeLink || "N/A");
-    }
-    formParams.append("_subject", `🎉 New Waitlist Signup: ${cleanName} (${userRoleTitle})`);
-    formParams.append("_autoresponse", autoresponseMessage);
-    formParams.append("_template", "table");
-    formParams.append("_captcha", "false");
+    
+    const web3Payload = {
+      access_key: web3Key,
+      subject: `🎉 New Waitlist Sign-up: ${cleanName} (${userRoleTitle})`,
+      from_name: "Nafex Hub",
+      name: cleanName,
+      email: cleanEmail,
+      replyto: cleanEmail,
+      role: userRoleTitle,
+      category: category || "Not Specified",
+      store_name: !isBuyer ? (storeName || "N/A") : undefined,
+      store_link: !isBuyer ? (storeLink || "N/A") : undefined,
+      message: `New waitlist submission for Nafex Hub!\n\nName: ${cleanName}\nEmail: ${cleanEmail}\nRole: ${userRoleTitle}\nCategory: ${category || "Not Specified"}${!isBuyer ? `\nStore Name: ${storeName || "N/A"}\nStore Link: ${storeLink || "N/A"}` : ""}`,
+      autoresponder: autoresponseMessage,
+      _autoresponse: autoresponseMessage
+    };
 
     try {
       await Promise.allSettled([
         fetch("https://api.web3forms.com/submit", {
           method: "POST",
-          body: web3FormData,
-        }),
-        fetch("https://formsubmit.co/ajax/nafexgroupltd@gmail.com", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: formParams.toString(),
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify(web3Payload),
         }),
         fetch("/api/newsletter/subscribe", {
           method: "POST",
@@ -210,7 +192,7 @@ Contact: nafexgroupltd@gmail.com`;
         })
       ]);
     } catch (err) {
-      // Ignore network failures
+      // Ignore network errors
     } finally {
       setLoading(false);
       setSubmissionInfo(newSubmission);
@@ -420,8 +402,8 @@ Contact: nafexgroupltd@gmail.com`;
                                 <TrendingUp className="w-4 h-4" />
                               </div>
                               <div>
-                                <strong className="font-semibold text-slate-900 block">GHS 50 Welcome Credit</strong>
-                                <span className="text-slate-500 text-[11px]">Automatic store credit applied on launch day.</span>
+                                <strong className="font-semibold text-slate-900 block">Verified Brand Discovery</strong>
+                                <span className="text-slate-500 text-[11px]">Direct access to Ghana's top verified sellers & brands.</span>
                               </div>
                             </div>
                             <div className="p-3.5 rounded-xl bg-white border border-slate-200/80 shadow-xs flex items-start gap-3">
