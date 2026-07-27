@@ -179,13 +179,21 @@ Contact: nafexgroupltd@gmail.com`;
       emailjsTemplateId,
       {
         user_name: cleanName,
+        name: cleanName,
+        to_name: cleanName,
+        from_name: "Nafex Hub",
         user_email: cleanEmail,
+        email: cleanEmail,
+        to_email: cleanEmail,
         reply_to: cleanEmail,
         user_role: userRoleTitle,
+        role: userRoleTitle,
         user_category: category || "Not Specified",
+        category: category || "Not Specified",
         store_name: !isBuyer ? (storeName || "N/A") : "N/A",
         store_link: !isBuyer ? (storeLink || "N/A") : "N/A",
         autoresponder_message: autoresponseMessage,
+        message: autoresponseMessage,
       },
       emailjsPublicKey
     ).then((res) => {
