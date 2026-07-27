@@ -102,30 +102,32 @@ export default function Waitlist() {
     setLoading(true);
 
     try {
-      // 2. Submit to FormSubmit.co for direct email delivery to nafexgroupltd@gmail.com and autoresponse to subscriber
-      const formSubmitData = {
-        name: cleanName,
-        email: cleanEmail,
-        _replyto: cleanEmail,
-        role: tab === "buy" ? "Shopper / Client" : "Product Seller",
-        category: category || "Not Specified",
-        storeName: tab === "sell" ? storeName : "N/A",
-        storeLink: tab === "sell" ? storeLink : "N/A",
-        ticketId,
-        _subject: `🎉 New Waitlist Signup: ${cleanName} (${tab === "buy" ? "Shopper" : "Seller"})`,
-        _captcha: "false",
-        _template: "table",
-        _autoresponse: `Welcome to the official Nafex Hub early access waitlist, ${cleanName}! 🎉\n\nThank you for joining us early. Your spot is officially reserved under Ticket Ref: ${ticketId}.\n\nWe are hard at work building Ghana's premier hybrid marketplace — featuring Escrow payment protection, verified sellers, and local trade connect.\n\nPlease watch out for launch announcements in your inbox so you can claim your early access perks on Day 1!\n\nWarm regards,\nThe Nafex Hub Team\nhttps://nafex-hub-launchpad.vercel.app/`,
-      };
+      // Create FormData with exact field names required by FormSubmit for autoresponder
+      const autoresponseMsg = "Welcome to Nafex Hub! You are officially on the early access waitlist. Whether you joined to shop authentic products or launch your store with zero seller fees, we will notify you 24 hours before our public launch.";
+      
+      const formData = new FormData();
+      formData.append("name", cleanName);
+      formData.append("email", cleanEmail);
+      formData.append("_replyto", cleanEmail);
+      formData.append("role", tab === "buy" ? "Shopper / Client" : "Product Seller");
+      formData.append("category", category || "Not Specified");
+      if (tab === "sell") {
+        formData.append("storeName", storeName || "N/A");
+        formData.append("storeLink", storeLink || "N/A");
+      }
+      formData.append("ticketId", ticketId);
+      formData.append("_subject", `New Nafex Hub Waitlist Sign-up: ${cleanName} (${tab === "buy" ? "Shopper" : "Seller"})`);
+      formData.append("_autoresponse", autoresponseMsg);
+      formData.append("_template", "table");
+      formData.append("_captcha", "false");
 
       const [formSubmitRes, apiRes] = await Promise.allSettled([
         fetch("https://formsubmit.co/ajax/nafexgroupltd@gmail.com", {
           method: "POST",
           headers: { 
-            "Content-Type": "application/json",
             "Accept": "application/json" 
           },
-          body: JSON.stringify(formSubmitData),
+          body: formData,
         }),
         fetch("/api/newsletter/subscribe", {
           method: "POST",
@@ -482,12 +484,34 @@ export default function Waitlist() {
                     </div>
                   </div>
                 ) : (
-                  <form onSubmit={handleSubmit} className="space-y-4">
+                  <form
+                    action="https://formsubmit.co/nafexgroupltd@gmail.com"
+                    method="POST"
+                    onSubmit={handleSubmit}
+                    className="space-y-4"
+                  >
+                    {/* Required FormSubmit Hidden Configuration Inputs */}
+                    <input
+                      type="hidden"
+                      name="_autoresponse"
+                      value="Welcome to Nafex Hub! You are officially on the early access waitlist. Whether you joined to shop authentic products or launch your store with zero seller fees, we will notify you 24 hours before our public launch."
+                    />
+                    <input
+                      type="hidden"
+                      name="_subject"
+                      value={`New Nafex Hub Waitlist Sign-up: ${fullName || "Subscriber"} (${tab === "buy" ? "Shopper" : "Seller"})`}
+                    />
+                    <input type="hidden" name="_template" value="table" />
+                    <input type="hidden" name="_captcha" value="false" />
+                    <input type="hidden" name="_replyto" value={email} />
+                    <input type="hidden" name="role" value={tab === "buy" ? "Shopper / Client" : "Product Seller"} />
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
                         <label className="text-xs font-semibold text-[#374151]">Full name</label>
                         <Input
                           type="text"
+                          name="name"
                           placeholder="Jane Doe"
                           value={fullName}
                           onChange={(e) => setFullName(e.target.value)}
@@ -499,6 +523,7 @@ export default function Waitlist() {
                         <label className="text-xs font-semibold text-[#374151]">Email address</label>
                         <Input
                           type="email"
+                          name="email"
                           placeholder="jane@email.com"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
@@ -514,6 +539,7 @@ export default function Waitlist() {
                           <label className="text-xs font-semibold text-[#374151]">Store / Brand Name</label>
                           <Input
                             type="text"
+                            name="storeName"
                             placeholder="Acme Goods"
                             value={storeName}
                             onChange={(e) => setStoreName(e.target.value)}
@@ -525,6 +551,7 @@ export default function Waitlist() {
                           <label className="text-xs font-semibold text-[#374151]">Store Link (Optional)</label>
                           <Input
                             type="text"
+                            name="storeLink"
                             placeholder="instagram.com/yourstore"
                             value={storeLink}
                             onChange={(e) => setStoreLink(e.target.value)}
@@ -540,6 +567,7 @@ export default function Waitlist() {
                       </label>
                       <div className="relative">
                         <select
+                          name="category"
                           value={category}
                           onChange={(e) => setCategory(e.target.value)}
                           className="w-full h-11 bg-slate-50/60 border border-slate-200 rounded-xl text-sm px-3 text-[#111827] appearance-none focus:outline-none focus:ring-2 focus:ring-[#6A1B9A]"
