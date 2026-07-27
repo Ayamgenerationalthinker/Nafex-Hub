@@ -12,7 +12,9 @@ import {
   Sparkles, 
   ArrowRight, 
   CheckCircle2, 
-  ChevronDown
+  ChevronDown,
+  Lock,
+  Share2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,22 +31,62 @@ const CATEGORIES = [
   "Other",
 ];
 
+interface SubmissionInfo {
+  name: string;
+  email: string;
+  role: "buy" | "sell";
+  category?: string;
+  storeName?: string;
+  storeLink?: string;
+  ticketId: string;
+  timestamp: string;
+}
+
 export default function Waitlist() {
-  const [tab, setTab] = useState<"buy" | "sell">("buy");
+  const [submissionInfo, setSubmissionInfo] = useState<SubmissionInfo | null>(() => {
+    try {
+      const saved = localStorage.getItem("nafex_waitlist_submission_info");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  
+  const [tab, setTab] = useState<"buy" | "sell">(submissionInfo?.role || "buy");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [category, setCategory] = useState("");
   const [storeName, setStoreName] = useState("");
   const [storeLink, setStoreLink] = useState("");
   const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [submitted, setSubmitted] = useState<boolean>(!!submissionInfo);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitted) return;
+
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = fullName.trim();
     if (!cleanEmail || !cleanName) return;
+
+    const ticketId = "NX-VIP-" + Math.floor(100000 + Math.random() * 900000);
+    const timestampStr = new Date().toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    });
+
+    const newSubmission: SubmissionInfo = {
+      name: cleanName,
+      email: cleanEmail,
+      role: tab,
+      category: category || "General Marketplace",
+      storeName: tab === "sell" ? storeName : undefined,
+      storeLink: tab === "sell" ? storeLink : undefined,
+      ticketId,
+      timestamp: timestampStr
+    };
 
     // 1. Check local storage for duplicate submission
     const existingEmails: string[] = JSON.parse(localStorage.getItem("nafex_waitlist_emails") || "[]");
@@ -69,10 +111,11 @@ export default function Waitlist() {
         category: category || "Not Specified",
         storeName: tab === "sell" ? storeName : "N/A",
         storeLink: tab === "sell" ? storeLink : "N/A",
+        ticketId,
         _subject: `🎉 New Waitlist Signup: ${cleanName} (${tab === "buy" ? "Shopper" : "Seller"})`,
         _captcha: "false",
         _template: "table",
-        _autoresponse: `Welcome to the official Nafex Hub early access waitlist, ${cleanName}! 🎉\n\nThank you for joining us early. Your spot is officially reserved.\n\nWe are hard at work building Ghana's premier hybrid marketplace — featuring Escrow payment protection, verified sellers, and local trade connect.\n\nPlease watch out for launch announcements in your inbox so you can claim your early access perks on Day 1!\n\nWarm regards,\nThe Nafex Hub Team\nhttps://nafex-hub-launchpad.vercel.app/`,
+        _autoresponse: `Welcome to the official Nafex Hub early access waitlist, ${cleanName}! 🎉\n\nThank you for joining us early. Your spot is officially reserved under Ticket Ref: ${ticketId}.\n\nWe are hard at work building Ghana's premier hybrid marketplace — featuring Escrow payment protection, verified sellers, and local trade connect.\n\nPlease watch out for launch announcements in your inbox so you can claim your early access perks on Day 1!\n\nWarm regards,\nThe Nafex Hub Team\nhttps://nafex-hub-launchpad.vercel.app/`,
       };
 
       const [formSubmitRes, apiRes] = await Promise.allSettled([
@@ -115,22 +158,26 @@ export default function Waitlist() {
         }
       }
 
-      // Save email to local storage to block duplicate submissions from this browser
+      // Save email and submission info to local storage to lock form permanently
       existingEmails.push(cleanEmail);
       localStorage.setItem("nafex_waitlist_emails", JSON.stringify(existingEmails));
+      localStorage.setItem("nafex_waitlist_submission_info", JSON.stringify(newSubmission));
 
+      setSubmissionInfo(newSubmission);
       setSubmitted(true);
       toast({
-        title: tab === "buy" ? "🎉 Early Buyer Access Claimed!" : "🚀 Founding Seller Application Received!",
-        description: "Your waitlist entry has been sent to nafexgroupltd@gmail.com.",
+        title: tab === "buy" ? "🎉 VIP Buyer Pass Reserved!" : "🚀 Founding Seller Pass Secured!",
+        description: `Ref #${ticketId} — Confirmation sent to ${cleanEmail}.`,
       });
     } catch (err) {
       existingEmails.push(cleanEmail);
       localStorage.setItem("nafex_waitlist_emails", JSON.stringify(existingEmails));
+      localStorage.setItem("nafex_waitlist_submission_info", JSON.stringify(newSubmission));
+      setSubmissionInfo(newSubmission);
       setSubmitted(true);
       toast({
         title: "Welcome to the Waitlist!",
-        description: "Your spot has been reserved.",
+        description: `Your VIP reservation #${ticketId} is active.`,
       });
     } finally {
       setLoading(false);
@@ -207,53 +254,232 @@ export default function Waitlist() {
             <div className="max-w-xl mx-auto pt-6">
               <div className="bg-white border border-purple-100 rounded-3xl p-6 sm:p-8 shadow-xl shadow-purple-900/5 text-left relative overflow-hidden">
                 
-                {/* Toggle Tabs */}
-                <div className="grid grid-cols-2 p-1 bg-slate-100/80 rounded-2xl mb-6">
+                {/* Toggle Tabs (Locked when submitted) */}
+                <div className="grid grid-cols-2 p-1 bg-slate-100/80 rounded-2xl mb-4 relative">
                   <button
                     type="button"
-                    onClick={() => setTab("buy")}
-                    className={`py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+                    disabled={submitted}
+                    onClick={() => !submitted && setTab("buy")}
+                    className={`py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-1.5 ${
                       tab === "buy"
                         ? "bg-white text-[#111827] shadow-sm font-bold"
                         : "text-[#6B7280] hover:text-[#111827]"
-                    }`}
+                    } ${submitted ? "cursor-not-allowed opacity-90" : ""}`}
                   >
                     <ShoppingBag className="w-4 h-4 text-[#6A1B9A]" />
-                    I Want to Buy
+                    <span>I Want to Buy</span>
+                    {submitted && tab === "buy" && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 ml-1" />}
+                    {submitted && tab !== "buy" && <Lock className="w-3.5 h-3.5 text-slate-400 ml-1" />}
                   </button>
                   <button
                     type="button"
-                    onClick={() => setTab("sell")}
-                    className={`py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+                    disabled={submitted}
+                    onClick={() => !submitted && setTab("sell")}
+                    className={`py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-1.5 ${
                       tab === "sell"
                         ? "bg-white text-[#111827] shadow-sm font-bold"
                         : "text-[#6B7280] hover:text-[#111827]"
-                    }`}
+                    } ${submitted ? "cursor-not-allowed opacity-90" : ""}`}
                   >
                     <Store className="w-4 h-4 text-[#D4A017]" />
-                    I Want to Sell
+                    <span>I Want to Sell</span>
+                    {submitted && tab === "sell" && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 ml-1" />}
+                    {submitted && tab !== "sell" && <Lock className="w-3.5 h-3.5 text-slate-400 ml-1" />}
                   </button>
                 </div>
 
-                {submitted ? (
-                  <div className="text-center py-8 space-y-4">
-                    <div className="w-16 h-16 rounded-full bg-purple-100 text-[#6A1B9A] flex items-center justify-center mx-auto shadow-inner">
-                      <CheckCircle2 className="w-8 h-8" />
+                {submitted && (
+                  <div className="mb-6 p-2.5 rounded-xl bg-purple-50 border border-purple-200/80 text-purple-900 text-xs flex items-center justify-between font-medium">
+                    <div className="flex items-center gap-2">
+                      <Lock className="w-4 h-4 text-[#6A1B9A] shrink-0" />
+                      <span>
+                        Role locked as <strong>{submissionInfo?.role === "buy" ? "Early Shopper / Buyer" : "Founding Seller"}</strong>
+                      </span>
                     </div>
-                    <h3 className="text-2xl font-bold text-[#111827]">
-                      {tab === "buy" ? "VIP Access Reserved!" : "Founding Seller Application Received!"}
-                    </h3>
-                    <p className="text-sm text-[#6B7280] max-w-md mx-auto leading-relaxed">
-                      {tab === "buy"
-                        ? "We've locked in your VIP 24h early access pass. Watch your inbox for launch announcements."
-                        : "Your store profile has been placed in our founding seller queue for 0% commission status."}
-                    </p>
-                    <button
-                      onClick={() => setSubmitted(false)}
-                      className="text-xs text-[#6A1B9A] font-semibold underline pt-2"
-                    >
-                      Submit another email
-                    </button>
+                    <span className="text-[11px] font-bold bg-[#6A1B9A] text-white px-2 py-0.5 rounded-full shadow-xs">
+                      Spot Secured ✓
+                    </span>
+                  </div>
+                )}
+
+                {submitted ? (
+                  <div className="space-y-6">
+                    {/* DIGITAL VIP TICKET CARD */}
+                    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1E1035] via-[#2A164B] to-[#120924] p-5 sm:p-6 text-white shadow-2xl border border-purple-500/30">
+                      <div className="absolute top-0 right-0 -mt-8 -mr-8 w-40 h-40 bg-purple-500/20 rounded-full blur-2xl pointer-events-none" />
+                      <div className="absolute bottom-0 left-0 -mb-8 -ml-8 w-40 h-40 bg-amber-500/15 rounded-full blur-2xl pointer-events-none" />
+
+                      {/* Ticket Header */}
+                      <div className="flex items-center justify-between border-b border-purple-400/20 pb-4 mb-4">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-9 h-9 rounded-xl bg-gradient-to-r from-[#6A1B9A] to-[#D4A017] flex items-center justify-center text-white font-black text-sm shadow-md">
+                            N
+                          </div>
+                          <div>
+                            <p className="text-[10px] uppercase tracking-widest text-purple-300 font-semibold">Official Early Access Pass</p>
+                            <h3 className="text-base font-extrabold text-white">Nafex Hub Launchpad</h3>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold">
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                            VERIFIED ENTRY
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Ticket Body Grid */}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs py-1">
+                        <div>
+                          <span className="text-purple-300/70 text-[11px] block">Passholder</span>
+                          <strong className="text-sm font-bold text-white block truncate">{submissionInfo?.name || fullName}</strong>
+                        </div>
+                        <div>
+                          <span className="text-purple-300/70 text-[11px] block">Registered Email</span>
+                          <strong className="text-sm font-bold text-white block truncate">{submissionInfo?.email || email}</strong>
+                        </div>
+                        <div>
+                          <span className="text-purple-300/70 text-[11px] block">Reserved Role</span>
+                          <span className="inline-block mt-0.5 px-2 py-0.5 rounded-md bg-purple-500/30 text-amber-300 font-semibold text-xs border border-purple-400/30">
+                            {submissionInfo?.role === "buy" ? "🛍️ Early Buyer" : "🏪 Founding Seller"}
+                          </span>
+                        </div>
+                        {submissionInfo?.storeName && (
+                          <div>
+                            <span className="text-purple-300/70 text-[11px] block">Store Name</span>
+                            <strong className="text-xs font-bold text-amber-200 block truncate">{submissionInfo.storeName}</strong>
+                          </div>
+                        )}
+                        <div>
+                          <span className="text-purple-300/70 text-[11px] block">Category Interest</span>
+                          <strong className="text-xs font-semibold text-purple-100 block truncate">{submissionInfo?.category || category || "General"}</strong>
+                        </div>
+                        <div>
+                          <span className="text-purple-300/70 text-[11px] block">Ticket Ref ID</span>
+                          <code className="text-xs font-mono font-bold text-amber-400 block">{submissionInfo?.ticketId || "NX-VIP-PASS"}</code>
+                        </div>
+                      </div>
+
+                      {/* Ticket Footer / Timestamp */}
+                      <div className="mt-4 pt-3 border-t border-purple-400/20 flex items-center justify-between text-[11px] text-purple-300/80">
+                        <span>Reserved on: {submissionInfo?.timestamp || new Date().toLocaleDateString()}</span>
+                        <span className="font-mono text-purple-200">NAFEX-GH-2026-VIP</span>
+                      </div>
+                    </div>
+
+                    {/* UNLOCKED PERKS SECTION */}
+                    <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-[#6A1B9A]" />
+                        <h4 className="text-xs sm:text-sm font-bold text-[#111827]">
+                          {submissionInfo?.role === "buy" ? "Your Unlocked Buyer VIP Benefits:" : "Your Founding Seller Package Includes:"}
+                        </h4>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                        {submissionInfo?.role === "buy" ? (
+                          <>
+                            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-white border border-purple-100 shadow-xs">
+                              <Zap className="w-4 h-4 text-[#6A1B9A] shrink-0 mt-0.5" />
+                              <div>
+                                <strong className="font-semibold text-slate-900 block">24h Priority Early Access</strong>
+                                <span className="text-slate-500 text-[11px]">Browse products and claim deals before official launch.</span>
+                              </div>
+                            </div>
+                            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-white border border-purple-100 shadow-xs">
+                              <ShieldCheck className="w-4 h-4 text-[#6A1B9A] shrink-0 mt-0.5" />
+                              <div>
+                                <strong className="font-semibold text-slate-900 block">100% Escrow Protection</strong>
+                                <span className="text-slate-500 text-[11px]">Your money is safely held until order is delivered.</span>
+                              </div>
+                            </div>
+                            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-white border border-purple-100 shadow-xs">
+                              <TrendingUp className="w-4 h-4 text-[#D4A017] shrink-0 mt-0.5" />
+                              <div>
+                                <strong className="font-semibold text-slate-900 block">GHS 50 Welcome Credit</strong>
+                                <span className="text-slate-500 text-[11px]">Automatic store credit applied on launch day.</span>
+                              </div>
+                            </div>
+                            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-white border border-purple-100 shadow-xs">
+                              <Users className="w-4 h-4 text-[#6A1B9A] shrink-0 mt-0.5" />
+                              <div>
+                                <strong className="font-semibold text-slate-900 block">VIP Community Pass</strong>
+                                <span className="text-slate-500 text-[11px]">Exclusive badge on reviews & product inquiries.</span>
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-white border border-amber-100 shadow-xs">
+                              <Zap className="w-4 h-4 text-[#D4A017] shrink-0 mt-0.5" />
+                              <div>
+                                <strong className="font-semibold text-slate-900 block">0% Sales Commission (3 Mos)</strong>
+                                <span className="text-slate-500 text-[11px]">Keep 100% of your store revenue during launch.</span>
+                              </div>
+                            </div>
+                            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-white border border-amber-100 shadow-xs">
+                              <ShieldCheck className="w-4 h-4 text-[#D4A017] shrink-0 mt-0.5" />
+                              <div>
+                                <strong className="font-semibold text-slate-900 block">Founding Seller Verified Badge</strong>
+                                <span className="text-slate-500 text-[11px]">Permanent trusted merchant badge on your storefront.</span>
+                              </div>
+                            </div>
+                            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-white border border-amber-100 shadow-xs">
+                              <BarChart3 className="w-4 h-4 text-[#6A1B9A] shrink-0 mt-0.5" />
+                              <div>
+                                <strong className="font-semibold text-slate-900 block">Priority Search Placement</strong>
+                                <span className="text-slate-500 text-[11px]">Featured ranking in category search and discover page.</span>
+                              </div>
+                            </div>
+                            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-white border border-amber-100 shadow-xs">
+                              <Users className="w-4 h-4 text-[#D4A017] shrink-0 mt-0.5" />
+                              <div>
+                                <strong className="font-semibold text-slate-900 block">1-on-1 Merchant Onboarding</strong>
+                                <span className="text-slate-500 text-[11px]">Direct setup assistance for catalog uploading.</span>
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* WHAT HAPPENS NEXT ROADMAP */}
+                    <div className="space-y-2.5 pt-1">
+                      <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">What Happens Next?</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <div className="p-3 rounded-xl bg-purple-50/60 border border-purple-100 text-xs space-y-1">
+                          <span className="w-5 h-5 rounded-full bg-[#6A1B9A] text-white font-bold text-[10px] inline-flex items-center justify-center">1</span>
+                          <strong className="block text-slate-900 font-semibold">Email Dispatched</strong>
+                          <p className="text-slate-500 text-[11px]">Confirmation auto-responder sent to {submissionInfo?.email || email}.</p>
+                        </div>
+                        <div className="p-3 rounded-xl bg-purple-50/60 border border-purple-100 text-xs space-y-1">
+                          <span className="w-5 h-5 rounded-full bg-[#6A1B9A] text-white font-bold text-[10px] inline-flex items-center justify-center">2</span>
+                          <strong className="block text-slate-900 font-semibold">Private Beta Invite</strong>
+                          <p className="text-slate-500 text-[11px]">Expect your preview invite in your inbox shortly before launch.</p>
+                        </div>
+                        <div className="p-3 rounded-xl bg-purple-50/60 border border-purple-100 text-xs space-y-1">
+                          <span className="w-5 h-5 rounded-full bg-[#6A1B9A] text-white font-bold text-[10px] inline-flex items-center justify-center">3</span>
+                          <strong className="block text-slate-900 font-semibold">Launch Day Access</strong>
+                          <p className="text-slate-500 text-[11px]">Sign in and instantly activate your early bird perks!</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* FOOTER ACTIONS / CONTACT & SHARE */}
+                    <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                      <p className="text-slate-500 text-[11px]">
+                        Need to update details? Email <a href="mailto:nafexgroupltd@gmail.com" className="text-[#6A1B9A] font-semibold underline">nafexgroupltd@gmail.com</a>
+                      </p>
+                      <a
+                        href={`https://wa.me/?text=${encodeURIComponent("I just claimed my VIP early access pass on Nafex Hub — Ghana's premier hybrid marketplace! Join the waitlist here: https://nafex-hub-launchpad.vercel.app/")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold hover:bg-emerald-100 transition-colors shrink-0 text-xs"
+                      >
+                        <Share2 className="w-3.5 h-3.5 text-emerald-600" />
+                        Share on WhatsApp
+                      </a>
+                    </div>
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-4">
