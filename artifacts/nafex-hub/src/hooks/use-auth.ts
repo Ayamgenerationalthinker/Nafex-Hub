@@ -17,27 +17,46 @@ interface AuthState {
   logout: () => void;
 }
 
+const getInitialUser = (): User | null => {
+  try {
+    const raw = localStorage.getItem("nafex_user");
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (err) {
+    console.warn("[useAuth] Failed to parse stored user, clearing invalid session:", err);
+    try {
+      localStorage.removeItem("nafex_user");
+      localStorage.removeItem("nafex_token");
+    } catch {}
+    return null;
+  }
+};
+
 export const useAuth = create<AuthState>((set) => ({
   token: localStorage.getItem("nafex_token"),
-  user: localStorage.getItem("nafex_user") 
-    ? JSON.parse(localStorage.getItem("nafex_user")!) 
-    : null,
+  user: getInitialUser(),
   setAuth: (token, user) => {
-    localStorage.setItem("nafex_token", token);
-    localStorage.setItem("nafex_user", JSON.stringify(user));
+    try {
+      localStorage.setItem("nafex_token", token);
+      localStorage.setItem("nafex_user", JSON.stringify(user));
+    } catch {}
     set({ token, user });
   },
   updateUser: (patch) => {
     set((state) => {
       if (!state.user) return state;
       const next = { ...state.user, ...patch };
-      localStorage.setItem("nafex_user", JSON.stringify(next));
+      try {
+        localStorage.setItem("nafex_user", JSON.stringify(next));
+      } catch {}
       return { user: next };
     });
   },
   logout: () => {
-    localStorage.removeItem("nafex_token");
-    localStorage.removeItem("nafex_user");
+    try {
+      localStorage.removeItem("nafex_token");
+      localStorage.removeItem("nafex_user");
+    } catch {}
     set({ token: null, user: null });
   },
 }));
