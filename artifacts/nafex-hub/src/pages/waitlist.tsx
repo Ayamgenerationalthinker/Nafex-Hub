@@ -109,7 +109,7 @@ export default function Waitlist() {
     const autoresponseMessage = `Welcome to the official Nafex Hub early access waitlist, ${cleanName}! 🎉\n\nThank you for joining us early. Your spot is officially reserved as a ${tab === "buy" ? "Shopper" : "Founding Seller"}.\n\nWe are hard at work building Ghana's premier hybrid marketplace — featuring Escrow payment protection, verified sellers, and local trade connect.\n\nPlease watch out for launch announcements in your inbox so you can claim your early access perks on Day 1!\n\nWarm regards,\nThe Nafex Hub Team\nhttps://nafex-hub-launchpad.vercel.app/`;
 
     // 1. Web3Forms Payload
-    const web3Key = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || "09a15f01-7667-4279-8db8-[#WEB3FORMS_KEY]";
+    const web3Key = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || "87d9788d-5832-460a-ae78-aab6aae3fd95";
     const web3FormData = new FormData();
     web3FormData.append("access_key", web3Key);
     web3FormData.append("subject", `🎉 New Waitlist Signup: ${cleanName} (${tab === "buy" ? "Shopper" : "Seller"})`);
