@@ -94,7 +94,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <VerifyEmailBanner />
       {/* ── Header (clean white top navbar with purple brand highlights matching Img 1 style guide) ── */}
       <header className="sticky top-0 z-50 w-full bg-white text-[#222222] shadow-sm border-b border-purple-100/80">
-        <div className="container mx-auto flex h-20 md:h-24 items-center justify-between px-4 md:px-8">
+        <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6 gap-4">
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 shrink-0" data-testid="link-home" onClick={closeMenu}>
@@ -102,14 +102,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-6 flex-1 justify-end">
+          <nav className="hidden md:flex items-center gap-3 shrink-0">
             {/* Global search (buyers / guests only) */}
             {!isBusinessOwner && !isAdmin && (
-              <div className="relative mr-4 max-w-sm w-full flex items-center">
+              <div className="relative flex items-center w-48 xl:w-72">
                 <input
                   type="search"
-                  placeholder="Search products, brands and more..."
-                  className="w-full h-10 pl-4 pr-11 rounded-full bg-[#F6F2FF] border border-purple-200 text-sm text-[#222222] placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#6A1B9A] focus:bg-white transition-all"
+                  placeholder="Search products..."
+                  className="w-full h-9 pl-4 pr-10 rounded-full bg-[#F6F2FF] border border-purple-200 text-sm text-[#222222] placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#6A1B9A] focus:bg-white transition-all"
                   value={headerSearch}
                   onChange={(e) => setHeaderSearch(e.target.value)}
                   onKeyDown={(e) => {
@@ -129,9 +129,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     const next = value ? `${base}?search=${encodeURIComponent(value)}` : base;
                     setLocation(next);
                   }}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-[#6A1B9A] hover:bg-[#5B1687] text-white flex items-center justify-center transition-colors shadow-xs"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#6A1B9A] hover:bg-[#5B1687] text-white flex items-center justify-center transition-colors shadow-xs"
                 >
-                  <Search className="w-4 h-4" />
+                  <Search className="w-3.5 h-3.5" />
                 </button>
               </div>
             )}
@@ -140,7 +140,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-sm font-poppins font-medium transition-colors hover:text-[#6A1B9A] relative py-1 ${
+                className={`text-sm font-poppins font-medium transition-colors hover:text-[#6A1B9A] relative py-1 whitespace-nowrap ${
                   location === link.href ? "text-[#6A1B9A] font-semibold border-b-2 border-[#6A1B9A]" : "text-[#222222]/80"
                 }`}
               >
