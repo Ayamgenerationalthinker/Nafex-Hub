@@ -13,17 +13,21 @@ import { CartIcon } from "@/components/cart-icon";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { NafexCoinsModal } from "@/components/nafex-coins-modal";
 import { Logo } from "@/components/logo";
+import { useToast } from "@/hooks/use-toast";
 
 const FALLBACK_LOGO = "/nafex-logo.svg";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
   const { user, logout } = useAuth();
-const { isDarkMode, toggleDarkMode } = useDarkMode();
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
+  const { toast } = useToast();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [coinsModalOpen, setCoinsModalOpen] = useState(false);
   const [headerSearch, setHeaderSearch] = useState("");
   const [siteLogo, setSiteLogo] = useState<string>(FALLBACK_LOGO);
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [newsletterLoading, setNewsletterLoading] = useState(false);
   const siteSettings = useSiteSettings();
 
   useEffect(() => {
@@ -524,17 +528,42 @@ const { isDarkMode, toggleDarkMode } = useDarkMode();
               <p className="text-xs text-purple-100/90 leading-relaxed">
                 Subscribe to get updates on new products and offers.
               </p>
-              <form onSubmit={(e) => e.preventDefault()} className="space-y-2 pt-1">
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!newsletterEmail.trim()) return;
+                  setNewsletterLoading(true);
+                  try {
+                    const res = await fetch("/api/newsletter/subscribe", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ email: newsletterEmail.trim() }),
+                    });
+                    const data = await res.json();
+                    toast({ title: data.message || "Subscribed!", description: "Thank you for joining Nafex Hub updates." });
+                    setNewsletterEmail("");
+                  } catch {
+                    toast({ title: "Something went wrong", description: "Please try again later.", variant: "destructive" });
+                  } finally {
+                    setNewsletterLoading(false);
+                  }
+                }}
+                className="space-y-2 pt-1"
+              >
                 <input
                   type="email"
                   placeholder="Enter your email"
+                  value={newsletterEmail}
+                  onChange={(e) => setNewsletterEmail(e.target.value)}
+                  required
                   className="w-full h-10 px-3.5 rounded-lg bg-white text-[#222222] placeholder:text-[#6B7280] text-sm focus:outline-none focus:ring-2 focus:ring-[#D4A017]"
                 />
                 <button
                   type="submit"
-                  className="w-full h-10 rounded-lg bg-[#D4A017] hover:bg-[#B88A12] text-white font-bold text-sm transition-all shadow-sm"
+                  disabled={newsletterLoading}
+                  className="w-full h-10 rounded-lg bg-[#D4A017] hover:bg-[#B88A12] text-white font-bold text-sm transition-all shadow-sm disabled:opacity-60"
                 >
-                  Subscribe
+                  {newsletterLoading ? "Subscribing..." : "Subscribe"}
                 </button>
               </form>
             </div>
