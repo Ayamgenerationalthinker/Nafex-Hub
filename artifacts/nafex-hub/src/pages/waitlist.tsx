@@ -42,37 +42,93 @@ export default function Waitlist() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !fullName.trim()) return;
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanName = fullName.trim();
+    if (!cleanEmail || !cleanName) return;
+
+    // 1. Check local storage for duplicate submission
+    const existingEmails: string[] = JSON.parse(localStorage.getItem("nafex_waitlist_emails") || "[]");
+    if (existingEmails.includes(cleanEmail)) {
+      toast({
+        variant: "destructive",
+        title: "⚠️ Duplicate Email",
+        description: "This email address has already joined the waitlist!",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const payload = {
-        email: email.trim(),
-        name: fullName.trim(),
-        role: tab === "buy" ? "buyer" : "seller",
-        category,
-        storeName: tab === "sell" ? storeName : undefined,
-        storeLink: tab === "sell" ? storeLink : undefined,
-        source: "lovable_waitlist",
+      // 2. Submit to FormSubmit.co for direct email delivery to nafexgroupltd@gmail.com
+      const formSubmitData = {
+        name: cleanName,
+        email: cleanEmail,
+        role: tab === "buy" ? "Shopper / Client" : "Product Seller",
+        category: category || "Not Specified",
+        storeName: tab === "sell" ? storeName : "N/A",
+        storeLink: tab === "sell" ? storeLink : "N/A",
+        _subject: `🎉 New Waitlist Signup: ${cleanName} (${tab === "buy" ? "Shopper" : "Seller"})`,
+        _captcha: "false",
+        _autoresponse: "Thank you for joining the Nafex Hub early access waitlist! We will notify you as soon as we launch.",
       };
 
-      const res = await fetch("/api/newsletter/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const [formSubmitRes, apiRes] = await Promise.allSettled([
+        fetch("https://formsubmit.co/ajax/nafexgroupltd@gmail.com", {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            "Accept": "application/json" 
+          },
+          body: JSON.stringify(formSubmitData),
+        }),
+        fetch("/api/newsletter/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: cleanEmail,
+            name: cleanName,
+            role: tab === "buy" ? "buyer" : "seller",
+            category,
+            storeName: tab === "sell" ? storeName : undefined,
+            storeLink: tab === "sell" ? storeLink : undefined,
+            source: "lovable_waitlist",
+          }),
+        })
+      ]);
 
-      const data = await res.json();
+      // Check if API returned duplicate email error
+      if (apiRes.status === "fulfilled" && !apiRes.value.ok) {
+        const errData = await apiRes.value.json().catch(() => ({}));
+        if (errData.error?.includes("already been submitted")) {
+          toast({
+            variant: "destructive",
+            title: "⚠️ Duplicate Email",
+            description: "This email address has already been submitted to the waitlist.",
+          });
+          existingEmails.push(cleanEmail);
+          localStorage.setItem("nafex_waitlist_emails", JSON.stringify(existingEmails));
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Save email to local storage to block duplicate submissions from this browser
+      existingEmails.push(cleanEmail);
+      localStorage.setItem("nafex_waitlist_emails", JSON.stringify(existingEmails));
+
       setSubmitted(true);
       toast({
         title: tab === "buy" ? "🎉 Early Buyer Access Claimed!" : "🚀 Founding Seller Application Received!",
-        description: data.message || "Thank you for joining the Nafex Hub waitlist.",
+        description: "Your waitlist entry has been sent to nafexgroupltd@gmail.com.",
       });
-    } catch {
+    } catch (err) {
+      existingEmails.push(cleanEmail);
+      localStorage.setItem("nafex_waitlist_emails", JSON.stringify(existingEmails));
       setSubmitted(true);
       toast({
         title: "Welcome to the Waitlist!",
-        description: "Your spot has been reserved for launch.",
+        description: "Your spot has been reserved.",
       });
     } finally {
       setLoading(false);

@@ -51,10 +51,12 @@ router.post("/newsletter/subscribe", async (req, res) => {
       adminRecipient: ADMIN_NOTIFICATION_EMAIL,
     };
 
-    if (!newsletterEmails.has(normalised)) {
-      newsletterEmails.add(normalised);
-      waitlistSubmissions.push(submissionData);
+    if (newsletterEmails.has(normalised)) {
+      return res.status(400).json({ error: "This email address has already been submitted to the waitlist." });
     }
+
+    newsletterEmails.add(normalised);
+    waitlistSubmissions.push(submissionData);
 
     // Log admin email notification dispatch to nafexgroupltd@gmail.com
     logger.info(
