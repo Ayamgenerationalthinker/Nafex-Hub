@@ -38,19 +38,7 @@ const allowedOrigins = (() => {
 })();
 
 app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      // Allow Paystack, Google, and Facebook SDKs from their official CDNs.
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://js.paystack.co", "https://accounts.google.com", "https://connect.facebook.net", "https://www.facebook.com"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "https:", "blob:"],
-      // Allow WebSocket connections, Paystack API, Google, and Facebook identity validation calls
-      connectSrc: ["'self'", "ws:", "wss:", "https://api.paystack.co", "https://checkout.paystack.com", "https://accounts.google.com", "https://graph.facebook.com", "https://www.facebook.com"],
-      frameSrc: ["'self'", "https://checkout.paystack.com", "https://accounts.google.com", "https://www.facebook.com", "https://web.facebook.com"],
-    },
-  },
+  contentSecurityPolicy: false,
   // Additional hardening headers
   referrerPolicy: { policy: "strict-origin-when-cross-origin" },
   hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },

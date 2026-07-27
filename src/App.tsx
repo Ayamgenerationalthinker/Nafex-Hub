@@ -131,10 +131,8 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
-          <SupportChatWidget />
-        </WouterRouter>
+        <Router />
+        <SupportChatWidget />
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>
