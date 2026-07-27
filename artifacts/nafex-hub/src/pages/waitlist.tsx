@@ -60,16 +60,18 @@ export default function Waitlist() {
     setLoading(true);
 
     try {
-      // 2. Submit to FormSubmit.co for direct email delivery to nafexgroupltd@gmail.com
+      // 2. Submit to FormSubmit.co for direct email delivery to nafexgroupltd@gmail.com and autoresponse to subscriber
       const formSubmitData = {
         name: cleanName,
         email: cleanEmail,
+        _replyto: cleanEmail,
         role: tab === "buy" ? "Shopper / Client" : "Product Seller",
         category: category || "Not Specified",
         storeName: tab === "sell" ? storeName : "N/A",
         storeLink: tab === "sell" ? storeLink : "N/A",
         _subject: `🎉 New Waitlist Signup: ${cleanName} (${tab === "buy" ? "Shopper" : "Seller"})`,
         _captcha: "false",
+        _template: "table",
         _autoresponse: `Welcome to the official Nafex Hub early access waitlist, ${cleanName}! 🎉\n\nThank you for joining us early. Your spot is officially reserved.\n\nWe are hard at work building Ghana's premier hybrid marketplace — featuring Escrow payment protection, verified sellers, and local trade connect.\n\nPlease watch out for launch announcements in your inbox so you can claim your early access perks on Day 1!\n\nWarm regards,\nThe Nafex Hub Team\nhttps://nafex-hub-launchpad.vercel.app/`,
       };
 
