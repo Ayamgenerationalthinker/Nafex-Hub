@@ -94,15 +94,15 @@ app.use("/api", router);
 // Serve frontend static assets (dynamically resolved from process.cwd() and __dirname)
 const cwd = process.cwd();
 const candidates = [
-  path.resolve(cwd, "dist/public"),
-  path.resolve(cwd, "public"),
-  path.resolve(cwd, "artifacts/nafex-hub/dist/public"),
+  path.resolve(cwd, "artifacts/nafex-hub/dist/public"),   // Railway primary: always built here
+  path.resolve(cwd, "dist/public"),                        // Railway secondary: cp from above
   path.resolve(__dirname, "../../../artifacts/nafex-hub/dist/public"),
   path.resolve(__dirname, "../../../dist/public"),
-  path.resolve(__dirname, "../../nafex-hub/dist/public"),
-  path.resolve(__dirname, "../public"),
+  path.resolve(cwd, "public"),
 ];
+logger.info({ cwd, __dirname, candidates }, "Searching for frontend build");
 const frontendPath = candidates.find((p) => existsSync(path.join(p, "index.html"))) || candidates[0];
+logger.info({ frontendPath, exists: existsSync(frontendPath) }, "Frontend path resolved");
 
 if (existsSync(frontendPath)) {
   logger.info({ frontendPath }, "Serving frontend static assets");
