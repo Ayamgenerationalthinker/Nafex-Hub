@@ -62,18 +62,13 @@ export default function Waitlist() {
   const [submitted, setSubmitted] = useState<boolean>(!!submissionInfo);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    if (submitted) {
-      e.preventDefault();
-      return;
-    }
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (submitted) return;
 
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = fullName.trim();
-    if (!cleanEmail || !cleanName) {
-      e.preventDefault();
-      return;
-    }
+    if (!cleanEmail || !cleanName) return;
 
     const ticketId = "NX-VIP-" + Math.floor(100000 + Math.random() * 900000);
     const timestampStr = new Date().toLocaleDateString("en-US", {
@@ -96,7 +91,6 @@ export default function Waitlist() {
     // 1. Check local storage for duplicate submission
     const existingEmails: string[] = JSON.parse(localStorage.getItem("nafex_waitlist_emails") || "[]");
     if (existingEmails.includes(cleanEmail)) {
-      e.preventDefault();
       toast({
         variant: "destructive",
         title: "⚠️ Duplicate Email",
@@ -105,37 +99,84 @@ export default function Waitlist() {
       return;
     }
 
+    setLoading(true);
+
     // Save email & submission info to local storage to lock state
     existingEmails.push(cleanEmail);
     localStorage.setItem("nafex_waitlist_emails", JSON.stringify(existingEmails));
     localStorage.setItem("nafex_waitlist_submission_info", JSON.stringify(newSubmission));
 
-    setSubmissionInfo(newSubmission);
-    setSubmitted(true);
+    const autoresponseMessage = `Welcome to the official Nafex Hub early access waitlist, ${cleanName}! 🎉\n\nThank you for joining us early. Your spot is officially reserved as a ${tab === "buy" ? "Shopper" : "Founding Seller"}.\n\nWe are hard at work building Ghana's premier hybrid marketplace — featuring Escrow payment protection, verified sellers, and local trade connect.\n\nPlease watch out for launch announcements in your inbox so you can claim your early access perks on Day 1!\n\nWarm regards,\nThe Nafex Hub Team\nhttps://nafex-hub-launchpad.vercel.app/`;
 
-    // Call background API for database tracking
-    fetch("/api/newsletter/subscribe", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: cleanEmail,
-        name: cleanName,
-        role: tab === "buy" ? "buyer" : "seller",
-        category,
-        storeName: tab === "sell" ? storeName : undefined,
-        storeLink: tab === "sell" ? storeLink : undefined,
-        source: "lovable_waitlist",
-      }),
-    }).catch(() => {});
+    // 1. Web3Forms Payload
+    const web3Key = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || "09a15f01-7667-4279-8db8-[#WEB3FORMS_KEY]";
+    const web3FormData = new FormData();
+    web3FormData.append("access_key", web3Key);
+    web3FormData.append("subject", `🎉 New Waitlist Signup: ${cleanName} (${tab === "buy" ? "Shopper" : "Seller"})`);
+    web3FormData.append("from_name", "Nafex Hub Launchpad");
+    web3FormData.append("name", cleanName);
+    web3FormData.append("email", cleanEmail);
+    web3FormData.append("replyto", cleanEmail);
+    web3FormData.append("role", tab === "buy" ? "Shopper / Client" : "Product Seller");
+    web3FormData.append("category", category || "Not Specified");
+    if (tab === "sell") {
+      web3FormData.append("storeName", storeName || "N/A");
+      web3FormData.append("storeLink", storeLink || "N/A");
+    }
+    web3FormData.append("autoresponder", autoresponseMessage);
 
-    toast({
-      title: tab === "buy" ? "🎉 Early Access Spot Reserved!" : "🚀 Founding Seller Application Received!",
-      description: `Confirmation email routed to ${cleanEmail}.`,
-    });
+    // 2. FormSubmit Payload
+    const formParams = new URLSearchParams();
+    formParams.append("name", cleanName);
+    formParams.append("email", cleanEmail);
+    formParams.append("_replyto", cleanEmail);
+    formParams.append("role", tab === "buy" ? "Shopper / Client" : "Product Seller");
+    formParams.append("category", category || "Not Specified");
+    if (tab === "sell") {
+      formParams.append("storeName", storeName || "N/A");
+      formParams.append("storeLink", storeLink || "N/A");
+    }
+    formParams.append("_subject", `🎉 New Waitlist Signup: ${cleanName} (${tab === "buy" ? "Shopper" : "Seller"})`);
+    formParams.append("_autoresponse", autoresponseMessage);
+    formParams.append("_template", "table");
+    formParams.append("_captcha", "false");
 
-    // Note: e.preventDefault() is NOT called here.
-    // The browser executes native HTTP POST to FormSubmit inside hidden iframe (target="formsubmit_hidden_iframe").
-    // Native HTML form POST is required by FormSubmit to trigger _autoresponse email delivery to subscriber.
+    try {
+      await Promise.allSettled([
+        fetch("https://api.web3forms.com/submit", {
+          method: "POST",
+          body: web3FormData,
+        }),
+        fetch("https://formsubmit.co/ajax/nafexgroupltd@gmail.com", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: formParams.toString(),
+        }),
+        fetch("/api/newsletter/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: cleanEmail,
+            name: cleanName,
+            role: tab === "buy" ? "buyer" : "seller",
+            category,
+            storeName: tab === "sell" ? storeName : undefined,
+            storeLink: tab === "sell" ? storeLink : undefined,
+            source: "lovable_waitlist",
+          }),
+        })
+      ]);
+    } catch (err) {
+      // Ignore network failures
+    } finally {
+      setLoading(false);
+      setSubmissionInfo(newSubmission);
+      setSubmitted(true);
+      toast({
+        title: tab === "buy" ? "🎉 Early Access Spot Reserved!" : "🚀 Founding Seller Application Received!",
+        description: `Confirmation email routed to ${cleanEmail}.`,
+      });
+    }
   };
 
   const scrollToSection = (id: string) => {
@@ -394,30 +435,7 @@ export default function Waitlist() {
                     </div>
                   </div>
                 ) : (
-                  <>
-                    <iframe name="formsubmit_hidden_iframe" id="formsubmit_hidden_iframe" className="hidden w-0 h-0 border-0" />
-                    <form
-                      action="https://formsubmit.co/nafexgroupltd@gmail.com"
-                      method="POST"
-                      target="formsubmit_hidden_iframe"
-                      onSubmit={handleSubmit}
-                      className="space-y-4"
-                    >
-                    {/* Required FormSubmit Hidden Configuration Inputs */}
-                    <input
-                      type="hidden"
-                      name="_autoresponse"
-                      value="Welcome to Nafex Hub! You are officially on the early access waitlist. Whether you joined to shop authentic products or launch your store with zero seller fees, we will notify you 24 hours before our public launch."
-                    />
-                    <input
-                      type="hidden"
-                      name="_subject"
-                      value={`New Nafex Hub Waitlist Sign-up: ${fullName || "Subscriber"} (${tab === "buy" ? "Shopper" : "Seller"})`}
-                    />
-                    <input type="hidden" name="_template" value="table" />
-                    <input type="hidden" name="_captcha" value="false" />
-                    <input type="hidden" name="_replyto" value={email} />
-                    <input type="hidden" name="role" value={tab === "buy" ? "Shopper / Client" : "Product Seller"} />
+                  <form onSubmit={handleSubmit} className="space-y-4">
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
@@ -516,7 +534,6 @@ export default function Waitlist() {
                         : "Apply as Founding Seller →"}
                     </Button>
                   </form>
-                  </>
                 )}
 
                 <p className="text-[11px] text-center text-[#9CA3AF] mt-4 font-medium">
