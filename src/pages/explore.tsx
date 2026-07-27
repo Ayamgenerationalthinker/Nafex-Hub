@@ -4,7 +4,7 @@ import { BrandCard } from "@/components/brand-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, ChevronLeft, ChevronRight, ShieldCheck, Star, SlidersHorizontal, X, ChevronDown, ChevronUp, ShoppingBag, Package } from "lucide-react";
+import { Search, Filter, ChevronLeft, ChevronRight, ShieldCheck, Star, SlidersHorizontal, X, ChevronDown, ChevronUp, ShoppingBag, Package, Sparkles, Truck, Headphones } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLocation } from "wouter";
@@ -204,16 +204,156 @@ export default function Explore() {
   const activeFilters = (verifiedOnly ? 1 : 0) + (minPrice ? 1 : 0) + (maxPrice ? 1 : 0);
 
   return (
-    <div className="container mx-auto px-4 py-8 md:py-12 min-h-[calc(100vh-4rem)]">
-      <div className="space-y-2 mb-6">
-        <h1 className="font-serif text-3xl md:text-5xl font-bold text-foreground">Explore Brands</h1>
-        <p className="text-muted-foreground text-lg max-w-2xl">
-          Discover independent fashion creators across Ghana.
-        </p>
+    <div className="container mx-auto px-4 py-6 md:py-8 min-h-[calc(100vh-4rem)] font-poppins">
+
+      {/* ── HERO BANNER (Exact Style from Img 1, img 2, img 3, img 4) ── */}
+      <div className="relative overflow-hidden rounded-3xl bg-[#FFF8E6] border border-amber-100/60 p-6 md:p-12 mb-8 shadow-sm">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          <div className="lg:col-span-7 space-y-5">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F6F2FF] border border-purple-100 text-[#6A1B9A] text-xs font-semibold">
+              <Sparkles className="w-3.5 h-3.5 text-[#D4A017]" />
+              Ghana's Premier Trusted Marketplace
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#222222] tracking-tight leading-[1.15]">
+              Everything You Need, <br />
+              <span className="text-[#6A1B9A]">Delivered to You.</span>
+            </h1>
+            <p className="text-[#6B7280] text-base md:text-lg max-w-xl leading-relaxed">
+              Shop top quality products across electronics, fashion, home, beauty, and more with fast delivery and secure escrow payments.
+            </p>
+            <div className="flex flex-wrap items-center gap-4 pt-2">
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={() => {
+                  const el = document.getElementById("catalog-section");
+                  el?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="bg-[#6A1B9A] text-white hover:bg-[#5B1687] rounded-xl px-8 shadow-md"
+              >
+                Shop Now
+              </Button>
+              <Button
+                variant="secondary"
+                size="lg"
+                onClick={() => {
+                  const el = document.getElementById("categories-section");
+                  el?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="bg-[#D4A017] text-white hover:bg-[#B88A12] rounded-xl px-8 shadow-md"
+              >
+                Explore Categories
+              </Button>
+            </div>
+          </div>
+          <div className="lg:col-span-5 flex justify-center relative">
+            <div className="relative w-full max-w-md aspect-[4/3] rounded-2xl overflow-hidden shadow-lg border-4 border-white">
+              <img
+                src="/hero-model.jpg"
+                alt="Nafex Hub Shopping"
+                className="w-full h-full object-cover object-center"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+              <div className="absolute bottom-3 left-3 right-3 bg-white/90 backdrop-blur-md rounded-xl p-3 shadow-md flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-[#6A1B9A] text-white flex items-center justify-center font-bold">
+                  ✓
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-[#222222]">Nafex Verified</p>
+                  <p className="text-[11px] text-[#6B7280]">Quality • Fast Delivery • Support</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── VALUE PROPOSITION BAR (Exact Style from Img 1) ── */}
+      <div className="bg-[#FFF8E6] border border-amber-100 rounded-2xl p-4 md:p-6 mb-10 shadow-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-[#6A1B9A] text-white flex items-center justify-center shrink-0 shadow-sm">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="font-bold text-sm text-[#222222]">Secure Payments</h4>
+              <p className="text-xs text-[#6B7280]">Your transactions are safe with us.</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-[#D4A017] text-white flex items-center justify-center shrink-0 shadow-sm">
+              <Truck className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="font-bold text-sm text-[#222222]">Fast Delivery</h4>
+              <p className="text-xs text-[#6B7280]">Quick delivery to your doorstep.</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-[#6A1B9A] text-white flex items-center justify-center shrink-0 shadow-sm">
+              <Package className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="font-bold text-sm text-[#222222]">Quality Products</h4>
+              <p className="text-xs text-[#6B7280]">We bring you the best quality products.</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-[#2E7D32] text-white flex items-center justify-center shrink-0 shadow-sm">
+              <Headphones className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="font-bold text-sm text-[#222222]">24/7 Support</h4>
+              <p className="text-xs text-[#6B7280]">We are here to help you anytime.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── SHOP BY CATEGORY (Exact Style from Img 3) ── */}
+      <div id="categories-section" className="mb-10">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold text-[#222222]">Shop by Category</h2>
+          <button
+            onClick={() => handleCategory("All")}
+            className="text-xs font-semibold text-[#6A1B9A] hover:underline"
+          >
+            View all &gt;
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+          {[
+            { label: "Electronics", icon: "💻", catName: "Electronics" },
+            { label: "Fashion", icon: "👜", catName: "Clothing" },
+            { label: "Home & Kitchen", icon: "🏡", catName: "Furniture" },
+            { label: "Beauty", icon: "💄", catName: "Beauty & Skincare" },
+            { label: "Groceries", icon: "🛒", catName: "Groceries & Supermarket" },
+            { label: "Health", icon: "💊", catName: "Health & Wellness" },
+            { label: "Sports", icon: "🏀", catName: "Sports & Fitness" },
+            { label: "Books", icon: "📚", catName: "Books & Stationery" },
+          ].map((item) => (
+            <button
+              key={item.label}
+              onClick={() => handleCategory(item.catName)}
+              className={`flex flex-col items-center justify-center p-4 rounded-2xl border transition-all text-center gap-2 group ${
+                category === item.catName
+                  ? "bg-[#6A1B9A] text-white border-[#6A1B9A] shadow-md scale-[1.02]"
+                  : "bg-[#FFF8E6] border-amber-100/80 hover:bg-[#F6F2FF] hover:border-purple-200 text-[#222222]"
+              }`}
+            >
+              <span className="text-3xl transition-transform group-hover:scale-110">{item.icon}</span>
+              <span className="text-xs font-semibold leading-tight">{item.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Search + controls bar */}
-      <div className="flex flex-col md:flex-row gap-3 mb-5">
+      <div id="catalog-section" className="flex flex-col md:flex-row gap-3 mb-5">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
           <Input

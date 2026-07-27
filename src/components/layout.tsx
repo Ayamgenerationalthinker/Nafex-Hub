@@ -88,25 +88,24 @@ const { isDarkMode, toggleDarkMode } = useDarkMode();
   return (
     <div className="min-h-[100dvh] flex flex-col w-full bg-background text-foreground font-sans">
       <VerifyEmailBanner />
-      {/* ── Header (dark charcoal matches reference design) ── */}
-      <header className="sticky top-0 z-50 w-full bg-secondary text-secondary-foreground shadow-md glass">
+      {/* ── Header (clean white top navbar with purple brand highlights matching Img 1 style guide) ── */}
+      <header className="sticky top-0 z-50 w-full bg-white text-[#222222] shadow-sm border-b border-purple-100/80">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-8">
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5" data-testid="link-home" onClick={closeMenu}>
-            <Logo size="md" variant="badge" />
+            <Logo size="md" variant="raw" showTagline={false} />
           </Link>
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-6 flex-1 justify-end">
             {/* Global search (buyers / guests only) */}
             {!isBusinessOwner && !isAdmin && (
-              <div className="relative mr-4 max-w-sm w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-foreground/60 w-4 h-4" />
+              <div className="relative mr-4 max-w-sm w-full flex items-center">
                 <input
                   type="search"
-                  placeholder="Search brands, products, or categories..."
-                  className="w-full h-9 pl-9 pr-3 rounded-full bg-secondary-foreground/5 border border-secondary-foreground/10 text-sm text-secondary-foreground placeholder:text-secondary-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/70 focus:border-primary/70"
+                  placeholder="Search products, brands and more..."
+                  className="w-full h-10 pl-4 pr-11 rounded-full bg-[#F6F2FF] border border-purple-200 text-sm text-[#222222] placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#6A1B9A] focus:bg-white transition-all"
                   value={headerSearch}
                   onChange={(e) => setHeaderSearch(e.target.value)}
                   onKeyDown={(e) => {
@@ -118,6 +117,18 @@ const { isDarkMode, toggleDarkMode } = useDarkMode();
                     }
                   }}
                 />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const value = headerSearch.trim();
+                    const base = "/explore";
+                    const next = value ? `${base}?search=${encodeURIComponent(value)}` : base;
+                    setLocation(next);
+                  }}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-[#6A1B9A] hover:bg-[#5B1687] text-white flex items-center justify-center transition-colors shadow-xs"
+                >
+                  <Search className="w-4 h-4" />
+                </button>
               </div>
             )}
 
@@ -125,8 +136,8 @@ const { isDarkMode, toggleDarkMode } = useDarkMode();
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-sm font-medium transition-colors hover:text-primary hover-elevate ${
-                  location === link.href ? "text-primary" : "text-secondary-foreground/80"
+                className={`text-sm font-poppins font-medium transition-colors hover:text-[#6A1B9A] relative py-1 ${
+                  location === link.href ? "text-[#6A1B9A] font-semibold border-b-2 border-[#6A1B9A]" : "text-[#222222]/80"
                 }`}
               >
                 {link.label}
@@ -134,11 +145,13 @@ const { isDarkMode, toggleDarkMode } = useDarkMode();
             ))}
 
             {user ? (
-              <div className="flex items-center gap-1 ml-2">
+              <div className="flex items-center gap-1.5 ml-2">
                 {!isBusinessOwner && !isAdmin && (
-                  <CartIcon className="text-secondary-foreground/80 hover:text-primary" />
+                  <CartIcon className="text-[#222222] hover:text-[#6A1B9A]" />
                 )}
-<Button variant="ghost" size="sm" onClick={toggleDarkMode} className="text-secondary-foreground/80 hover:text-primary" data-testid="btn-dark-mode">{isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}</Button>
+                <Button variant="ghost" size="sm" onClick={toggleDarkMode} className="text-[#222222] hover:text-[#6A1B9A]" data-testid="btn-dark-mode">
+                  {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                </Button>
                 <NotificationBell />
 
                 {/* Buyer: Help dropdown + user account dropdown */}
@@ -429,130 +442,29 @@ const { isDarkMode, toggleDarkMode } = useDarkMode();
         {children}
       </main>
 
-      <footer className="border-t bg-secondary text-secondary-foreground">
+      {/* ── Footer (Deep Primary Purple #6A1B9A matching Img 1 reference style guide) ── */}
+      <footer className="bg-[#6A1B9A] text-white border-t border-purple-900">
         <div className="container mx-auto px-4 md:px-8 py-12">
-          {/* Brand + tagline */}
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 pb-8 border-b border-secondary-foreground/10">
-            <div className="space-y-3 max-w-md">
-              <div className="flex items-center gap-2.5">
-                <Logo size="md" variant="badge" />
+          {/* Main Footer Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-purple-400/20">
+            {/* Column 1: Brand Info */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Logo size="md" variant="dark-badge" showTagline={true} />
               </div>
-              <p className="text-sm text-secondary-foreground/70 leading-relaxed">
-                From fashion and electronics to home essentials and lifestyle goods, Nafex Hub is a curated marketplace of verified Ghanaian businesses and creators — with escrow-protected payments, real-time logistics tracking, and direct sourcing through Nafex Trade Connect.
+              <p className="text-xs text-purple-100/80 leading-relaxed font-poppins">
+                Quality products. Secure payments. Fast delivery. Ghana's premier trusted online marketplace.
               </p>
-              {/* Trust badges */}
-              <div className="flex flex-wrap gap-1.5 pt-2">
-                {[
-                  { icon: Shield, label: "Verified Sellers" },
-                  { icon: Wallet, label: "Escrow Protection" },
-                  { icon: Truck, label: "Logistics Tracking" },
-                  { icon: Star, label: "Ratings & Reviews" },
-                  { icon: Globe2, label: "Nafex Trade Connect" },
-                ].map(({ icon: Icon, label }) => (
-                  <span
-                    key={label}
-                    className="inline-flex items-center gap-1.5 text-[11px] text-secondary-foreground/80 bg-secondary-foreground/10 border border-secondary-foreground/15 rounded-full px-2.5 py-1"
-                    data-testid={`badge-trust-${label.toLowerCase().replace(/\s+/g, "-")}`}
-                  >
-                    <Icon className="w-3 h-3 text-primary" strokeWidth={1.75} />
-                    {label}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Columns */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 py-10">
-            {/* Support */}
-            <div className="space-y-4">
-              <h4 className="font-semibold text-sm text-secondary-foreground uppercase tracking-wider">Support</h4>
-              <ul className="space-y-2.5 text-sm">
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => window.dispatchEvent(new CustomEvent("open-support-chat"))}
-                    className="text-secondary-foreground/70 hover:text-primary transition-colors inline-flex items-center gap-2"
-                    data-testid="footer-live-chat"
-                  >
-                    <MessageCircle className="w-4 h-4" strokeWidth={1.75} /> Live Chat Support
-                  </button>
-                </li>
-                <li>
-                  <Link href="/support" className="text-secondary-foreground/70 hover:text-primary transition-colors inline-flex items-center gap-2" data-testid="footer-contact-support">
-                    <Headphones className="w-4 h-4" strokeWidth={1.75} /> Contact Support
-                  </Link>
-                </li>
-                {siteSettings.whatsappNumber?.trim() && (
-                  <li>
-                    <a
-                      href={`tel:${siteSettings.whatsappNumber.replace(/\s+/g, "")}`}
-                      className="text-secondary-foreground/70 hover:text-primary transition-colors inline-flex items-center gap-2"
-                      data-testid="footer-call"
-                    >
-                      <Phone className="w-4 h-4" strokeWidth={1.75} /> Call: {siteSettings.whatsappNumber}
-                    </a>
-                  </li>
-                )}
-                <li>
-                  <Link href="/help" className="text-secondary-foreground/70 hover:text-primary transition-colors inline-flex items-center gap-2" data-testid="footer-help-center">
-                    <HelpCircle className="w-4 h-4" strokeWidth={1.75} /> Help Center
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/track" className="text-secondary-foreground/70 hover:text-primary transition-colors inline-flex items-center gap-2" data-testid="footer-track-order">
-                    <Truck className="w-4 h-4" strokeWidth={1.75} /> Track Order
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/disputes" className="text-secondary-foreground/70 hover:text-primary transition-colors inline-flex items-center gap-2" data-testid="footer-report-issue">
-                    <ClipboardList className="w-4 h-4" strokeWidth={1.75} /> Report Issue
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/payments" className="text-secondary-foreground/70 hover:text-primary transition-colors inline-flex items-center gap-2" data-testid="footer-buyer-protection">
-                    <Shield className="w-4 h-4" strokeWidth={1.75} /> Buyer Protection
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* About */}
-            <div className="space-y-4">
-              <h4 className="font-semibold text-sm text-secondary-foreground uppercase tracking-wider">About</h4>
-              <ul className="space-y-2.5 text-sm text-secondary-foreground/70">
-                <li className="font-semibold text-secondary-foreground">Nafex Hub Ghana Ltd</li>
-                <li className="inline-flex items-start gap-2">
-                  <Globe2 className="w-4 h-4 mt-0.5 flex-shrink-0" strokeWidth={1.75} />
-                  <span>Accra, Ghana</span>
-                </li>
-                <li>
-                  <a
-                    href={`mailto:${siteSettings.email?.trim() || "support@nafexhub.com"}`}
-                    className="hover:text-primary transition-colors inline-flex items-center gap-2"
-                    data-testid="footer-email"
-                  >
-                    <Mail className="w-4 h-4" strokeWidth={1.75} /> {siteSettings.email?.trim() || "support@nafexhub.com"}
-                  </a>
-                </li>
-                <li className="inline-flex items-start gap-2">
-                  <Clock className="w-4 h-4 mt-0.5 flex-shrink-0" strokeWidth={1.75} />
-                  <span>Mon–Sat · 8AM–8PM</span>
-                </li>
-              </ul>
-
-              {/* Socials */}
               <div className="flex items-center gap-3 pt-2">
                 {siteSettings.whatsappNumber?.trim() && (
                   <a
                     href={`https://wa.me/${siteSettings.whatsappNumber.replace(/\D/g, "")}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-9 h-9 rounded-full bg-secondary-foreground/10 hover:bg-green-500/20 hover:text-green-400 flex items-center justify-center text-secondary-foreground/70 transition-all"
+                    className="w-8 h-8 rounded-full bg-white/10 hover:bg-[#D4A017] hover:text-white flex items-center justify-center text-purple-100 transition-all"
                     title="WhatsApp"
-                    data-testid="footer-social-whatsapp"
                   >
-                    <Phone className="w-4 h-4" strokeWidth={1.75} />
+                    <Phone className="w-4 h-4" />
                   </a>
                 )}
                 {siteSettings.instagramLink?.trim() && (
@@ -560,11 +472,10 @@ const { isDarkMode, toggleDarkMode } = useDarkMode();
                     href={siteSettings.instagramLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-9 h-9 rounded-full bg-secondary-foreground/10 hover:bg-pink-500/20 hover:text-pink-400 flex items-center justify-center text-secondary-foreground/70 transition-all"
+                    className="w-8 h-8 rounded-full bg-white/10 hover:bg-[#D4A017] hover:text-white flex items-center justify-center text-purple-100 transition-all"
                     title="Instagram"
-                    data-testid="footer-social-instagram"
                   >
-                    <Globe className="w-4 h-4" strokeWidth={1.75} />
+                    <Globe className="w-4 h-4" />
                   </a>
                 )}
                 {siteSettings.facebookLink?.trim() && (
@@ -572,61 +483,65 @@ const { isDarkMode, toggleDarkMode } = useDarkMode();
                     href={siteSettings.facebookLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-9 h-9 rounded-full bg-secondary-foreground/10 hover:bg-blue-500/20 hover:text-blue-400 flex items-center justify-center text-secondary-foreground/70 transition-all"
+                    className="w-8 h-8 rounded-full bg-white/10 hover:bg-[#D4A017] hover:text-white flex items-center justify-center text-purple-100 transition-all"
                     title="Facebook"
-                    data-testid="footer-social-facebook"
                   >
-                    <Globe className="w-4 h-4" strokeWidth={1.75} />
+                    <Globe className="w-4 h-4" />
                   </a>
                 )}
               </div>
             </div>
 
-            {/* Marketplace */}
-            <div className="space-y-4">
-              <h4 className="font-semibold text-sm text-secondary-foreground uppercase tracking-wider">Marketplace</h4>
-              <ul className="space-y-2.5 text-sm">
-                <li><Link href="/explore" className="text-secondary-foreground/70 hover:text-primary transition-colors">Explore Brands</Link></li>
-                <li><Link href="/discounts" className="text-secondary-foreground/70 hover:text-primary transition-colors">Deals & Flash Sales</Link></li>
-                <li><Link href="/services" className="text-secondary-foreground/70 hover:text-primary transition-colors">Services</Link></li>
-                <li><Link href="/trade" className="text-secondary-foreground/70 hover:text-primary transition-colors">Nafex Trade Connect</Link></li>
-                {!user || (user.role !== "user") ? (
-                  <li><Link href="/list" className="text-secondary-foreground/70 hover:text-primary transition-colors">List Your Business</Link></li>
-                ) : null}
+            {/* Column 2: Quick Links */}
+            <div className="space-y-3 font-poppins">
+              <h4 className="font-bold text-sm text-[#D4A017] uppercase tracking-wider">Quick Links</h4>
+              <ul className="space-y-2 text-sm text-purple-100/90">
+                <li><Link href="/" className="hover:text-[#D4A017] transition-colors">Home</Link></li>
+                <li><Link href="/explore" className="hover:text-[#D4A017] transition-colors">Shop</Link></li>
+                <li><Link href="/explore" className="hover:text-[#D4A017] transition-colors">Categories</Link></li>
+                <li><Link href="/about" className="hover:text-[#D4A017] transition-colors">About Us</Link></li>
+                <li><Link href="/support" className="hover:text-[#D4A017] transition-colors">Contact Us</Link></li>
               </ul>
             </div>
 
-            {/* Payment Methods */}
-            <div className="space-y-4">
-              <h4 className="font-semibold text-sm text-secondary-foreground uppercase tracking-wider">Payment Methods</h4>
-              <div className="grid grid-cols-2 gap-2.5">
-                <div className="h-11 bg-white rounded-md flex items-center justify-center px-3 shadow-sm" title="Paystack" data-testid="payment-paystack">
-                  <PaystackLogo className="h-4 w-auto" />
-                </div>
-                <div className="h-11 bg-white rounded-md flex items-center justify-center px-3 shadow-sm" title="Mobile Money" data-testid="payment-momo">
-                  <MobileMoneyLogo className="h-6 w-auto" />
-                </div>
-                <div className="h-11 bg-white rounded-md flex items-center justify-center px-3 shadow-sm" title="Visa" data-testid="payment-visa">
-                  <VisaLogo className="h-4 w-auto" />
-                </div>
-                <div className="h-11 bg-white rounded-md flex items-center justify-center px-3 shadow-sm" title="Mastercard" data-testid="payment-mastercard">
-                  <MastercardLogo className="h-6 w-auto" />
-                </div>
-                <div className="col-span-2 h-11 bg-white text-secondary rounded-md flex items-center justify-center gap-2 px-3 shadow-sm" title="Bank Transfer" data-testid="payment-bank">
-                  <BankTransferLogo className="h-5 w-auto" />
-                  <span className="text-xs font-semibold tracking-wide">BANK TRANSFER</span>
-                </div>
-              </div>
+            {/* Column 3: Customer Service */}
+            <div className="space-y-3 font-poppins">
+              <h4 className="font-bold text-sm text-[#D4A017] uppercase tracking-wider">Customer Service</h4>
+              <ul className="space-y-2 text-sm text-purple-100/90">
+                <li><Link href="/help" className="hover:text-[#D4A017] transition-colors">FAQs</Link></li>
+                <li><Link href="/track" className="hover:text-[#D4A017] transition-colors">Shipping & Delivery</Link></li>
+                <li><Link href="/disputes" className="hover:text-[#D4A017] transition-colors">Returns & Refunds</Link></li>
+                <li><Link href="/privacy" className="hover:text-[#D4A017] transition-colors">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="hover:text-[#D4A017] transition-colors">Terms & Conditions</Link></li>
+              </ul>
+            </div>
+
+            {/* Column 4: Newsletter Subscription (Exact style from Img 1) */}
+            <div className="space-y-3 font-poppins">
+              <h4 className="font-bold text-sm text-[#D4A017] uppercase tracking-wider">Newsletter</h4>
+              <p className="text-xs text-purple-100/90 leading-relaxed">
+                Subscribe to get updates on new products and offers.
+              </p>
+              <form onSubmit={(e) => e.preventDefault()} className="space-y-2 pt-1">
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="w-full h-10 px-3.5 rounded-lg bg-white text-[#222222] placeholder:text-[#6B7280] text-sm focus:outline-none focus:ring-2 focus:ring-[#D4A017]"
+                />
+                <button
+                  type="submit"
+                  className="w-full h-10 rounded-lg bg-[#D4A017] hover:bg-[#B88A12] text-white font-bold text-sm transition-all shadow-sm"
+                >
+                  Subscribe
+                </button>
+              </form>
             </div>
           </div>
 
-          {/* Bottom bar */}
-          <div className="border-t border-secondary-foreground/10 pt-6 flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
-            <p className="text-xs text-secondary-foreground/60">
-              © {new Date().getFullYear()} Nafex Hub Ghana. All rights reserved.
-            </p>
-            <p className="text-xs text-secondary-foreground/60 italic">
-              Empowering African commerce through secure digital trade.
+          {/* Bottom Copyright Bar */}
+          <div className="pt-6 text-center">
+            <p className="text-xs text-purple-200/80 font-poppins">
+              © {new Date().getFullYear()} NafexHub. All rights reserved.
             </p>
           </div>
         </div>
