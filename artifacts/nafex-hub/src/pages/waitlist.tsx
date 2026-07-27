@@ -102,32 +102,33 @@ export default function Waitlist() {
     setLoading(true);
 
     try {
-      // Create FormData with exact field names required by FormSubmit for autoresponder
+      // FormSubmit requires urlencoded payload (name=email & name=_autoresponse) to reliably send autoresponse emails
       const autoresponseMsg = "Welcome to Nafex Hub! You are officially on the early access waitlist. Whether you joined to shop authentic products or launch your store with zero seller fees, we will notify you 24 hours before our public launch.";
       
-      const formData = new FormData();
-      formData.append("name", cleanName);
-      formData.append("email", cleanEmail);
-      formData.append("_replyto", cleanEmail);
-      formData.append("role", tab === "buy" ? "Shopper / Client" : "Product Seller");
-      formData.append("category", category || "Not Specified");
+      const formParams = new URLSearchParams();
+      formParams.append("name", cleanName);
+      formParams.append("email", cleanEmail);
+      formParams.append("_replyto", cleanEmail);
+      formParams.append("role", tab === "buy" ? "Shopper / Client" : "Product Seller");
+      formParams.append("category", category || "Not Specified");
       if (tab === "sell") {
-        formData.append("storeName", storeName || "N/A");
-        formData.append("storeLink", storeLink || "N/A");
+        formParams.append("storeName", storeName || "N/A");
+        formParams.append("storeLink", storeLink || "N/A");
       }
-      formData.append("ticketId", ticketId);
-      formData.append("_subject", `New Nafex Hub Waitlist Sign-up: ${cleanName} (${tab === "buy" ? "Shopper" : "Seller"})`);
-      formData.append("_autoresponse", autoresponseMsg);
-      formData.append("_template", "table");
-      formData.append("_captcha", "false");
+      formParams.append("ticketId", ticketId);
+      formParams.append("_subject", `New Nafex Hub Waitlist Sign-up: ${cleanName} (${tab === "buy" ? "Shopper" : "Seller"})`);
+      formParams.append("_autoresponse", autoresponseMsg);
+      formParams.append("_template", "table");
+      formParams.append("_captcha", "false");
 
       const [formSubmitRes, apiRes] = await Promise.allSettled([
         fetch("https://formsubmit.co/ajax/nafexgroupltd@gmail.com", {
           method: "POST",
           headers: { 
+            "Content-Type": "application/x-www-form-urlencoded",
             "Accept": "application/json" 
           },
-          body: formData,
+          body: formParams.toString(),
         }),
         fetch("/api/newsletter/subscribe", {
           method: "POST",
