@@ -37,6 +37,13 @@ export function SocialAuthButtons({ action = "sign in" }: { action?: "sign in" |
     }
   };
 
+  const buttonText = (providerName: string) => {
+    if (action === "sign up") {
+      return `Sign up with ${providerName}`;
+    }
+    return `Sign in with ${providerName}`;
+  };
+
   return (
     <div className="space-y-3 w-full font-poppins">
       <div className="relative flex items-center justify-center my-4">
@@ -54,7 +61,7 @@ export function SocialAuthButtons({ action = "sign in" }: { action?: "sign in" |
           variant="outline"
           onClick={() => handleSocialAuth("google")}
           disabled={loadingProvider !== null}
-          className="h-11 border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs sm:text-sm rounded-xl gap-2.5 shadow-xs hover:shadow-sm transition-all"
+          className="h-11 border-slate-200 bg-white hover:bg-slate-50/80 text-slate-700 font-semibold text-xs sm:text-sm rounded-xl gap-2.5 shadow-xs hover:shadow-sm transition-all"
         >
           <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
             <path
@@ -74,20 +81,24 @@ export function SocialAuthButtons({ action = "sign in" }: { action?: "sign in" |
               d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.94 1.19 15.23 0 12 0 7.31 0 3.25 2.7 1.27 6.58l4.01 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
             />
           </svg>
-          <span>{loadingProvider === "google" ? "Connecting..." : `${action === "sign in" ? "Sign in" : "Sign up"} with Google`}</span>
+          <span>{loadingProvider === "google" ? "Connecting..." : buttonText("Google")}</span>
         </Button>
 
-        {/* Facebook Button */}
+        {/* Facebook Button (Clean matching white background & typography) */}
         <Button
           type="button"
+          variant="outline"
           onClick={() => handleSocialAuth("facebook")}
           disabled={loadingProvider !== null}
-          className="h-11 bg-[#1877F2] hover:bg-[#166FE5] text-white font-semibold text-xs sm:text-sm rounded-xl gap-2.5 shadow-xs hover:shadow-sm transition-all border-none"
+          className="h-11 border-slate-200 bg-white hover:bg-slate-50/80 text-slate-700 font-semibold text-xs sm:text-sm rounded-xl gap-2.5 shadow-xs hover:shadow-sm transition-all"
         >
-          <svg className="w-5 h-5 fill-current shrink-0" viewBox="0 0 24 24">
-            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+          <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+            <path
+              fill="#1877F2"
+              d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
+            />
           </svg>
-          <span>{loadingProvider === "facebook" ? "Connecting..." : `${action === "sign in" ? "Sign in" : "Sign up"} with Facebook`}</span>
+          <span>{loadingProvider === "facebook" ? "Connecting..." : buttonText("Facebook")}</span>
         </Button>
       </div>
     </div>

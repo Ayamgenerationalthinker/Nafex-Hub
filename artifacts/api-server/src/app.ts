@@ -122,7 +122,17 @@ const candidates = [
 const frontendPath = candidates.find((p) => existsSync(path.join(p, "index.html"))) || candidates[0];
 
 if (existsSync(frontendPath)) {
-  app.use(express.static(frontendPath));
+  logger.info({ frontendPath }, "Serving frontend static assets");
+  app.use(express.static(frontendPath, {
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith("index.html") || filePath.endsWith("sw.js")) {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, private");
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
+      }
+    }
+  }));
+
   app.use((req, res, next) => {
     if (req.path.startsWith("/api")) {
       return next();
@@ -132,10 +142,9 @@ if (existsSync(frontendPath)) {
       res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, private");
       res.setHeader("Pragma", "no-cache");
       res.setHeader("Expires", "0");
-      res.sendFile(indexPath);
-    } else {
-      next();
+      return res.sendFile(indexPath);
     }
+    next();
   });
 }
 
