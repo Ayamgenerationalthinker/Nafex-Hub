@@ -158,30 +158,30 @@ export default function BuyerDashboard() {
   const defaultAddressItem = addresses.find((a) => a.isDefault);
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="container mx-auto px-4 py-8 max-w-7xl font-poppins">
       <div className="flex flex-col lg:flex-row gap-8">
         
-        {/* Left Jumia Sidebar layout */}
+        {/* Left Sidebar layout */}
         <div className="w-full lg:w-64 shrink-0 space-y-6">
-          <div className="bg-card border border-border/60 rounded-xl p-5 shadow-sm space-y-4">
+          <div className="bg-white border border-purple-100 rounded-2xl p-5 shadow-xs space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center font-serif text-lg font-bold text-primary">
+              <div className="w-12 h-12 rounded-full bg-[#F6F2FF] border border-purple-200 flex items-center justify-center font-poppins text-lg font-bold text-[#6A1B9A]">
                 {(user?.name ?? "C").charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0">
-                <p className="font-semibold text-foreground truncate">{user?.name}</p>
-                <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                <p className="font-bold text-[#222222] truncate">{user?.name}</p>
+                <p className="text-xs text-[#6B7280] truncate">{user?.email}</p>
               </div>
             </div>
             
-            <div className="border-t border-border/50 pt-3">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">
+            <div className="border-t border-purple-100 pt-3">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-[#6A1B9A] bg-[#F6F2FF] px-2.5 py-1 rounded-full border border-purple-200">
                 Buyer Account
               </span>
             </div>
           </div>
 
-          <div className="bg-card border border-border/60 rounded-xl p-3 shadow-sm">
+          <div className="bg-white border border-purple-100 rounded-2xl p-3 shadow-xs">
             <nav className="flex flex-col gap-1">
               {[
                 { id: "overview", label: "My Account", icon: <User className="w-4 h-4" /> },
@@ -197,10 +197,10 @@ export default function BuyerDashboard() {
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                     activeTab === item.id
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      ? "bg-[#6A1B9A] text-white shadow-sm"
+                      : "text-[#6B7280] hover:bg-[#F6F2FF] hover:text-[#6A1B9A]"
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -208,7 +208,7 @@ export default function BuyerDashboard() {
                     <span>{item.label}</span>
                   </div>
                   {item.badge !== undefined ? (
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${activeTab === item.id ? "bg-white text-primary" : "bg-primary text-primary-foreground"}`}>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${activeTab === item.id ? "bg-[#D4A017] text-white" : "bg-[#6A1B9A] text-white"}`}>
                       {item.badge}
                     </span>
                   ) : (
@@ -219,7 +219,7 @@ export default function BuyerDashboard() {
               
               <button
                 onClick={logout}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all mt-2 w-full text-left"
+                className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-50 transition-all mt-2 w-full text-left"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Logout</span>
@@ -234,9 +234,9 @@ export default function BuyerDashboard() {
           {/* OVERVIEW PANEL */}
           {activeTab === "overview" && (
             <div className="space-y-6">
-              <div className="bg-gradient-to-r from-primary/10 to-transparent p-6 rounded-xl border border-primary/20">
-                <h2 className="font-serif text-2xl font-bold text-foreground">Welcome back, {user?.name.split(" ")[0]}!</h2>
-                <p className="text-muted-foreground text-sm mt-1">
+              <div className="bg-[#FFF8E6] p-6 rounded-2xl border border-amber-100/80 shadow-xs">
+                <h2 className="font-poppins text-2xl font-bold text-[#222222]">Welcome back, {user?.name.split(" ")[0]}!</h2>
+                <p className="text-[#6B7280] text-sm mt-1">
                   Manage your orders, save items to your wishlist, and update your delivery profile details.
                 </p>
               </div>
