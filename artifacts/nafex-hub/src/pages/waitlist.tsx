@@ -62,13 +62,18 @@ export default function Waitlist() {
   const [submitted, setSubmitted] = useState<boolean>(!!submissionInfo);
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (submitted) return;
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    if (submitted) {
+      e.preventDefault();
+      return;
+    }
 
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = fullName.trim();
-    if (!cleanEmail || !cleanName) return;
+    if (!cleanEmail || !cleanName) {
+      e.preventDefault();
+      return;
+    }
 
     const ticketId = "NX-VIP-" + Math.floor(100000 + Math.random() * 900000);
     const timestampStr = new Date().toLocaleDateString("en-US", {
@@ -91,6 +96,7 @@ export default function Waitlist() {
     // 1. Check local storage for duplicate submission
     const existingEmails: string[] = JSON.parse(localStorage.getItem("nafex_waitlist_emails") || "[]");
     if (existingEmails.includes(cleanEmail)) {
+      e.preventDefault();
       toast({
         variant: "destructive",
         title: "⚠️ Duplicate Email",
@@ -99,92 +105,37 @@ export default function Waitlist() {
       return;
     }
 
-    setLoading(true);
+    // Save email & submission info to local storage to lock state
+    existingEmails.push(cleanEmail);
+    localStorage.setItem("nafex_waitlist_emails", JSON.stringify(existingEmails));
+    localStorage.setItem("nafex_waitlist_submission_info", JSON.stringify(newSubmission));
 
-    try {
-      // FormSubmit requires urlencoded payload (name=email & name=_autoresponse) to reliably send autoresponse emails
-      const autoresponseMsg = "Welcome to Nafex Hub! You are officially on the early access waitlist. Whether you joined to shop authentic products or launch your store with zero seller fees, we will notify you 24 hours before our public launch.";
-      
-      const formParams = new URLSearchParams();
-      formParams.append("name", cleanName);
-      formParams.append("email", cleanEmail);
-      formParams.append("_replyto", cleanEmail);
-      formParams.append("role", tab === "buy" ? "Shopper / Client" : "Product Seller");
-      formParams.append("category", category || "Not Specified");
-      if (tab === "sell") {
-        formParams.append("storeName", storeName || "N/A");
-        formParams.append("storeLink", storeLink || "N/A");
-      }
-      formParams.append("ticketId", ticketId);
-      formParams.append("_subject", `New Nafex Hub Waitlist Sign-up: ${cleanName} (${tab === "buy" ? "Shopper" : "Seller"})`);
-      formParams.append("_autoresponse", autoresponseMsg);
-      formParams.append("_template", "table");
-      formParams.append("_captcha", "false");
+    setSubmissionInfo(newSubmission);
+    setSubmitted(true);
 
-      const [formSubmitRes, apiRes] = await Promise.allSettled([
-        fetch("https://formsubmit.co/ajax/nafexgroupltd@gmail.com", {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Accept": "application/json" 
-          },
-          body: formParams.toString(),
-        }),
-        fetch("/api/newsletter/subscribe", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: cleanEmail,
-            name: cleanName,
-            role: tab === "buy" ? "buyer" : "seller",
-            category,
-            storeName: tab === "sell" ? storeName : undefined,
-            storeLink: tab === "sell" ? storeLink : undefined,
-            source: "lovable_waitlist",
-          }),
-        })
-      ]);
+    // Call background API for database tracking
+    fetch("/api/newsletter/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: cleanEmail,
+        name: cleanName,
+        role: tab === "buy" ? "buyer" : "seller",
+        category,
+        storeName: tab === "sell" ? storeName : undefined,
+        storeLink: tab === "sell" ? storeLink : undefined,
+        source: "lovable_waitlist",
+      }),
+    }).catch(() => {});
 
-      // Check if API returned duplicate email error
-      if (apiRes.status === "fulfilled" && !apiRes.value.ok) {
-        const errData = await apiRes.value.json().catch(() => ({}));
-        if (errData.error?.includes("already been submitted")) {
-          toast({
-            variant: "destructive",
-            title: "⚠️ Duplicate Email",
-            description: "This email address has already been submitted to the waitlist.",
-          });
-          existingEmails.push(cleanEmail);
-          localStorage.setItem("nafex_waitlist_emails", JSON.stringify(existingEmails));
-          setLoading(false);
-          return;
-        }
-      }
+    toast({
+      title: tab === "buy" ? "🎉 Early Access Spot Reserved!" : "🚀 Founding Seller Application Received!",
+      description: `Confirmation email routed to ${cleanEmail}.`,
+    });
 
-      // Save email and submission info to local storage to lock form permanently
-      existingEmails.push(cleanEmail);
-      localStorage.setItem("nafex_waitlist_emails", JSON.stringify(existingEmails));
-      localStorage.setItem("nafex_waitlist_submission_info", JSON.stringify(newSubmission));
-
-      setSubmissionInfo(newSubmission);
-      setSubmitted(true);
-      toast({
-        title: tab === "buy" ? "🎉 VIP Buyer Pass Reserved!" : "🚀 Founding Seller Pass Secured!",
-        description: `Ref #${ticketId} — Confirmation sent to ${cleanEmail}.`,
-      });
-    } catch (err) {
-      existingEmails.push(cleanEmail);
-      localStorage.setItem("nafex_waitlist_emails", JSON.stringify(existingEmails));
-      localStorage.setItem("nafex_waitlist_submission_info", JSON.stringify(newSubmission));
-      setSubmissionInfo(newSubmission);
-      setSubmitted(true);
-      toast({
-        title: "Welcome to the Waitlist!",
-        description: `Your VIP reservation #${ticketId} is active.`,
-      });
-    } finally {
-      setLoading(false);
-    }
+    // Note: e.preventDefault() is NOT called here.
+    // The browser executes native HTTP POST to FormSubmit inside hidden iframe (target="formsubmit_hidden_iframe").
+    // Native HTML form POST is required by FormSubmit to trigger _autoresponse email delivery to subscriber.
   };
 
   const scrollToSection = (id: string) => {
@@ -443,12 +394,15 @@ export default function Waitlist() {
                     </div>
                   </div>
                 ) : (
-                  <form
-                    action="https://formsubmit.co/nafexgroupltd@gmail.com"
-                    method="POST"
-                    onSubmit={handleSubmit}
-                    className="space-y-4"
-                  >
+                  <>
+                    <iframe name="formsubmit_hidden_iframe" id="formsubmit_hidden_iframe" className="hidden w-0 h-0 border-0" />
+                    <form
+                      action="https://formsubmit.co/nafexgroupltd@gmail.com"
+                      method="POST"
+                      target="formsubmit_hidden_iframe"
+                      onSubmit={handleSubmit}
+                      className="space-y-4"
+                    >
                     {/* Required FormSubmit Hidden Configuration Inputs */}
                     <input
                       type="hidden"
@@ -562,6 +516,7 @@ export default function Waitlist() {
                         : "Apply as Founding Seller →"}
                     </Button>
                   </form>
+                  </>
                 )}
 
                 <p className="text-[11px] text-center text-[#9CA3AF] mt-4 font-medium">
