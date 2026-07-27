@@ -6,24 +6,37 @@
     <title>Nafex Hub</title>
 
     <!-- PWA -->
-    <meta name="theme-color" content="#D4A017" />
+    <meta name="theme-color" content="#6A1B9A" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Nafex" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <meta name="application-name" content="Nafex Hub" />
-    <meta name="msapplication-TileColor" content="#D4A017" />
+    <meta name="msapplication-TileColor" content="#6A1B9A" />
     <meta name="description" content="Ghana's premier digital fashion marketplace" />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script type="module" crossorigin src="/assets/index-BxVscLh2.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-B6jklOpj.css">
-  <link rel="manifest" href="/manifest.webmanifest"></head>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!--
+      Paystack inline popup — loaded from their official CDN.
+      SRI (integrity hash) is intentionally omitted: Paystack updates this file
+      in-place and does not publish versioned SRI hashes. The CSP on the API
+      server restricts script-src to 'self' + https://js.paystack.co only,
+      which provides equivalent supply-chain protection without pinning a hash
+      that would break silently on every CDN update.
+    -->
+    <!-- nosemgrep: html.security.audit.missing-integrity -->
+    <script src="https://js.paystack.co/v1/inline.js" crossorigin="anonymous"></script>
+    <!-- Google & Facebook Social Login Identity SDKs -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
+    <script type="module" crossorigin src="/assets/index-jI2QTKDG.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-3q5w3yLb.css">
+  <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
   <body>
-    <div id="root"></div>
+    <div id="root"></div>
   </body>
 </html>
