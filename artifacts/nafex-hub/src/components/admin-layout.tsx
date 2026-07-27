@@ -16,6 +16,7 @@ import {
   Menu,
   Flame,
   Users,
+  Wallet,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 
