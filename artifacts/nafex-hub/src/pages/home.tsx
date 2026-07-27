@@ -1,3 +1,3 @@
-import Waitlist from "./waitlist";
+import Explore from "./explore";
 
-export default Waitlist;
+export default Explore;

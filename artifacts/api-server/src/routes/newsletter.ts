@@ -6,25 +6,17 @@ const router = Router();
 
 const ADMIN_NOTIFICATION_EMAIL = "nafexgroupltd@gmail.com";
 
-// In-memory store for waitlist submissions
+// In-memory store for newsletter subscriptions
 const newsletterEmails = new Set<string>();
-const waitlistSubmissions: Array<{
+const newsletterSubmissions: Array<{
   email: string;
   name?: string;
-  role?: string;
-  category?: string;
-  storeName?: string;
-  storeLink?: string;
   submittedAt: string;
 }> = [];
 
 const subscribeSchema = z.object({
   email: z.string().email("Please provide a valid email address"),
   name: z.string().optional(),
-  role: z.string().optional(),
-  category: z.string().optional(),
-  storeName: z.string().optional(),
-  storeLink: z.string().optional(),
   source: z.string().optional(),
 });
 
@@ -36,48 +28,39 @@ router.post("/newsletter/subscribe", async (req, res) => {
       return res.status(400).json({ error: parsed.error.issues[0]?.message ?? "Invalid email" });
     }
 
-    const { email, name, role, category, storeName, storeLink, source } = parsed.data;
+    const { email, name, source } = parsed.data;
     const normalised = email.toLowerCase().trim();
 
     const submissionData = {
       email: normalised,
       name: name?.trim(),
-      role: role || "buyer",
-      category,
-      storeName,
-      storeLink,
-      source: source || "waitlist_form",
+      source: source || "newsletter_form",
       submittedAt: new Date().toISOString(),
-      adminRecipient: ADMIN_NOTIFICATION_EMAIL,
     };
 
     if (newsletterEmails.has(normalised)) {
-      return res.status(400).json({ error: "This email address has already been submitted to the waitlist." });
+      return res.status(400).json({ error: "This email address is already subscribed to our newsletter." });
     }
 
     newsletterEmails.add(normalised);
-    waitlistSubmissions.push(submissionData);
+    newsletterSubmissions.push(submissionData);
 
-    // Log admin notification dispatch & subscriber welcome auto-response confirmation
     logger.info(
       { 
-        adminEmail: ADMIN_NOTIFICATION_EMAIL,
         subscriberEmail: normalised,
         subscriberName: name,
-        welcomeSubject: "Welcome to the official Nafex Hub early access waitlist!",
         totalSubscribers: newsletterEmails.size 
       }, 
-      `Waitlist submission forwarded to ${ADMIN_NOTIFICATION_EMAIL} and confirmation sent to ${normalised}`
+      `Newsletter subscription created for ${normalised}`
     );
 
     return res.status(200).json({ 
-      message: `Thank you for joining the waitlist! A confirmation email has been sent to ${normalised} and your details were routed to ${ADMIN_NOTIFICATION_EMAIL}.`,
-      recipient: ADMIN_NOTIFICATION_EMAIL,
+      message: `Thank you for subscribing to the Nafex Hub newsletter!`,
       subscriberEmail: normalised,
     });
   } catch (err) {
-    logger.error({ err }, "Waitlist subscription error");
-    return res.status(500).json({ error: "Failed to submit waitlist form. Please try again." });
+    logger.error({ err }, "Newsletter subscription error");
+    return res.status(500).json({ error: "Failed to subscribe to newsletter. Please try again." });
   }
 });
 
@@ -85,8 +68,8 @@ router.post("/newsletter/subscribe", async (req, res) => {
 router.get("/newsletter/submissions", async (_req, res) => {
   return res.status(200).json({
     targetAdminEmail: ADMIN_NOTIFICATION_EMAIL,
-    total: waitlistSubmissions.length,
-    submissions: waitlistSubmissions,
+    total: newsletterSubmissions.length,
+    submissions: newsletterSubmissions,
   });
 });
 
