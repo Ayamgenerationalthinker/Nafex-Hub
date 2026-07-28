@@ -250,23 +250,12 @@ export default function Explore() {
               </Button>
             </div>
           </div>
-          <div className="lg:col-span-5 flex justify-center relative items-end">
-            <div className="relative w-full max-w-md h-full flex items-end">
-              <img
-                src="/hero-model.jpg"
-                alt="Nafex Hub Shopping"
-                className="w-full h-auto object-contain max-h-[500px]"
-              />
-              <div className="absolute -bottom-6 sm:bottom-4 left-4 right-4 sm:left-auto sm:-left-8 sm:right-auto bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-xl flex items-center gap-4 z-10 border border-purple-100">
-                <div className="w-12 h-12 rounded-xl bg-[#6A1B9A] text-white flex items-center justify-center font-bold text-lg shadow-sm">
-                  ✓
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-[#222222]">Nafex Verified</p>
-                  <p className="text-xs text-[#6B7280]">Quality • Fast Delivery • Support</p>
-                </div>
-              </div>
-            </div>
+          <div className="lg:col-span-5 flex justify-center items-end">
+            <img
+              src="/hero-model.jpg"
+              alt="Nafex Hub Shopping"
+              className="w-full h-auto object-contain max-h-[500px]"
+            />
           </div>
         </div>
       </div>
