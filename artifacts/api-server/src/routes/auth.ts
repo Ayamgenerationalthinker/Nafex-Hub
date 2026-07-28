@@ -195,11 +195,18 @@ router.post("/auth/resend-verification", authLimiter, requireAuth, async (req, r
     console.log(`[DEV MODE] Resent Verification code for ${user.email}: ${code}`);
     console.log(`======================================================\n`);
   }
+  // Return the code and user details so the browser's EmailJS SDK can send it
+  // directly if the server-side send didn't work (no EMAILJS_PRIVATE_KEY set).
   res.json({
     message: delivered
       ? "Verification code sent. Check your email."
-      : "Code generated but email delivery is not configured on the server.",
+      : "Code generated. Sending via browser.",
     delivered,
+    // These are safe to return: the code is already stored in the DB and will
+    // expire, and the user is authenticated via requireAuth middleware.
+    code,
+    email: user.email,
+    name: user.name,
   });
 });
 

@@ -77,37 +77,51 @@ export async function sendUserEmail(opts: {
   const emailjsPublic = process.env.EMAILJS_PUBLIC_KEY || process.env.EMAILJS_USER_ID || "RI_Vy2fQxvrMk-hAs";
 
   if (emailjsService && emailjsTemplate && emailjsPublic) {
-    try {
-      const payload: any = {
-        service_id: emailjsService,
-        template_id: emailjsTemplate,
-        user_id: emailjsPublic,
-        template_params: {
-          to_email: opts.to,
-          to_name: opts.to.split("@")[0],
-          subject: opts.subject,
-          verification_code: opts.code || "",
-          code: opts.code || "",
-          message: opts.text,
-          html_content: opts.html || "",
-        },
-      };
-      if (process.env.EMAILJS_PRIVATE_KEY) {
-        payload.accessToken = process.env.EMAILJS_PRIVATE_KEY;
+    // EmailJS REST API requires a private accessToken for server-side use.
+    // Only attempt if private key is configured; otherwise skip to avoid hangs.
+    const emailjsPrivateKey = process.env.EMAILJS_PRIVATE_KEY;
+    if (emailjsPrivateKey) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 3000);
+        const payload: any = {
+          service_id: emailjsService,
+          template_id: emailjsTemplate,
+          user_id: emailjsPublic,
+          accessToken: emailjsPrivateKey,
+          template_params: {
+            to_email: opts.to,
+            to_name: opts.to.split("@")[0],
+            subject: opts.subject,
+            verification_code: opts.code || "",
+            code: opts.code || "",
+            message: opts.text,
+            html_content: opts.html || "",
+          },
+        };
+        const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+        if (res.ok) {
+          logger.info({ to: opts.to, subject: opts.subject }, "User email sent via EmailJS API");
+          return true;
+        }
+        const errText = await res.text();
+        logger.error({ errText, to: opts.to, subject: opts.subject }, "EmailJS API returned error");
+      } catch (err: any) {
+        if (err?.name === "AbortError") {
+          logger.warn({ to: opts.to }, "EmailJS API timed out after 3s — falling through to next provider");
+        } else {
+          logger.error({ err, to: opts.to, subject: opts.subject }, "Failed to send user email via EmailJS API");
+        }
       }
-      const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) {
-        logger.info({ to: opts.to, subject: opts.subject }, "User email sent via EmailJS API");
-        return true;
-      }
-      const errText = await res.text();
-      logger.error({ errText, to: opts.to, subject: opts.subject }, "EmailJS API returned error");
-    } catch (err) {
-      logger.error({ err, to: opts.to, subject: opts.subject }, "Failed to send user email via EmailJS API");
+    } else {
+      // No private key — skip server-side EmailJS (browser SDK handles it on the frontend)
+      logger.info({ to: opts.to }, "EMAILJS_PRIVATE_KEY not set — skipping server-side EmailJS send (frontend SDK will handle it)");
     }
   }
 

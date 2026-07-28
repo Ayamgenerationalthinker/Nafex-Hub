@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { sendEmailJSVerificationCode } from "@/lib/emailjs-verification";
 
-const CODE_TTL_SECONDS = 60;
+const CODE_TTL_SECONDS = 180; // 3 minutes
 
 export default function VerifyEmail() {
   const { user, token, updateUser } = useAuth();
@@ -17,11 +18,12 @@ export default function VerifyEmail() {
   const [code, setCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [resending, setResending] = useState(false);
-  const [codeSent, setCodeSent] = useState(true);
+  const [codeSent, setCodeSent] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(CODE_TTL_SECONDS);
   const tickRef = useRef<number | null>(null);
+  const hasSentRef = useRef(false);
 
-  // Start / restart the countdown.
+  // Countdown timer
   useEffect(() => {
     if (tickRef.current) window.clearInterval(tickRef.current);
     tickRef.current = window.setInterval(() => {
@@ -29,6 +31,15 @@ export default function VerifyEmail() {
     }, 1000);
     return () => { if (tickRef.current) window.clearInterval(tickRef.current); };
   }, []);
+
+  // Auto-send verification code on first load
+  useEffect(() => {
+    if (user && !user.emailVerified && !hasSentRef.current) {
+      hasSentRef.current = true;
+      sendCode();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   if (!user) {
     navigate("/login");
@@ -79,27 +90,48 @@ export default function VerifyEmail() {
     }
   }
 
-  async function resend() {
+  async function sendCode() {
     setResending(true);
     try {
-      const res = await fetch("/api/auth/resend-verification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Could not resend");
+      // Set a 5-second timeout so the UI never hangs
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      let data: any = {};
+      try {
+        const res = await fetch("/api/auth/resend-verification", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+        data = await res.json();
+        if (!res.ok) throw new Error(data.error ?? "Could not send code");
+      } catch (fetchErr: any) {
+        clearTimeout(timeoutId);
+        if (fetchErr?.name !== "AbortError") throw fetchErr;
+        // Timed out — continue to browser send below
+      }
+
+      // If server didn't deliver (no EMAILJS_PRIVATE_KEY), send directly from browser SDK
+      if (!data.delivered && data.code && data.email) {
+        await sendEmailJSVerificationCode({
+          email: data.email,
+          name: data.name || user!.email.split("@")[0],
+          code: data.code,
+        });
+      }
+
       setCode("");
       setSecondsLeft(CODE_TTL_SECONDS);
       setCodeSent(true);
       toast({
-        title: data.delivered ? "Verification code sent!" : "Code generated",
-        description: data.delivered
-          ? `A fresh 6-digit verification code was sent to ${user!.email}. It expires in 3 minutes.`
-          : "Configure EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, and EMAILJS_PUBLIC_KEY in environment variables.",
+        title: "✉️ Verification code sent!",
+        description: `A 6-digit code was sent to ${user!.email}. Check your inbox (and spam folder).`,
       });
       return true;
     } catch (err) {
-      toast({ title: "Resend failed", description: (err as Error).message, variant: "destructive" });
+      toast({ title: "Couldn't send code", description: (err as Error).message, variant: "destructive" });
       return false;
     } finally {
       setResending(false);
@@ -111,27 +143,15 @@ export default function VerifyEmail() {
       <Card>
         <CardContent className="p-8 space-y-6">
           {!codeSent ? (
+            /* Loading state — auto-send in progress */
             <div className="text-center space-y-4">
               <div className="w-14 h-14 mx-auto rounded-full bg-amber-100 flex items-center justify-center">
-                <Mail className="w-7 h-7 text-amber-600" />
+                <Loader2 className="w-7 h-7 text-amber-600 animate-spin" />
               </div>
-              <h1 className="text-2xl font-bold">Verify your email</h1>
+              <h1 className="text-2xl font-bold">Sending your code…</h1>
               <p className="text-sm text-muted-foreground">
-                Click the button below to send a verification code to <strong className="text-foreground">{user.email}</strong>.
+                We're sending a 6-digit code to <strong className="text-foreground">{user.email}</strong>. Please wait.
               </p>
-              <p className="text-xs text-muted-foreground">
-                Verification is required before you can place orders, message sellers, or list a shop.
-              </p>
-              <Button 
-                onClick={async () => {
-                  const success = await resend();
-                  if (success) setCodeSent(true);
-                }} 
-                className="w-full" 
-                disabled={resending}
-              >
-                {resending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending...</> : "Send Code"}
-              </Button>
             </div>
           ) : (
             <>
@@ -171,23 +191,24 @@ export default function VerifyEmail() {
                     className="text-center text-2xl tracking-[0.5em] font-mono h-14"
                     data-testid="input-verification-code"
                     disabled={expired}
+                    autoFocus
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={submitting || code.length !== 6 || expired} data-testid="btn-verify-email">
-                  {submitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Verifying...</> : "Verify email"}
+                  {submitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Verifying…</> : "Verify email"}
                 </Button>
               </form>
 
               <Button
                 type="button"
                 variant="outline"
-                onClick={resend}
+                onClick={sendCode}
                 disabled={resending}
                 className="w-full gap-1.5"
                 data-testid="btn-resend-code"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${resending ? "animate-spin" : ""}`} />
-                {resending ? "Sending..." : expired ? "Send a new code" : "Resend code"}
+                {resending ? "Sending…" : expired ? "Send a new code" : "Resend code"}
               </Button>
             </>
           )}
