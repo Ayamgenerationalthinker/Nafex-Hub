@@ -72,9 +72,9 @@ export async function sendUserEmail(opts: {
   code?: string;
 }): Promise<boolean> {
   // 1. EmailJS API Support (Server-side)
-  const emailjsService = process.env.EMAILJS_SERVICE_ID;
-  const emailjsTemplate = process.env.EMAILJS_TEMPLATE_ID;
-  const emailjsPublic = process.env.EMAILJS_PUBLIC_KEY || process.env.EMAILJS_USER_ID;
+  const emailjsService = process.env.EMAILJS_SERVICE_ID || "service_79bcxpk";
+  const emailjsTemplate = process.env.EMAILJS_TEMPLATE_ID || "template_gv1jz99";
+  const emailjsPublic = process.env.EMAILJS_PUBLIC_KEY || process.env.EMAILJS_USER_ID || "RI_Vy2fQxvrMk-hAs";
 
   if (emailjsService && emailjsTemplate && emailjsPublic) {
     try {

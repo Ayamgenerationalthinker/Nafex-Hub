@@ -10,9 +10,9 @@ export interface SendVerificationParams {
 }
 
 export async function sendEmailJSVerificationCode(params: SendVerificationParams): Promise<boolean> {
-  const serviceId = params.serviceId || (import.meta.env.VITE_EMAILJS_SERVICE_ID as string) || "service_nafex";
-  const templateId = params.templateId || (import.meta.env.VITE_EMAILJS_TEMPLATE_ID as string) || "template_verification";
-  const publicKey = params.publicKey || (import.meta.env.VITE_EMAILJS_PUBLIC_KEY as string);
+  const serviceId = params.serviceId || (import.meta.env.VITE_EMAILJS_SERVICE_ID as string) || "service_79bcxpk";
+  const templateId = params.templateId || (import.meta.env.VITE_EMAILJS_TEMPLATE_ID as string) || "template_gv1jz99";
+  const publicKey = params.publicKey || (import.meta.env.VITE_EMAILJS_PUBLIC_KEY as string) || "RI_Vy2fQxvrMk-hAs";
 
   if (!publicKey) {
     console.warn("[EmailJS] VITE_EMAILJS_PUBLIC_KEY is not configured.");
