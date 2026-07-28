@@ -17,7 +17,7 @@ export default function VerifyEmail() {
   const [code, setCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [resending, setResending] = useState(false);
-  const [codeSent, setCodeSent] = useState(false);
+  const [codeSent, setCodeSent] = useState(true);
   const [secondsLeft, setSecondsLeft] = useState(CODE_TTL_SECONDS);
   const tickRef = useRef<number | null>(null);
 
@@ -90,11 +90,12 @@ export default function VerifyEmail() {
       if (!res.ok) throw new Error(data.error ?? "Could not resend");
       setCode("");
       setSecondsLeft(CODE_TTL_SECONDS);
+      setCodeSent(true);
       toast({
-        title: data.delivered ? "New code sent" : "Code generated",
+        title: data.delivered ? "Verification code sent!" : "Code generated",
         description: data.delivered
-          ? `A fresh 6-digit code was sent to ${user!.email}. It expires in 1 minute.`
-          : "Email isn't configured on the server yet - ask the admin to set EMAIL_USER / EMAIL_PASS.",
+          ? `A fresh 6-digit verification code was sent to ${user!.email}. It expires in 3 minutes.`
+          : "Configure EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, and EMAILJS_PUBLIC_KEY in environment variables.",
       });
       return true;
     } catch (err) {
