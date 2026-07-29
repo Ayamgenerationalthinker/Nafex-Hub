@@ -70,7 +70,6 @@ setAuthTokenGetter(() => localStorage.getItem("nafex_token"));
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
       <Route path="/admin/dashboard">{() => <ProtectedRoute component={AdminDashboard} roles={["admin"]} to="/" />}</Route>
       <Route path="/admin/users">{() => <ProtectedRoute component={AdminUsersPage} roles={["admin"]} to="/" />}</Route>
       <Route path="/admin/businesses">{() => <ProtectedRoute component={AdminBusinessesPage} roles={["admin"]} to="/" />}</Route>
@@ -85,6 +84,7 @@ function Router() {
       <Route>
         <Layout>
           <Switch>
+            <Route path="/" component={Home} />
             <Route path="/explore" component={Explore} />
             <Route path="/brand/:id" component={BrandProfile} />
             <Route path="/login" component={Login} />
