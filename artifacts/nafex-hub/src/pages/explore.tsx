@@ -257,16 +257,12 @@ export default function Explore() {
           </div>
 
           {/* RIGHT — Hero Image */}
-          <div className="flex items-end justify-center relative overflow-hidden">
+          <div className="flex items-end justify-center relative overflow-hidden" style={{ minHeight: "460px" }}>
             <img
-              src="/home-hero.jpg"
+              src="/home-hero.png"
               alt="Nafex Hub Shopping"
-              className="w-full h-auto object-contain object-bottom"
-              style={{
-                maxHeight: "520px",
-                mixBlendMode: "multiply",
-                display: "block",
-              }}
+              className="absolute bottom-0 right-0 h-full w-auto object-contain object-bottom"
+              style={{ maxWidth: "100%", display: "block" }}
             />
           </div>
 
