@@ -250,21 +250,19 @@ export default function Explore() {
               </Button>
             </div>
           </div>
-          <div className="lg:col-span-5 flex justify-end items-stretch relative">
-            <div
-              className="w-full h-full"
+          <div className="lg:col-span-5 flex justify-end items-end self-stretch">
+            <img
+              src="/home-hero.jpg"
+              alt="Nafex Hub Shopping"
+              className="w-full h-auto object-contain"
               style={{
-                maskImage: "linear-gradient(to right, transparent 0%, black 30%)",
-                WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 30%)",
+                objectPosition: "right bottom",
+                mixBlendMode: "multiply",
+                maxHeight: "520px",
+                minHeight: "340px",
+                display: "block",
               }}
-            >
-              <img
-                src="/home-hero.jpg"
-                alt="Nafex Hub Shopping"
-                className="w-full h-full object-cover object-center"
-                style={{ minHeight: "340px", maxHeight: "520px", borderRadius: 0, background: "transparent" }}
-              />
-            </div>
+            />
           </div>
         </div>
       </div>
