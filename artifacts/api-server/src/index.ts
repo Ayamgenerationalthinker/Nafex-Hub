@@ -1,7 +1,7 @@
 import { createServer } from "http";
 import app from "./app";
 import { initSocketIO } from "./lib/socket";
-import { logger } from "./lib/logger";
+import { logger } from "./shared/logger";
 import { db } from "@workspace/db";
 import { sql } from "drizzle-orm";
 

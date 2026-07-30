@@ -4,5 +4,11 @@ node_modules/
 .pnpm-store/
 
 dist/
+build/
+coverage/
+.next/
+.cache/
+.env
+.env.local
 .replit-artifact/
 git_backup/

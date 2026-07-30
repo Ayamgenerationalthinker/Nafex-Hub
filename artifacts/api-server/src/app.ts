@@ -6,13 +6,11 @@ import path from "path";
 import { existsSync, mkdirSync } from "fs";
 import router from "./routes";
 import pinoHttp from "pino-http";
-import { logger } from "./lib/logger";
+import { logger } from "./shared/logger";
+import { errorHandler } from "./shared/middlewares/errorHandler";
+import { env } from "./config/env";
 
 const app = express();
-
-app.get("/api/healthz", (_req, res) => {
-  res.json({ status: "ok" });
-});
 
 const allowedOrigins = (() => {
   const explicit = process.env["ALLOWED_ORIGINS"];
@@ -142,11 +140,6 @@ if (existsSync(frontendPath)) {
 }
 
 // Global error handler
-app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  logger.error(err, "Unhandled error in Express");
-  res.status(err.status || 500).json({ 
-    error: process.env.NODE_ENV === "production" ? "Internal Server Error" : err.message || "Internal Server Error"
-  });
-});
+app.use(errorHandler);
 
 export default app;

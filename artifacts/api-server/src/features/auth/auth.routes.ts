@@ -7,8 +7,15 @@ import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import rateLimit from "express-rate-limit";
 import jwt from "jsonwebtoken";
-import { sendAdminEmail, sendVerificationEmail } from "../lib/mailer";
-import { requireAuth } from "../lib/auth-middleware";
+import { sendAdminEmail, sendVerificationEmail } from "../../lib/mailer";
+import { requireAuth } from "../../lib/auth-middleware";
+import { AuthController } from "./auth.controller";
+import { AuthService } from "./auth.service";
+import { AuthRepository } from "./auth.repository";
+
+export const authRepository = new AuthRepository();
+export const authService = new AuthService(authRepository);
+export const authController = new AuthController(authService);
 
 function generateVerificationCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -67,82 +74,8 @@ export function parseToken(token: string): { userId: number; expiresAt: number }
   }
 }
 
-router.post("/auth/register", authLimiter, async (req, res): Promise<void> => {
-  const parsed = RegisterBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
-
-  const { name, email, password, role } = parsed.data;
-
-  const passwordError = validatePasswordStrength(password);
-  if (passwordError) {
-    res.status(400).json({ error: passwordError });
-    return;
-  }
-
-  if (role === "admin") {
-    res.status(403).json({ error: "Admin accounts cannot be created through registration" });
-    return;
-  }
-
-  const normalizedEmail = email.toLowerCase().trim();
-
-  const existing = await db
-    .select()
-    .from(usersTable)
-    .where(eq(usersTable.email, normalizedEmail));
-
-  if (existing.length > 0) {
-    res.status(400).json({ error: "Email already registered" });
-    return;
-  }
-
-  const hashedPassword = await hashPassword(password);
-  const verificationCode = generateVerificationCode();
-  const verificationExpiry = new Date(Date.now() + VERIFICATION_TTL_MS);
-
-  const [user] = await db
-    .insert(usersTable)
-    .values({
-      name,
-      email: normalizedEmail,
-      password: hashedPassword,
-      role: normalizedEmail === "princefiebor10@gmail.com" ? "admin" : (role ?? "user"),
-      emailVerified: false,
-      emailVerificationCode: verificationCode,
-      emailVerificationExpiry: verificationExpiry,
-    })
-    .returning();
-
-  const token = generateToken(user.id);
-
-  sendAdminEmail(
-    "New User Signup",
-    `A new user has registered on Nafex Hub.\n\nName: ${user.name}\nEmail: ${user.email}\nRole: ${user.role}\nDate: ${new Date().toUTCString()}`
-  );
-
-  // Fire-and-forget verification email; user is still logged in either way.
-  const emailDelivered = await sendVerificationEmail(user.email, user.name, verificationCode).catch(() => false);
-  
-  if (!emailDelivered || process.env.NODE_ENV !== "production") {
-    console.log(`\n======================================================`);
-    console.log(`[DEV MODE] Verification code for ${user.email}: ${verificationCode}`);
-    console.log(`======================================================\n`);
-  }
-
-  res.status(201).json({
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      emailVerified: user.emailVerified,
-      createdAt: user.createdAt,
-    },
-    token,
-  });
+router.post("/auth/register", authLimiter, (req, res, next) => {
+  authController.register(req, res).catch(next);
 });
 
 // Verify email with 6-digit code emailed at signup. Rate-limited to deter brute force.
@@ -210,52 +143,8 @@ router.post("/auth/resend-verification", authLimiter, requireAuth, async (req, r
   });
 });
 
-router.post("/auth/login", authLimiter, async (req, res): Promise<void> => {
-  const parsed = LoginBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
-
-  const { email, password } = parsed.data;
-  const normalizedEmail = email.toLowerCase().trim();
-
-  let [user] = await db
-    .select()
-    .from(usersTable)
-    .where(eq(usersTable.email, normalizedEmail));
-
-  const passwordValid = user ? await verifyPassword(password, user.password) : false;
-
-  if (!user || !passwordValid) {
-    res.status(401).json({ error: "Invalid email or password" });
-    return;
-  }
-
-  // Force admin role for this specific email
-  if (normalizedEmail === "princefiebor10@gmail.com" && user.role !== "admin") {
-    const [updated] = await db
-      .update(usersTable)
-      .set({ role: "admin" })
-      .where(eq(usersTable.id, user.id))
-      .returning();
-    user = updated;
-  }
-
-  const token = generateToken(user.id);
-
-  res.json({
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      emailVerified: user.emailVerified,
-      loyaltyPoints: user.loyaltyPoints,
-      createdAt: user.createdAt,
-    },
-    token,
-  });
+router.post("/auth/login", authLimiter, (req, res, next) => {
+  authController.login(req, res).catch(next);
 });
 
 router.get("/auth/me", async (req, res): Promise<void> => {

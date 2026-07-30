@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import { logger } from "./logger";
+import { logger } from "../shared/logger";
 
 function createTransport() {
   const user = process.env.EMAIL_USER;

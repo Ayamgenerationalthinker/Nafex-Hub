@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
-import healthRouter from "./health";
-import authRouter from "./auth";
+import healthRouter from "../features/health/health.routes";
+import authRouter from "../features/auth/auth.routes";
 import businessesRouter from "./businesses";
 import statsRouter from "./stats";
 import reviewsRouter from "./reviews";

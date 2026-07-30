@@ -2,8 +2,8 @@ import { Server, type Socket } from "socket.io";
 import type { Server as HttpServer } from "http";
 import { db, usersTable, tradeOrdersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { parseToken } from "../routes/auth";
-import { logger } from "./logger";
+import { parseToken } from "../features/auth/auth.routes";
+import { logger } from "../shared/logger";
 
 let io: Server | null = null;
 
