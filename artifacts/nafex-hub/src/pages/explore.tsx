@@ -211,46 +211,25 @@ export default function Explore() {
     <div className="container mx-auto px-4 py-6 md:py-8 min-h-[calc(100vh-4rem)] font-poppins">
 
       {/* ── HERO BANNER ── */}
+      {/* The full banner PNG is one unified composition (girl + cream bg) used as CSS background.
+          Text is overlaid on the left half with z-10. Exactly matches img 4.jpeg approach. */}
       <div
         className="relative overflow-hidden rounded-3xl mb-8 shadow-sm border border-amber-100/60"
-        style={{ background: "#F8F3EA", minHeight: "500px" }}
+        style={{
+          backgroundImage: "url('/home-hero-banner.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center right",
+          backgroundRepeat: "no-repeat",
+          backgroundColor: "#F8F3EA",
+          minHeight: "500px",
+        }}
       >
-        {/* Subtle warm glow behind subject */}
-        <div
-          className="absolute right-0 top-0 bottom-0 w-[60%]"
-          style={{
-            background: "radial-gradient(ellipse at 70% 50%, rgba(212,160,23,0.13) 0%, transparent 70%)",
-            pointerEvents: "none",
-          }}
-        />
-
-        {/* Hero image — raw, no wrapper, sits directly on cream. mix-blend-mode:multiply
-            dissolves the ash/white background of Home.jpeg into the cream hero colour,
-            making the subject appear to stand naturally on cream — exactly like img 4.jpeg */}
-        <img
-          src="/home-hero.jpg"
-          alt="Nafex Hub Shopping"
-          style={{
-            position: "absolute",
-            right: 0,
-            bottom: 0,
-            height: "110%",
-            width: "auto",
-            maxWidth: "60%",
-            objectFit: "contain",
-            objectPosition: "right bottom",
-            mixBlendMode: "multiply",
-            pointerEvents: "none",
-            userSelect: "none",
-          }}
-        />
-
-        {/* Left text — z-10 so it floats above the image layer */}
+        {/* Left text overlay — sits on the clean left portion of the banner */}
         <div
           className="relative z-10 flex flex-col justify-center py-14 space-y-5"
           style={{ paddingLeft: "3.5rem", maxWidth: "50%", minHeight: "500px" }}
         >
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F6F2FF] border border-purple-100 text-[#6A1B9A] text-xs font-semibold w-fit">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F6F2FF]/80 border border-purple-100 text-[#6A1B9A] text-xs font-semibold w-fit backdrop-blur-sm">
             <Sparkles className="w-3.5 h-3.5 text-[#D4A017]" />
             Ghana's Premier Trusted Marketplace
           </div>
