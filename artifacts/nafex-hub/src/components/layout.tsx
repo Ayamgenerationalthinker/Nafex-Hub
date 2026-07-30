@@ -71,20 +71,31 @@ export function Layout({ children }: { children: React.ReactNode }) {
     ? [{ href: "/admin/dashboard", label: "Admin Panel" }]
     : isBusinessOwner
     ? [
+        { href: "/dashboard", label: "Dashboard" },
         { href: "/my-shop", label: "My Shop" },
         { href: "/orders", label: "Orders" },
         { href: "/inbox", label: "Inbox" },
+        { href: "/payments", label: "Payments" },
       ]
     : user
     ? [
         { href: "/explore", label: "Explore Brands" },
         { href: "/discounts", label: "Deals" },
         { href: "/trade", label: "Trade" },
+        { href: "/support", label: "Support" },
       ]
     : [
         { href: "/explore", label: "Explore Brands" },
         { href: "/discounts", label: "Deals" },
       ];
+
+  const sellerMoreLinks = isBusinessOwner
+    ? [
+        { href: "/trade/seller-import", label: "Trade Connect", icon: <Globe2 className="w-4 h-4 text-muted-foreground" /> },
+        { href: "/seller/settings", label: "Settings", icon: <Settings className="w-4 h-4 text-muted-foreground" /> },
+        { href: "/support", label: "Support", icon: <Headphones className="w-4 h-4 text-muted-foreground" /> },
+      ]
+    : [];
 
   return (
     <div className="min-h-[100dvh] flex flex-col w-full bg-background text-foreground font-sans">
@@ -145,6 +156,26 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 {link.label}
               </Link>
             ))}
+
+            {/* Seller "More" dropdown for overflow nav items */}
+            {sellerMoreLinks.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-1 text-[#222222]/80 hover:text-[#6A1B9A] px-2 text-sm font-poppins font-medium">
+                    More <ChevronDown className="w-3 h-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48">
+                  {sellerMoreLinks.map((link) => (
+                    <DropdownMenuItem key={link.href} asChild>
+                      <Link href={link.href} className="flex items-center gap-2 cursor-pointer">
+                        {link.icon} {link.label}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
 
             {user ? (
               <div className="flex items-center gap-1.5 ml-2">
