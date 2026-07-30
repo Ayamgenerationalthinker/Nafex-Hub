@@ -213,23 +213,17 @@ export default function Explore() {
       {/* ── HERO BANNER ── */}
       <div
         className="relative overflow-hidden rounded-3xl mb-8 shadow-sm border border-amber-100/60"
-        style={{ background: "#F8F3EA", minHeight: "420px" }}
+        style={{ background: "#F8F3EA", minHeight: "460px" }}
       >
-        {/* Full-bleed background image */}
-        <img
-          src="/home-hero.png"
-          alt="Nafex Hub Shopping"
-          className="absolute inset-0 w-full h-full object-cover object-left"
-          style={{ pointerEvents: "none", userSelect: "none" }}
-        />
-        {/* Right-side text overlay */}
-        <div className="relative z-10 flex items-center justify-end h-full min-h-[420px] px-6 md:px-12 py-10">
-          <div className="w-full max-w-lg lg:w-1/2 space-y-5 ml-auto">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F6F2FF]/90 border border-purple-100 text-[#6A1B9A] text-xs font-semibold backdrop-blur-sm">
+        <div className="grid grid-cols-1 lg:grid-cols-2 h-full" style={{ minHeight: "460px" }}>
+
+          {/* LEFT — Text Content */}
+          <div className="flex flex-col justify-center px-8 md:px-14 py-12 space-y-5 z-10">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F6F2FF] border border-purple-100 text-[#6A1B9A] text-xs font-semibold w-fit">
               <Sparkles className="w-3.5 h-3.5 text-[#D4A017]" />
               Ghana's Premier Trusted Marketplace
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#222222] tracking-tight leading-[1.15]">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.4rem] font-extrabold text-[#222222] tracking-tight leading-[1.12]">
               Everything You Need, <br />
               <span className="text-[#6A1B9A]">Delivered to You.</span>
             </h1>
@@ -261,6 +255,21 @@ export default function Explore() {
               </Button>
             </div>
           </div>
+
+          {/* RIGHT — Hero Image */}
+          <div className="flex items-end justify-center relative overflow-hidden">
+            <img
+              src="/home-hero.jpg"
+              alt="Nafex Hub Shopping"
+              className="w-full h-auto object-contain object-bottom"
+              style={{
+                maxHeight: "520px",
+                mixBlendMode: "multiply",
+                display: "block",
+              }}
+            />
+          </div>
+
         </div>
       </div>
 
