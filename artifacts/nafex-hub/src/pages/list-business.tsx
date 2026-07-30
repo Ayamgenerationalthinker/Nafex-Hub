@@ -274,12 +274,12 @@ export default function ListBusiness() {
                 label="Business Logo (optional)"
               />
 
-              {/* Banner/Store Images Upload */}
+              {/* Banner Image Upload */}
               <ImageUpload
                 value={bannerImages}
                 onChange={setBannerImages}
-                maxImages={5}
-                label="Store Images (optional) - shown on your brand page"
+                maxImages={1}
+                label="Banner Image (optional) - shown on your brand page"
               />
 
               <Button

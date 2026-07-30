@@ -1568,8 +1568,8 @@ function SellerDashboard() {
                 <ImageUpload value={bizLogo} onChange={setBizLogo} maxImages={1} label="Upload Logo" />
               </div>
               <div>
-                <Label className="block mb-2 text-sm font-medium text-foreground">Banner / Gallery Images</Label>
-                <ImageUpload value={bizImages} onChange={setBizImages} maxImages={6} label="Upload Images" />
+                <Label className="block mb-2 text-sm font-medium text-foreground">Banner Image</Label>
+                <ImageUpload value={bizImages} onChange={setBizImages} maxImages={1} label="Upload Image" />
               </div>
               <Button onClick={saveBizSettings} disabled={bizSaving} className="gap-2">
                 {bizSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
