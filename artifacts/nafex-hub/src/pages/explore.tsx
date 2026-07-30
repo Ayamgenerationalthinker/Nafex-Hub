@@ -210,11 +210,22 @@ export default function Explore() {
   return (
     <div className="container mx-auto px-4 py-6 md:py-8 min-h-[calc(100vh-4rem)] font-poppins">
 
-      {/* ── HERO BANNER (Exact Style from Img 1, img 2, img 3, img 4) ── */}
-      <div className="relative overflow-hidden rounded-3xl bg-[#FFF8E6] border border-amber-100/60 mb-8 shadow-sm" style={{ paddingTop: "3rem", paddingBottom: "3rem", paddingLeft: "3rem", paddingRight: 0 }}>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 items-stretch">
-          <div className="lg:col-span-7 space-y-5">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F6F2FF] border border-purple-100 text-[#6A1B9A] text-xs font-semibold">
+      {/* ── HERO BANNER ── */}
+      <div
+        className="relative overflow-hidden rounded-3xl mb-8 shadow-sm border border-amber-100/60"
+        style={{ background: "#F8F3EA", minHeight: "420px" }}
+      >
+        {/* Full-bleed background image */}
+        <img
+          src="/home-hero.png"
+          alt="Nafex Hub Shopping"
+          className="absolute inset-0 w-full h-full object-cover object-left"
+          style={{ pointerEvents: "none", userSelect: "none" }}
+        />
+        {/* Right-side text overlay */}
+        <div className="relative z-10 flex items-center justify-end h-full min-h-[420px] px-6 md:px-12 py-10">
+          <div className="w-full max-w-lg lg:w-1/2 space-y-5 ml-auto">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F6F2FF]/90 border border-purple-100 text-[#6A1B9A] text-xs font-semibold backdrop-blur-sm">
               <Sparkles className="w-3.5 h-3.5 text-[#D4A017]" />
               Ghana's Premier Trusted Marketplace
             </div>
@@ -222,7 +233,7 @@ export default function Explore() {
               Everything You Need, <br />
               <span className="text-[#6A1B9A]">Delivered to You.</span>
             </h1>
-            <p className="text-[#6B7280] text-base md:text-lg max-w-xl leading-relaxed">
+            <p className="text-[#5a5a5a] text-base md:text-lg max-w-md leading-relaxed">
               Shop top quality products across electronics, fashion, home, beauty, and more with fast delivery and secure escrow payments.
             </p>
             <div className="flex flex-wrap items-center gap-4 pt-2">
@@ -249,20 +260,6 @@ export default function Explore() {
                 Explore Categories
               </Button>
             </div>
-          </div>
-          <div className="lg:col-span-5 flex justify-end items-end self-stretch">
-            <img
-              src="/home-hero.jpg"
-              alt="Nafex Hub Shopping"
-              className="w-full h-auto object-contain"
-              style={{
-                objectPosition: "right bottom",
-                mixBlendMode: "multiply",
-                maxHeight: "520px",
-                minHeight: "340px",
-                display: "block",
-              }}
-            />
           </div>
         </div>
       </div>
