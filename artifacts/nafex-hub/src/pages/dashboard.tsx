@@ -1109,8 +1109,7 @@ function SellerDashboard() {
                       <Textarea id="col-desc" placeholder="Tell customers what this collection is about…" value={newColDesc} onChange={(e) => setNewColDesc(e.target.value)} className="mt-1" rows={2} />
                     </div>
                     <div>
-                      <Label htmlFor="col-img">Cover Image</Label>
-                      <div className="mt-2">
+                      <div className="mt-1">
                         <ImageUpload
                           value={newColImage ? [newColImage] : []}
                           onChange={(urls) => setNewColImage(urls[0] || "")}
@@ -1146,8 +1145,7 @@ function SellerDashboard() {
                       <Textarea value={editingCol?.description ?? ""} onChange={(e) => setEditingCol((p) => p ? { ...p, description: e.target.value } : p)} className="mt-1" rows={2} />
                     </div>
                     <div>
-                      <Label>Cover Image</Label>
-                      <div className="mt-2">
+                      <div className="mt-1">
                         <ImageUpload
                           value={editingCol?.coverImage ? [editingCol.coverImage] : []}
                           onChange={(urls) => setEditingCol((p) => p ? { ...p, coverImage: urls[0] || null } : p)}
