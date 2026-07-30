@@ -533,10 +533,10 @@ function SellerDashboard() {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        {/* ── Premium Tab Bar ── */}
-        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 mb-6">
-          <div className="bg-card border border-border rounded-xl p-1 flex items-center gap-0.5 w-max shadow-sm">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
+        {/* ── Sidebar Navigation ── */}
+        <div className="w-full md:w-56 lg:w-64 flex-shrink-0 sticky top-24 z-10 bg-background md:bg-transparent pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto md:overflow-visible">
+          <div className="bg-card border border-border rounded-xl p-2 flex flex-row md:flex-col gap-1 w-max md:w-full shadow-sm">
             {([
               { value: "overview", label: "Overview" },
               { value: "orders", label: "Orders" },
@@ -555,7 +555,7 @@ function SellerDashboard() {
               <button
                 key={tab.value}
                 onClick={() => setActiveTab(tab.value)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 ${
+                className={`px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 flex text-left ${
                   activeTab === tab.value
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
@@ -567,6 +567,8 @@ function SellerDashboard() {
           </div>
         </div>
 
+        {/* ── Main Content ── */}
+        <div className="flex-1 min-w-0 w-full pb-16">
         {/* ── Overview Tab ── */}
         {activeTab === "overview" && (
           <div className="space-y-6">
@@ -1611,6 +1613,7 @@ function SellerDashboard() {
             <SellerVouchersTab businessId={businessId} />
           </div>
         )}
+        </div>
       </Tabs>
 
       <Dialog open={deliveryOrderId !== null} onOpenChange={(o) => { if (!o) setDeliveryOrderId(null); }}>
