@@ -59,25 +59,14 @@ export async function requireAuth(
 }
 
 /**
- * Require an authenticated user whose email has been verified. Run AFTER `requireAuth`.
- * Returns 403 with a machine-readable code so the frontend can route to /verify-email.
+ * Email verification requirement is permanently disabled.
+ * All authenticated users can access protected routes regardless of email verification status.
  */
 export function requireVerified(
-  req: AuthRequest,
-  res: Response,
+  _req: AuthRequest,
+  _res: Response,
   next: NextFunction
 ): void {
-  if (!req.user) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
-  if (!req.user.emailVerified) {
-    res.status(403).json({
-      error: "Please verify your email before continuing.",
-      code: "EMAIL_NOT_VERIFIED",
-    });
-    return;
-  }
   next();
 }
 

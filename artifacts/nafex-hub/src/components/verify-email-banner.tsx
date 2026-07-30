@@ -6,10 +6,8 @@ export function VerifyEmailBanner() {
   const { user } = useAuth();
   const [location] = useLocation();
 
-  if (!user || user.emailVerified) return null;
-  if (location.startsWith("/verify-email") || location.startsWith("/login") || location.startsWith("/register")) {
-    return null;
-  }
+  // Email verification is permanently disabled — banner always hidden
+  return null;
 
   return (
     <div className="bg-red-600 text-white">

@@ -133,7 +133,6 @@ export default function ProductDetail() {
   async function handleBuyNow() {
     if (!product) return;
     if (!user) { setLocation("/login"); return; }
-    if (!user.emailVerified) { setLocation("/verify-email"); return; }
 
     setBuying(true);
     try {
@@ -148,7 +147,6 @@ export default function ProductDetail() {
       });
       const data = await res.json();
       if (!res.ok) {
-        if (data.code === "EMAIL_NOT_VERIFIED") { setLocation("/verify-email"); return; }
         throw new Error(data.error ?? "Order failed");
       }
       toast({ title: "Order placed!", description: `Order #${data.id} is awaiting payment.` });

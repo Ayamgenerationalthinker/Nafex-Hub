@@ -28,7 +28,6 @@ export default function Cart() {
 
   async function checkout(businessId: number) {
     if (!user) { navigate("/login"); return; }
-    if (!user.emailVerified) { navigate("/verify-email"); return; }
     const group = grouped[businessId];
     if (!group) return;
 
@@ -49,7 +48,6 @@ export default function Cart() {
       });
       const data = await res.json();
       if (!res.ok) {
-        if (data.code === "EMAIL_NOT_VERIFIED") { navigate("/verify-email"); return; }
         throw new Error(data.error ?? "Order failed");
       }
       clearBusiness(businessId);
