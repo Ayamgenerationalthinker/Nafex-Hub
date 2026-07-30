@@ -329,31 +329,7 @@ export default function BrandProfile() {
         <div className="grid md:grid-cols-3 gap-10">
           {/* Left: Collection + Reviews */}
           <div className="md:col-span-2 space-y-10">
-            {/* Collection Grid */}
-            <div className="space-y-6">
-              <h2 className="font-serif text-2xl font-bold text-foreground">Our Collection</h2>
-              {business.images && business.images.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4">
-                  {business.images.map((img, i) => (
-                    <div
-                      key={i}
-                      className="aspect-square overflow-hidden rounded-xl bg-muted group"
-                      data-testid={`img-collection-${i}`}
-                    >
-                      <img
-                        src={img}
-                        alt={`${business.name} collection ${i + 1}`}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="aspect-video rounded-2xl bg-muted/30 border-2 border-dashed flex items-center justify-center text-muted-foreground">
-                  No collection images yet
-                </div>
-              )}
-            </div>
+
 
             {/* Collections Section */}
             {collections && collections.filter((c) => c.products.length > 0).length > 0 && (
