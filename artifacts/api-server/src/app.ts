@@ -21,12 +21,29 @@ const allowedOrigins = (() => {
 })();
 
 app.use(helmet({
-  contentSecurityPolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      imgSrc: ["'self'", "data:", "https:", "blob:"],
+      connectSrc: ["'self'", "https:", "wss:"],
+      fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'self'"],
+    },
+  },
   referrerPolicy: { policy: "strict-origin-when-cross-origin" },
   hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
   xContentTypeOptions: true,
   xFrameOptions: { action: "sameorigin" },
 }));
+
+app.use((_req, res, next) => {
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=()");
+  next();
+});
 
 if (process.env["NODE_ENV"] === "production") {
   app.use((req, res, next) => {
@@ -64,11 +81,12 @@ app.use(pinoHttp({
 }));
 
 app.use(express.json({
+  limit: "1mb",
   verify: (req, res, buf) => {
     (req as any).rawBody = buf;
   }
 }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
 const sensitiveApiLimiter = rateLimit({
   windowMs: 60_000,

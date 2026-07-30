@@ -23,7 +23,6 @@ export async function requireAuth(
   next: NextFunction
 ): Promise<void> {
   const authHeader = req.headers.authorization;
-  console.log("[AUTH] requireAuth check for", req.path, "Header:", authHeader ? authHeader.slice(0, 20) + "..." : "MISSING");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     res.status(401).json({ error: "Unauthorized" });
     return;

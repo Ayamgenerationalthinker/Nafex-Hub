@@ -8,10 +8,24 @@ import { logger } from "../shared/logger";
 let io: Server | null = null;
 
 export function initSocketIO(httpServer: HttpServer): Server {
+  const allowedOrigins = (() => {
+    const explicit = process.env["ALLOWED_ORIGINS"];
+    if (explicit) return explicit.split(",").map((d) => d.trim());
+    const replitDomains = process.env["REPLIT_DOMAINS"];
+    if (replitDomains) return replitDomains.split(",").map((d) => `https://${d.trim()}`);
+    return ["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"];
+  })();
+
   io = new Server(httpServer, {
     path: "/api/socket.io",
     cors: {
-      origin: "*",
+      origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(null, false);
+        }
+      },
       credentials: true,
     },
     transports: ["websocket", "polling"],

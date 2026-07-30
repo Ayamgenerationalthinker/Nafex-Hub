@@ -7,7 +7,7 @@ const router = Router();
 // ── Public ────────────────────────────────────────────────────────────────────
 router.get("/categories",              ctrl.getCategories);
 router.get("/stats/summary",           ctrl.getPublicStats);
-router.get("/admin/businesses",        ctrl.getAdminBusinesses);
+router.get("/admin/businesses",        requireAuth, ctrl.getAdminBusinesses);
 
 // ── Admin: activity & stats ───────────────────────────────────────────────────
 router.get("/admin/activity",          requireAuth, ctrl.getActivity);

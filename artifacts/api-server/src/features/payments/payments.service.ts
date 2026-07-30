@@ -1,6 +1,6 @@
 import { PaymentsRepository } from "./payments.repository";
 import { ForbiddenError, NotFoundError, AppError } from "../../shared/errors/AppError";
-import { createHmac } from "crypto";
+import { createHmac, timingSafeEqual } from "crypto";
 import { env } from "../../config/env";
 
 const PAYSTACK_SECRET = env.PAYSTACK_SECRET_KEY ?? "";
@@ -39,7 +39,8 @@ export class PaymentsService {
   public verifyWebhookSignature(body: string | Buffer, signature: string): boolean {
     if (!PAYSTACK_SECRET) return false;
     const hash = createHmac("sha512", PAYSTACK_SECRET).update(body).digest("hex");
-    return hash === signature;
+    if (hash.length !== signature.length) return false;
+    return timingSafeEqual(Buffer.from(hash), Buffer.from(signature));
   }
 
   public async payoutToSeller(businessId: number, amountPesewas: number, orderId: number): Promise<boolean> {

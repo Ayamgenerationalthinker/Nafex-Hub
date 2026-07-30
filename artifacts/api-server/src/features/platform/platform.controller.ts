@@ -7,6 +7,7 @@ import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
 import { mkdirSync } from "fs";
+import crypto from "crypto";
 
 // ── Favorites ─────────────────────────────────────────────────────────────────
 
@@ -98,7 +99,8 @@ const diskStorage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase() || ".jpg";
-    cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
+    const rand = crypto.randomBytes(8).toString("hex");
+    cb(null, `${Date.now()}-${rand}${ext}`);
   },
 });
 

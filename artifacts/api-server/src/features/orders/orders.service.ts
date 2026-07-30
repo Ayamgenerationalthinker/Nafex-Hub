@@ -2,9 +2,10 @@ import { OrdersRepository } from "./orders.repository";
 import { ForbiddenError, NotFoundError, AppError } from "../../shared/errors/AppError";
 import { sendAdminEmail, sendDeliveryOtpEmail } from "../../lib/mailer";
 import { paymentsService } from "../payments/payments.routes";
+import crypto from "crypto";
 
 function generateOtp(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return crypto.randomInt(100000, 999999).toString();
 }
 
 export class OrdersService {

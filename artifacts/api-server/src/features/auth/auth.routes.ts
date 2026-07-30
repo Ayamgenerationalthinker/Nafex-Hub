@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { RegisterBody, LoginBody } from "@workspace/api-zod";
 import { z } from "zod";
 import crypto from "crypto";
+import { env } from "../../config/env";
 import bcrypt from "bcryptjs";
 import rateLimit from "express-rate-limit";
 import jwt from "jsonwebtoken";
@@ -18,7 +19,7 @@ export const authService = new AuthService(authRepository);
 export const authController = new AuthController(authService);
 
 function generateVerificationCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return crypto.randomInt(100000, 999999).toString();
 }
 const VERIFICATION_TTL_MS = 3 * 60 * 1000; // 3 minutes
 
@@ -50,24 +51,13 @@ function validatePasswordStrength(password: string): string | null {
   return null;
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || ((): string => {
-  const derived = crypto.createHash("sha256").update(`nafex-static-fallback-key-jwt`).digest("hex");
-  if (process.env.NODE_ENV === "production") {
-    console.warn(
-      `[WARN] JWT_SECRET is not set. Using a static fallback key. ` +
-      `Set JWT_SECRET in your environment to ensure stable tokens across deployments.`
-    );
-  }
-  return derived;
-})();
-
 function generateToken(userId: number): string {
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: `${TOKEN_EXPIRY_DAYS}d` });
+  return jwt.sign({ userId }, env.JWT_SECRET, { expiresIn: `${TOKEN_EXPIRY_DAYS}d` });
 }
 
 export function parseToken(token: string): { userId: number; expiresAt: number } | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number; exp: number };
+    const decoded = jwt.verify(token, env.JWT_SECRET) as { userId: number; exp: number };
     return { userId: decoded.userId, expiresAt: decoded.exp * 1000 };
   } catch {
     return null;
@@ -123,21 +113,18 @@ router.post("/auth/resend-verification", authLimiter, requireAuth, async (req, r
     .where(eq(usersTable.id, userId));
   const delivered = await sendVerificationEmail(user.email, user.name, code);
   
-  if (!delivered || process.env.NODE_ENV !== "production") {
+  if (env.NODE_ENV !== "production") {
     console.log(`\n======================================================`);
     console.log(`[DEV MODE] Resent Verification code for ${user.email}: ${code}`);
     console.log(`======================================================\n`);
   }
-  // Return the code and user details so the browser's EmailJS SDK can send it
+  // Return the user details so the browser's EmailJS SDK can send it
   // directly if the server-side send didn't work (no EMAILJS_PRIVATE_KEY set).
   res.json({
     message: delivered
       ? "Verification code sent. Check your email."
       : "Code generated. Sending via browser.",
     delivered,
-    // These are safe to return: the code is already stored in the DB and will
-    // expire, and the user is authenticated via requireAuth middleware.
-    code,
     email: user.email,
     name: user.name,
   });
@@ -228,7 +215,7 @@ router.delete("/auth/account", requireAuth, async (req, res): Promise<void> => {
   res.json({ message: "Account deleted" });
 });
 
-router.post("/auth/google", async (req, res): Promise<void> => {
+router.post("/auth/google", authLimiter, async (req, res): Promise<void> => {
   const schema = z.object({
     idToken: z.string().optional(),
     accessToken: z.string().optional(),
@@ -324,7 +311,7 @@ router.post("/auth/google", async (req, res): Promise<void> => {
   }
 });
 
-router.post("/auth/facebook", async (req, res): Promise<void> => {
+router.post("/auth/facebook", authLimiter, async (req, res): Promise<void> => {
   const schema = z.object({
     accessToken: z.string().min(1, "accessToken is required"),
     role: z.enum(["user", "business_owner"]).optional().default("user")

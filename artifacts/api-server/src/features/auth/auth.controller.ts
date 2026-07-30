@@ -27,7 +27,7 @@ export class AuthController {
 
     const emailDelivered = await sendVerificationEmail(user.email, user.name, user.emailVerificationCode).catch(() => false);
     
-    if (!emailDelivered || env.NODE_ENV !== "production") {
+    if (env.NODE_ENV !== "production") {
       console.log(`\n======================================================`);
       console.log(`[DEV MODE] Verification code for ${user.email}: ${user.emailVerificationCode}`);
       console.log(`======================================================\n`);

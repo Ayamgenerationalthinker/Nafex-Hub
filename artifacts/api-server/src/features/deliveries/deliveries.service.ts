@@ -1,9 +1,10 @@
 import { DeliveriesRepository } from "./deliveries.repository";
 import { ForbiddenError, NotFoundError, AppError } from "../../shared/errors/AppError";
+import crypto from "crypto";
 
 function generateTrackingCode(): string {
   const date = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-  const rand = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const rand = crypto.randomBytes(4).toString("hex").substring(0, 6).toUpperCase();
   return `NAF-${date}-${rand}`;
 }
 

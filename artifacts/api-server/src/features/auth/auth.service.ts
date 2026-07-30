@@ -17,7 +17,7 @@ export class AuthService {
   }
 
   public generateVerificationCode(): string {
-    return Math.floor(100000 + Math.random() * 900000).toString();
+    return crypto.randomInt(100000, 999999).toString();
   }
 
   public async hashPassword(password: string): Promise<string> {
