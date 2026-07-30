@@ -214,7 +214,7 @@ export default function Explore() {
       {/* The full banner PNG is one unified composition (girl + cream bg) used as CSS background.
           Text is overlaid on the left half with z-10. Exactly matches img 4.jpeg approach. */}
       <div
-        className="relative overflow-hidden mb-8"
+        className="relative overflow-hidden rounded-3xl mb-8 shadow-sm border border-amber-100/60"
         style={{
           backgroundImage: "url('/home-hero-banner.png')",
           backgroundSize: "auto 90%",
