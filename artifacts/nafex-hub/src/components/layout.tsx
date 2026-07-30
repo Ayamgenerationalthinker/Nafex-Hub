@@ -101,7 +101,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-[100dvh] flex flex-col w-full bg-background text-foreground font-sans">
       <VerifyEmailBanner />
       {/* ── Header (clean white top navbar with purple brand highlights matching Img 1 style guide) ── */}
-      <header className="sticky top-0 z-50 w-full bg-white text-[#222222] shadow-sm border-b border-purple-100/80">
+      <header className="sticky top-0 z-50 w-full bg-background text-[#222222] shadow-sm border-b border-purple-100/80">
         <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6 gap-4">
 
           {/* Logo */}
@@ -117,7 +117,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <input
                   type="search"
                   placeholder="Search products..."
-                  className="w-full h-9 pl-4 pr-10 rounded-full bg-[#F6F2FF] border border-purple-200 text-sm text-[#222222] placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#6A1B9A] focus:bg-white transition-all"
+                  className="w-full h-9 pl-4 pr-10 rounded-full bg-[#F6F2FF] border border-purple-200 text-sm text-[#222222] placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#6A1B9A] focus:bg-background transition-all"
                   value={headerSearch}
                   onChange={(e) => setHeaderSearch(e.target.value)}
                   onKeyDown={(e) => {
@@ -373,7 +373,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-secondary-foreground hover:bg-white/10 hover:text-primary"
+                  className="text-secondary-foreground hover:bg-background/10 hover:text-primary"
                   aria-label="Open menu"
                   data-testid="btn-menu"
                 >
@@ -390,7 +390,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     variant="ghost"
                     size="icon"
                     onClick={closeMenu}
-                    className="text-secondary-foreground/60 hover:text-primary hover:bg-white/10"
+                    className="text-secondary-foreground/60 hover:text-primary hover:bg-background/10"
                   >
                     <X className="w-5 h-5" />
                   </Button>
@@ -406,7 +406,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                         location === item.href
                           ? "bg-primary/20 text-primary"
-                          : "text-secondary-foreground/80 hover:bg-white/8 hover:text-primary"
+                          : "text-secondary-foreground/80 hover:bg-background/8 hover:text-primary"
                       }`}
                       data-testid={item.testId}
                     >
@@ -420,7 +420,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   {user ? (
                     <button
                       onClick={() => { logout(); closeMenu(); }}
-                      className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-secondary-foreground/80 hover:bg-white/8 hover:text-primary transition-colors text-left w-full"
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-secondary-foreground/80 hover:bg-background/8 hover:text-primary transition-colors text-left w-full"
                       data-testid="mobile-btn-logout"
                     >
                       <LogOut className="w-4 h-4" />
@@ -431,7 +431,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       <Link
                         href="/login"
                         onClick={closeMenu}
-                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-secondary-foreground/80 hover:bg-white/8 hover:text-primary transition-colors"
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-secondary-foreground/80 hover:bg-background/8 hover:text-primary transition-colors"
                         data-testid="mobile-nav-login"
                       >
                         <LogIn className="w-4 h-4" />
@@ -496,7 +496,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     href={`https://wa.me/${siteSettings.whatsappNumber.replace(/\D/g, "")}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-white/10 hover:bg-[#D4A017] hover:text-white flex items-center justify-center text-purple-100 transition-all"
+                    className="w-8 h-8 rounded-full bg-background/10 hover:bg-[#D4A017] hover:text-white flex items-center justify-center text-purple-100 transition-all"
                     title="WhatsApp"
                   >
                     <Phone className="w-4 h-4" />
@@ -507,7 +507,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     href={siteSettings.instagramLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-white/10 hover:bg-[#D4A017] hover:text-white flex items-center justify-center text-purple-100 transition-all"
+                    className="w-8 h-8 rounded-full bg-background/10 hover:bg-[#D4A017] hover:text-white flex items-center justify-center text-purple-100 transition-all"
                     title="Instagram"
                   >
                     <Globe className="w-4 h-4" />
@@ -518,7 +518,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     href={siteSettings.facebookLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-white/10 hover:bg-[#D4A017] hover:text-white flex items-center justify-center text-purple-100 transition-all"
+                    className="w-8 h-8 rounded-full bg-background/10 hover:bg-[#D4A017] hover:text-white flex items-center justify-center text-purple-100 transition-all"
                     title="Facebook"
                   >
                     <Globe className="w-4 h-4" />
@@ -585,7 +585,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   value={newsletterEmail}
                   onChange={(e) => setNewsletterEmail(e.target.value)}
                   required
-                  className="w-full h-10 px-3.5 rounded-lg bg-white text-[#222222] placeholder:text-[#6B7280] text-sm focus:outline-none focus:ring-2 focus:ring-[#D4A017]"
+                  className="w-full h-10 px-3.5 rounded-lg bg-background text-[#222222] placeholder:text-[#6B7280] text-sm focus:outline-none focus:ring-2 focus:ring-[#D4A017]"
                 />
                 <button
                   type="submit"

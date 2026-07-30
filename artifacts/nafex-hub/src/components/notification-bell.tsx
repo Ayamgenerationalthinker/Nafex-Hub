@@ -59,7 +59,7 @@ export function NotificationBell() {
     <div ref={ref} className="relative">
       <button
         onClick={() => { setOpen((o) => !o); if (!open) refetchList(); }}
-        className="relative flex items-center justify-center w-9 h-9 rounded-full hover:bg-[#F6F2FF] transition-colors text-[#222222]/80 hover:text-[#6A1B9A]"
+        className="relative flex items-center justify-center w-9 h-9 rounded-full hover:bg-muted transition-colors text-foreground/80 hover:text-primary"
         aria-label="Notifications"
       >
         <Bell className="w-5 h-5" />
