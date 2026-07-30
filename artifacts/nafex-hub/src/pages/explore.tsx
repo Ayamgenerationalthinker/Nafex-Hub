@@ -215,22 +215,41 @@ export default function Explore() {
         className="relative overflow-hidden rounded-3xl mb-8 shadow-sm border border-amber-100/60"
         style={{ background: "#F8F3EA", minHeight: "500px" }}
       >
-        {/* Image — absolutely placed on the right, no container, fills full hero height */}
-        <img
-          src="/home-hero.png"
-          alt="Nafex Hub Shopping"
-          className="absolute top-0 right-0 h-full w-auto"
+        {/* Subtle warm glow behind subject */}
+        <div
+          className="absolute right-0 top-0 bottom-0 w-[60%]"
           style={{
+            background: "radial-gradient(ellipse at 70% 50%, rgba(212,160,23,0.13) 0%, transparent 70%)",
+            pointerEvents: "none",
+          }}
+        />
+
+        {/* Hero image — raw, no wrapper, sits directly on cream. mix-blend-mode:multiply
+            dissolves the ash/white background of Home.jpeg into the cream hero colour,
+            making the subject appear to stand naturally on cream — exactly like img 4.jpeg */}
+        <img
+          src="/home-hero.jpg"
+          alt="Nafex Hub Shopping"
+          style={{
+            position: "absolute",
+            right: 0,
+            bottom: 0,
+            height: "110%",
+            width: "auto",
+            maxWidth: "60%",
             objectFit: "contain",
-            objectPosition: "right center",
-            maxWidth: "58%",
+            objectPosition: "right bottom",
+            mixBlendMode: "multiply",
             pointerEvents: "none",
             userSelect: "none",
           }}
         />
 
-        {/* Text — floats on the left with z-index above image */}
-        <div className="relative z-10 flex flex-col justify-center h-full min-h-[500px] px-8 md:px-14 py-12 space-y-5 max-w-[52%]">
+        {/* Left text — z-10 so it floats above the image layer */}
+        <div
+          className="relative z-10 flex flex-col justify-center py-14 space-y-5"
+          style={{ paddingLeft: "3.5rem", maxWidth: "50%", minHeight: "500px" }}
+        >
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F6F2FF] border border-purple-100 text-[#6A1B9A] text-xs font-semibold w-fit">
             <Sparkles className="w-3.5 h-3.5 text-[#D4A017]" />
             Ghana's Premier Trusted Marketplace
@@ -239,7 +258,7 @@ export default function Explore() {
             Everything You Need, <br />
             <span className="text-[#6A1B9A]">Delivered to You.</span>
           </h1>
-          <p className="text-[#5a5a5a] text-base md:text-lg max-w-sm leading-relaxed">
+          <p className="text-[#5a5a5a] text-base md:text-lg max-w-xs leading-relaxed">
             Shop top quality products across electronics, fashion, home, beauty, and more with fast delivery and secure escrow payments.
           </p>
           <div className="flex flex-wrap items-center gap-4 pt-2">
