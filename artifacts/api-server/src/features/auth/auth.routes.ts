@@ -6,6 +6,7 @@ import { z } from "zod";
 import crypto from "crypto";
 import { env } from "../../config/env";
 import bcrypt from "bcryptjs";
+import argon2 from "argon2";
 import rateLimit from "express-rate-limit";
 import jwt from "jsonwebtoken";
 import { sendAdminEmail, sendVerificationEmail } from "../../lib/mailer";
@@ -37,11 +38,14 @@ const SALT_ROUNDS = 12;
 const TOKEN_EXPIRY_DAYS = 7;
 
 async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, SALT_ROUNDS);
+  return argon2.hash(password);
 }
 
 async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  return bcrypt.compare(password, hash);
+  if (hash.startsWith("$2a$") || hash.startsWith("$2b$") || hash.startsWith("$2y$")) {
+    return bcrypt.compare(password, hash);
+  }
+  return argon2.verify(hash, password);
 }
 
 function validatePasswordStrength(password: string): string | null {
