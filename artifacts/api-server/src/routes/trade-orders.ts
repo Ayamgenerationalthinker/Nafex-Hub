@@ -13,7 +13,7 @@ import { eq, desc, and, or, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth, type AuthRequest } from "../lib/auth-middleware";
 import { getIO } from "../lib/socket";
-import { payoutToTradeSupplier } from "./payments";
+import { paymentsService } from "../features/payments/payments.routes";
 
 const router: IRouter = Router();
 
@@ -175,7 +175,7 @@ router.post("/trade/orders/:id/confirm-delivery", requireAuth, async (req: AuthR
 
   if (escrow) {
     const amountPesewas = Math.round(parseFloat(escrow.amount) * 100);
-    await payoutToTradeSupplier(order.supplierId, amountPesewas, order.id);
+    await paymentsService.payoutToTradeSupplier(order.supplierId, amountPesewas, order.id);
   }
 
   await db.insert(tradeTrackingEventsTable).values({
@@ -378,7 +378,7 @@ router.patch("/admin/trade-orders/:id", requireAuth, async (req: AuthRequest, re
     if (result.length > 0) {
       const escrow = result[0];
       const amountPesewas = Math.round(parseFloat(escrow.amount) * 100);
-      await payoutToTradeSupplier(order.supplierId, amountPesewas, order.id);
+      await paymentsService.payoutToTradeSupplier(order.supplierId, amountPesewas, order.id);
     }
     updates.escrowStatus = "released";
   } else if (body.data.escrowAction === "refund") {

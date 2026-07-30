@@ -99,7 +99,7 @@ export class OrdersRepository {
     };
   }
 
-  public async createNotification(userId: number, type: string, title: string, body: string, relatedId: number) {
+  public async createNotification(userId: number, type: "message" | "order_update" | "review", title: string, body: string, relatedId: number) {
     await db.insert(notificationsTable).values({
       userId,
       type,

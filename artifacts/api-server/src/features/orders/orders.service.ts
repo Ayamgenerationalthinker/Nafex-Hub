@@ -1,7 +1,7 @@
 import { OrdersRepository } from "./orders.repository";
 import { ForbiddenError, NotFoundError, AppError } from "../../shared/errors/AppError";
 import { sendAdminEmail, sendDeliveryOtpEmail } from "../../lib/mailer";
-import { payoutToSeller } from "../../routes/payments";
+import { paymentsService } from "../payments/payments.routes";
 
 function generateOtp(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -14,7 +14,7 @@ export class OrdersService {
     this.repository = repository;
   }
 
-  private async notifyAllAdmins(type: string, title: string, body: string, relatedId: number) {
+  private async notifyAllAdmins(type: "message" | "order_update" | "review", title: string, body: string, relatedId: number) {
     const admins = await this.repository.getAdmins();
     for (const admin of admins) {
       await this.repository.createNotification(admin.id, type, title, body, relatedId).catch(() => {});
@@ -28,7 +28,7 @@ export class OrdersService {
     if (data.coinsApplied > 0) {
       const user = await this.repository.getUser(userId);
       if (!user || user.loyaltyPoints < data.coinsApplied) {
-        throw new AppError(400, "Not enough Nafex Coins");
+        throw new AppError("Not enough Nafex Coins", 400);
       }
       await this.repository.deductUserCoins(userId, data.coinsApplied);
     }
@@ -88,7 +88,7 @@ export class OrdersService {
     const existing = await this.repository.getOrderById(orderId);
     if (!existing) throw new NotFoundError("Order not found");
     if (existing.userId !== userId) throw new ForbiddenError("Not your order");
-    if (existing.paymentStatus !== "unpaid") throw new AppError(409, "Payment already recorded");
+    if (existing.paymentStatus !== "unpaid") throw new AppError("Payment already recorded", 409);
 
     const updated = await this.repository.updateOrder(orderId, {
       paymentStatus: "in_escrow",
@@ -202,10 +202,10 @@ export class OrdersService {
       throw new ForbiddenError("Not your order");
     }
 
-    if (existing.status !== "out_for_delivery") throw new AppError(409, "Order is not out for delivery");
-    if (!existing.deliveryOtp || existing.deliveryOtp !== otp) throw new AppError(400, "Invalid OTP");
+    if (existing.status !== "out_for_delivery") throw new AppError("Order is not out for delivery", 409);
+    if (!existing.deliveryOtp || existing.deliveryOtp !== otp) throw new AppError("Invalid OTP", 400);
     if (existing.deliveryOtpExpiry && existing.deliveryOtpExpiry < new Date()) {
-      throw new AppError(400, "OTP has expired. Please regenerate by re-dispatching the order.");
+      throw new AppError("OTP has expired. Please regenerate by re-dispatching the order.", 400);
     }
 
     const order = await this.repository.updateOrder(orderId, {
@@ -231,7 +231,7 @@ export class OrdersService {
       const payoutAmount = existing.totalPrice - commissionPesewas;
 
       if (business.paystackRecipientCode) {
-        payoutToSeller(business.paystackRecipientCode, payoutAmount, `Payout for Order #${order.id}`).catch((err) => {
+        paymentsService.payoutToSeller(business.id, payoutAmount, order.id).catch((err) => {
           console.error(`Automated payout failed for Order #${order.id}:`, err);
         });
       }
@@ -258,12 +258,12 @@ export class OrdersService {
     const existing = await this.repository.getOrderById(orderId);
     if (!existing) throw new NotFoundError("Order not found");
     if (existing.userId !== userId) throw new ForbiddenError("Not your order");
-    if (!existing.isB2b || !existing.milestones) throw new AppError(400, "Not a milestone-based order");
+    if (!existing.isB2b || !existing.milestones) throw new AppError("Not a milestone-based order", 400);
 
     const milestones = existing.milestones as any[];
     const msIndex = milestones.findIndex((m: any) => m.id === milestoneId);
     if (msIndex === -1) throw new NotFoundError("Milestone not found");
-    if (milestones[msIndex].status !== "pending") throw new AppError(409, "Milestone already paid");
+    if (milestones[msIndex].status !== "pending") throw new AppError("Milestone already paid", 409);
 
     milestones[msIndex].status = "paid";
     milestones[msIndex].reference = reference;
@@ -304,6 +304,6 @@ export class OrdersService {
     const existing = await this.repository.getOrderById(orderId);
     if (!existing) throw new NotFoundError("Order not found");
 
-    return await this.repository.updateOrder(orderId, { status, paymentStatus, updatedAt: new Date() });
+    return await this.repository.updateOrder(orderId, { status: status as any, paymentStatus: paymentStatus as any, updatedAt: new Date() });
   }
 }

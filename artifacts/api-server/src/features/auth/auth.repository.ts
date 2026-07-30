@@ -24,26 +24,12 @@ export class AuthRepository {
     await db.update(usersTable).set(payload).where(eq(usersTable.id, userId));
   }
 
-  public async updatePasswordAndClearResetTokens(userId: number, hashedPassword: string) {
+  public async updatePassword(userId: number, hashedPassword: string) {
     await db
       .update(usersTable)
       .set({
         password: hashedPassword,
-        passwordResetToken: null,
-        passwordResetExpiry: null,
       })
       .where(eq(usersTable.id, userId));
-  }
-
-  public async setPasswordResetToken(email: string, token: string, expiry: Date) {
-    await db
-      .update(usersTable)
-      .set({ passwordResetToken: token, passwordResetExpiry: expiry })
-      .where(eq(usersTable.email, email));
-  }
-
-  public async findByResetToken(token: string) {
-    const [user] = await db.select().from(usersTable).where(eq(usersTable.passwordResetToken, token));
-    return user;
   }
 }

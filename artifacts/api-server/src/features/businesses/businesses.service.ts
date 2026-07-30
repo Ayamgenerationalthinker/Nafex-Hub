@@ -4,7 +4,7 @@ import { sendAdminEmail } from "../../lib/mailer";
 import { logAdminAction } from "../../lib/log-admin-action";
 
 // Simple wrapper for paystackPost until payments is migrated
-import { paystackPost } from "../../routes/payments";
+import { paymentsService } from "../payments/payments.routes";
 
 export class BusinessesService {
   private repository: BusinessesRepository;
@@ -71,7 +71,7 @@ export class BusinessesService {
     if (existing.ownerId !== userId) throw new ForbiddenError("Unauthorized");
 
     try {
-      const paystackRes = await paystackPost<{ recipient_code: string }>("/transferrecipient", {
+      const paystackRes = await paymentsService.paystackPost<{ recipient_code: string }>("/transferrecipient", {
         type: settlementData.type,
         name: settlementData.name,
         account_number: settlementData.account_number,
@@ -85,7 +85,7 @@ export class BusinessesService {
         settlementAccount: settlementData.account_number,
       });
     } catch (error) {
-      throw new AppError(400, (error as Error).message);
+      throw new AppError((error as Error).message, 400);
     }
   }
 

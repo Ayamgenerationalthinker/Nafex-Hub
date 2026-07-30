@@ -39,7 +39,7 @@ export class DeliveriesService {
     }
 
     const existing = await this.repository.getDeliveryByOrderId(data.orderId);
-    if (existing) throw new AppError(409, "Delivery already exists for this order");
+    if (existing) throw new AppError("Delivery already exists for this order", 409);
 
     const fee = calculateDeliveryFee(data.deliveryZone);
     const trackingCode = generateTrackingCode();

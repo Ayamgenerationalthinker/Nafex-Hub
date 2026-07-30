@@ -54,7 +54,7 @@ export class DeliveriesRepository {
   public async createDeliveryEvent(deliveryId: number, status: string, note?: string, location?: string) {
     await db.insert(deliveryEventsTable).values({
       deliveryId,
-      status,
+      status: status as any,
       note,
       location,
     });
@@ -92,7 +92,7 @@ export class DeliveriesRepository {
     return await db.select().from(deliveriesTable).orderBy(desc(deliveriesTable.createdAt));
   }
 
-  public async createNotification(userId: number, type: string, title: string, body: string, relatedId: number) {
+  public async createNotification(userId: number, type: "message" | "order_update" | "review", title: string, body: string, relatedId: number) {
     await db.insert(notificationsTable).values({
       userId,
       type,

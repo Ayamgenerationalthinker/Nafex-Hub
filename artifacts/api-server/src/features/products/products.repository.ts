@@ -115,13 +115,10 @@ export class ProductsRepository {
         businessName: businessesTable.name,
         businessLogo: businessesTable.logo,
         collectionName: collectionsTable.name,
-        avgRating: sql<number>`coalesce(round(avg(${reviewsTable.rating})::numeric,1),0)::float`,
-        reviewCount: sql<number>`count(distinct ${reviewsTable.id})::int`,
       })
       .from(productsTable)
       .leftJoin(businessesTable, eq(productsTable.businessId, businessesTable.id))
       .leftJoin(collectionsTable, eq(productsTable.collectionId, collectionsTable.id))
-      .leftJoin(reviewsTable, eq(reviewsTable.productId, productsTable.id))
       .where(eq(productsTable.id, id))
       .groupBy(productsTable.id, businessesTable.id, collectionsTable.id);
     
