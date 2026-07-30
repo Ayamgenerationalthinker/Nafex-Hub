@@ -351,8 +351,11 @@ export async function customFetch<T = unknown>(
 
   // Attach bearer token when an auth getter is configured and no
   // Authorization header has been explicitly provided.
-  if (_authTokenGetter && !headers.has("authorization")) {
-    const token = await _authTokenGetter();
+  if (!headers.has("authorization")) {
+    let token = _authTokenGetter ? await _authTokenGetter() : null;
+    if (!token && typeof localStorage !== "undefined") {
+      try { token = localStorage.getItem("nafex_token"); } catch {}
+    }
     if (token) {
       headers.set("authorization", `Bearer ${token}`);
     }
