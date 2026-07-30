@@ -234,11 +234,12 @@ router.get("/products/:id", optionalAuth, async (req: AuthRequest, res): Promise
 });
 
 // POST /products - create (auth required, must own business)
-router.post("/products", requireAuth, async (req: AuthRequest, res): Promise<void> => {
+// POST /businesses/:businessId/products - alias for frontend API client
+const createProductHandler = async (req: AuthRequest, res: any): Promise<void> => {
   const parsed = CreateBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
-  const bizId = Number(req.body.businessId);
+  const bizId = Number(req.params.businessId || req.body.businessId);
   if (!bizId) { res.status(400).json({ error: "businessId required" }); return; }
 
   const [biz] = await db
@@ -257,7 +258,10 @@ router.post("/products", requireAuth, async (req: AuthRequest, res): Promise<voi
     .returning();
 
   res.status(201).json(product);
-});
+};
+
+router.post("/products", requireAuth, createProductHandler);
+router.post("/businesses/:businessId/products", requireAuth, createProductHandler);
 
 // PUT /products/:id
 router.put("/products/:id", requireAuth, async (req: AuthRequest, res): Promise<void> => {

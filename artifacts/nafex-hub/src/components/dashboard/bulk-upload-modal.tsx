@@ -68,13 +68,16 @@ export function BulkUploadModal({
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` },
         body: JSON.stringify({
           businessId,
-          products: filledRows.map((r) => ({
-            name: r.name.trim(),
-            description: r.description.trim(),
-            price: r.price.trim(),
-            stock: r.stock ? parseInt(r.stock) : null,
-            images: [],
-          })),
+          products: filledRows.map((r) => {
+            const parsedStock = parseInt(r.stock || "0", 10);
+            return {
+              name: r.name.trim(),
+              description: r.description.trim(),
+              price: r.price.trim(),
+              stock: !isNaN(parsedStock) && parsedStock > 0 ? parsedStock : null,
+              images: [],
+            };
+          }),
         }),
       });
 
