@@ -1085,13 +1085,15 @@ function SellerDashboard() {
                       <Textarea id="col-desc" placeholder="Tell customers what this collection is about…" value={newColDesc} onChange={(e) => setNewColDesc(e.target.value)} className="mt-1" rows={2} />
                     </div>
                     <div>
-                      <Label htmlFor="col-img">Cover Image URL</Label>
-                      <Input id="col-img" placeholder="https://example.com/image.jpg" value={newColImage} onChange={(e) => setNewColImage(e.target.value)} className="mt-1" />
-                      {newColImage && (
-                        <div className="mt-2 w-full h-28 rounded-lg overflow-hidden border border-border">
-                          <img src={newColImage} alt="Cover preview" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                        </div>
-                      )}
+                      <Label htmlFor="col-img">Cover Image</Label>
+                      <div className="mt-2">
+                        <ImageUpload
+                          value={newColImage ? [newColImage] : []}
+                          onChange={(urls) => setNewColImage(urls[0] || "")}
+                          maxImages={1}
+                          label="Cover Image"
+                        />
+                      </div>
                     </div>
                   </div>
                   <DialogFooter>
@@ -1120,13 +1122,15 @@ function SellerDashboard() {
                       <Textarea value={editingCol?.description ?? ""} onChange={(e) => setEditingCol((p) => p ? { ...p, description: e.target.value } : p)} className="mt-1" rows={2} />
                     </div>
                     <div>
-                      <Label>Cover Image URL</Label>
-                      <Input value={editingCol?.coverImage ?? ""} onChange={(e) => setEditingCol((p) => p ? { ...p, coverImage: e.target.value || null } : p)} className="mt-1" placeholder="https://example.com/image.jpg" />
-                      {editingCol?.coverImage && (
-                        <div className="mt-2 w-full h-28 rounded-lg overflow-hidden border border-border">
-                          <img src={editingCol.coverImage} alt="Cover preview" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                        </div>
-                      )}
+                      <Label>Cover Image</Label>
+                      <div className="mt-2">
+                        <ImageUpload
+                          value={editingCol?.coverImage ? [editingCol.coverImage] : []}
+                          onChange={(urls) => setEditingCol((p) => p ? { ...p, coverImage: urls[0] || null } : p)}
+                          maxImages={1}
+                          label="Cover Image"
+                        />
+                      </div>
                     </div>
                   </div>
                   <DialogFooter>
