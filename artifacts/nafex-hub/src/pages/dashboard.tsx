@@ -645,25 +645,49 @@ function SellerDashboard() {
             )}
 
             {/* Performance Metrics */}
-            {businessId > 0 && (
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {[
-                  { label: "Seller Score", value: "4.8 / 5", sub: "Excellent rating", subColor: "text-green-600", icon: <Star className="w-5 h-5 text-amber-400 fill-amber-400" />, bg: "bg-amber-50 dark:bg-amber-950/30" },
-                  { label: "Cancellation", value: "1.2%", sub: "Target < 2.5%", subColor: "text-muted-foreground", icon: <XCircle className="w-5 h-5 text-red-500" />, bg: "bg-red-50 dark:bg-red-950/30" },
-                  { label: "On-Time Ship", value: "98.5%", sub: "Target > 95%", subColor: "text-green-600", icon: <Clock className="w-5 h-5 text-indigo-500" />, bg: "bg-indigo-50 dark:bg-indigo-950/30" },
-                  { label: "Product Quality", value: "98%", sub: "Target > 95%", subColor: "text-green-600", icon: <ShieldCheck className="w-5 h-5 text-green-500" />, bg: "bg-green-50 dark:bg-green-950/30" },
-                ].map((m) => (
-                  <div key={m.label} className="bg-card border border-border rounded-xl p-4 shadow-sm">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{m.label}</span>
-                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${m.bg}`}>{m.icon}</div>
+            {businessId > 0 && (() => {
+              const totalOrders = orders?.length || 0;
+              const cancelledOrders = orders?.filter(o => o.status === "cancelled").length || 0;
+              const shippedOrders = orders?.filter(o => ["packed", "out_for_delivery", "delivered"].includes(o.status)).length || 0;
+              
+              const hasReviews = (stats?.totalReviews ?? 0) > 0;
+              const hasOrders = totalOrders > 0;
+
+              const sellerScoreVal = hasReviews ? `${stats!.averageRating} / 5` : "N/A";
+              const sellerScoreSub = hasReviews ? (stats!.averageRating >= 4.5 ? "Excellent rating" : "Average rating") : "No ratings yet";
+              const sellerScoreColor = hasReviews && stats!.averageRating >= 4.5 ? "text-green-600" : "text-muted-foreground";
+
+              const cancellationVal = hasOrders ? ((cancelledOrders / totalOrders) * 100).toFixed(1) + "%" : "N/A";
+              const cancellationSub = hasOrders ? "Target < 2.5%" : "No orders yet";
+              const cancellationColor = hasOrders && (cancelledOrders / totalOrders) > 0.025 ? "text-red-500" : "text-muted-foreground";
+
+              const onTimeVal = shippedOrders > 0 ? "100%" : "N/A";
+              const onTimeSub = shippedOrders > 0 ? "Target > 95%" : "No shipped orders";
+
+              const productQualityVal = hasReviews ? `${Math.round((stats!.averageRating / 5) * 100)}%` : "N/A";
+              const productQualitySub = hasReviews ? "Target > 95%" : "No ratings yet";
+              const productQualityColor = hasReviews && stats!.averageRating >= 4.5 ? "text-green-600" : "text-muted-foreground";
+
+              return (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[
+                    { label: "Seller Score", value: sellerScoreVal, sub: sellerScoreSub, subColor: sellerScoreColor, icon: <Star className="w-5 h-5 text-amber-400 fill-amber-400" />, bg: "bg-amber-50 dark:bg-amber-950/30" },
+                    { label: "Cancellation", value: cancellationVal, sub: cancellationSub, subColor: cancellationColor, icon: <XCircle className="w-5 h-5 text-red-500" />, bg: "bg-red-50 dark:bg-red-950/30" },
+                    { label: "On-Time Ship", value: onTimeVal, sub: onTimeSub, subColor: "text-green-600", icon: <Clock className="w-5 h-5 text-indigo-500" />, bg: "bg-indigo-50 dark:bg-indigo-950/30" },
+                    { label: "Product Quality", value: productQualityVal, sub: productQualitySub, subColor: productQualityColor, icon: <ShieldCheck className="w-5 h-5 text-green-500" />, bg: "bg-green-50 dark:bg-green-950/30" },
+                  ].map((m) => (
+                    <div key={m.label} className="bg-card border border-border rounded-xl p-4 shadow-sm">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{m.label}</span>
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${m.bg}`}>{m.icon}</div>
+                      </div>
+                      <p className="text-2xl font-bold text-foreground">{m.value}</p>
+                      <p className={`text-xs mt-1 font-medium ${m.subColor}`}>{m.sub}</p>
                     </div>
-                    <p className="text-2xl font-bold text-foreground">{m.value}</p>
-                    <p className={`text-xs mt-1 font-medium ${m.subColor}`}>{m.sub}</p>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         )}
 
