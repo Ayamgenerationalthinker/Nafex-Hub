@@ -31,7 +31,27 @@ export function useMarkAllNotificationsRead(_: { mutation: any }) {
 export function getGetBusinessesQueryKey() { return ["businesses"]; }
 export function getGetFeaturedBusinessesQueryKey() { return ["featuredBusinesses"]; }
 export function getGetFeaturedTopBusinessesQueryKey() { return ["featuredTopBusinesses"]; }
-export function useCreateBusiness(_: any) { return { mutate: () => {} }; }
+import { useMutation } from "@tanstack/react-query";
+
+export function useCreateBusiness(options?: any) {
+  return useMutation({
+    mutationFn: async ({ data }: { data: any }) => {
+      const token = localStorage.getItem("nafex_token");
+      const res = await fetch("/api/businesses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(data),
+      });
+      const json = await res.json();
+      if (!res.ok) throw { data: json };
+      return json;
+    },
+    ...options?.mutation,
+  });
+}
 
 // Additional stub implementations for various API client hooks used throughout the app
 export function useGetBusinesses(_: any) { return { data: [] as any[], refetch: () => {} }; }

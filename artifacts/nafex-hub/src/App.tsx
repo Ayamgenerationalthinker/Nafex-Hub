@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/layout";
-import { setAuthTokenGetter } from "./api-client-react";
+import { setAuthTokenGetter } from "@workspace/api-client-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 
