@@ -192,7 +192,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   <>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="gap-1 text-secondary-foreground/80 hover:text-primary hover:bg-white/10 px-2">
+                        <Button variant="ghost" size="sm" className="gap-1 text-[#222222]/80 hover:text-[#6A1B9A] hover:bg-[#F6F2FF] px-2">
                           <HelpCircle className="w-4 h-4" />
                           <span className="text-sm">Help</span>
                           <ChevronDown className="w-3 h-3" />
@@ -225,7 +225,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="gap-1.5 text-secondary-foreground/80 hover:text-primary hover:bg-white/10 px-2" data-testid="btn-user-menu">
+                        <Button variant="ghost" size="sm" className="gap-1.5 text-[#222222]/80 hover:text-[#6A1B9A] hover:bg-[#F6F2FF] px-2" data-testid="btn-user-menu">
                           <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
                             <span className="text-xs font-bold text-primary">{user.name.charAt(0).toUpperCase()}</span>
                           </div>
@@ -274,7 +274,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 {isBusinessOwner && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="gap-1.5 text-secondary-foreground/80 hover:text-primary hover:bg-white/10 px-2" data-testid="btn-user-menu">
+                      <Button variant="ghost" size="sm" className="gap-1.5 text-[#222222]/80 hover:text-[#6A1B9A] hover:bg-[#F6F2FF] px-2" data-testid="btn-user-menu">
                         <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
                           <span className="text-xs font-bold text-primary">{user.name.charAt(0).toUpperCase()}</span>
                         </div>
@@ -324,7 +324,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   <Button
                     variant="ghost"
                     onClick={logout}
-                    className="text-secondary-foreground/80 hover:text-primary hover:bg-white/10"
+                    className="text-[#222222]/80 hover:text-[#6A1B9A] hover:bg-[#F6F2FF]"
                     data-testid="btn-logout"
                   >
                     <LogOut className="w-4 h-4 mr-1.5" />
