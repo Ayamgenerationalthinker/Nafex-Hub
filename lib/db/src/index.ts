@@ -49,6 +49,12 @@ export const pool = new Pool({
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
 });
+
+pool.on("error", (err) => {
+  console.error("Unexpected error on idle pg client", err);
+  // Do not crash the node process
+});
+
 export const db = drizzle(pool, { schema });
 
 export * from "./schema";
