@@ -70,6 +70,7 @@ import {
   AlertCircle,
   AlertTriangle,
   Upload,
+  Settings,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/image-upload";
@@ -445,8 +446,6 @@ function SellerDashboard() {
       icon: <ShoppingBag className="w-5 h-5 text-white" />,
       iconBg: "bg-gradient-to-br from-primary to-primary/70",
       sub: `${stats?.pendingOrders ?? 0} pending`,
-      trend: "+12%",
-      trendUp: true,
     },
     {
       label: "Conversations",
@@ -454,8 +453,6 @@ function SellerDashboard() {
       icon: <MessageCircle className="w-5 h-5 text-white" />,
       iconBg: "bg-gradient-to-br from-blue-500 to-blue-600",
       sub: "customer chats",
-      trend: "active",
-      trendUp: true,
     },
     {
       label: "Reviews",
@@ -463,17 +460,13 @@ function SellerDashboard() {
       icon: <Star className="w-5 h-5 text-white" />,
       iconBg: "bg-gradient-to-br from-amber-500 to-orange-500",
       sub: `avg ${stats?.averageRating ?? 0}/5`,
-      trend: `${stats?.averageRating ?? 0}/5`,
-      trendUp: true,
     },
     {
       label: "Profile Views",
       value: stats?.profileViews ?? 0,
       icon: <Eye className="w-5 h-5 text-white" />,
       iconBg: "bg-gradient-to-br from-purple-500 to-purple-700",
-      sub: "last 30 days",
-      trend: "last 30d",
-      trendUp: true,
+      sub: "all time",
     },
   ];
 
@@ -517,15 +510,24 @@ function SellerDashboard() {
               </Button>
             )}
             {businessId > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-white/10 border-white/30 text-white hover:bg-white/20 gap-2"
-                onClick={() => setActiveTab("settings")}
-              >
-                <MapPin className="w-3.5 h-3.5" />
-                Store Settings
-              </Button>
+              <>
+                <Button
+                  variant="secondary"
+                  className="hidden sm:flex items-center gap-2 font-semibold shadow-sm"
+                  onClick={() => setActiveTab("settings")}
+                >
+                  <Settings className="w-4 h-4" />
+                  Store Settings
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="sm:hidden shadow-sm"
+                  onClick={() => setActiveTab("settings")}
+                >
+                  <Settings className="w-4 h-4" />
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -547,7 +549,6 @@ function SellerDashboard() {
               { value: "disputes", label: "Disputes" },
               { value: "vouchers", label: "Vouchers" },
               { value: "pricing", label: "Pricing" },
-              { value: "settings", label: "Settings" },
               { value: "earnings", label: "Earnings" },
               { value: "boost", label: "Boost" },
             ] as const).map((tab) => (
