@@ -213,59 +213,59 @@ export default function Explore() {
       {/* ── HERO BANNER ── */}
       <div
         className="relative overflow-hidden rounded-3xl mb-8 shadow-sm border border-amber-100/60"
-        style={{ background: "#F8F3EA", minHeight: "460px" }}
+        style={{ background: "#F8F3EA", minHeight: "500px" }}
       >
-        <div className="grid grid-cols-1 lg:grid-cols-2 h-full" style={{ minHeight: "460px" }}>
+        {/* Image — absolutely placed on the right, no container, fills full hero height */}
+        <img
+          src="/home-hero.png"
+          alt="Nafex Hub Shopping"
+          className="absolute top-0 right-0 h-full w-auto"
+          style={{
+            objectFit: "contain",
+            objectPosition: "right center",
+            maxWidth: "58%",
+            pointerEvents: "none",
+            userSelect: "none",
+          }}
+        />
 
-          {/* LEFT — Text Content */}
-          <div className="flex flex-col justify-center px-8 md:px-14 py-12 space-y-5 z-10">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F6F2FF] border border-purple-100 text-[#6A1B9A] text-xs font-semibold w-fit">
-              <Sparkles className="w-3.5 h-3.5 text-[#D4A017]" />
-              Ghana's Premier Trusted Marketplace
-            </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.4rem] font-extrabold text-[#222222] tracking-tight leading-[1.12]">
-              Everything You Need, <br />
-              <span className="text-[#6A1B9A]">Delivered to You.</span>
-            </h1>
-            <p className="text-[#5a5a5a] text-base md:text-lg max-w-md leading-relaxed">
-              Shop top quality products across electronics, fashion, home, beauty, and more with fast delivery and secure escrow payments.
-            </p>
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              <Button
-                variant="primary"
-                size="lg"
-                onClick={() => {
-                  const el = document.getElementById("catalog-section");
-                  el?.scrollIntoView({ behavior: "smooth" });
-                }}
-                className="bg-[#6A1B9A] text-white hover:bg-[#5B1687] rounded-xl px-8 shadow-md"
-              >
-                Shop Now
-              </Button>
-              <Button
-                variant="secondary"
-                size="lg"
-                onClick={() => {
-                  const el = document.getElementById("categories-section");
-                  el?.scrollIntoView({ behavior: "smooth" });
-                }}
-                className="bg-[#D4A017] text-white hover:bg-[#B88A12] rounded-xl px-8 shadow-md"
-              >
-                Explore Categories
-              </Button>
-            </div>
+        {/* Text — floats on the left with z-index above image */}
+        <div className="relative z-10 flex flex-col justify-center h-full min-h-[500px] px-8 md:px-14 py-12 space-y-5 max-w-[52%]">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F6F2FF] border border-purple-100 text-[#6A1B9A] text-xs font-semibold w-fit">
+            <Sparkles className="w-3.5 h-3.5 text-[#D4A017]" />
+            Ghana's Premier Trusted Marketplace
           </div>
-
-          {/* RIGHT — Hero Image */}
-          <div className="flex items-end justify-center relative overflow-hidden" style={{ minHeight: "460px" }}>
-            <img
-              src="/home-hero.png"
-              alt="Nafex Hub Shopping"
-              className="absolute bottom-0 right-0 h-full w-auto object-contain object-bottom"
-              style={{ maxWidth: "100%", display: "block" }}
-            />
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.4rem] font-extrabold text-[#222222] tracking-tight leading-[1.12]">
+            Everything You Need, <br />
+            <span className="text-[#6A1B9A]">Delivered to You.</span>
+          </h1>
+          <p className="text-[#5a5a5a] text-base md:text-lg max-w-sm leading-relaxed">
+            Shop top quality products across electronics, fashion, home, beauty, and more with fast delivery and secure escrow payments.
+          </p>
+          <div className="flex flex-wrap items-center gap-4 pt-2">
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={() => {
+                const el = document.getElementById("catalog-section");
+                el?.scrollIntoView({ behavior: "smooth" });
+              }}
+              className="bg-[#6A1B9A] text-white hover:bg-[#5B1687] rounded-xl px-8 shadow-md"
+            >
+              Shop Now
+            </Button>
+            <Button
+              variant="secondary"
+              size="lg"
+              onClick={() => {
+                const el = document.getElementById("categories-section");
+                el?.scrollIntoView({ behavior: "smooth" });
+              }}
+              className="bg-[#D4A017] text-white hover:bg-[#B88A12] rounded-xl px-8 shadow-md"
+            >
+              Explore Categories
+            </Button>
           </div>
-
         </div>
       </div>
 
