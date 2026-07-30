@@ -211,8 +211,8 @@ export default function Explore() {
     <div className="container mx-auto px-4 py-6 md:py-8 min-h-[calc(100vh-4rem)] font-poppins">
 
       {/* ── HERO BANNER (Exact Style from Img 1, img 2, img 3, img 4) ── */}
-      <div className="relative overflow-hidden rounded-3xl bg-[#FFF8E6] border border-amber-100/60 p-6 md:p-12 mb-8 shadow-sm">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      <div className="relative overflow-hidden rounded-3xl bg-[#FFF8E6] border border-amber-100/60 mb-8 shadow-sm" style={{ paddingTop: "3rem", paddingBottom: "3rem", paddingLeft: "3rem", paddingRight: 0 }}>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 items-stretch">
           <div className="lg:col-span-7 space-y-5">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F6F2FF] border border-purple-100 text-[#6A1B9A] text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5 text-[#D4A017]" />
@@ -250,12 +250,21 @@ export default function Explore() {
               </Button>
             </div>
           </div>
-          <div className="lg:col-span-5 flex justify-center items-end">
-            <img
-              src="/hero-model.jpg"
-              alt="Nafex Hub Shopping"
-              className="w-full h-auto object-contain max-h-[500px]"
-            />
+          <div className="lg:col-span-5 flex justify-end items-stretch relative">
+            <div
+              className="w-full h-full"
+              style={{
+                maskImage: "linear-gradient(to right, transparent 0%, black 30%)",
+                WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 30%)",
+              }}
+            >
+              <img
+                src="/home-hero.jpg"
+                alt="Nafex Hub Shopping"
+                className="w-full h-full object-cover object-center"
+                style={{ minHeight: "340px", maxHeight: "520px", borderRadius: 0, background: "transparent" }}
+              />
+            </div>
           </div>
         </div>
       </div>
