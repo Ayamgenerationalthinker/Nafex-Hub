@@ -217,7 +217,7 @@ export default function Explore() {
         className="relative overflow-hidden rounded-3xl mb-8 shadow-sm border border-amber-100/60"
         style={{
           backgroundImage: "url('/home-hero-banner.png')",
-          backgroundSize: "auto 85%",
+          backgroundSize: "auto 90%",
           backgroundPosition: "right bottom",
           backgroundRepeat: "no-repeat",
           backgroundColor: "#F8F3EA",
