@@ -120,34 +120,46 @@ export default function ListBusiness() {
     },
   });
 
-  const onSubmit = (values: ListBusinessForm) => {
-    createBusiness.mutate(
-      {
-        data: {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const onSubmit = async (values: ListBusinessForm) => {
+    setIsSubmitting(true);
+    try {
+      const token = localStorage.getItem("nafex_token");
+      const res = await fetch("/api/businesses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
           ...values,
           logo: logoImages[0] ?? null,
           images: bannerImages,
-        },
-      },
-      {
-        onSuccess: (business) => {
-          queryClient.invalidateQueries({ queryKey: getGetBusinessesQueryKey() });
-          queryClient.invalidateQueries({ queryKey: getGetFeaturedBusinessesQueryKey() });
-          toast({
-            title: "Business listed successfully!",
-            description: `${business.name} is now on Nafex Hub.`,
-          });
-          setLocation(`/brand/${business.id}`);
-        },
-        onError: (err: any) => {
-          toast({
-            title: "Failed to list business",
-            description: err?.data?.error ?? "Something went wrong",
-            variant: "destructive",
-          });
-        },
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to list business");
       }
-    );
+
+      queryClient.invalidateQueries({ queryKey: getGetBusinessesQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getGetFeaturedBusinessesQueryKey() });
+      toast({
+        title: "Business listed successfully!",
+        description: `${data.name} is now on Nafex Hub.`,
+      });
+      setLocation(`/brand/${data.id}`);
+    } catch (err: any) {
+      toast({
+        title: "Failed to list business",
+        description: err.message || "Something went wrong",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -273,9 +285,9 @@ export default function ListBusiness() {
               <Button
                 type="submit"
                 className="w-full h-12 text-base font-semibold"
-                disabled={createBusiness.isPending}
+                disabled={isSubmitting}
               >
-                {createBusiness.isPending ? (
+                {isSubmitting ? (
                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Submitting...</>
                 ) : (
                   "List My Business"
