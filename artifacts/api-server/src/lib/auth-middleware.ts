@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { parseToken } from "../features/auth/auth.routes";
+import { authService } from "../features/auth/auth.routes";
 
 export type AuthUser = {
   id: number;
@@ -29,7 +29,7 @@ export async function requireAuth(
   }
 
   const token = authHeader.slice(7);
-  const parsed = parseToken(token);
+  const parsed = authService.parseToken(token);
 
   if (!parsed) {
     res.status(401).json({ error: "Invalid or expired token. Please log in again." });
@@ -78,7 +78,7 @@ export function optionalAuth(
   const authHeader = req.headers.authorization;
   if (authHeader?.startsWith("Bearer ")) {
     const token = authHeader.slice(7);
-    const parsed = parseToken(token);
+    const parsed = authService.parseToken(token);
     if (parsed) req.userId = parsed.userId;
   }
   next();

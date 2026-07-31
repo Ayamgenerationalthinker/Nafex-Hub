@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, timestamp, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -8,6 +8,10 @@ export const analyticsEventsTable = pgTable("analytics_events", {
   userId: integer("user_id"),
   type: text("type", { enum: ["view", "message", "order"] }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => {
+  return {
+    businessCreatedIdx: index("analytics_business_created_idx").on(table.businessId, table.createdAt),
+  };
 });
 
 export const insertAnalyticsEventSchema = createInsertSchema(analyticsEventsTable).omit({

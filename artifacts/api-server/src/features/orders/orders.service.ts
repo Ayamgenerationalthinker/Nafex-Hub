@@ -45,14 +45,6 @@ export class OrdersService {
       throw new AppError("A duplicate order was recently created. Please check your orders or wait a moment.", 409);
     }
 
-    if (data.coinsApplied > 0) {
-      const user = await this.repository.getUser(userId);
-      if (!user || user.loyaltyPoints < data.coinsApplied) {
-        throw new AppError("Not enough Nafex Coins", 400);
-      }
-      await this.repository.deductUserCoins(userId, data.coinsApplied);
-    }
-
     let milestones: any[] = [];
     if (data.isB2b) {
       const half = Math.floor(data.totalPrice / 2);
@@ -63,17 +55,42 @@ export class OrdersService {
       ];
     }
 
-    const order = await this.repository.createOrder({
-      userId,
-      businessId: data.businessId,
-      items: data.items,
-      totalPrice: data.totalPrice,
-      coinsApplied: data.coinsApplied,
-      isB2b: data.isB2b,
-      milestones,
-      notes: data.notes,
-      status: "pending",
-      paymentStatus: "unpaid",
+    const order = await this.repository.transaction(async (tx) => {
+      if (data.coinsApplied > 0) {
+        const user = await this.repository.getUser(userId);
+        if (!user || user.loyaltyPoints < data.coinsApplied) {
+          throw new AppError("Not enough Nafex Coins", 400);
+        }
+        await this.repository.deductUserCoins(userId, data.coinsApplied, tx);
+      }
+
+      const newOrder = await this.repository.createOrder({
+        userId,
+        businessId: data.businessId,
+        items: data.items,
+        totalPrice: data.totalPrice,
+        coinsApplied: data.coinsApplied,
+        isB2b: data.isB2b,
+        milestones,
+        notes: data.notes,
+        status: "pending",
+        paymentStatus: "unpaid",
+      }, tx);
+
+      // Deduct inventory atomically to prevent overselling
+      if (data.items && Array.isArray(data.items)) {
+        for (const item of data.items) {
+          if (item.productId && item.quantity) {
+            try {
+              await this.repository.deductInventory(item.productId, item.quantity, tx);
+            } catch (err: any) {
+              throw new AppError(err.message || "Insufficient stock", 400);
+            }
+          }
+        }
+      }
+
+      return newOrder;
     });
 
     sendAdminEmail(
@@ -252,7 +269,7 @@ export class OrdersService {
 
       if (business.paystackRecipientCode) {
         paymentsService.payoutToSeller(business.id, payoutAmount, order.id).catch((err) => {
-          console.error(`Automated payout failed for Order #${order.id}:`, err);
+          import("../../shared/logger").then(({ logger }) => logger.error({ err }, `Automated payout failed for Order #${order.id}`));
         });
       }
     }

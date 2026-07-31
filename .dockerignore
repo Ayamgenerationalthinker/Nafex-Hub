@@ -1,0 +1,13 @@
+node_modules
+dist
+build
+.env
+.env.local
+.git
+.github
+*.log
+*.sqlite
+*.sqlite-wal
+.replit-artifact
+git_backup
+.pnpm-store

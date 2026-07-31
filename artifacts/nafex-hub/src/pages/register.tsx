@@ -183,7 +183,7 @@ export default function Register() {
     (!isSeller || deliveryChoice !== null);
 
   const handleAccept = () => {
-    if (!pendingValues || !canAccept) return;
+    if (!pendingValues || !canAccept || register.isPending) return;
     register.mutate(
       { data: pendingValues },
       {

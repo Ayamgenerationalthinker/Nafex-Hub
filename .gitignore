@@ -12,3 +12,8 @@ coverage/
 .env.local
 .replit-artifact/
 git_backup/
+
+*.sqlite
+*.sqlite-wal
+*.log
+.DS_Store

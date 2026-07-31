@@ -46,7 +46,7 @@ export class PaymentsService {
   public async payoutToSeller(businessId: number, amountPesewas: number, orderId: number): Promise<boolean> {
     const biz = await this.repository.getBusinessById(businessId);
     if (!biz || !biz.paystackRecipientCode) {
-      console.error(`Cannot payout to business ${businessId}: No Paystack recipient code found.`);
+      import("../../shared/logger").then(({ logger }) => logger.error(`Cannot payout to business ${businessId}: No Paystack recipient code found.`));
       return false;
     }
 
@@ -59,7 +59,7 @@ export class PaymentsService {
       });
       return true;
     } catch (error) {
-      console.error(`Failed to transfer to business ${businessId}:`, error);
+      import("../../shared/logger").then(({ logger }) => logger.error({ err: error }, `Failed to transfer to business ${businessId}`));
       return false;
     }
   }
@@ -67,7 +67,7 @@ export class PaymentsService {
   public async payoutToTradeSupplier(supplierId: number, amountPesewas: number, orderId: number): Promise<boolean> {
     const biz = await this.repository.getBusinessByOwnerId(supplierId);
     if (!biz || !biz.paystackRecipientCode) {
-      console.error(`Cannot payout to supplier ${supplierId}: No Paystack recipient code found for their business.`);
+      import("../../shared/logger").then(({ logger }) => logger.error(`Cannot payout to supplier ${supplierId}: No Paystack recipient code found for their business.`));
       return false;
     }
 
@@ -80,7 +80,7 @@ export class PaymentsService {
       });
       return true;
     } catch (error) {
-      console.error(`Failed to transfer to supplier ${supplierId}:`, error);
+      import("../../shared/logger").then(({ logger }) => logger.error({ err: error }, `Failed to transfer to supplier ${supplierId}`));
       return false;
     }
   }

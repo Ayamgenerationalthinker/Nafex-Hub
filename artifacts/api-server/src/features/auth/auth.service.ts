@@ -106,4 +106,64 @@ export class AuthService {
 
     return { user, token: this.generateToken(user.id) };
   }
+
+  public async verifyEmail(userId: number, code: string): Promise<void> {
+    const user = await this.repository.findById(userId);
+    if (!user) throw new UnauthorizedError("User not found");
+    if (user.emailVerified) throw new ValidationError("Email already verified");
+    if (!user.emailVerificationCode || !user.emailVerificationExpiry) {
+      throw new ValidationError("No pending verification. Request a new code.");
+    }
+    if (user.emailVerificationExpiry.getTime() < Date.now()) {
+      throw new ValidationError("Code has expired. Request a new one.");
+    }
+    if (user.emailVerificationCode !== code) {
+      throw new ValidationError("Incorrect code");
+    }
+    await this.repository.updateVerification(userId, { 
+      emailVerified: true, 
+      emailVerificationCode: null, 
+      emailVerificationExpiry: null 
+    });
+  }
+
+  public async resendVerification(userId: number): Promise<{ code: string; email: string; name: string }> {
+    const user = await this.repository.findById(userId);
+    if (!user) throw new UnauthorizedError("User not found");
+    if (user.emailVerified) throw new ValidationError("Already verified");
+    
+    const code = this.generateVerificationCode();
+    const expiry = new Date(Date.now() + VERIFICATION_TTL_MS);
+    await this.repository.updateVerification(userId, {
+      emailVerificationCode: code,
+      emailVerificationExpiry: expiry
+    });
+    
+    return { code, email: user.email, name: user.name };
+  }
+
+  public async getProfile(userId: number): Promise<any> {
+    const user = await this.repository.findById(userId);
+    if (!user) throw new UnauthorizedError("User not found");
+    return user;
+  }
+
+  public async updateProfile(userId: number, name: string): Promise<any> {
+    await this.repository.updateVerification(userId, { name });
+    const user = await this.repository.findById(userId);
+    return user;
+  }
+
+  public async updatePassword(userId: number, currentPass: string, newPass: string): Promise<void> {
+    const user = await this.repository.findById(userId);
+    if (!user) throw new UnauthorizedError("User not found");
+
+    const valid = await this.verifyPassword(currentPass, user.password);
+    if (!valid) throw new ValidationError("Incorrect current password");
+
+    this.validatePasswordStrength(newPass);
+
+    const hashed = await this.hashPassword(newPass);
+    await this.repository.updatePassword(userId, hashed);
+  }
 }

@@ -1,11 +1,14 @@
-import { pgTable, serial, integer, text, timestamp, numeric, index } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, timestamp, numeric, index, check } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
+import { businessesTable } from "./businesses";
+import { collectionsTable } from "./collections";
 import { z } from "zod/v4";
 
 export const productsTable = pgTable("products", {
   id: serial("id").primaryKey(),
-  businessId: integer("business_id").notNull(),
-  collectionId: integer("collection_id"),
+  businessId: integer("business_id").notNull().references(() => businessesTable.id, { onDelete: "cascade" }),
+  collectionId: integer("collection_id").references(() => collectionsTable.id, { onDelete: "set null" }),
   name: text("name").notNull(),
   description: text("description").notNull().default(""),
   price: numeric("price", { precision: 10, scale: 2 }).notNull(),
@@ -21,6 +24,8 @@ export const productsTable = pgTable("products", {
     businessIdIdx: index("products_business_id_idx").on(table.businessId),
     collectionIdIdx: index("products_collection_id_idx").on(table.collectionId),
     statusIdx: index("products_status_idx").on(table.approvalStatus),
+    stockCheck: check("stock_non_negative", sql`${table.stock} >= 0`),
+    priceCheck: check("price_non_negative", sql`${table.price} >= 0`),
   };
 });
 

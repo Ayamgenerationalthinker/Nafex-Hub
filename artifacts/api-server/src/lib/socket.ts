@@ -2,7 +2,7 @@ import { Server, type Socket } from "socket.io";
 import type { Server as HttpServer } from "http";
 import { db, usersTable, tradeOrdersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { parseToken } from "../features/auth/auth.routes";
+import { authService } from "../features/auth/auth.routes";
 import { logger } from "../shared/logger";
 import { createAdapter } from "@socket.io/redis-adapter";
 import { pubClient, subClient } from "./redis";
@@ -44,7 +44,7 @@ export function initSocketIO(httpServer: HttpServer): Server {
     if (!token) {
       return next(new Error("No token provided"));
     }
-    const parsed = parseToken(token);
+    const parsed = authService.parseToken(token);
     if (!parsed) {
       return next(new Error("Invalid or expired token"));
     }

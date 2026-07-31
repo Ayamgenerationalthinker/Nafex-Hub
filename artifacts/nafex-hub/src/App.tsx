@@ -8,6 +8,8 @@ import { setAuthTokenGetter } from "@workspace/api-client-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { VerifyEmailBanner } from "@/components/verify-email-banner";
 import { SupportChatWidget } from "@/components/support-chat";
+import { GlobalErrorBoundary } from "@/components/global-error-boundary";
+import { RouteLoader } from "@/components/route-loader";
 
 const NotFound = lazy(() => import("@/pages/not-found"));
 const Home = lazy(() => import("@/pages/home"));
@@ -69,8 +71,9 @@ setAuthTokenGetter(() => localStorage.getItem("nafex_token"));
 
 function Router() {
   return (
-    <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading...</div>}>
-      <Switch>
+    <GlobalErrorBoundary>
+      <Suspense fallback={<RouteLoader />}>
+        <Switch>
         <Route path="/admin/dashboard">{() => <ProtectedRoute component={AdminDashboard} roles={["admin"]} to="/" />}</Route>
         <Route path="/admin/users">{() => <ProtectedRoute component={AdminUsersPage} roles={["admin"]} to="/" />}</Route>
         <Route path="/admin/businesses">{() => <ProtectedRoute component={AdminBusinessesPage} roles={["admin"]} to="/" />}</Route>
@@ -132,6 +135,7 @@ function Router() {
         </Route>
       </Switch>
     </Suspense>
+  </GlobalErrorBoundary>
   );
 }
 

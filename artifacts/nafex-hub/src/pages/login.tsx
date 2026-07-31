@@ -32,6 +32,7 @@ export default function Login() {
   });
 
   const onSubmit = (values: LoginForm) => {
+    if (login.isPending) return;
     login.mutate(
       { data: values },
       {

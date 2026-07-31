@@ -26,7 +26,7 @@ const envSchema = z.object({
 const _env = envSchema.safeParse(process.env);
 
 if (!_env.success) {
-  console.error("❌ Invalid environment variables:", _env.error.format());
+  import("../shared/logger").then(({ logger }) => logger.error({ err: _env.error.format() }, "❌ Invalid environment variables"));
   throw new Error("Invalid environment variables");
 }
 

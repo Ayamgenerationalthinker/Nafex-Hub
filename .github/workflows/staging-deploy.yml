@@ -1,0 +1,29 @@
+name: Staging Deployment
+
+on:
+  push:
+    branches: [ "staging" ]
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Trigger Vercel Staging Deployment
+      uses: amondnet/vercel-action@v20
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        # Exclude --prod so it deploys to a preview (staging) URL
+        vercel-args: ''
+
+    # For Railway, linking the staging branch to a specific Railway environment 
+    # handles backend deployments automatically on push, so we just log it here.
+    - name: Log Railway Backend Trigger
+      run: echo "Railway will automatically detect the push to the 'staging' branch and deploy the staging-api environment."

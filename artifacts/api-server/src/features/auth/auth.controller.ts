@@ -23,14 +23,14 @@ export class AuthController {
     sendAdminEmail(
       "New User Signup",
       `A new user has registered on Nafex Hub.\n\nName: ${user.name}\nEmail: ${user.email}\nRole: ${user.role}\nDate: ${new Date().toUTCString()}`
-    ).catch(e => console.error("Admin email failed:", e));
+    ).catch(e => import("../../shared/logger").then(({ logger }) => logger.error({ err: e }, "Admin email failed")));
 
-    sendVerificationEmail(user.email, user.name, user.emailVerificationCode).catch(e => console.error("Verification email failed:", e));
+    sendVerificationEmail(user.email, user.name, user.emailVerificationCode).catch(e => import("../../shared/logger").then(({ logger }) => logger.error({ err: e }, "Verification email failed")));
     
     if (env.NODE_ENV !== "production") {
-      console.log(`\n======================================================`);
-      console.log(`[DEV MODE] Verification code for ${user.email}: ${user.emailVerificationCode}`);
-      console.log(`======================================================\n`);
+      import("../../shared/logger").then(({ logger }) => {
+        logger.info({ email: user.email, code: user.emailVerificationCode }, "[DEV MODE] Verification code");
+      });
     }
 
     res.status(201).json({
@@ -67,5 +67,88 @@ export class AuthController {
       },
       token,
     });
+  }
+
+  public async verifyEmail(req: Request, res: Response): Promise<void> {
+    const userId = (req as any).user!.id;
+    const { code } = req.body;
+    if (!code || !/^\d{6}$/.test(code)) {
+      res.status(400).json({ error: "Code must be 6 digits" });
+      return;
+    }
+    
+    await this.service.verifyEmail(userId, code);
+    res.json({ message: "Email verified", emailVerified: true });
+  }
+
+  public async resendVerification(req: Request, res: Response): Promise<void> {
+    const userId = (req as any).user!.id;
+    const { code, email, name } = await this.service.resendVerification(userId);
+    
+    const delivered = await sendVerificationEmail(email, name, code);
+    
+    if (env.NODE_ENV !== "production") {
+      import("../../shared/logger").then(({ logger }) => {
+        logger.info({ code, email }, "[DEV MODE] Resent Verification code");
+      });
+    }
+
+    res.json({
+      message: delivered ? "Verification code sent. Check your email." : "Code generated. Sending via browser.",
+      delivered,
+      email,
+      name,
+    });
+  }
+
+  public async me(req: Request, res: Response): Promise<void> {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    const token = authHeader.slice(7);
+    const parsed = this.service.parseToken(token);
+    if (!parsed) {
+      res.status(401).json({ error: "Invalid or expired token" });
+      return;
+    }
+
+    const user = await this.service.getProfile(parsed.userId);
+    res.json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      emailVerified: user.emailVerified,
+      emailVerificationExpiry: user.emailVerificationExpiry,
+      loyaltyPoints: user.loyaltyPoints,
+      createdAt: user.createdAt,
+    });
+  }
+
+  public async updateProfile(req: Request, res: Response): Promise<void> {
+    const userId = (req as any).user!.id;
+    const { name } = req.body;
+    if (!name || typeof name !== "string" || name.length < 1) {
+      res.status(400).json({ error: "Name is required" });
+      return;
+    }
+
+    const user = await this.service.updateProfile(userId, name);
+    res.json({ id: user.id, name: user.name, email: user.email, role: user.role, createdAt: user.createdAt });
+  }
+
+  public async updatePassword(req: Request, res: Response): Promise<void> {
+    const userId = (req as any).user!.id;
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      res.status(400).json({ error: "currentPassword and newPassword are required" });
+      return;
+    }
+
+    await this.service.updatePassword(userId, currentPassword, newPassword);
+    res.json({ message: "Password updated successfully" });
   }
 }

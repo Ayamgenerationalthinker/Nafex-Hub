@@ -1,11 +1,14 @@
-import { pgTable, serial, integer, text, numeric, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, numeric, jsonb, timestamp, check } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
+import { usersTable } from "./users";
+import { ordersTable } from "./orders";
 import { z } from "zod/v4";
 
 export const transactionsTable = pgTable("transactions", {
   id: serial("id").primaryKey(),
-  orderId: integer("order_id"),
-  userId: integer("user_id").notNull(),
+  orderId: integer("order_id").references(() => ordersTable.id, { onDelete: "set null" }),
+  userId: integer("user_id").notNull().references(() => usersTable.id, { onDelete: "cascade" }),
   type: text("type", { enum: ["payment", "refund", "payout", "fee"] }).notNull(),
   amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
   currency: text("currency").notNull().default("GHS"),
@@ -18,6 +21,10 @@ export const transactionsTable = pgTable("transactions", {
   metadata: jsonb("metadata"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+}, (table) => {
+  return {
+    amountCheck: check("transactions_amount_non_negative", sql`${table.amount} >= 0`),
+  };
 });
 
 export const insertTransactionSchema = createInsertSchema(transactionsTable).omit({

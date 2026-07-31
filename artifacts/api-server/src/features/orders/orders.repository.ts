@@ -1,10 +1,14 @@
-import { db, ordersTable, businessesTable, notificationsTable, usersTable } from "@workspace/db";
+import { db, ordersTable, businessesTable, notificationsTable, usersTable, productsTable } from "@workspace/db";
 import { eq, desc, sql, and, gt } from "drizzle-orm";
 import { InferInsertModel } from "drizzle-orm";
 
 type NewOrder = InferInsertModel<typeof ordersTable>;
 
 export class OrdersRepository {
+  public async transaction<T>(callback: (tx: any) => Promise<T>): Promise<T> {
+    return db.transaction(callback);
+  }
+
   public async getOrderById(id: number) {
     const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
     return order;
@@ -37,8 +41,8 @@ export class OrdersRepository {
     return user;
   }
 
-  public async deductUserCoins(userId: number, amount: number) {
-    await db.update(usersTable)
+  public async deductUserCoins(userId: number, amount: number, tx: any = db) {
+    await tx.update(usersTable)
       .set({ loyaltyPoints: sql`${usersTable.loyaltyPoints} - ${amount}` })
       .where(eq(usersTable.id, userId));
   }
@@ -49,9 +53,19 @@ export class OrdersRepository {
       .where(eq(usersTable.id, userId));
   }
 
-  public async createOrder(data: NewOrder) {
-    const [order] = await db.insert(ordersTable).values(data).returning();
+  public async createOrder(data: NewOrder, tx: any = db) {
+    const [order] = await tx.insert(ordersTable).values(data).returning();
     return order;
+  }
+
+  public async deductInventory(productId: number, quantity: number, tx: any = db) {
+    const result = await tx.update(productsTable)
+      .set({ stock: sql`${productsTable.stock} - ${quantity}` })
+      .where(and(eq(productsTable.id, productId), sql`${productsTable.stock} >= ${quantity}`))
+      .returning();
+    if (result.length === 0) {
+      throw new Error(`Insufficient stock for product ${productId}`);
+    }
   }
 
   public async updateOrder(id: number, data: Partial<NewOrder>) {

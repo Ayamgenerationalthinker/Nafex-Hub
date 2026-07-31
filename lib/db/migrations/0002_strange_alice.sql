@@ -1,0 +1,2 @@
+CREATE INDEX "analytics_business_created_idx" ON "analytics_events" USING btree ("business_id","created_at");--> statement-breakpoint
+CREATE INDEX "admin_activity_created_idx" ON "admin_activity" USING btree ("created_at");
