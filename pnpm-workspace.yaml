@@ -5,8 +5,13 @@ packages:
   - scripts
 
 allowBuilds:
-  esbuild: set this to true or false
-  unrs-resolver: set this to true or false
+  argon2: true
+  cpu-features: true
+  esbuild: true
+  msgpackr-extract: true
+  protobufjs: true
+  ssh2: true
+  unrs-resolver: true
 
 autoInstallPeers: false
 
