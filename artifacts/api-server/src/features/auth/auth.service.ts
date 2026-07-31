@@ -110,7 +110,7 @@ export class AuthService {
   public async loginWithGoogle(idToken: string): Promise<any> {
     const res = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`);
     if (!res.ok) throw new UnauthorizedError("Invalid Google token");
-    const payload = await res.json();
+    const payload = (await res.json()) as any;
     
     // Verify client ID (audience) if we have one configured, otherwise just trust the token
     const clientId = process.env.VITE_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
@@ -156,7 +156,7 @@ export class AuthService {
   public async loginWithFacebook(accessToken: string): Promise<any> {
     const res = await fetch(`https://graph.facebook.com/me?fields=id,name,email&access_token=${accessToken}`);
     if (!res.ok) throw new UnauthorizedError("Invalid Facebook token");
-    const payload = await res.json();
+    const payload = (await res.json()) as any;
 
     if (!payload.email) {
       throw new UnauthorizedError("Facebook account must have an email attached");
