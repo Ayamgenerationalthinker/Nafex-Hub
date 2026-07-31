@@ -107,16 +107,14 @@ export class AuthService {
     return { user, token: this.generateToken(user.id) };
   }
 
-  public async loginWithGoogle(idToken: string): Promise<any> {
-    const res = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`);
+  public async loginWithGoogle(accessToken: string): Promise<any> {
+    const res = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
     if (!res.ok) throw new UnauthorizedError("Invalid Google token");
     const payload = (await res.json()) as Record<string, any>;
-    
-    // Verify client ID (audience) if we have one configured, otherwise just trust the token
-    const clientId = process.env.VITE_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
-    if (clientId && payload.aud !== clientId) {
-      throw new UnauthorizedError("Google token audience mismatch");
-    }
 
     const email = payload.email.toLowerCase().trim();
     const name = payload.name || "Google User";
