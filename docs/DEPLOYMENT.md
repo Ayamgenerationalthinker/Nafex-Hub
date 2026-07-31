@@ -88,3 +88,25 @@ The application utilizes Zod schema validation for environment variables at star
 ### Secret Management
 - `.gitignore` explicitly blocks `.env`, `.env.local`, and SQLite local databases to prevent credential leakage.
 - Production credentials should be injected via your hosting provider's Secret Manager (Vercel/Railway), **never** hardcoded into files.
+
+---
+
+## 5. Mandatory Credential Rotation
+
+Before launching your production instance, you **MUST** rotate all default credentials and keys used during development to prevent unauthorized access.
+
+### 1. Database Credentials
+If using Neon DB or Railway Postgres, navigate to the provider's dashboard and regenerate the primary `DATABASE_URL` password.
+
+### 2. Application Secrets
+Generate a new, cryptographically secure 256-bit string for your `JWT_SECRET`.
+You can generate one locally via Node:
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+### 3. API Keys & Email Delivery
+Regenerate your production API keys for external services and update Vercel/Railway environment variables accordingly:
+- **Resend** / **Gmail**: Rotate the `EMAIL_PASS` or generate a new App Password.
+- **Paystack**: Rotate the `PAYSTACK_SECRET_KEY`.
+- **Cloudinary/S3**: If used for image uploads, generate new access keys.
