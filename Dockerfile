@@ -12,7 +12,13 @@ RUN corepack enable && corepack prepare pnpm@11.4.0 --activate
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY artifacts/api-server/package.json ./artifacts/api-server/
 COPY artifacts/nafex-hub/package.json ./artifacts/nafex-hub/
+COPY artifacts/mockup-sandbox/package.json ./artifacts/mockup-sandbox/
+COPY artifacts/e2e/package.json ./artifacts/e2e/
 COPY lib/db/package.json ./lib/db/
+COPY lib/api-zod/package.json ./lib/api-zod/
+COPY lib/api-client-react/package.json ./lib/api-client-react/
+COPY lib/api-spec/package.json ./lib/api-spec/
+COPY scripts/package.json ./scripts/
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile
