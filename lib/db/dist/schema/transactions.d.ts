@@ -235,13 +235,13 @@ export declare const insertTransactionSchema: z.ZodObject<{
         failed: "failed";
         reversed: "reversed";
     }>>;
+    orderId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
     type: z.ZodEnum<{
         payment: "payment";
         refund: "refund";
         payout: "payout";
         fee: "fee";
     }>;
-    orderId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
     amount: z.ZodString;
     currency: z.ZodOptional<z.ZodString>;
     provider: z.ZodEnum<{

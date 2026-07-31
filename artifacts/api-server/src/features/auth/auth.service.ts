@@ -107,6 +107,96 @@ export class AuthService {
     return { user, token: this.generateToken(user.id) };
   }
 
+  public async loginWithGoogle(idToken: string): Promise<any> {
+    const res = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`);
+    if (!res.ok) throw new UnauthorizedError("Invalid Google token");
+    const payload = await res.json();
+    
+    // Verify client ID (audience) if we have one configured, otherwise just trust the token
+    const clientId = process.env.VITE_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
+    if (clientId && payload.aud !== clientId) {
+      throw new UnauthorizedError("Google token audience mismatch");
+    }
+
+    const email = payload.email.toLowerCase().trim();
+    const name = payload.name || "Google User";
+    const googleId = payload.sub;
+
+    let user = await this.repository.findByEmail(email);
+    if (user) {
+      if (!user.googleId) {
+        await this.repository.updateVerification(user.id, { googleId, emailVerified: true });
+        user.googleId = googleId;
+        user.emailVerified = true;
+      }
+    } else {
+      const randomPassword = crypto.randomBytes(32).toString("hex");
+      const hashedPassword = await this.hashPassword(randomPassword);
+      const userRole = email === "princefiebor10@gmail.com" ? "admin" : "user";
+      
+      user = await this.repository.createUser({
+        name,
+        email,
+        password: hashedPassword,
+        role: userRole,
+        googleId,
+        emailVerified: true,
+      });
+    }
+
+    // Force admin check
+    if (email === "princefiebor10@gmail.com" && user.role !== "admin") {
+      await this.repository.updateVerification(user.id, { role: "admin" });
+      user.role = "admin";
+    }
+
+    return { user, token: this.generateToken(user.id) };
+  }
+
+  public async loginWithFacebook(accessToken: string): Promise<any> {
+    const res = await fetch(`https://graph.facebook.com/me?fields=id,name,email&access_token=${accessToken}`);
+    if (!res.ok) throw new UnauthorizedError("Invalid Facebook token");
+    const payload = await res.json();
+
+    if (!payload.email) {
+      throw new UnauthorizedError("Facebook account must have an email attached");
+    }
+
+    const email = payload.email.toLowerCase().trim();
+    const name = payload.name || "Facebook User";
+    const facebookId = payload.id;
+
+    let user = await this.repository.findByEmail(email);
+    if (user) {
+      if (!user.facebookId) {
+        await this.repository.updateVerification(user.id, { facebookId, emailVerified: true });
+        user.facebookId = facebookId;
+        user.emailVerified = true;
+      }
+    } else {
+      const randomPassword = crypto.randomBytes(32).toString("hex");
+      const hashedPassword = await this.hashPassword(randomPassword);
+      const userRole = email === "princefiebor10@gmail.com" ? "admin" : "user";
+      
+      user = await this.repository.createUser({
+        name,
+        email,
+        password: hashedPassword,
+        role: userRole,
+        facebookId,
+        emailVerified: true,
+      });
+    }
+
+    // Force admin check
+    if (email === "princefiebor10@gmail.com" && user.role !== "admin") {
+      await this.repository.updateVerification(user.id, { role: "admin" });
+      user.role = "admin";
+    }
+
+    return { user, token: this.generateToken(user.id) };
+  }
+
   public async verifyEmail(userId: number, code: string): Promise<void> {
     const user = await this.repository.findById(userId);
     if (!user) throw new UnauthorizedError("User not found");

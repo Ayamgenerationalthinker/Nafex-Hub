@@ -27,6 +27,14 @@ router.post("/auth/login", authLimiter, (req, res, next) => {
   authController.login(req, res).catch(next);
 });
 
+router.post("/auth/google", authLimiter, (req, res, next) => {
+  authController.googleLogin(req, res).catch(next);
+});
+
+router.post("/auth/facebook", authLimiter, (req, res, next) => {
+  authController.facebookLogin(req, res).catch(next);
+});
+
 router.post("/auth/verify-email", authLimiter, requireAuth, (req, res, next) => {
   authController.verifyEmail(req, res).catch(next);
 });

@@ -69,6 +69,48 @@ export class AuthController {
     });
   }
 
+  public async googleLogin(req: Request, res: Response): Promise<void> {
+    const { token } = req.body;
+    if (!token) {
+      res.status(400).json({ error: "Missing token" });
+      return;
+    }
+    const { user, token: jwtToken } = await this.service.loginWithGoogle(token);
+    res.json({
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        emailVerified: user.emailVerified,
+        loyaltyPoints: user.loyaltyPoints,
+        createdAt: user.createdAt,
+      },
+      token: jwtToken,
+    });
+  }
+
+  public async facebookLogin(req: Request, res: Response): Promise<void> {
+    const { token } = req.body;
+    if (!token) {
+      res.status(400).json({ error: "Missing token" });
+      return;
+    }
+    const { user, token: jwtToken } = await this.service.loginWithFacebook(token);
+    res.json({
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        emailVerified: user.emailVerified,
+        loyaltyPoints: user.loyaltyPoints,
+        createdAt: user.createdAt,
+      },
+      token: jwtToken,
+    });
+  }
+
   public async verifyEmail(req: Request, res: Response): Promise<void> {
     const userId = (req as any).user!.id;
     const { code } = req.body;

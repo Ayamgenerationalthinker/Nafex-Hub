@@ -12,6 +12,8 @@ export const usersTable = pgTable("users", {
     .default("user"),
   phone: text("phone"),
   avatar: text("avatar"),
+  googleId: text("google_id"),
+  facebookId: text("facebook_id"),
   twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
   emailVerified: boolean("email_verified").notNull().default(false),
   emailVerificationCode: text("email_verification_code"),
