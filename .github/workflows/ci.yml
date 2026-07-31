@@ -45,4 +45,7 @@ jobs:
       run: pnpm exec playwright install --with-deps chromium
 
     - name: Run E2E Tests
-      run: pnpm --filter @workspace/e2e run test
+      run: |
+        cp .env.example .env
+        cp .env.example artifacts/api-server/.env
+        pnpm --filter @workspace/e2e run test
