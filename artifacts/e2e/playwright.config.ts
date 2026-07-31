@@ -60,7 +60,7 @@ export default defineConfig({
       timeout: 120 * 1000,
     },
     {
-      command: 'pnpm --filter @workspace/nafex-hub run preview',
+      command: 'pnpm --filter @workspace/nafex-hub run serve',
       cwd: path.join(__dirname, '../../'),
       port: 4173,
       reuseExistingServer: !process.env.CI,
