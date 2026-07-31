@@ -23,7 +23,7 @@ describe('PaymentsService', () => {
   let paymentsService: PaymentsService;
   let mockRepository: any;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // Reset env vars before each test to guarantee PAYSTACK_SECRET is consistent
     process.env.PAYSTACK_SECRET_KEY = 'test_secret_key';
     mockRepository = new (await import('./payments.repository')).PaymentsRepository();

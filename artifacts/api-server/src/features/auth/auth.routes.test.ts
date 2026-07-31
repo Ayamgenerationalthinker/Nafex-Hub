@@ -2,8 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import express from 'express';
 import authRoutes from './auth.routes';
-import { db } from '../../../../lib/db/src/index';
-import { usersTable } from '../../../../lib/db/src/schema';
+import { db, usersTable } from '@workspace/db';
 import { eq } from 'drizzle-orm';
 
 // Create a dummy error handler that mimics the app's real error handler

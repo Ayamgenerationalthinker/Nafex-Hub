@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, Mocked } from 'vitest';
 import { AuthService } from './auth.service';
 import { AuthRepository } from './auth.repository';
 import { ValidationError, UnauthorizedError, ForbiddenError } from '../../shared/errors/AppError';
@@ -18,10 +18,10 @@ vi.mock('./auth.repository', () => {
 
 describe('AuthService', () => {
   let authService: AuthService;
-  let mockRepository: vi.Mocked<AuthRepository>;
+  let mockRepository: Mocked<AuthRepository>;
 
   beforeEach(() => {
-    mockRepository = new AuthRepository() as vi.Mocked<AuthRepository>;
+    mockRepository = new AuthRepository() as unknown as Mocked<AuthRepository>;
     authService = new AuthService(mockRepository);
     vi.clearAllMocks();
   });
@@ -78,7 +78,7 @@ describe('AuthService', () => {
     });
 
     it('should throw ForbiddenError if trying to register as admin', async () => {
-      mockRepository.findByEmail.mockResolvedValueOnce(null);
+      mockRepository.findByEmail.mockResolvedValueOnce(undefined as any);
 
       await expect(
         authService.createAccount({
@@ -91,7 +91,7 @@ describe('AuthService', () => {
     });
 
     it('should successfully create an account if input is valid', async () => {
-      mockRepository.findByEmail.mockResolvedValueOnce(null);
+      mockRepository.findByEmail.mockResolvedValueOnce(undefined as any);
       mockRepository.createUser.mockResolvedValueOnce({
         id: 1,
         name: 'Test User',
@@ -115,7 +115,7 @@ describe('AuthService', () => {
 
   describe('Login', () => {
     it('should throw UnauthorizedError if user does not exist', async () => {
-      mockRepository.findByEmail.mockResolvedValueOnce(null);
+      mockRepository.findByEmail.mockResolvedValueOnce(undefined as any);
 
       await expect(
         authService.login({ email: 'nonexistent@example.com', password: 'ValidPassword123' })
