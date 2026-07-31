@@ -5,7 +5,7 @@
     "buildCommand": "cp -r src artifacts/nafex-hub/src && cp -r public artifacts/nafex-hub/public && cp index.html artifacts/nafex-hub/index.html && pnpm run typecheck:libs && pnpm --filter @workspace/nafex-hub run build && cp -r artifacts/nafex-hub/dist/public dist-public && pnpm --filter @workspace/api-server run build && mkdir -p dist && mv dist-public dist/public"
   },
   "deploy": {
-    "startCommand": "pnpm --filter @workspace/db run push && node artifacts/api-server/dist/index.mjs",
+    "startCommand": "node artifacts/api-server/dist/index.mjs",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3
   }
