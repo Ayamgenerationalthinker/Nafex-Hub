@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, numeric, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, numeric, timestamp, boolean, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -18,6 +18,11 @@ export const tradeRequestsTable = pgTable("trade_requests", {
   status: text("status").notNull().default("pending"), // pending | sourcing | fulfilled | cancelled
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+}, (table) => {
+  return {
+    userIdIdx: index("trade_requests_user_id_idx").on(table.userId),
+    statusIdx: index("trade_requests_status_idx").on(table.status),
+  };
 });
 
 // ── Trade Messages (per-order chat: buyer ↔ supplier ↔ admin) ────────────────

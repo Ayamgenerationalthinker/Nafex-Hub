@@ -3,6 +3,9 @@ import { ProductsController } from "./products.controller";
 import { ProductsService } from "./products.service";
 import { ProductsRepository } from "./products.repository";
 import { requireAuth, optionalAuth } from "../../lib/auth-middleware";
+import apicache from "apicache";
+
+const cache = apicache.middleware;
 
 const productsRepository = new ProductsRepository();
 const productsService = new ProductsService(productsRepository);
@@ -18,11 +21,11 @@ router.delete("/admin/product/:id", requireAuth, (req, res, next) => {
   productsController.adminDeleteProduct(req as any, res).catch(next);
 });
 
-router.get("/products/discounted", (req, res, next) => {
+router.get("/products/discounted", cache("5 minutes"), (req, res, next) => {
   productsController.getDiscountedProducts(req, res).catch(next);
 });
 
-router.get("/products", (req, res, next) => {
+router.get("/products", cache("5 minutes"), (req, res, next) => {
   productsController.getProducts(req, res).catch(next);
 });
 

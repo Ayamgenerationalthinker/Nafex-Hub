@@ -23,9 +23,9 @@ export class AuthController {
     sendAdminEmail(
       "New User Signup",
       `A new user has registered on Nafex Hub.\n\nName: ${user.name}\nEmail: ${user.email}\nRole: ${user.role}\nDate: ${new Date().toUTCString()}`
-    );
+    ).catch(e => console.error("Admin email failed:", e));
 
-    const emailDelivered = await sendVerificationEmail(user.email, user.name, user.emailVerificationCode).catch(() => false);
+    sendVerificationEmail(user.email, user.name, user.emailVerificationCode).catch(e => console.error("Verification email failed:", e));
     
     if (env.NODE_ENV !== "production") {
       console.log(`\n======================================================`);
