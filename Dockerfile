@@ -32,7 +32,7 @@ FROM node:22-alpine AS runner
 WORKDIR /app
 
 # Enable pnpm in runner stage because startCommand requires it
-RUN corepack enable && corepack prepare pnpm@11.4.0 --activate
+RUN npm install -g pnpm@11.4.0
 
 # Set production environment
 ENV NODE_ENV=production
