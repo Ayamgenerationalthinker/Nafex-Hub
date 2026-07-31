@@ -40,7 +40,6 @@ ENV PORT=5000
 
 # Create non-root user for security
 RUN addgroup -S nodejs && adduser -S nodejs -G nodejs
-USER nodejs
 
 # Copy built assets and production dependencies
 COPY --from=builder --chown=nodejs:nodejs /app/package.json /app/pnpm-workspace.yaml ./
@@ -49,6 +48,11 @@ COPY --from=builder --chown=nodejs:nodejs /app/artifacts/api-server/dist ./artif
 COPY --from=builder --chown=nodejs:nodejs /app/artifacts/api-server/package.json ./artifacts/api-server/
 COPY --from=builder --chown=nodejs:nodejs /app/artifacts/nafex-hub/dist ./artifacts/nafex-hub/dist
 COPY --from=builder --chown=nodejs:nodejs /app/lib/db ./lib/db
+
+# Make the workdir owned by nodejs so pnpm can write temp files
+RUN chown -R nodejs:nodejs /app
+
+USER nodejs
 
 EXPOSE 5000
 
