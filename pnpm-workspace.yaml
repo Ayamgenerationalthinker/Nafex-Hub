@@ -5,6 +5,7 @@ packages:
   - scripts
 
 confirmModulesPurge: false
+verifyDepsBeforeRun: false
 
 allowBuilds:
   argon2: true

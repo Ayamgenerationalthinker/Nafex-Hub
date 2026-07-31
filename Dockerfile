@@ -43,6 +43,7 @@ RUN npm install -g pnpm@11.4.0
 # Set production environment
 ENV NODE_ENV=production
 ENV PORT=5000
+ENV PNPM_CONFIG_VERIFY_DEPS_BEFORE_RUN=false
 
 # Create non-root user for security
 RUN addgroup -S nodejs && adduser -S nodejs -G nodejs
