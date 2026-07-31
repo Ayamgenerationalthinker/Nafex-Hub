@@ -3,6 +3,7 @@ import { ForbiddenError, NotFoundError, AppError } from "../../shared/errors/App
 import { sendAdminEmail, sendDeliveryOtpEmail } from "../../lib/mailer";
 import { paymentsService } from "../payments/payments.routes";
 import crypto from "crypto";
+import { notificationQueue } from "../../lib/queue";
 
 function generateOtp(): string {
   return crypto.randomInt(100000, 999999).toString();
@@ -15,16 +16,34 @@ export class OrdersService {
     this.repository = repository;
   }
 
-  private async notifyAllAdmins(type: "message" | "order_update" | "review", title: string, body: string, relatedId: number) {
-    const admins = await this.repository.getAdmins();
-    for (const admin of admins) {
-      await this.repository.createNotification(admin.id, type, title, body, relatedId).catch(() => {});
-    }
+  private notifyAllAdmins(type: "message" | "order_update" | "review", title: string, body: string, relatedId: number) {
+    this.repository.getAdmins().then(admins => {
+      if (notificationQueue) {
+        // BullMQ bulk addition for fault tolerance
+        notificationQueue.addBulk(
+          admins.map(admin => ({
+            name: "notification",
+            data: { userId: admin.id, type, title, body, relatedId }
+          }))
+        ).catch(() => {});
+      } else {
+        // Fallback for local dev without Redis
+        Promise.allSettled(admins.map(admin => 
+          this.repository.createNotification(admin.id, type, title, body, relatedId)
+        )).catch(() => {});
+      }
+    }).catch(() => {});
   }
 
   public async createOrder(userId: number, data: any) {
     const business = await this.repository.getBusiness(data.businessId);
     if (!business) throw new NotFoundError("Business not found");
+
+    // Idempotency check: Prevent duplicate identical orders within the last 5 seconds
+    const recentOrder = await this.repository.getRecentIdenticalOrder(userId, data.businessId, data.totalPrice, 5);
+    if (recentOrder) {
+      throw new AppError("A duplicate order was recently created. Please check your orders or wait a moment.", 409);
+    }
 
     if (data.coinsApplied > 0) {
       const user = await this.repository.getUser(userId);

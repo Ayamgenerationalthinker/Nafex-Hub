@@ -1,5 +1,5 @@
 import { db, ordersTable, businessesTable, notificationsTable, usersTable } from "@workspace/db";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and, gt } from "drizzle-orm";
 import { InferInsertModel } from "drizzle-orm";
 
 type NewOrder = InferInsertModel<typeof ordersTable>;
@@ -7,6 +7,23 @@ type NewOrder = InferInsertModel<typeof ordersTable>;
 export class OrdersRepository {
   public async getOrderById(id: number) {
     const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
+    return order;
+  }
+
+  public async getRecentIdenticalOrder(userId: number, businessId: number, totalPrice: number, timeframeSeconds: number) {
+    const timeThreshold = new Date(Date.now() - timeframeSeconds * 1000);
+    const [order] = await db
+      .select()
+      .from(ordersTable)
+      .where(
+        and(
+          eq(ordersTable.userId, userId),
+          eq(ordersTable.businessId, businessId),
+          eq(ordersTable.totalPrice, totalPrice),
+          gt(ordersTable.createdAt, timeThreshold)
+        )
+      )
+      .limit(1);
     return order;
   }
 

@@ -4,6 +4,8 @@ import { initSocketIO } from "./lib/socket";
 import { logger } from "./shared/logger";
 import { db } from "@workspace/db";
 import { sql } from "drizzle-orm";
+import { connectRedis, redisClient, pubClient, subClient } from "./lib/redis";
+import { initWorker, closeWorker } from "./lib/queue";
 
 const port = Number(process.env["PORT"] ?? 5000);
 
@@ -17,6 +19,8 @@ initSocketIO(httpServer);
 // Bind to 0.0.0.0 so Cloud Run / Docker health checks can reach the server
 httpServer.listen(port, "0.0.0.0", async () => {
   logger.info({ port }, "Server listening");
+  await connectRedis();
+  initWorker();
   try {
     await db.execute(sql`CREATE EXTENSION IF NOT EXISTS pg_trgm;`);
     logger.info("Initialized pg_trgm extension");
@@ -48,8 +52,21 @@ const shutdown = (signal: string) => {
   }
   isShuttingDown = true;
   logger.info({ signal }, "Received shutdown signal");
-  httpServer.close(() => {
+  httpServer.close(async () => {
     logger.info("HTTP server closed");
+    try {
+      const { pool } = await import("@workspace/db");
+      await closeWorker();
+      await pool.end();
+      if (redisClient) {
+        await redisClient.quit();
+        if (pubClient) await pubClient.quit();
+        if (subClient) await subClient.quit();
+      }
+      logger.info("Database pool and Redis closed");
+    } catch (e) {
+      logger.error({ err: e }, "Failed to close connections cleanly");
+    }
     process.exit(0);
   });
   // Force exit if close hangs

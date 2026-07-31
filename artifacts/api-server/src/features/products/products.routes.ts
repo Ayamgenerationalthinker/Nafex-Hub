@@ -4,8 +4,10 @@ import { ProductsService } from "./products.service";
 import { ProductsRepository } from "./products.repository";
 import { requireAuth, optionalAuth } from "../../lib/auth-middleware";
 import apicache from "apicache";
+import { redisClient } from "../../lib/redis";
 
-const cache = apicache.middleware;
+const cacheOptions = redisClient ? { redisClient: redisClient as any } : {};
+const cache = apicache.options(cacheOptions).middleware;
 
 const productsRepository = new ProductsRepository();
 const productsService = new ProductsService(productsRepository);

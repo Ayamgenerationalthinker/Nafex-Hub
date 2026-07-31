@@ -6,8 +6,9 @@ import { z } from "zod";
 import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
-import { mkdirSync } from "fs";
+import { mkdirSync, writeFileSync } from "fs";
 import crypto from "crypto";
+import sharp from "sharp";
 
 // ── Favorites ─────────────────────────────────────────────────────────────────
 
@@ -95,15 +96,6 @@ const hasCloudinary = !!process.env["CLOUDINARY_CLOUD_NAME"] && !!process.env["C
 const UPLOADS_DIR = path.resolve(__dirname, "../../uploads");
 mkdirSync(UPLOADS_DIR, { recursive: true });
 
-const diskStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase() || ".jpg";
-    const rand = crypto.randomBytes(8).toString("hex");
-    cb(null, `${Date.now()}-${rand}${ext}`);
-  },
-});
-
 const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
   const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
   if (allowed.includes(file.mimetype)) cb(null, true);
@@ -111,7 +103,7 @@ const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
 };
 
 export const uploadMiddleware = multer({
-  storage: hasCloudinary ? multer.memoryStorage() : diskStorage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter,
 }).single("image");
@@ -120,6 +112,11 @@ export async function uploadImage(req: Request, res: Response): Promise<void> {
   if (!req.file) { res.status(400).json({ error: "No image file provided" }); return; }
 
   try {
+    const processedBuffer = await sharp(req.file.buffer)
+      .resize({ width: 1200, withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toBuffer();
+
     if (hasCloudinary) {
       const { v2: cloudinary } = await import("cloudinary");
       cloudinary.config({
@@ -130,16 +127,22 @@ export async function uploadImage(req: Request, res: Response): Promise<void> {
 
       const result = await new Promise<{ secure_url: string; public_id: string }>((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
-          { folder: "nafex-hub", transformation: [{ width: 1200, height: 1200, crop: "limit" }, { quality: "auto" }, { fetch_format: "auto" }] },
+          { folder: "nafex-hub" },
           (error, result) => { if (error || !result) reject(error); else resolve(result); }
         );
-        stream.end((req.file as Express.Multer.File).buffer);
+        stream.end(processedBuffer);
       });
 
       res.json({ url: result.secure_url, publicId: result.public_id });
     } else {
-      const url = `/api/uploads/${req.file.filename}`;
-      res.json({ url, publicId: req.file.filename });
+      const rand = crypto.randomBytes(8).toString("hex");
+      const filename = `${Date.now()}-${rand}.webp`;
+      const filepath = path.join(UPLOADS_DIR, filename);
+      
+      writeFileSync(filepath, processedBuffer);
+      
+      const url = `/api/uploads/${filename}`;
+      res.json({ url, publicId: filename });
     }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Upload failed";

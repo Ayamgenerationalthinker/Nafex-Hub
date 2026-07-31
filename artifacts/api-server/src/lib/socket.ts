@@ -4,6 +4,8 @@ import { db, usersTable, tradeOrdersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { parseToken } from "../features/auth/auth.routes";
 import { logger } from "../shared/logger";
+import { createAdapter } from "@socket.io/redis-adapter";
+import { pubClient, subClient } from "./redis";
 
 let io: Server | null = null;
 
@@ -30,6 +32,11 @@ export function initSocketIO(httpServer: HttpServer): Server {
     },
     transports: ["websocket", "polling"],
   });
+
+  if (pubClient && subClient) {
+    io.adapter(createAdapter(pubClient, subClient));
+    logger.info("Socket.io Redis adapter initialized");
+  }
 
   // Auth middleware — validates the token from handshake
   io.use(async (socket, next) => {
