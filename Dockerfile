@@ -15,7 +15,7 @@ COPY artifacts/nafex-hub/package.json ./artifacts/nafex-hub/
 COPY lib/db/package.json ./lib/db/
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile --confirm-modules-purge=false
+RUN pnpm install --frozen-lockfile
 
 # Copy the rest of the source code
 COPY . .
@@ -24,7 +24,7 @@ COPY . .
 RUN pnpm run build
 
 # Prune dev dependencies to reduce final image size
-RUN pnpm install --prod --frozen-lockfile --confirm-modules-purge=false
+RUN pnpm install --prod --frozen-lockfile
 
 # Production Stage
 FROM node:22-alpine AS runner
