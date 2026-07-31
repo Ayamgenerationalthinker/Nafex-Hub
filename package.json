@@ -2,6 +2,7 @@
   "name": "workspace",
   "version": "0.0.0",
   "license": "MIT",
+  "packageManager": "pnpm@11.4.0",
   "scripts": {
     "preinstall": "node -e \"const fs=require('fs'); for (const f of ['package-lock.json','yarn.lock']) { try { fs.rmSync(f,{force:true}); } catch {} } const ua=process.env.npm_config_user_agent||''; const execPath=(process.env.npm_execpath||'').toLowerCase(); const isPnpm=ua.startsWith('pnpm/')||execPath.includes('pnpm'); if(!isPnpm){ console.error('Use pnpm instead'); process.exit(1); }\"",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
@@ -39,10 +40,5 @@
   },
   "resolutions": {
     "esbuild": "0.27.3"
-  },
-  "pnpm": {
-    "overrides": {
-      "esbuild": "0.27.3"
-    }
   }
 }
