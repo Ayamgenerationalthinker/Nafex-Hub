@@ -27,12 +27,6 @@ export class AuthController {
 
     sendVerificationEmail(user.email, user.name, user.emailVerificationCode).catch(e => import("../../shared/logger").then(({ logger }) => logger.error({ err: e }, "Verification email failed")));
     
-    if (env.NODE_ENV !== "production") {
-      import("../../shared/logger").then(({ logger }) => {
-        logger.info({ email: user.email, code: user.emailVerificationCode }, "[DEV MODE] Verification code");
-      });
-    }
-
     res.status(201).json({
       user: {
         id: user.id,

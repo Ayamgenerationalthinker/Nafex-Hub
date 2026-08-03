@@ -1,68 +1,41 @@
-import nodemailer from "nodemailer";
 import { logger } from "../shared/logger";
-
-function createTransport() {
-  const user = process.env.EMAIL_USER;
-  const pass = process.env.EMAIL_PASS;
-  if (!user || !pass) return null;
-  return nodemailer.createTransport({
-    service: "gmail",
-    auth: { user, pass },
-  });
-}
 
 export async function sendAdminEmail(subject: string, text: string): Promise<void> {
   const to = process.env.EMAIL_USER || "princefiebor10@gmail.com";
-  if (process.env.RESEND_API_KEY) {
-    const fromAddress = process.env.EMAIL_FROM || "onboarding@resend.dev";
-    try {
-      const res = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
-        },
-        body: JSON.stringify({
-          from: `Nafex Hub <${fromAddress}>`,
-          to,
-          subject: `[Nafex Hub] ${subject}`,
-          text,
-        }),
-      });
-      const data = await res.json() as any;
-      if (!res.ok) {
-        logger.error({ data, subject }, "Resend API returned error for admin email");
-      } else {
-        logger.info({ id: data.id, subject }, "Admin notification email sent via Resend API");
-      }
-    } catch (err) {
-      logger.error({ err, subject }, "Failed to send admin email via Resend API");
-    }
+  if (!process.env.RESEND_API_KEY) {
+    logger.warn("RESEND_API_KEY not configured — skipping admin notification");
     return;
   }
-
-  const transport = createTransport();
-  if (!transport) {
-    logger.warn("Email credentials not configured — skipping admin notification");
-    return;
-  }
+  
+  const fromAddress = process.env.EMAIL_FROM || "onboarding@resend.dev";
   try {
-    await transport.sendMail({
-      from: `"Nafex Hub" <${to}>`,
-      to,
-      subject: `[Nafex Hub] ${subject}`,
-      text,
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: `Nafex Hub <${fromAddress}>`,
+        to,
+        subject: `[Nafex Hub] ${subject}`,
+        text,
+      }),
     });
-    logger.info({ subject }, "Admin notification email sent");
+    const data = await res.json() as any;
+    if (!res.ok) {
+      logger.error({ data, subject }, "Resend API returned error for admin email");
+    } else {
+      logger.info({ id: data.id, subject }, "Admin notification email sent via Resend API");
+    }
   } catch (err) {
-    logger.error({ err, subject }, "Failed to send admin notification email");
+    logger.error({ err, subject }, "Failed to send admin email via Resend API");
   }
 }
 
 /**
  * Send an arbitrary email to a single recipient. Used for transactional
  * messages like signup verification codes and delivery OTPs.
- * Silently no-ops when EMAIL_USER / EMAIL_PASS are not configured.
  */
 export async function sendUserEmail(opts: {
   to: string;
@@ -71,113 +44,36 @@ export async function sendUserEmail(opts: {
   html?: string;
   code?: string;
 }): Promise<boolean> {
-  // 1. EmailJS API Support (Server-side)
-  const emailjsService = process.env.EMAILJS_SERVICE_ID || "service_79bcxpk";
-  const emailjsTemplate = process.env.EMAILJS_TEMPLATE_ID || "template_gv1jz99";
-  const emailjsPublic = process.env.EMAILJS_PUBLIC_KEY || process.env.EMAILJS_USER_ID || "RI_Vy2fQxvrMk-hAs";
-
-  if (emailjsService && emailjsTemplate && emailjsPublic) {
-    // EmailJS REST API requires a private accessToken for server-side use.
-    // Only attempt if private key is configured; otherwise skip to avoid hangs.
-    const emailjsPrivateKey = process.env.EMAILJS_PRIVATE_KEY;
-    if (emailjsPrivateKey) {
-      try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 3000);
-        const payload: any = {
-          service_id: emailjsService,
-          template_id: emailjsTemplate,
-          user_id: emailjsPublic,
-          accessToken: emailjsPrivateKey,
-          template_params: {
-            to_email: opts.to,
-            to_name: opts.to.split("@")[0],
-            subject: opts.subject,
-            verification_code: opts.code || "",
-            code: opts.code || "",
-            message: opts.text,
-            html_content: opts.html || "",
-          },
-        };
-        const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-          signal: controller.signal,
-        });
-        clearTimeout(timeout);
-        if (res.ok) {
-          logger.info({ to: opts.to, subject: opts.subject }, "User email sent via EmailJS API");
-          return true;
-        }
-        const errText = await res.text();
-        logger.error({ errText, to: opts.to, subject: opts.subject }, "EmailJS API returned error");
-      } catch (err: any) {
-        if (err?.name === "AbortError") {
-          logger.warn({ to: opts.to }, "EmailJS API timed out after 3s — falling through to next provider");
-        } else {
-          logger.error({ err, to: opts.to, subject: opts.subject }, "Failed to send user email via EmailJS API");
-        }
-      }
-    } else {
-      // No private key — skip server-side EmailJS (browser SDK handles it on the frontend)
-      logger.info({ to: opts.to }, "EMAILJS_PRIVATE_KEY not set — skipping server-side EmailJS send (frontend SDK will handle it)");
-    }
+  if (!process.env.RESEND_API_KEY) {
+    logger.warn({ to: opts.to, subject: opts.subject }, "RESEND_API_KEY not configured — skipping user email");
+    return false;
   }
 
-  // 2. Resend API Support
-  if (process.env.RESEND_API_KEY) {
-    const fromAddress = process.env.EMAIL_FROM || "onboarding@resend.dev";
-    try {
-      const res = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
-        },
-        body: JSON.stringify({
-          from: `Nafex Hub <${fromAddress}>`,
-          to: opts.to,
-          subject: `[Nafex Hub] ${opts.subject}`,
-          text: opts.text,
-          html: opts.html,
-        }),
-      });
-      const data = await res.json() as any;
-      if (!res.ok) {
-        logger.error({ data, to: opts.to, subject: opts.subject }, "Resend API returned error");
-        return false;
-      }
-      logger.info({ id: data.id, to: opts.to, subject: opts.subject }, "User email sent via Resend API");
-      return true;
-    } catch (err) {
-      logger.error({ err, to: opts.to, subject: opts.subject }, "Failed to send user email via Resend API");
+  const fromAddress = process.env.EMAIL_FROM || "onboarding@resend.dev";
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: `Nafex Hub <${fromAddress}>`,
+        to: opts.to,
+        subject: `[Nafex Hub] ${opts.subject}`,
+        text: opts.text,
+        html: opts.html,
+      }),
+    });
+    const data = await res.json() as any;
+    if (!res.ok) {
+      logger.error({ data, to: opts.to, subject: opts.subject }, "Resend API returned error");
       return false;
     }
-  }
-
-  const from = process.env.EMAIL_USER;
-  if (!from) {
-    logger.warn({ to: opts.to, subject: opts.subject }, "EMAIL_USER not configured — skipping user email");
-    return false;
-  }
-  const transport = createTransport();
-  if (!transport) {
-    logger.warn({ to: opts.to, subject: opts.subject }, "Email credentials not configured — skipping user email");
-    return false;
-  }
-  try {
-    await transport.sendMail({
-      from: `"Nafex Hub" <${from}>`,
-      to: opts.to,
-      subject: `[Nafex Hub] ${opts.subject}`,
-      text: opts.text,
-      html: opts.html,
-    });
-    logger.info({ to: opts.to, subject: opts.subject }, "User email sent");
+    logger.info({ id: data.id, to: opts.to, subject: opts.subject }, "User email sent via Resend API");
     return true;
   } catch (err) {
-    logger.error({ err, to: opts.to, subject: opts.subject }, "Failed to send user email");
+    logger.error({ err, to: opts.to, subject: opts.subject }, "Failed to send user email via Resend API");
     return false;
   }
 }
