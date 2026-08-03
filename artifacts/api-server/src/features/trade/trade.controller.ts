@@ -67,6 +67,7 @@ export async function submitQuote(req: AuthRequest, res: Response): Promise<void
     shippingCost: z.number().nonnegative().default(0),
     productionTime: z.string().min(1).max(100),
     notes: z.string().max(1000).optional(),
+    images: z.array(ImageRef).max(8).optional(),
   }).safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 

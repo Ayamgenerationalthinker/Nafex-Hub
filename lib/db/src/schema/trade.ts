@@ -45,6 +45,7 @@ export const tradeQuotesTable = pgTable("trade_quotes", {
   shippingCost: numeric("shipping_cost", { precision: 12, scale: 2 }).notNull().default("0"),
   productionTime: text("production_time").notNull(),
   notes: text("notes"),
+  images: text("images").array().notNull().default([]),
   status: text("status").notNull().default("pending"), // pending | accepted | rejected
   acceptedAt: timestamp("accepted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

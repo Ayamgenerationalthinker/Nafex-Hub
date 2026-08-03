@@ -95,7 +95,7 @@ export async function getQuoteById(id: number) {
 
 export async function createQuote(data: {
   requestId: number; supplierId: number; supplierName: string;
-  unitPrice: string; moq: number; shippingCost: string; productionTime: string; notes?: string;
+  unitPrice: string; moq: number; shippingCost: string; productionTime: string; notes?: string; images?: string[];
 }) {
   const [quote] = await db.insert(tradeQuotesTable).values(data).returning();
   return quote!;

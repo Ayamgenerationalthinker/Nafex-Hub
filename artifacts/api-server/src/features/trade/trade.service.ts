@@ -81,7 +81,7 @@ export async function updateRequestStatus(id: number, userId: number, userRole: 
 // ── Quotes ────────────────────────────────────────────────────────────────────
 
 export async function submitQuote(userId: number, data: {
-  requestId: number; unitPrice: number; moq: number; shippingCost: number; productionTime: string; notes?: string;
+  requestId: number; unitPrice: number; moq: number; shippingCost: number; productionTime: string; notes?: string; images?: string[];
 }) {
   const request = await repo.getRequestById(data.requestId);
   if (!request) return { error: "Trade request not found", status: 404 };
@@ -98,6 +98,7 @@ export async function submitQuote(userId: number, data: {
     shippingCost: data.shippingCost.toString(),
     productionTime: data.productionTime,
     notes: data.notes,
+    images: data.images,
   });
   return { data: quote };
 }

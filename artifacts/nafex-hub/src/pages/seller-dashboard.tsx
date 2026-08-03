@@ -73,6 +73,8 @@ import {
   AlertTriangle,
   Upload,
   Settings,
+  CreditCard,
+  LineChart as LucideLineChart,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/image-upload";
@@ -564,16 +566,16 @@ export default function SellerDashboard() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
-        {/* ── Sidebar Navigation ── */}
-        <div className="w-full md:w-56 lg:w-64 flex-shrink-0 sticky top-24 z-10 bg-background md:bg-transparent pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto md:overflow-visible">
-          <div className="bg-card border border-border rounded-xl p-2 flex flex-row md:flex-col gap-1 w-max md:w-full shadow-sm">
+        {/* ── Sidebar Navigation (Desktop) ── */}
+        <div className="hidden md:block w-full md:w-56 lg:w-64 flex-shrink-0 sticky top-24 z-10 pb-2 md:pb-0">
+          <div className="bg-card border border-border rounded-xl p-2 flex flex-col gap-1 w-full shadow-sm">
             {([
-              { value: "overview", label: "Dashboard" },
-              { value: "inventory", label: "My Shop" },
-              { value: "orders", label: "Orders" },
-              { value: "inbox", label: "Inbox" },
-              { value: "earnings", label: "Payments" },
-              { value: "more", label: "More" },
+              { value: "overview", label: "Dashboard", icon: <TrendingUp className="w-4 h-4" /> },
+              { value: "inventory", label: "My Shop", icon: <ShoppingBag className="w-4 h-4" /> },
+              { value: "orders", label: "Orders", icon: <Package className="w-4 h-4" /> },
+              { value: "inbox", label: "Inbox", icon: <MessageCircle className="w-4 h-4" /> },
+              { value: "earnings", label: "Payments", icon: <CreditCard className="w-4 h-4" /> },
+              { value: "more", label: "More", icon: <Settings className="w-4 h-4" /> },
             ] as const).map((tab) => {
               const isMoreItemActive = tab.value === "more" && ["analytics", "clients", "collections", "feedback", "disputes", "vouchers", "pricing", "boost", "settings"].includes(activeTab);
               const isActive = activeTab === tab.value || isMoreItemActive;
@@ -585,12 +587,13 @@ export default function SellerDashboard() {
                     setActiveTab(tab.value);
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
-                  className={`px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 flex text-left ${
+                  className={`px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 flex items-center gap-3 text-left w-full ${
                     isActive
                       ? "bg-primary text-primary-foreground shadow-sm"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                   }`}
                 >
+                  {tab.icon}
                   {tab.label}
                 </button>
               );
@@ -598,15 +601,48 @@ export default function SellerDashboard() {
           </div>
         </div>
 
+        {/* ── Bottom Navigation Bar (Mobile) ── */}
+        {/* Hide bottom navigation when inside a More sub-setting to maximize screen space */}
+        {!["analytics", "clients", "collections", "feedback", "disputes", "vouchers", "pricing", "boost", "settings"].includes(activeTab) && (
+          <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border shadow-[0_-4px_10px_rgba(0,0,0,0.05)] pb-safe">
+            <div className="flex justify-around items-center p-2">
+              {([
+                { value: "overview", label: "Home", icon: <TrendingUp className="w-5 h-5" /> },
+                { value: "inventory", label: "Shop", icon: <ShoppingBag className="w-5 h-5" /> },
+                { value: "orders", label: "Orders", icon: <Package className="w-5 h-5" /> },
+                { value: "inbox", label: "Inbox", icon: <MessageCircle className="w-5 h-5" /> },
+                { value: "more", label: "More", icon: <Settings className="w-5 h-5" /> },
+              ] as const).map((tab) => {
+                const isActive = activeTab === tab.value || (tab.value === "more" && ["earnings"].includes(activeTab));
+                return (
+                  <button
+                    key={tab.value}
+                    onClick={() => {
+                      setActiveTab(tab.value);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    className={`flex flex-col items-center justify-center p-2 rounded-lg w-16 transition-colors ${
+                      isActive ? "text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                    }`}
+                  >
+                    <div className={`${isActive ? "bg-primary/10 rounded-full p-1" : ""}`}>{tab.icon}</div>
+                    <span className="text-[10px] font-medium mt-1">{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* ── Main Content ── */}
         <div className="flex-1 min-w-0 w-full pb-16">
         
         {/* ── Back to More Navigation ── */}
         {["analytics", "clients", "collections", "feedback", "disputes", "vouchers", "pricing", "boost", "settings"].includes(activeTab) && (
-          <div className="mb-4">
+          <div className="sticky top-0 z-20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pb-3 pt-2 mb-4 border-b border-border -mx-4 px-4 md:mx-0 md:px-0 md:border-none md:bg-transparent md:pt-0">
             <Button variant="ghost" size="sm" onClick={() => { setActiveTab("more"); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="text-muted-foreground hover:text-foreground -ml-3">
-              <ChevronLeft className="w-4 h-4 mr-1" />
-              Back to More Features
+              <ChevronLeft className="w-5 h-5 mr-1" />
+              <span className="font-semibold text-base">Back to Menu</span>
             </Button>
           </div>
         )}

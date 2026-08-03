@@ -519,6 +519,49 @@ export declare const tradeQuotesTable: import("drizzle-orm/pg-core").PgTableWith
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        images: import("drizzle-orm/pg-core").PgColumn<{
+            name: "images";
+            tableName: "trade_quotes";
+            dataType: "array";
+            columnType: "PgArray";
+            data: string[];
+            driverParam: string | string[];
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: import("drizzle-orm").Column<{
+                name: "images";
+                tableName: "trade_quotes";
+                dataType: "string";
+                columnType: "PgText";
+                data: string;
+                driverParam: string;
+                notNull: false;
+                hasDefault: false;
+                isPrimaryKey: false;
+                isAutoincrement: false;
+                hasRuntimeDefault: false;
+                enumValues: [string, ...string[]];
+                baseColumn: never;
+                identity: undefined;
+                generated: undefined;
+            }, {}, {}>;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {
+            baseBuilder: import("drizzle-orm/pg-core").PgColumnBuilder<{
+                name: "images";
+                dataType: "string";
+                columnType: "PgText";
+                data: string;
+                enumValues: [string, ...string[]];
+                driverParam: string;
+            }, {}, {}, import("drizzle-orm").ColumnBuilderExtraConfig>;
+            size: undefined;
+        }>;
         status: import("drizzle-orm/pg-core").PgColumn<{
             name: "status";
             tableName: "trade_quotes";
@@ -1188,6 +1231,7 @@ export declare const insertTradeRequestSchema: z.ZodObject<{
     in: {};
 }>;
 export declare const insertTradeQuoteSchema: z.ZodObject<{
+    images: z.ZodOptional<z.ZodArray<z.ZodString>>;
     notes: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     requestId: z.ZodInt;
     supplierId: z.ZodInt;
