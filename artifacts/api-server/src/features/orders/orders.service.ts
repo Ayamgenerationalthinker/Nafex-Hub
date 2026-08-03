@@ -101,13 +101,16 @@ export class OrdersService {
     try {
       const totalGhs = `GHS ${(order.totalPrice / 100).toFixed(2)}`;
       if (business.ownerId) {
-        await this.repository.createNotification(
+        const notif = await this.repository.createNotification(
           business.ownerId,
           "order_update",
           `New order received — #${order.id}`,
           `You have a new order for ${totalGhs} (${data.items.length} item${data.items.length === 1 ? "" : "s"}). Awaiting buyer payment.`,
           order.id
         );
+        import("../../lib/socket").then(({ getIO }) => {
+          getIO()?.to(`user_${business.ownerId}`).emit("new_notification", notif);
+        });
       }
 
       await this.notifyAllAdmins(
@@ -136,13 +139,16 @@ export class OrdersService {
     try {
       const business = await this.repository.getBusiness(existing.businessId);
       if (business && business.ownerId) {
-        await this.repository.createNotification(
+        const notif = await this.repository.createNotification(
           business.ownerId,
           "order_update",
           `Payment received for Order #${existing.id}`,
           `The buyer has submitted a mobile money reference for Order #${existing.id}. Funds are now in escrow.`,
           existing.id
         );
+        import("../../lib/socket").then(({ getIO }) => {
+          getIO()?.to(`user_${business.ownerId}`).emit("new_notification", notif);
+        });
       }
       await this.notifyAllAdmins(
         "order_update",
@@ -211,13 +217,16 @@ export class OrdersService {
         body = `Your order is out for delivery! Your delivery OTP is: ${updateFields.deliveryOtp}. Share this code with your delivery person to confirm receipt.`;
       }
 
-      await this.repository.createNotification(
+      const notif = await this.repository.createNotification(
         order.userId,
         "order_update",
         `Order #${order.id} is ${label}`,
         body,
         order.id
       );
+      import("../../lib/socket").then(({ getIO }) => {
+        getIO()?.to(`user_${order.userId}`).emit("new_notification", notif);
+      });
 
       await this.notifyAllAdmins(
         "order_update",

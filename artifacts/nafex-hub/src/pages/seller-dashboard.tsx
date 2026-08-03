@@ -982,7 +982,7 @@ export default function SellerDashboard() {
                 </DialogContent>
               </Dialog>
 
-              {!products || products.length === 0 ? (
+              {!products || !Array.isArray(products) || products.length === 0 ? (
                 <div className="text-center py-16 text-muted-foreground border-2 border-dashed rounded-xl">
                   <Boxes className="w-12 h-12 mx-auto mb-4 opacity-30" />
                   <p className="font-medium">No products yet</p>
@@ -1214,7 +1214,7 @@ export default function SellerDashboard() {
 
                         {expandedColId === col.id && (
                           <div className="border-t border-border/50 pt-3">
-                            {!products || products.length === 0 ? (
+                            {!products || !Array.isArray(products) || products.length === 0 ? (
                               <p className="text-sm text-muted-foreground text-center py-3">No products yet. Add products first.</p>
                             ) : (
                               <div className="space-y-1">

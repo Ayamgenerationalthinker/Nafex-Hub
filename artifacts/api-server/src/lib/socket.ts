@@ -63,6 +63,7 @@ export function initSocketIO(httpServer: HttpServer): Server {
 
   io.on("connection", (socket: Socket) => {
     logger.info({ userId: socket.data.userId }, "Socket connected");
+    socket.join(`user_${socket.data.userId}`);
 
     // Join a conversation room (numeric id) or a named admin room (e.g. "admin_support")
     socket.on("join_room", (conversationId: number | string) => {
