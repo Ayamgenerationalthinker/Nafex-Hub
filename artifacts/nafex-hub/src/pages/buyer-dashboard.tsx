@@ -29,7 +29,8 @@ import {
   CheckCircle2,
   Trash2,
   Bell,
-  Ticket
+  Ticket,
+  Pencil
 } from "lucide-react";
 import Orders from "./orders";
 import Inbox from "./inbox";
@@ -159,49 +160,51 @@ export default function BuyerDashboard() {
   const defaultAddressItem = addresses.find((a) => a.isDefault);
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl font-poppins">
+    <div className="min-h-screen bg-slate-50 pb-12 font-poppins">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="flex flex-col lg:flex-row gap-8">
         
         {/* Left Sidebar layout */}
         <div className="w-full lg:w-64 shrink-0 space-y-6">
-          <div className="bg-white border border-purple-100 rounded-2xl p-5 shadow-xs space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-[#F6F2FF] border border-purple-200 flex items-center justify-center font-poppins text-lg font-bold text-[#6A1B9A]">
-                {(user?.name ?? "C").charAt(0).toUpperCase()}
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+            <nav className="flex flex-row overflow-x-auto hide-scrollbar lg:flex-col lg:gap-1 p-2 lg:p-3">
+              
+              <div className="hidden lg:block px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                My Nafex Account
               </div>
-              <div className="min-w-0">
-                <p className="font-bold text-[#222222] truncate">{user?.name}</p>
-                <p className="text-xs text-[#6B7280] truncate">{user?.email}</p>
-              </div>
-            </div>
-            
-            <div className="border-t border-purple-100 pt-3">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-[#6A1B9A] bg-[#F6F2FF] px-2.5 py-1 rounded-full border border-purple-200">
-                Buyer Account
-              </span>
-            </div>
-          </div>
+              
+              <button
+                onClick={() => setActiveTab("overview")}
+                className={`flex items-center justify-center lg:justify-between px-3.5 py-2.5 rounded-md text-sm font-semibold transition-colors whitespace-nowrap flex-shrink-0 gap-2 ${
+                  activeTab === "overview"
+                    ? "bg-slate-100 text-black shadow-sm"
+                    : "text-gray-600 hover:bg-slate-50 hover:text-black"
+                }`}
+              >
+                <div className="flex items-center gap-2 lg:gap-3">
+                  <User className="w-4 h-4" />
+                  <span>Account Overview</span>
+                </div>
+              </button>
 
-          <div className="bg-white border border-purple-100 rounded-2xl p-3 shadow-xs">
-            <nav className="flex flex-row overflow-x-auto hide-scrollbar lg:flex-col gap-2 lg:gap-1 -mx-2 px-2 lg:mx-0 lg:px-0">
+              <div className="hidden lg:block px-3 py-2 mt-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Orders & Activity
+              </div>
+
               {[
-                { id: "overview", label: "My Account", icon: <User className="w-4 h-4" /> },
                 { id: "orders", label: "Orders", icon: <ShoppingBag className="w-4 h-4" />, badge: activeOrdersCount > 0 ? activeOrdersCount : undefined },
+                { id: "inbox", label: "Inbox", icon: <MessageCircle className="w-4 h-4" /> },
                 { id: "wishlist", label: "Saved Items", icon: <Heart className="w-4 h-4" /> },
                 { id: "vouchers", label: "Vouchers & Deals", icon: <Ticket className="w-4 h-4" /> },
-                { id: "inbox", label: "Inbox", icon: <MessageCircle className="w-4 h-4" /> },
-                { id: "payments", label: "Payments & Refunds", icon: <Wallet className="w-4 h-4" /> },
-                { id: "disputes", label: "Disputes", icon: <AlertTriangle className="w-4 h-4" /> },
-                { id: "addresses", label: "Address Book", icon: <MapPin className="w-4 h-4" /> },
-                { id: "settings", label: "Account Settings", icon: <Settings className="w-4 h-4" /> },
+                { id: "disputes", label: "Disputes & Refunds", icon: <AlertTriangle className="w-4 h-4" /> },
               ].map((item) => (
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center justify-center lg:justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap flex-shrink-0 gap-2 ${
+                  className={`flex items-center justify-center lg:justify-between px-3.5 py-2.5 rounded-md text-sm font-semibold transition-colors whitespace-nowrap flex-shrink-0 gap-2 ${
                     activeTab === item.id
-                      ? "bg-[#6A1B9A] text-white shadow-sm"
-                      : "text-[#6B7280] hover:bg-[#F6F2FF] hover:text-[#6A1B9A]"
+                      ? "bg-slate-100 text-black shadow-sm"
+                      : "text-gray-600 hover:bg-slate-50 hover:text-black"
                   }`}
                 >
                   <div className="flex items-center gap-2 lg:gap-3">
@@ -209,18 +212,45 @@ export default function BuyerDashboard() {
                     <span>{item.label}</span>
                   </div>
                   {item.badge !== undefined ? (
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${activeTab === item.id ? "bg-[#D4A017] text-white" : "bg-[#6A1B9A] text-white"}`}>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${activeTab === item.id ? "bg-[#D4A017] text-white" : "bg-black text-white"}`}>
                       {item.badge}
                     </span>
                   ) : (
-                    <ChevronRight className="w-3.5 h-3.5 opacity-60 hidden lg:block" />
+                    <ChevronRight className="w-3.5 h-3.5 opacity-40 hidden lg:block" />
                   )}
                 </button>
               ))}
+
+              <div className="hidden lg:block px-3 py-2 mt-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Account Management
+              </div>
+
+              {[
+                { id: "settings", label: "Account Details", icon: <Settings className="w-4 h-4" /> },
+                { id: "addresses", label: "Address Book", icon: <MapPin className="w-4 h-4" /> },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`flex items-center justify-center lg:justify-between px-3.5 py-2.5 rounded-md text-sm font-semibold transition-colors whitespace-nowrap flex-shrink-0 gap-2 ${
+                    activeTab === item.id
+                      ? "bg-slate-100 text-black shadow-sm"
+                      : "text-gray-600 hover:bg-slate-50 hover:text-black"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 lg:gap-3">
+                    {item.icon}
+                    <span>{item.label}</span>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 opacity-40 hidden lg:block" />
+                </button>
+              ))}
               
+              <div className="hidden lg:block my-2 border-t border-gray-100"></div>
+
               <button
                 onClick={logout}
-                className="flex items-center gap-2 lg:gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-50 transition-all mt-0 lg:mt-2 w-auto lg:w-full text-left whitespace-nowrap flex-shrink-0"
+                className="flex items-center gap-2 lg:gap-3 px-3.5 py-2.5 rounded-md text-sm font-semibold text-red-500 hover:bg-red-50 transition-colors w-auto lg:w-full text-left whitespace-nowrap flex-shrink-0"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Logout</span>
@@ -234,168 +264,92 @@ export default function BuyerDashboard() {
           
           {/* OVERVIEW PANEL */}
           {activeTab === "overview" && (
-            <div className="space-y-6">
-              <div className="bg-[#FFF8E6] p-6 rounded-2xl border border-amber-100/80 shadow-xs">
-                <h2 className="font-poppins text-2xl font-bold text-[#222222]">Welcome back, {user?.name.split(" ")[0]}!</h2>
-                <p className="text-[#6B7280] text-sm mt-1">
-                  Manage your orders, save items to your wishlist, and update your delivery profile details.
-                </p>
-              </div>
-
-              {/* Jumia-inspired card grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="hover:border-primary/30 transition-colors shadow-sm">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground flex items-center justify-between">
-                      Orders Overview
-                      <ShoppingBag className="w-4 h-4 text-primary" />
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold text-foreground">{orders?.length ?? 0}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {activeOrdersCount} in progress
-                    </p>
-                    <Button variant="link" size="sm" className="p-0 h-auto text-xs mt-3" onClick={() => setActiveTab("orders")}>
-                      View order history
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                <Card className="hover:border-primary/30 transition-colors shadow-sm">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground flex items-center justify-between">
-                      Vouchers & Deals
-                      <Ticket className="w-4 h-4 text-primary" />
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold text-foreground">{vouchers.length} Available</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Save GHS 50 on your next purchase
-                    </p>
-                    <Button variant="link" size="sm" className="p-0 h-auto text-xs mt-3" onClick={() => setActiveTab("vouchers")}>
-                      View active vouchers
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                <Card className="hover:border-primary/30 transition-colors shadow-sm">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground flex items-center justify-between">
-                      Saved Items
-                      <Heart className="w-4 h-4 text-primary" />
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold text-foreground">Wishlist</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Keep track of items you love
-                    </p>
-                    <Button variant="link" size="sm" className="p-0 h-auto text-xs mt-3" onClick={() => setActiveTab("wishlist")}>
-                      Go to Wishlist
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Central Information Blocks */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
+            <div className="space-y-4">
+              <h1 className="text-xl font-semibold text-gray-800 mb-4">Account Overview</h1>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Account Details Block */}
-                <Card className="shadow-sm border-border/70">
-                  <CardHeader className="flex flex-row items-center justify-between border-b border-border/40 pb-3">
-                    <div>
-                      <CardTitle className="text-base font-semibold">Account Details</CardTitle>
-                      <CardDescription className="text-xs">Your personal profile details</CardDescription>
-                    </div>
-                    <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setActiveTab("settings")}>
-                      Edit
+                <div className="bg-white border border-gray-200 rounded-sm">
+                  <div className="flex flex-row items-center justify-between border-b border-gray-100 p-4">
+                    <h2 className="text-sm font-semibold uppercase text-gray-700">Account Details</h2>
+                    <Button variant="ghost" size="sm" className="h-6 text-xs text-primary p-0 hover:bg-transparent hover:underline" onClick={() => setActiveTab("settings")}>
+                      <Pencil className="w-3 h-3 mr-1" /> Edit
                     </Button>
-                  </CardHeader>
-                  <CardContent className="pt-4 space-y-2">
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Name</p>
-                      <p className="text-sm font-medium text-foreground">{user?.name}</p>
+                  </div>
+                  <div className="p-4 space-y-1">
+                    <p className="text-sm text-gray-800">{user?.name}</p>
+                    <p className="text-sm text-gray-600">{user?.email}</p>
+                    <div className="pt-2">
+                      <Button variant="link" size="sm" className="h-6 p-0 text-primary text-xs" onClick={() => setActiveTab("settings")}>
+                        CHANGE PASSWORD
+                      </Button>
                     </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Email</p>
-                      <p className="text-sm font-medium text-foreground">{user?.email}</p>
-                    </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
 
                 {/* Default Address Block */}
-                <Card className="shadow-sm border-border/70">
-                  <CardHeader className="flex flex-row items-center justify-between border-b border-border/40 pb-3">
-                    <div>
-                      <CardTitle className="text-base font-semibold">Primary Shipping Address</CardTitle>
-                      <CardDescription className="text-xs">Used automatically for shipping</CardDescription>
-                    </div>
-                    <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setActiveTab("addresses")}>
-                      Manage
+                <div className="bg-white border border-gray-200 rounded-sm">
+                  <div className="flex flex-row items-center justify-between border-b border-gray-100 p-4">
+                    <h2 className="text-sm font-semibold uppercase text-gray-700">Address Book</h2>
+                    <Button variant="ghost" size="sm" className="h-6 text-xs text-primary p-0 hover:bg-transparent hover:underline" onClick={() => setActiveTab("addresses")}>
+                      <Pencil className="w-3 h-3 mr-1" /> Edit
                     </Button>
-                  </CardHeader>
-                  <CardContent className="pt-4">
+                  </div>
+                  <div className="p-4">
                     {defaultAddressItem ? (
                       <div className="space-y-1">
-                        <p className="text-sm font-semibold text-foreground">{defaultAddressItem.fullName}</p>
-                        <p className="text-xs text-muted-foreground">{defaultAddressItem.address}</p>
-                        <p className="text-xs text-muted-foreground">{defaultAddressItem.city}</p>
-                        <p className="text-xs text-muted-foreground mt-2">{defaultAddressItem.phone}</p>
+                        <p className="text-sm text-gray-800">{defaultAddressItem.fullName}</p>
+                        <p className="text-sm text-gray-600">{defaultAddressItem.address}</p>
+                        <p className="text-sm text-gray-600">{defaultAddressItem.city}</p>
+                        <p className="text-sm text-gray-600 mt-1">{defaultAddressItem.phone}</p>
                       </div>
                     ) : (
-                      <div className="text-center py-6 text-muted-foreground text-xs">
-                        No default address set. Please configure address book.
+                      <div className="text-gray-500 text-sm">
+                        No default address set.
                       </div>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </div>
 
-              {/* Vouchers and Gift Cards panel */}
-              <Card className="shadow-sm border-border/70">
-                <CardHeader>
-                  <CardTitle className="text-base font-semibold">Active Coupons & Vouchers</CardTitle>
-                  <CardDescription className="text-xs">Redeem these codes during checkout to save money</CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {vouchers.map((v) => (
-                      <div key={v.code} className="border border-dashed border-primary/40 bg-primary/5 rounded-xl p-4 flex justify-between items-center">
-                        <div>
-                          <p className="text-sm font-bold text-primary">{v.discount}</p>
-                          <p className="text-xs font-semibold text-foreground mt-0.5">{v.code}</p>
-                          <p className="text-[10px] text-muted-foreground mt-1">{v.desc}</p>
+              {/* Recent Orders Block */}
+              <div className="bg-white border border-gray-200 rounded-sm mt-4">
+                <div className="border-b border-gray-100 p-4 flex justify-between items-center">
+                  <h2 className="text-sm font-semibold uppercase text-gray-700">Recent Orders</h2>
+                  <Button variant="ghost" size="sm" className="h-6 text-xs text-primary p-0 hover:bg-transparent hover:underline" onClick={() => setActiveTab("orders")}>
+                    See All
+                  </Button>
+                </div>
+                <div className="p-0">
+                  {orders && orders.length > 0 ? (
+                    <div className="divide-y divide-gray-100">
+                      {orders.slice(0, 2).map((order: any) => (
+                        <div key={order.id} className="p-4 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                          <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center shrink-0">
+                              <ShoppingBag className="w-5 h-5 text-gray-400" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-800">Order #{order.id}</p>
+                              <p className="text-xs text-gray-500 mt-1">Placed on {new Date(order.createdAt).toLocaleDateString()}</p>
+                              <span className="inline-block mt-2 text-[10px] uppercase font-bold tracking-wider text-white bg-gray-800 px-2 py-0.5 rounded-sm">
+                                {order.status}
+                              </span>
+                            </div>
+                          </div>
+                          <Button variant="outline" size="sm" className="text-xs shrink-0" onClick={() => setActiveTab("orders")}>
+                            View Details
+                          </Button>
                         </div>
-                        <div className="text-right">
-                          <span className="text-[10px] bg-muted border text-muted-foreground px-2 py-0.5 rounded-full font-mono">
-                            Expires: {v.expiry}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Recently Viewed Panel */}
-              <Card className="shadow-sm border-border/70">
-                <CardHeader>
-                  <CardTitle className="text-base font-semibold">Recently Viewed Items</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="flex gap-4 overflow-x-auto pb-2">
-                    {recentlyViewed.map((item) => (
-                      <div key={item.id} className="w-36 shrink-0 border border-border/50 rounded-lg p-2 hover:shadow-md transition-shadow">
-                        <img src={item.image} alt={item.name} className="w-full h-24 object-cover rounded" />
-                        <p className="text-xs font-medium text-foreground mt-2 truncate">{item.name}</p>
-                        <p className="text-xs font-bold text-primary mt-1">{item.price}</p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-6 text-center text-sm text-gray-500">
+                      You have placed no orders yet.
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
@@ -555,6 +509,7 @@ export default function BuyerDashboard() {
         </div>
 
       </div>
+    </div>
     </div>
   );
 }
