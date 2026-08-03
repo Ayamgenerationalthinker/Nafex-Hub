@@ -264,7 +264,7 @@ export default function BrandProfile() {
       </div>
 
       {/* Brand Info Bar (Standardized Marketplace Store Header) */}
-      <div className="bg-card border-b shadow-sm sticky top-0 z-40">
+      <div className="bg-card border-b shadow-sm md:sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4 max-w-7xl">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4 w-full md:w-auto">
@@ -313,26 +313,26 @@ export default function BrandProfile() {
       <div className="container mx-auto px-4 max-w-7xl py-8 flex flex-col md:flex-row gap-6 md:gap-8">
         
         {/* Sidebar (Categories/Collections) */}
-        <div className="w-full md:w-64 flex-shrink-0 space-y-6">
-          <div className="bg-card border rounded-xl p-4 shadow-sm">
-            <h3 className="font-semibold text-xs uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
+        <div className="w-full md:w-64 flex-shrink-0 space-y-4 md:space-y-6">
+          <div className="bg-card border rounded-xl p-4 shadow-sm overflow-hidden">
+            <h3 className="hidden md:flex font-semibold text-xs uppercase tracking-wider text-muted-foreground mb-3 items-center gap-2">
               <Filter className="w-3.5 h-3.5" /> Store Categories
             </h3>
-            <div className="space-y-1">
+            <div className="flex flex-row md:flex-col overflow-x-auto md:overflow-visible gap-2 md:gap-0 md:space-y-1 pb-2 md:pb-0 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0 scroll-smooth">
               <button
-                className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors ${selectedCollectionId === null ? 'bg-primary/10 text-primary font-semibold' : 'text-foreground hover:bg-muted'}`}
+                className={`flex-shrink-0 whitespace-nowrap md:whitespace-normal md:w-full text-left px-4 md:px-3 py-2 md:py-2.5 rounded-full md:rounded-lg text-sm transition-colors ${selectedCollectionId === null ? 'bg-primary text-primary-foreground md:bg-primary/10 md:text-primary font-semibold border-transparent' : 'text-foreground hover:bg-muted border border-border md:border-transparent'}`}
                 onClick={() => setSelectedCollectionId(null)}
               >
-                All Products ({allProducts.length})
+                All Products <span className="md:inline">({allProducts.length})</span>
               </button>
               {activeCollections.map(col => (
                 <button
                   key={col.id}
-                  className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors flex items-center justify-between ${selectedCollectionId === col.id ? 'bg-primary/10 text-primary font-semibold' : 'text-foreground hover:bg-muted'}`}
+                  className={`flex-shrink-0 whitespace-nowrap md:whitespace-normal md:w-full text-left px-4 md:px-3 py-2 md:py-2.5 rounded-full md:rounded-lg text-sm transition-colors flex items-center justify-between gap-2 md:gap-0 ${selectedCollectionId === col.id ? 'bg-primary text-primary-foreground md:bg-primary/10 md:text-primary font-semibold border-transparent' : 'text-foreground hover:bg-muted border border-border md:border-transparent'}`}
                   onClick={() => setSelectedCollectionId(col.id)}
                 >
-                  <span className="truncate pr-2">{col.name}</span>
-                  <span className="text-xs opacity-60 bg-muted px-1.5 py-0.5 rounded-md">{col.products.length}</span>
+                  <span className="truncate md:pr-2">{col.name}</span>
+                  <span className="hidden md:inline-block text-xs opacity-60 bg-muted px-1.5 py-0.5 rounded-md">{col.products.length}</span>
                 </button>
               ))}
             </div>
@@ -383,7 +383,7 @@ export default function BrandProfile() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="md:col-span-1 border-r border-border/50 pr-0 md:pr-8">
+            <div className="md:col-span-1 border-b md:border-b-0 md:border-r border-border/50 pb-8 md:pb-0 md:pr-8">
               <div className="space-y-4">
                 <h3 className="font-semibold text-sm">Write a Review</h3>
                 <StarRating value={reviewRating} onChange={setReviewRating} size="md" />
