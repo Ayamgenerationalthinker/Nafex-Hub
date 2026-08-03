@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { sendEmailJSVerificationCode } from "@/lib/emailjs-verification";
+
 
 const CODE_TTL_SECONDS = 180; // 3 minutes
 
@@ -93,34 +93,12 @@ export default function VerifyEmail() {
   async function sendCode() {
     setResending(true);
     try {
-      // Set a 5-second timeout so the UI never hangs
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-      let data: any = {};
-      try {
-        const res = await fetch("/api/auth/resend-verification", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          signal: controller.signal,
-        });
-        clearTimeout(timeoutId);
-        data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Could not send code");
-      } catch (fetchErr: any) {
-        clearTimeout(timeoutId);
-        if (fetchErr?.name !== "AbortError") throw fetchErr;
-        // Timed out — continue to browser send below
-      }
-
-      // If server didn't deliver (no EMAILJS_PRIVATE_KEY), send directly from browser SDK
-      if (!data.delivered && data.code && data.email) {
-        await sendEmailJSVerificationCode({
-          email: data.email,
-          name: data.name || user!.email.split("@")[0],
-          code: data.code,
-        });
-      }
+      const res = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Could not send code");
 
       setCode("");
       setSecondsLeft(CODE_TTL_SECONDS);
