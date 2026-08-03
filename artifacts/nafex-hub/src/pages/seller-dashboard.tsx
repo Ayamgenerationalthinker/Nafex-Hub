@@ -568,7 +568,10 @@ export default function SellerDashboard() {
               return (
                 <button
                   key={tab.value}
-                  onClick={() => setActiveTab(tab.value)}
+                  onClick={() => {
+                    setActiveTab(tab.value);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
                   className={`px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 flex text-left ${
                     isActive
                       ? "bg-primary text-primary-foreground shadow-sm"
@@ -588,7 +591,7 @@ export default function SellerDashboard() {
         {/* ── Back to More Navigation ── */}
         {["analytics", "clients", "collections", "feedback", "disputes", "vouchers", "pricing", "boost", "settings"].includes(activeTab) && (
           <div className="mb-4">
-            <Button variant="ghost" size="sm" onClick={() => setActiveTab("more")} className="text-muted-foreground hover:text-foreground -ml-3">
+            <Button variant="ghost" size="sm" onClick={() => { setActiveTab("more"); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="text-muted-foreground hover:text-foreground -ml-3">
               <ChevronLeft className="w-4 h-4 mr-1" />
               Back to More Features
             </Button>
@@ -1775,7 +1778,7 @@ export default function SellerDashboard() {
                 <Card 
                   key={item.id} 
                   className="cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-all text-center h-full"
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={() => { setActiveTab(item.id); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                 >
                   <CardContent className="pt-6 pb-6 flex flex-col items-center justify-center h-full">
                     {item.icon}
