@@ -466,6 +466,41 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
 
         </div>
+
+        {/* Mobile Search Bar - Displayed below the header only on mobile and only for buyers/guests */}
+        {!isBusinessOwner && !isAdmin && (
+          <div className="md:hidden px-4 pb-3 w-full bg-background border-t border-purple-50">
+            <div className="relative w-full pt-3">
+              <input
+                type="search"
+                placeholder="Search products, brands, categories..."
+                className="w-full h-10 pl-4 pr-11 rounded-full bg-[#F6F2FF] border border-purple-200 text-sm text-[#222222] placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#6A1B9A] focus:bg-background transition-all shadow-sm"
+                value={headerSearch}
+                onChange={(e) => setHeaderSearch(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const value = headerSearch.trim();
+                    const base = "/explore";
+                    const next = value ? `${base}?search=${encodeURIComponent(value)}` : base;
+                    setLocation(next);
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const value = headerSearch.trim();
+                  const base = "/explore";
+                  const next = value ? `${base}?search=${encodeURIComponent(value)}` : base;
+                  setLocation(next);
+                }}
+                className="absolute right-1 top-[18px] w-8 h-8 rounded-full bg-[#6A1B9A] hover:bg-[#5B1687] text-white flex items-center justify-center transition-colors shadow-sm"
+              >
+                <Search className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </header>
 
       <main className="flex-1 flex flex-col w-full">

@@ -182,7 +182,7 @@ export default function BuyerDashboard() {
           </div>
 
           <div className="bg-white border border-purple-100 rounded-2xl p-3 shadow-xs">
-            <nav className="flex flex-col gap-1">
+            <nav className="flex flex-row overflow-x-auto hide-scrollbar lg:flex-col gap-2 lg:gap-1 -mx-2 px-2 lg:mx-0 lg:px-0">
               {[
                 { id: "overview", label: "My Account", icon: <User className="w-4 h-4" /> },
                 { id: "orders", label: "Orders", icon: <ShoppingBag className="w-4 h-4" />, badge: activeOrdersCount > 0 ? activeOrdersCount : undefined },
@@ -197,13 +197,13 @@ export default function BuyerDashboard() {
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                  className={`flex items-center justify-center lg:justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap flex-shrink-0 gap-2 ${
                     activeTab === item.id
                       ? "bg-[#6A1B9A] text-white shadow-sm"
                       : "text-[#6B7280] hover:bg-[#F6F2FF] hover:text-[#6A1B9A]"
                   }`}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 lg:gap-3">
                     {item.icon}
                     <span>{item.label}</span>
                   </div>
@@ -212,14 +212,14 @@ export default function BuyerDashboard() {
                       {item.badge}
                     </span>
                   ) : (
-                    <ChevronRight className="w-3.5 h-3.5 opacity-60" />
+                    <ChevronRight className="w-3.5 h-3.5 opacity-60 hidden lg:block" />
                   )}
                 </button>
               ))}
               
               <button
                 onClick={logout}
-                className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-50 transition-all mt-2 w-full text-left"
+                className="flex items-center gap-2 lg:gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-50 transition-all mt-0 lg:mt-2 w-auto lg:w-full text-left whitespace-nowrap flex-shrink-0"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Logout</span>

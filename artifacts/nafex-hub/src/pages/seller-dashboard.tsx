@@ -8,6 +8,7 @@ import {
   useGetBusinessAnalytics,
   getGetBusinessAnalyticsQueryKey,
   useGetBusinessOrders,
+  getGetBusinessOrdersQueryKey,
   useUpdateOrderStatus,
   useGetBusinessProducts,
   getGetBusinessProductsQueryKey,
@@ -110,6 +111,8 @@ export default function SellerDashboard() {
   const { toast } = useToast();
   const { user } = useAuth();
 
+  const [activeTab, setActiveTab] = useState("overview");
+
   // ── All hooks must be called before any early return ──
   const { data: stats, isLoading: statsLoading } = useGetDashboardStats();
 
@@ -117,14 +120,16 @@ export default function SellerDashboard() {
 
   const { data: analytics, isLoading: analyticsLoading } = useGetBusinessAnalytics(
     businessId,
-    { query: { enabled: !!businessId, queryKey: getGetBusinessAnalyticsQueryKey(businessId) } }
+    { query: { enabled: !!businessId && activeTab === "analytics", queryKey: getGetBusinessAnalyticsQueryKey(businessId) } }
   );
 
-  const { data: orders, refetch: refetchOrders } = useGetBusinessOrders();
+  const { data: orders, refetch: refetchOrders } = useGetBusinessOrders({
+    query: { enabled: activeTab === "orders" || activeTab === "overview", queryKey: getGetBusinessOrdersQueryKey() }
+  });
 
   const { data: products, refetch: refetchProducts } = useGetBusinessProducts(
     businessId,
-    { query: { enabled: !!businessId, queryKey: getGetBusinessProductsQueryKey(businessId) } }
+    { query: { enabled: !!businessId && (activeTab === "inventory" || activeTab === "overview" || activeTab === "collections"), queryKey: getGetBusinessProductsQueryKey(businessId) } }
   );
 
   const { mutate: updateStock } = useUpdateProductStock({
@@ -183,7 +188,7 @@ export default function SellerDashboard() {
 
   const { data: collections, refetch: refetchCollections } = useGetCollections(
     { businessId },
-    { query: { enabled: !!businessId, queryKey: getGetCollectionsQueryKey({ businessId }) } }
+    { query: { enabled: !!businessId && (activeTab === "collections" || activeTab === "inventory"), queryKey: getGetCollectionsQueryKey({ businessId }) } }
   );
 
   const { mutate: createCollection, isPending: creatingCollection } = useCreateCollection({
@@ -321,7 +326,6 @@ export default function SellerDashboard() {
     }
   }
 
-  const [activeTab, setActiveTab] = useState("overview");
   const [showBulkUpload, setShowBulkUpload] = useState(false);
 
   type Client = {
@@ -550,32 +554,30 @@ export default function SellerDashboard() {
         <div className="w-full md:w-56 lg:w-64 flex-shrink-0 sticky top-24 z-10 bg-background md:bg-transparent pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto md:overflow-visible">
           <div className="bg-card border border-border rounded-xl p-2 flex flex-row md:flex-col gap-1 w-max md:w-full shadow-sm">
             {([
-              { value: "overview", label: "Overview" },
+              { value: "overview", label: "Dashboard" },
+              { value: "inventory", label: "My Shop" },
               { value: "orders", label: "Orders" },
               { value: "inbox", label: "Inbox" },
-              { value: "inventory", label: "Inventory" },
-              { value: "collections", label: "Collections" },
-              { value: "analytics", label: "Analytics" },
-              { value: "clients", label: "Clients" },
-              { value: "feedback", label: "Feedback" },
-              { value: "disputes", label: "Disputes" },
-              { value: "vouchers", label: "Vouchers" },
-              { value: "pricing", label: "Pricing" },
-              { value: "earnings", label: "Earnings" },
-              { value: "boost", label: "Boost" },
-            ] as const).map((tab) => (
-              <button
-                key={tab.value}
-                onClick={() => setActiveTab(tab.value)}
-                className={`px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 flex text-left ${
-                  activeTab === tab.value
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+              { value: "earnings", label: "Payments" },
+              { value: "more", label: "More" },
+            ] as const).map((tab) => {
+              const isMoreItemActive = tab.value === "more" && ["analytics", "clients", "collections", "feedback", "disputes", "vouchers", "pricing", "boost", "settings"].includes(activeTab);
+              const isActive = activeTab === tab.value || isMoreItemActive;
+              
+              return (
+                <button
+                  key={tab.value}
+                  onClick={() => setActiveTab(tab.value)}
+                  className={`px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 flex text-left ${
+                    isActive
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -1740,6 +1742,38 @@ export default function SellerDashboard() {
         {activeTab === "vouchers" && (
           <div className="space-y-4">
             <SellerVouchersTab businessId={businessId} />
+          </div>
+        )}
+
+        {/* ── More Features Tab ── */}
+        {activeTab === "more" && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-serif font-semibold">More Features</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {[
+                { id: "analytics", title: "Analytics", icon: <TrendingUp className="w-6 h-6 mb-2 text-primary"/>, desc: "Sales & traffic reports" },
+                { id: "clients", title: "Clients", icon: <Users className="w-6 h-6 mb-2 text-primary"/>, desc: "Customer list & CRM" },
+                { id: "collections", title: "Collections", icon: <FolderOpen className="w-6 h-6 mb-2 text-primary"/>, desc: "Organize products" },
+                { id: "feedback", title: "Feedback", icon: <MessageCircle className="w-6 h-6 mb-2 text-primary"/>, desc: "Reviews & ratings" },
+                { id: "disputes", title: "Disputes", icon: <AlertTriangle className="w-6 h-6 mb-2 text-primary"/>, desc: "Returns & refunds" },
+                { id: "vouchers", title: "Vouchers", icon: <Tag className="w-6 h-6 mb-2 text-primary"/>, desc: "Store coupons" },
+                { id: "pricing", title: "Pricing", icon: <Plus className="w-6 h-6 mb-2 text-primary"/>, desc: "Bulk & wholesale rules" },
+                { id: "boost", title: "Boost Ads", icon: <Star className="w-6 h-6 mb-2 text-primary"/>, desc: "Promote your shop" },
+                { id: "settings", title: "Settings", icon: <Settings className="w-6 h-6 mb-2 text-primary"/>, desc: "Shop configuration" }
+              ].map(item => (
+                <Card 
+                  key={item.id} 
+                  className="cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-all text-center h-full"
+                  onClick={() => setActiveTab(item.id)}
+                >
+                  <CardContent className="pt-6 pb-6 flex flex-col items-center justify-center h-full">
+                    {item.icon}
+                    <h3 className="font-medium text-foreground">{item.title}</h3>
+                    <p className="text-xs text-muted-foreground mt-1">{item.desc}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
         )}
         </div>

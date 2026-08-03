@@ -214,20 +214,15 @@ export default function Explore() {
       {/* The full banner PNG is one unified composition (girl + cream bg) used as CSS background.
           Text is overlaid on the left half with z-10. Exactly matches img 4.jpeg approach. */}
       <div
-        className="relative overflow-hidden rounded-3xl mb-8 shadow-sm border border-amber-100/60"
+        className="relative overflow-hidden rounded-3xl mb-8 shadow-sm border border-amber-100/60 bg-[#F8F3EA] bg-no-repeat bg-[position:bottom_right_-20%] md:bg-[position:right_bottom] bg-[length:120%_auto] md:bg-[length:auto_90%]"
         style={{
           backgroundImage: "url('/home-hero-banner.png')",
-          backgroundSize: "auto 90%",
-          backgroundPosition: "right bottom",
-          backgroundRepeat: "no-repeat",
-          backgroundColor: "#F8F3EA",
           minHeight: "500px",
         }}
       >
         {/* Left text overlay — sits on the clean left portion of the banner */}
         <div
-          className="relative z-10 flex flex-col justify-center py-14 space-y-5"
-          style={{ paddingLeft: "3.5rem", maxWidth: "50%", minHeight: "500px" }}
+          className="relative z-10 flex flex-col justify-center py-10 md:py-14 space-y-5 px-6 md:px-14 min-h-[500px] w-full md:max-w-[60%] lg:max-w-[50%] bg-gradient-to-r from-[#F8F3EA] via-[#F8F3EA]/90 to-transparent md:bg-none"
         >
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F6F2FF]/80 border border-purple-100 text-[#6A1B9A] text-xs font-semibold w-fit backdrop-blur-sm">
             <Sparkles className="w-3.5 h-3.5 text-[#D4A017]" />
@@ -240,7 +235,7 @@ export default function Explore() {
           <p className="text-[#5a5a5a] text-base md:text-lg max-w-xs leading-relaxed">
             Shop top quality products across electronics, fashion, home, beauty, and more with fast delivery and secure escrow payments.
           </p>
-          <div className="flex flex-wrap items-center gap-4 pt-2">
+          <div className="flex flex-wrap items-center gap-3 md:gap-4 pt-2">
             <Button
               variant="primary"
               size="lg"
@@ -248,7 +243,7 @@ export default function Explore() {
                 const el = document.getElementById("catalog-section");
                 el?.scrollIntoView({ behavior: "smooth" });
               }}
-              className="bg-[#6A1B9A] text-white hover:bg-[#5B1687] rounded-xl px-8 shadow-md"
+              className="bg-[#6A1B9A] text-white hover:bg-[#5B1687] rounded-xl px-6 md:px-8 shadow-md"
             >
               Shop Now
             </Button>
@@ -259,7 +254,7 @@ export default function Explore() {
                 const el = document.getElementById("categories-section");
                 el?.scrollIntoView({ behavior: "smooth" });
               }}
-              className="bg-[#D4A017] text-white hover:bg-[#B88A12] rounded-xl px-8 shadow-md"
+              className="bg-[#D4A017] text-white hover:bg-[#B88A12] rounded-xl px-6 md:px-8 shadow-md"
             >
               Explore Categories
             </Button>
