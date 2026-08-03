@@ -31,7 +31,11 @@ function SocialButtonsInner({ action, termsAccepted }: { action: "sign in" | "si
         title: `Successfully ${action === "sign in" ? "signed in" : "signed up"} with Google`,
         description: `Welcome, ${data.user.name}!`,
       });
-      setLocation("/");
+      if (data.user.role === "admin") {
+        setLocation("/admin/dashboard");
+      } else {
+        setLocation("/");
+      }
     } catch (err: any) {
       toast({
         title: "Social authentication error",
@@ -72,7 +76,11 @@ function SocialButtonsInner({ action, termsAccepted }: { action: "sign in" | "si
         title: `Successfully ${action === "sign in" ? "signed in" : "signed up"} with Facebook`,
         description: `Welcome, ${data.user.name}!`,
       });
-      setLocation("/");
+      if (data.user.role === "admin") {
+        setLocation("/admin/dashboard");
+      } else {
+        setLocation("/");
+      }
     } catch (err: any) {
       toast({
         title: "Social authentication error",
