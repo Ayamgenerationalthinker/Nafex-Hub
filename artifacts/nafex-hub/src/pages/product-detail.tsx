@@ -17,7 +17,7 @@ export default function ProductDetail() {
   const isAdmin = user?.role === "admin";
   const isBuyer = !isBusinessOwner && !isAdmin;
   const { toast } = useToast();
-  const addToCart = useCart((s) => s.addItem);
+  const { addItem: addToCart } = useCart();
   const [selectedImg, setSelectedImg] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [offerPrice, setOfferPrice] = useState("");

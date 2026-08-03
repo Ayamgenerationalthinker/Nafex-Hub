@@ -322,8 +322,8 @@ export declare const productsTable: import("drizzle-orm/pg-core").PgTableWithCol
     dialect: "pg";
 }>;
 export declare const insertProductSchema: z.ZodObject<{
-    brand: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     name: z.ZodString;
+    brand: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     category: z.ZodOptional<z.ZodString>;
     description: z.ZodOptional<z.ZodString>;
     images: z.ZodOptional<z.ZodArray<z.ZodString>>;

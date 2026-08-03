@@ -3,7 +3,7 @@ import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 
 export function CartIcon({ className = "" }: { className?: string }) {
-  const totalItems = useCart((s) => s.totalItems());
+  const { totalItems } = useCart();
   return (
     <Link
       href="/cart"

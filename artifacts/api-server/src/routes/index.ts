@@ -19,6 +19,7 @@ import dashboardRouter     from "../features/dashboard/dashboard.routes";
 import marketingRouter     from "../features/marketing/marketing.routes";
 import platformRouter      from "../features/platform/platform.routes";
 import tradeRouter         from "../features/trade/trade.routes";
+import cartRouter          from "../features/cart/cart.routes";
 
 const router: IRouter = Router();
 
@@ -42,5 +43,6 @@ router.use(dashboardRouter);
 router.use(marketingRouter);
 router.use(platformRouter);
 router.use(tradeRouter);
+router.use(cartRouter);
 
 export default router;

@@ -84,7 +84,7 @@ export default function Cart() {
         <h1 className="font-serif text-3xl font-bold">Your Cart</h1>
         <div className="text-right">
           <p className="text-xs text-muted-foreground">Cart total</p>
-          <p className="text-2xl font-bold text-primary">GHS {totalPrice().toFixed(2)}</p>
+          <p className="text-2xl font-bold text-primary">GHS {totalPrice.toFixed(2)}</p>
         </div>
       </div>
 

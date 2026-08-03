@@ -433,12 +433,12 @@ export declare const businessesTable: import("drizzle-orm/pg-core").PgTableWithC
     dialect: "pg";
 }>;
 export declare const insertBusinessSchema: z.ZodObject<{
-    ownerId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
     name: z.ZodString;
+    phone: z.ZodString;
+    ownerId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
     category: z.ZodString;
     description: z.ZodString;
     location: z.ZodString;
-    phone: z.ZodString;
     logo: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     images: z.ZodOptional<z.ZodArray<z.ZodString>>;
     isVerified: z.ZodOptional<z.ZodBoolean>;
