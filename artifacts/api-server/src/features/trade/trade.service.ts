@@ -33,6 +33,23 @@ export async function createRequest(userId: number, userRole: string, data: {
     images: data.images ?? [],
     requesterRole,
   });
+  
+  // Notify all admins
+  try {
+    const admins = await repo.getAdmins();
+    const io = getIO();
+    for (const admin of admins) {
+      const notif = await repo.createNotification(
+        admin.id,
+        "message",
+        "New Sourcing Request",
+        `A new sourcing request for "${data.productName}" was submitted by a ${requesterRole}.`,
+        request.id
+      );
+      if (io) io.to(`user_${admin.id}`).emit("new_notification", notif);
+    }
+  } catch (err) {}
+
   return { data: request };
 }
 

@@ -10,6 +10,7 @@ import {
   businessesTable,
   transactionsTable,
   TRADE_ORDER_STATUSES,
+  notificationsTable,
 } from "@workspace/db";
 import { eq, desc, and, or, isNull, asc } from "drizzle-orm";
 
@@ -21,6 +22,17 @@ export async function createRequest(data: {
 }) {
   const [req] = await db.insert(tradeRequestsTable).values(data).returning();
   return req!;
+}
+
+export async function getAdmins() {
+  return await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.role, "admin"));
+}
+
+export async function createNotification(userId: number, type: "message" | "order_update" | "review", title: string, body: string, relatedId: number) {
+  const [notif] = await db.insert(notificationsTable).values({
+    userId, type, title, body, relatedId
+  }).returning();
+  return notif;
 }
 
 export async function getAllRequests() {

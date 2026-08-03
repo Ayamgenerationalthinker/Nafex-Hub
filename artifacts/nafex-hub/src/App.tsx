@@ -59,6 +59,7 @@ const Payments = lazy(() => import("@/pages/payments"));
 const AdminFlashSales = lazy(() => import("@/pages/admin-flash-sales"));
 const AdminModeration = lazy(() => import("@/pages/admin-moderation"));
 const AdminSupport = lazy(() => import("@/pages/admin-support"));
+const AdminSourcing = lazy(() => import("@/pages/admin-sourcing"));
 const Privacy = lazy(() => import("@/pages/privacy"));
 const Terms = lazy(() => import("@/pages/terms"));
 const About = lazy(() => import("@/pages/about"));
@@ -129,6 +130,7 @@ function Router() {
               <Route path="/trade/order/:id">{() => <ProtectedRoute component={TradeOrderDetail} />}</Route>
               <Route path="/trade/seller-import">{() => <ProtectedRoute component={SellerBulkImport} roles={["business_owner", "admin"]} to="/login" />}</Route>
               <Route path="/admin/trade">{() => <ProtectedRoute component={AdminTrade} roles={["admin"]} to="/" />}</Route>
+              <Route path="/admin/sourcing">{() => <ProtectedRoute component={AdminSourcing} roles={["admin"]} to="/" />}</Route>
               <Route component={NotFound} />
             </Switch>
           </Layout>

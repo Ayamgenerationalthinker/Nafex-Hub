@@ -25,6 +25,7 @@ const NAV_ITEMS = [
   { path: "/admin/users", label: "Users", icon: Users },
   { path: "/admin/businesses", label: "Businesses", icon: Building2 },
   { path: "/admin/products", label: "Products", icon: Package },
+  { path: "/admin/sourcing", label: "Sourcing Requests", icon: Sparkles },
   { path: "/admin/services", label: "Services", icon: Sparkles },
   { path: "/admin/flash-sales", label: "Flash Sales", icon: Flame },
   { path: "/admin/payments", label: "Payments", icon: Wallet },
