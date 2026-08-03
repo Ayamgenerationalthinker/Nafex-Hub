@@ -15,28 +15,17 @@ import {
   getGetCollectionsQueryKey,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import {
   MapPin,
-  Phone,
   ArrowLeft,
   MessageCircle,
   Star,
-  Send,
   ShoppingBag,
   Heart,
   Package,
-  Truck,
-  ShieldCheck,
-  Award,
-  RefreshCw,
-  Instagram,
-  Facebook,
-  Twitter,
-  ChevronRight,
+  Filter,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -131,23 +120,26 @@ export default function BrandProfile() {
     if (id) {
       trackEvent({ data: { businessId: id, type: "view" } });
     }
-  }, [id]);
+  }, [id, trackEvent]);
 
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-10 max-w-6xl space-y-8">
-        <Skeleton className="h-10 w-40" />
+        <Skeleton className="h-40 w-full rounded-2xl" />
         <div className="flex items-center gap-4">
-          <Skeleton className="h-20 w-20 rounded-full" />
+          <Skeleton className="h-16 w-16 rounded-xl" />
           <div className="space-y-2">
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-6 w-40" />
+            <Skeleton className="h-4 w-24" />
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="aspect-square rounded-xl" />
-          ))}
+        <div className="flex gap-8">
+          <Skeleton className="w-64 h-96 hidden md:block" />
+          <div className="flex-1 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} className="aspect-[4/5] rounded-xl" />
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -156,8 +148,8 @@ export default function BrandProfile() {
   if (isError || !business) {
     return (
       <div className="container mx-auto px-4 py-20 max-w-5xl text-center space-y-6">
-        <h2 className="font-serif text-3xl font-bold">Brand Not Found</h2>
-        <p className="text-muted-foreground">This brand doesn't exist or may have been removed.</p>
+        <h2 className="font-serif text-3xl font-bold">Store Not Found</h2>
+        <p className="text-muted-foreground">This store doesn't exist or may have been removed.</p>
         <Button onClick={() => setLocation("/explore")} data-testid="btn-back-explore">
           Back to Explore
         </Button>
@@ -165,19 +157,15 @@ export default function BrandProfile() {
     );
   }
 
-  const whatsappUrl = `https://wa.me/${business.phone.replace(/\D/g, "")}`;
   const avgRating = reviews && reviews.length > 0 ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
   const isSeller = user?.role === "business_owner" || user?.role === "admin";
 
-  // Data derivations for the Recommended Homepage Structure
   const activeCollections = collections?.filter(c => c.products.length > 0) || [];
-  
   const allProducts = products || [];
-  const newArrivals = [...allProducts].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 8);
-  const bestSellers = [...allProducts].sort((a, b) => Number(b.price) - Number(a.price)).slice(0, 8); // Proxy for best sellers
+  
   const featuredProducts = selectedCollectionId 
     ? allProducts.filter(p => p.collectionId === selectedCollectionId)
-    : allProducts.slice(0, 12);
+    : allProducts;
 
   const handleInboxMessage = () => {
     if (!user) {
@@ -210,13 +198,9 @@ export default function BrandProfile() {
     });
   };
 
-  const scrollToProducts = () => {
-    productsRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   const ProductCard = ({ product }: { product: any }) => (
     <div
-      className="group relative rounded-xl border border-border/50 overflow-hidden cursor-pointer hover:border-primary/40 transition-all hover:shadow-lg bg-card"
+      className="group relative rounded-xl border overflow-hidden cursor-pointer hover:border-primary/40 transition-all hover:shadow-md bg-card flex flex-col"
       onClick={() => setLocation(`/product/${product.id}`)}
     >
       <div className="aspect-[4/5] overflow-hidden bg-muted relative">
@@ -234,7 +218,7 @@ export default function BrandProfile() {
         )}
         {user && (
           <button
-            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center hover:bg-background hover:scale-110 transition-all shadow-sm"
+            className="absolute top-2 right-2 w-8 h-8 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center hover:bg-background hover:scale-110 transition-all shadow-sm"
             onClick={(e) => { e.stopPropagation(); toggleFav({ data: { productId: product.id } }); }}
             title="Save to favorites"
           >
@@ -242,12 +226,12 @@ export default function BrandProfile() {
           </button>
         )}
       </div>
-      <div className="p-4">
-        <p className="text-sm font-medium text-foreground truncate">{product.name}</p>
-        <p className="text-sm font-bold text-primary mt-1">GH₵ {Number(product.price).toFixed(2)}</p>
+      <div className="p-3 flex flex-col flex-1">
+        <p className="text-xs font-medium text-foreground truncate">{product.name}</p>
+        <p className="text-sm font-bold text-foreground mt-1">GH₵ {Number(product.price).toFixed(2)}</p>
         {product.stock !== null && product.stock !== undefined && (
-          <span className={`inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full mt-2 ${
-            product.stock === 0 ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+          <span className={`inline-flex items-center text-[9px] font-semibold px-1.5 py-0.5 rounded-sm mt-auto self-start ${
+            product.stock === 0 ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"
           }`}>
             {product.stock === 0 ? "Out of Stock" : "In Stock"}
           </span>
@@ -257,33 +241,21 @@ export default function BrandProfile() {
   );
 
   return (
-    <div className="min-h-screen bg-background flex flex-col font-sans">
-      {/* 1. Hero Banner */}
-      <div className="w-full h-[60vh] md:h-[70vh] bg-secondary/30 relative overflow-hidden group">
+    <div className="min-h-screen bg-muted/20 flex flex-col font-sans pb-20">
+      {/* 1. Header & Banner */}
+      <div className="w-full h-40 md:h-56 bg-secondary/30 relative overflow-hidden group border-b">
         {business.images?.[0] ? (
           <img src={business.images[0]} alt={business.name} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/30">
-            <span className="font-serif text-9xl text-primary/10">{business.name.charAt(0)}</span>
-          </div>
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-primary/10 to-secondary/10"></div>
         )}
-        <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors duration-500" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 text-white max-w-4xl mx-auto space-y-6">
-          <h1 className="font-serif text-5xl md:text-7xl font-bold leading-tight drop-shadow-lg text-white">
-            {business.name}
-          </h1>
-          <p className="text-lg md:text-2xl text-white/90 drop-shadow-md font-medium max-w-2xl">
-            {business.description || `Premium ${business.category} Crafted for Every Occasion.`}
-          </p>
-          <Button size="lg" className="h-14 px-10 text-lg font-bold rounded-full mt-4" onClick={scrollToProducts}>
-            Shop Now
-          </Button>
-        </div>
-        <div className="absolute top-6 left-6 z-10">
+        <div className="absolute inset-0 bg-black/20" />
+        <div className="absolute top-4 left-4 z-10">
           <Button
-            variant="ghost"
+            variant="secondary"
+            size="sm"
             onClick={() => setLocation("/explore")}
-            className="bg-background/20 hover:bg-background/40 text-white border-white/20 backdrop-blur-md rounded-full px-6"
+            className="rounded-full shadow-md bg-white/90 text-black hover:bg-white border-none"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Explore
@@ -291,293 +263,172 @@ export default function BrandProfile() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 max-w-7xl py-12 space-y-20">
-        {/* Brand Info Bar */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-card border border-border shadow-sm rounded-2xl p-6 -mt-24 relative z-20">
-          <div className="flex items-center gap-5">
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-4 border-background shadow-md bg-muted flex-shrink-0">
-              {business.logo ? (
-                <img src={business.logo} alt={business.name} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-primary/10">
-                  <span className="font-serif text-3xl font-bold text-primary">{business.name.charAt(0)}</span>
-                </div>
-              )}
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="font-serif text-2xl font-bold text-foreground">{business.name}</h2>
-                {business.isVerified && (
-                  <img src="/nafex-verified-badge.png" alt="Verified" className="w-6 h-6 object-contain" />
+      {/* Brand Info Bar (Standardized Marketplace Store Header) */}
+      <div className="bg-card border-b shadow-sm sticky top-0 z-40">
+        <div className="container mx-auto px-4 py-4 max-w-7xl">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4 w-full md:w-auto">
+              <div className="w-16 h-16 rounded-xl overflow-hidden border shadow-sm bg-background flex-shrink-0 flex items-center justify-center -mt-8 relative z-10">
+                {business.logo ? (
+                  <img src={business.logo} alt={business.name} className="w-full h-full object-contain p-1" />
+                ) : (
+                  <span className="font-bold text-primary text-2xl uppercase">{business.name.charAt(0)}</span>
                 )}
               </div>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5"/> {business.location}</span>
-                <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5"/> {business.phone}</span>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl md:text-2xl font-bold text-foreground">{business.name}</h1>
+                  {business.isVerified && (
+                    <img src="/nafex-verified-badge.png" alt="Official Store" className="h-5 object-contain" title="Official Store" />
+                  )}
+                </div>
+                <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                  <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5"/> {business.location}</span>
+                  <span className="flex items-center gap-1">
+                    <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400"/> 
+                    {avgRating > 0 ? <strong className="text-foreground">{avgRating.toFixed(1)}</strong> : "New"} 
+                    {reviews && reviews.length > 0 && ` (${reviews.length})`}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-            {!isSeller && (
-              <Button size="lg" className="flex-1 md:flex-none gap-2" onClick={() => user ? setShowOrderModal(true) : setShowAuthPrompt(true)}>
-                <ShoppingBag className="w-4 h-4" /> Place Order
-              </Button>
-            )}
-            {!isSeller && (
-              <Button variant="outline" size="lg" className="flex-1 md:flex-none gap-2" onClick={handleInboxMessage}>
-                <MessageCircle className="w-4 h-4" /> Message
-              </Button>
-            )}
 
-          </div>
-        </div>
-
-        {/* 2. Shop by Collection */}
-        {activeCollections.length > 0 && (
-          <section className="space-y-8">
-            <div className="text-center space-y-3">
-              <h2 className="font-serif text-3xl font-bold text-foreground">Shop by Collection</h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">Discover our curated collections tailored for your style.</p>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-              {activeCollections.slice(0, 8).map((col) => {
-                const cover = col.coverImage || col.products[0]?.images?.[0];
-                const isSelected = selectedCollectionId === col.id;
-                return (
-                  <div
-                    key={col.id}
-                    className={`group relative aspect-[4/5] rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-xl transition-all ${isSelected ? 'ring-4 ring-primary ring-offset-2' : ''}`}
-                    onClick={() => {
-                      setSelectedCollectionId(isSelected ? null : col.id);
-                      scrollToProducts();
-                    }}
-                  >
-                    {cover ? (
-                      <img src={cover} alt={col.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                    ) : (
-                      <div className="w-full h-full bg-muted flex items-center justify-center">
-                        <Package className="w-12 h-12 text-muted-foreground/30" />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 text-white">
-                      <h3 className="font-serif text-2xl font-bold mb-1">{col.name}</h3>
-                      <p className="text-sm text-white/80 font-medium">{col.products.length} Products</p>
-                      <div className="mt-4 flex items-center text-sm font-semibold text-primary hover:text-white transition-colors group-hover:translate-x-2 duration-300">
-                        Shop Collection <ChevronRight className="w-4 h-4 ml-1" />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* 3. Featured Products */}
-        {featuredProducts.length > 0 && (
-          <section className="space-y-8" ref={productsRef}>
-            <div className="flex items-center justify-between">
-              <h2 className="font-serif text-3xl font-bold text-foreground">
-                {selectedCollectionId ? activeCollections.find(c => c.id === selectedCollectionId)?.name : "Featured Products"}
-              </h2>
-              {selectedCollectionId && (
-                <Button variant="ghost" onClick={() => setSelectedCollectionId(null)}>Clear Filter</Button>
+            <div className="flex items-center gap-2 w-full md:w-auto">
+              {!isSeller && (
+                <Button className="flex-1 md:flex-none gap-2 font-semibold shadow-sm" onClick={() => user ? setShowOrderModal(true) : setShowAuthPrompt(true)}>
+                  <ShoppingBag className="w-4 h-4" /> Place Order
+                </Button>
+              )}
+              {!isSeller && (
+                <Button variant="outline" className="flex-1 md:flex-none gap-2" onClick={handleInboxMessage}>
+                  <MessageCircle className="w-4 h-4" /> Message Seller
+                </Button>
               )}
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Main Content (Sidebar + Grid) */}
+      <div className="container mx-auto px-4 max-w-7xl py-8 flex flex-col md:flex-row gap-6 md:gap-8">
+        
+        {/* Sidebar (Categories/Collections) */}
+        <div className="w-full md:w-64 flex-shrink-0 space-y-6">
+          <div className="bg-card border rounded-xl p-4 shadow-sm">
+            <h3 className="font-semibold text-xs uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
+              <Filter className="w-3.5 h-3.5" /> Store Categories
+            </h3>
+            <div className="space-y-1">
+              <button
+                className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors ${selectedCollectionId === null ? 'bg-primary/10 text-primary font-semibold' : 'text-foreground hover:bg-muted'}`}
+                onClick={() => setSelectedCollectionId(null)}
+              >
+                All Products ({allProducts.length})
+              </button>
+              {activeCollections.map(col => (
+                <button
+                  key={col.id}
+                  className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors flex items-center justify-between ${selectedCollectionId === col.id ? 'bg-primary/10 text-primary font-semibold' : 'text-foreground hover:bg-muted'}`}
+                  onClick={() => setSelectedCollectionId(col.id)}
+                >
+                  <span className="truncate pr-2">{col.name}</span>
+                  <span className="text-xs opacity-60 bg-muted px-1.5 py-0.5 rounded-md">{col.products.length}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {business.description && (
+            <div className="bg-card border rounded-xl p-4 shadow-sm space-y-2">
+              <h3 className="font-semibold text-xs uppercase tracking-wider text-muted-foreground">About Store</h3>
+              <p className="text-xs text-foreground/80 leading-relaxed">{business.description}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Product Grid */}
+        <div className="flex-1 min-w-0 space-y-6" ref={productsRef}>
+          <div className="flex items-center justify-between bg-card border rounded-xl p-4 shadow-sm">
+            <h2 className="font-semibold text-lg text-foreground">
+              {selectedCollectionId ? activeCollections.find(c => c.id === selectedCollectionId)?.name : "All Products"}
+            </h2>
+            <span className="text-sm text-muted-foreground bg-muted px-2 py-1 rounded-md">{featuredProducts.length} items</span>
+          </div>
+
+          {featuredProducts.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
               {featuredProducts.map((p) => <ProductCard key={p.id} product={p} />)}
             </div>
-          </section>
-        )}
+          ) : (
+            <div className="text-center py-20 bg-card border rounded-xl shadow-sm">
+              <Package className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="text-muted-foreground font-medium">No products found in this category.</p>
+            </div>
+          )}
+        </div>
+      </div>
 
-        {/* 4. Promotional Banner */}
-        <section className="w-full rounded-3xl overflow-hidden bg-primary text-primary-foreground flex flex-col md:flex-row items-center justify-between p-8 md:p-12 shadow-lg relative">
-          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
-          <div className="space-y-4 relative z-10 text-center md:text-left">
-            <h2 className="font-serif text-3xl md:text-4xl font-bold">Get Free Delivery</h2>
-            <p className="text-lg opacity-90 max-w-md">On all orders above GH₵ 500. Upgrade your wardrobe today without worrying about shipping fees.</p>
-          </div>
-          <Button size="lg" variant="secondary" className="mt-6 md:mt-0 relative z-10 rounded-full font-bold px-8" onClick={scrollToProducts}>
-            Shop The Sale
-          </Button>
-        </section>
-
-        {/* 5. New Arrivals */}
-        {newArrivals.length > 0 && (
-          <section className="space-y-8 bg-muted/30 rounded-3xl p-6 md:p-10 -mx-4 md:mx-0">
-            <div className="text-center space-y-3">
-              <h2 className="font-serif text-3xl font-bold text-foreground">New Arrivals</h2>
-              <p className="text-muted-foreground">Fresh styles just dropped in our store.</p>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-              {newArrivals.map((p) => <ProductCard key={p.id} product={p} />)}
-            </div>
-          </section>
-        )}
-
-        {/* 6. Best Sellers */}
-        {bestSellers.length > 0 && (
-          <section className="space-y-8">
-            <div className="text-center space-y-3">
-              <h2 className="font-serif text-3xl font-bold text-foreground">Best Sellers</h2>
-              <p className="text-muted-foreground">Our most loved and highly rated items.</p>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-              {bestSellers.map((p) => <ProductCard key={p.id} product={p} />)}
-            </div>
-          </section>
-        )}
-
-        {/* 7. Why Shop With Us */}
-        <section className="py-12 border-y border-border/50">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="flex flex-col items-center text-center space-y-3">
-              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                <Truck className="w-6 h-6" />
+      {/* 3. Reviews Section */}
+      <div className="container mx-auto px-4 max-w-7xl pt-8">
+        <div className="bg-card border rounded-xl p-6 md:p-8 shadow-sm">
+          <div className="flex items-center gap-4 mb-8">
+            <h2 className="text-xl font-bold text-foreground">Store Reviews</h2>
+            {reviews && reviews.length > 0 && (
+              <div className="flex items-center gap-1.5 bg-muted px-3 py-1 rounded-full">
+                <Star className="w-4 h-4 text-amber-500 fill-amber-400" />
+                <span className="font-bold text-sm">{avgRating.toFixed(1)}</span>
+                <span className="text-xs text-muted-foreground">({reviews.length})</span>
               </div>
-              <h3 className="font-bold text-foreground">Fast Delivery</h3>
-              <p className="text-sm text-muted-foreground">Nationwide delivery within 2-3 business days.</p>
-            </div>
-            <div className="flex flex-col items-center text-center space-y-3">
-              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                <ShieldCheck className="w-6 h-6" />
-              </div>
-              <h3 className="font-bold text-foreground">Secure Payment</h3>
-              <p className="text-sm text-muted-foreground">Your transactions are protected and encrypted.</p>
-            </div>
-            <div className="flex flex-col items-center text-center space-y-3">
-              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                <Award className="w-6 h-6" />
-              </div>
-              <h3 className="font-bold text-foreground">Premium Quality</h3>
-              <p className="text-sm text-muted-foreground">Top-tier materials and authentic craftsmanship.</p>
-            </div>
-            <div className="flex flex-col items-center text-center space-y-3">
-              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                <RefreshCw className="w-6 h-6" />
-              </div>
-              <h3 className="font-bold text-foreground">Easy Returns</h3>
-              <p className="text-sm text-muted-foreground">Hassle-free return policy for peace of mind.</p>
-            </div>
-          </div>
-        </section>
-
-        {/* 8. Customer Reviews */}
-        <section className="space-y-10 max-w-4xl mx-auto">
-          <div className="text-center space-y-3">
-            <h2 className="font-serif text-3xl font-bold text-foreground">Customer Reviews</h2>
-            {reviews && reviews.length > 0 ? (
-              <div className="flex items-center justify-center gap-2">
-                <StarRating value={Math.round(avgRating)} readonly size="md" />
-                <span className="font-semibold text-lg text-foreground">{avgRating.toFixed(1)}</span>
-                <span className="text-muted-foreground">({reviews.length} reviews)</span>
-              </div>
-            ) : (
-              <p className="text-muted-foreground">Be the first to review this brand!</p>
             )}
           </div>
 
-          <div className="bg-card border border-border shadow-sm rounded-3xl p-8 md:p-10 space-y-6">
-            <h3 className="font-semibold text-foreground text-lg">Leave a Review</h3>
-            <div className="space-y-4">
-              <StarRating value={reviewRating} onChange={setReviewRating} size="md" />
-              <Textarea
-                value={reviewText}
-                onChange={(e) => setReviewText(e.target.value)}
-                placeholder="Share your experience with this brand…"
-                className="text-base resize-none min-h-[120px] bg-background"
-              />
-              <Button size="lg" onClick={handleSubmitReview} disabled={submittingReview || !reviewRating} className="gap-2 px-8">
-                <Send className="w-4 h-4" /> Submit Review
-              </Button>
-            </div>
-          </div>
-
-          {reviews && reviews.length > 0 && (
-            <div className="grid md:grid-cols-2 gap-6">
-              {reviews.map((review) => (
-                <div key={review.id} className="bg-muted/30 border border-border/50 rounded-2xl p-6 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-base">
-                        {(review.userName ?? "U").charAt(0).toUpperCase()}
-                      </div>
-                      <span className="font-semibold text-foreground">
-                        {review.userName ?? "Anonymous"}
-                      </span>
-                    </div>
-                    <StarRating value={review.rating} readonly size="sm" />
-                  </div>
-                  {review.comment && <p className="text-sm text-foreground/80 leading-relaxed italic">"{review.comment}"</p>}
-                  <p className="text-xs text-muted-foreground/60">
-                    {new Date(review.createdAt).toLocaleDateString("en-GH", { year: "numeric", month: "short", day: "numeric" })}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* 10. Newsletter */}
-        <section className="max-w-4xl mx-auto w-full">
-          <div className="bg-foreground text-background rounded-3xl p-10 md:p-16 text-center space-y-6">
-            <h2 className="font-serif text-3xl md:text-4xl font-bold">Join Our Community</h2>
-            <p className="text-background/80 text-lg max-w-md mx-auto">Subscribe to our newsletter to get 10% off your first order and exclusive updates.</p>
-            <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto mt-8">
-              <Input placeholder="Enter your email" className="bg-background/10 border-background/20 text-background placeholder:text-background/50 h-14 rounded-full px-6 focus-visible:ring-background/30" />
-              <Button size="lg" className="h-14 rounded-full px-8 bg-background text-foreground hover:bg-background/90 font-bold">Subscribe</Button>
-            </div>
-          </div>
-        </section>
-      </div>
-
-      {/* 12. Footer */}
-      <footer className="bg-muted/50 border-t border-border mt-auto">
-        <div className="container mx-auto px-4 max-w-7xl py-16">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
-            <div className="col-span-2 md:col-span-1 space-y-4">
-              <h3 className="font-serif text-2xl font-bold text-foreground">{business.name}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{business.description?.substring(0, 150)}...</p>
-              <div className="flex gap-4 mt-6">
-                <a href="#" className="w-10 h-10 rounded-full bg-background border flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"><Instagram className="w-4 h-4"/></a>
-                <a href="#" className="w-10 h-10 rounded-full bg-background border flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"><Facebook className="w-4 h-4"/></a>
-                <a href="#" className="w-10 h-10 rounded-full bg-background border flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"><Twitter className="w-4 h-4"/></a>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="md:col-span-1 border-r border-border/50 pr-0 md:pr-8">
+              <div className="space-y-4">
+                <h3 className="font-semibold text-sm">Write a Review</h3>
+                <StarRating value={reviewRating} onChange={setReviewRating} size="md" />
+                <Textarea
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  placeholder="How was your experience?"
+                  className="text-sm resize-none min-h-[100px]"
+                />
+                <Button className="w-full" onClick={handleSubmitReview} disabled={submittingReview || !reviewRating}>
+                  Submit Review
+                </Button>
               </div>
             </div>
-            <div>
-              <h4 className="font-bold text-foreground mb-6">Shop</h4>
-              <ul className="space-y-3 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-primary">All Products</a></li>
-                <li><a href="#" className="hover:text-primary">New Arrivals</a></li>
-                <li><a href="#" className="hover:text-primary">Best Sellers</a></li>
-                <li><a href="#" className="hover:text-primary">Sale</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-foreground mb-6">Support</h4>
-              <ul className="space-y-3 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-primary">Contact Us</a></li>
-                <li><a href="#" className="hover:text-primary">FAQs</a></li>
-                <li><a href="#" className="hover:text-primary">Shipping Policy</a></li>
-                <li><a href="#" className="hover:text-primary">Returns</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-foreground mb-6">Legal</h4>
-              <ul className="space-y-3 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-primary">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-primary">Privacy Policy</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-16 pt-8 border-t border-border/50 text-center text-sm text-muted-foreground flex flex-col md:flex-row items-center justify-between">
-            <p>&copy; {new Date().getFullYear()} {business.name}. Powered by Nafex Hub.</p>
-            <div className="flex items-center gap-2 mt-4 md:mt-0">
-              <ShieldCheck className="w-4 h-4" /> Secure Checkout
+
+            <div className="md:col-span-2 space-y-4">
+              {reviews && reviews.length > 0 ? (
+                reviews.map((review) => (
+                  <div key={review.id} className="bg-muted/30 border rounded-xl p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                          {(review.userName ?? "U").charAt(0).toUpperCase()}
+                        </div>
+                        <span className="font-semibold text-sm text-foreground">
+                          {review.userName ?? "Anonymous"}
+                        </span>
+                      </div>
+                      <StarRating value={review.rating} readonly size="sm" />
+                    </div>
+                    {review.comment && <p className="text-sm text-foreground/80 leading-relaxed">"{review.comment}"</p>}
+                    <p className="text-xs text-muted-foreground/60">
+                      {new Date(review.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-sm text-muted-foreground">No reviews yet for this store.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
-      </footer>
+      </div>
 
       {/* Modals */}
       {showOrderModal && (
