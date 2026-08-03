@@ -1,14 +1,14 @@
-import type { QueryKey, UseMutationOptions, UseMutationResult, UseQueryOptions, UseQueryResult } from "@tanstack/react-query";
-import type { AssignRiderBody, AuthResponse, Business, BusinessAnalytics, CategoryCount, ChangePassword200, ChangePasswordBody, Collection, CollectionWithProducts, ConversationWithDetails, CreateBusinessBody, CreateCollectionBody, CreateConversationBody, CreateDeliveryBody, CreateDisputeBody, CreateOrderBody, CreateProductBody, CreateReviewBody, CreateRiderBody, DashboardStats, DeleteAccount200, DeliveryWithDetails, Dispute, ErrorResponse, FavoriteToggleBody, FavoritesResponse, FeeEstimate, GetAdminBusinessesParams, GetBusinessesParams, GetCollectionsParams, GetDeliveryFeeEstimateParams, HealthStatus, InitiatePaymentBody, ListProductsParams, LoginBody, Message, Notification, OkResponse, Order, OrderWithBusiness, PaystackInitResponse, PaystackVerifyResponse, ProcessRefundBody, Product, RegisterBody, ResolveDisputeBody, Review, Rider, SendMessageBody, StatsSummary, ToggleFavorite200, TrackEventBody, Transaction, UnreadCountResponse, UpdateBusinessBody, UpdateCollectionBody, UpdateDeliveryStatusBody, UpdateOrderStatusBody, UpdateProductCollectionBody, UpdateProfileBody, UpdateRiderBody, UpdateStockBody, User, VerifyBusinessBody, VerifyPaymentBody } from "./api.schemas";
-import { customFetch } from "../custom-fetch";
-import type { ErrorType, BodyType } from "../custom-fetch";
+import type { QueryKey, UseMutationOptions, UseMutationResult, UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
+import type { AssignRiderBody, AuthResponse, Business, BusinessAnalytics, CategoryCount, ChangePassword200, ChangePasswordBody, Collection, CollectionWithProducts, ConversationWithDetails, CreateBusinessBody, CreateCollectionBody, CreateConversationBody, CreateDeliveryBody, CreateDisputeBody, CreateOrderBody, CreateProductBody, CreateReviewBody, CreateRiderBody, DashboardStats, DeleteAccount200, DeliveryWithDetails, Dispute, ErrorResponse, FavoriteToggleBody, FavoritesResponse, FeeEstimate, GetAdminBusinessesParams, GetBusinessesParams, GetCollectionsParams, GetDeliveryFeeEstimateParams, HealthStatus, InitiatePaymentBody, ListProductsParams, LoginBody, Message, Notification, OkResponse, Order, OrderWithBusiness, PaystackInitResponse, PaystackVerifyResponse, ProcessRefundBody, Product, RegisterBody, ResolveDisputeBody, Review, Rider, SendMessageBody, StatsSummary, ToggleFavorite200, TrackEventBody, Transaction, UnreadCountResponse, UpdateBusinessBody, UpdateCollectionBody, UpdateDeliveryStatusBody, UpdateOrderStatusBody, UpdateProductCollectionBody, UpdateProfileBody, UpdateRiderBody, UpdateStockBody, User, VerifyBusinessBody, VerifyPaymentBody } from './api.schemas';
+import { customFetch } from '../custom-fetch';
+import type { ErrorType, BodyType } from '../custom-fetch';
 type AwaitedInput<T> = PromiseLike<T> | T;
 type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+export declare const getHealthCheckUrl: () => string;
 /**
  * @summary Health check
  */
-export declare const getHealthCheckUrl: () => string;
 export declare const healthCheck: (options?: RequestInit) => Promise<HealthStatus>;
 export declare const getHealthCheckQueryKey: () => readonly ["/api/healthz"];
 export declare const getHealthCheckQueryOptions: <TData = Awaited<ReturnType<typeof healthCheck>>, TError = ErrorType<unknown>>(options?: {
@@ -28,10 +28,10 @@ export declare function useHealthCheck<TData = Awaited<ReturnType<typeof healthC
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getRegisterUrl: () => string;
 /**
  * @summary Register a new user
  */
-export declare const getRegisterUrl: () => string;
 export declare const register: (registerBody: RegisterBody, options?: RequestInit) => Promise<AuthResponse>;
 export declare const getRegisterMutationOptions: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof register>>, TError, {
@@ -45,8 +45,8 @@ export type RegisterMutationResult = NonNullable<Awaited<ReturnType<typeof regis
 export type RegisterMutationBody = BodyType<RegisterBody>;
 export type RegisterMutationError = ErrorType<ErrorResponse>;
 /**
- * @summary Register a new user
- */
+* @summary Register a new user
+*/
 export declare const useRegister: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof register>>, TError, {
         data: BodyType<RegisterBody>;
@@ -55,10 +55,10 @@ export declare const useRegister: <TError = ErrorType<ErrorResponse>, TContext =
 }) => UseMutationResult<Awaited<ReturnType<typeof register>>, TError, {
     data: BodyType<RegisterBody>;
 }, TContext>;
+export declare const getLoginUrl: () => string;
 /**
  * @summary Login a user
  */
-export declare const getLoginUrl: () => string;
 export declare const login: (loginBody: LoginBody, options?: RequestInit) => Promise<AuthResponse>;
 export declare const getLoginMutationOptions: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof login>>, TError, {
@@ -72,8 +72,8 @@ export type LoginMutationResult = NonNullable<Awaited<ReturnType<typeof login>>>
 export type LoginMutationBody = BodyType<LoginBody>;
 export type LoginMutationError = ErrorType<ErrorResponse>;
 /**
- * @summary Login a user
- */
+* @summary Login a user
+*/
 export declare const useLogin: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof login>>, TError, {
         data: BodyType<LoginBody>;
@@ -82,10 +82,10 @@ export declare const useLogin: <TError = ErrorType<ErrorResponse>, TContext = un
 }) => UseMutationResult<Awaited<ReturnType<typeof login>>, TError, {
     data: BodyType<LoginBody>;
 }, TContext>;
+export declare const getGetMeUrl: () => string;
 /**
  * @summary Get current user
  */
-export declare const getGetMeUrl: () => string;
 export declare const getMe: (options?: RequestInit) => Promise<User>;
 export declare const getGetMeQueryKey: () => readonly ["/api/auth/me"];
 export declare const getGetMeQueryOptions: <TData = Awaited<ReturnType<typeof getMe>>, TError = ErrorType<ErrorResponse>>(options?: {
@@ -105,10 +105,10 @@ export declare function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TErr
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getUpdateProfileUrl: () => string;
 /**
  * @summary Update user profile (name)
  */
-export declare const getUpdateProfileUrl: () => string;
 export declare const updateProfile: (updateProfileBody: UpdateProfileBody, options?: RequestInit) => Promise<User>;
 export declare const getUpdateProfileMutationOptions: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateProfile>>, TError, {
@@ -122,8 +122,8 @@ export type UpdateProfileMutationResult = NonNullable<Awaited<ReturnType<typeof 
 export type UpdateProfileMutationBody = BodyType<UpdateProfileBody>;
 export type UpdateProfileMutationError = ErrorType<ErrorResponse>;
 /**
- * @summary Update user profile (name)
- */
+* @summary Update user profile (name)
+*/
 export declare const useUpdateProfile: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateProfile>>, TError, {
         data: BodyType<UpdateProfileBody>;
@@ -132,10 +132,10 @@ export declare const useUpdateProfile: <TError = ErrorType<ErrorResponse>, TCont
 }) => UseMutationResult<Awaited<ReturnType<typeof updateProfile>>, TError, {
     data: BodyType<UpdateProfileBody>;
 }, TContext>;
+export declare const getChangePasswordUrl: () => string;
 /**
  * @summary Change user password
  */
-export declare const getChangePasswordUrl: () => string;
 export declare const changePassword: (changePasswordBody: ChangePasswordBody, options?: RequestInit) => Promise<ChangePassword200>;
 export declare const getChangePasswordMutationOptions: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof changePassword>>, TError, {
@@ -149,8 +149,8 @@ export type ChangePasswordMutationResult = NonNullable<Awaited<ReturnType<typeof
 export type ChangePasswordMutationBody = BodyType<ChangePasswordBody>;
 export type ChangePasswordMutationError = ErrorType<ErrorResponse>;
 /**
- * @summary Change user password
- */
+* @summary Change user password
+*/
 export declare const useChangePassword: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof changePassword>>, TError, {
         data: BodyType<ChangePasswordBody>;
@@ -159,10 +159,10 @@ export declare const useChangePassword: <TError = ErrorType<ErrorResponse>, TCon
 }) => UseMutationResult<Awaited<ReturnType<typeof changePassword>>, TError, {
     data: BodyType<ChangePasswordBody>;
 }, TContext>;
+export declare const getDeleteAccountUrl: () => string;
 /**
  * @summary Delete user account permanently
  */
-export declare const getDeleteAccountUrl: () => string;
 export declare const deleteAccount: (options?: RequestInit) => Promise<DeleteAccount200>;
 export declare const getDeleteAccountMutationOptions: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteAccount>>, TError, void, TContext>;
@@ -171,16 +171,16 @@ export declare const getDeleteAccountMutationOptions: <TError = ErrorType<ErrorR
 export type DeleteAccountMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAccount>>>;
 export type DeleteAccountMutationError = ErrorType<ErrorResponse>;
 /**
- * @summary Delete user account permanently
- */
+* @summary Delete user account permanently
+*/
 export declare const useDeleteAccount: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteAccount>>, TError, void, TContext>;
     request?: SecondParameter<typeof customFetch>;
 }) => UseMutationResult<Awaited<ReturnType<typeof deleteAccount>>, TError, void, TContext>;
+export declare const getGetBusinessesUrl: (params?: GetBusinessesParams) => string;
 /**
  * @summary List all businesses
  */
-export declare const getGetBusinessesUrl: (params?: GetBusinessesParams) => string;
 export declare const getBusinesses: (params?: GetBusinessesParams, options?: RequestInit) => Promise<Business[]>;
 export declare const getGetBusinessesQueryKey: (params?: GetBusinessesParams) => readonly ["/api/businesses", ...GetBusinessesParams[]];
 export declare const getGetBusinessesQueryOptions: <TData = Awaited<ReturnType<typeof getBusinesses>>, TError = ErrorType<unknown>>(params?: GetBusinessesParams, options?: {
@@ -200,10 +200,10 @@ export declare function useGetBusinesses<TData = Awaited<ReturnType<typeof getBu
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getCreateBusinessUrl: () => string;
 /**
  * @summary Create a new business listing
  */
-export declare const getCreateBusinessUrl: () => string;
 export declare const createBusiness: (createBusinessBody: CreateBusinessBody, options?: RequestInit) => Promise<Business>;
 export declare const getCreateBusinessMutationOptions: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof createBusiness>>, TError, {
@@ -217,8 +217,8 @@ export type CreateBusinessMutationResult = NonNullable<Awaited<ReturnType<typeof
 export type CreateBusinessMutationBody = BodyType<CreateBusinessBody>;
 export type CreateBusinessMutationError = ErrorType<ErrorResponse>;
 /**
- * @summary Create a new business listing
- */
+* @summary Create a new business listing
+*/
 export declare const useCreateBusiness: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof createBusiness>>, TError, {
         data: BodyType<CreateBusinessBody>;
@@ -227,10 +227,10 @@ export declare const useCreateBusiness: <TError = ErrorType<ErrorResponse>, TCon
 }) => UseMutationResult<Awaited<ReturnType<typeof createBusiness>>, TError, {
     data: BodyType<CreateBusinessBody>;
 }, TContext>;
+export declare const getGetFeaturedBusinessesUrl: () => string;
 /**
  * @summary Get homepage_section featured businesses
  */
-export declare const getGetFeaturedBusinessesUrl: () => string;
 export declare const getFeaturedBusinesses: (options?: RequestInit) => Promise<Business[]>;
 export declare const getGetFeaturedBusinessesQueryKey: () => readonly ["/api/businesses/featured"];
 export declare const getGetFeaturedBusinessesQueryOptions: <TData = Awaited<ReturnType<typeof getFeaturedBusinesses>>, TError = ErrorType<unknown>>(options?: {
@@ -250,10 +250,10 @@ export declare function useGetFeaturedBusinesses<TData = Awaited<ReturnType<type
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getGetFeaturedTopBusinessesUrl: () => string;
 /**
  * @summary Get homepage_top featured businesses
  */
-export declare const getGetFeaturedTopBusinessesUrl: () => string;
 export declare const getFeaturedTopBusinesses: (options?: RequestInit) => Promise<Business[]>;
 export declare const getGetFeaturedTopBusinessesQueryKey: () => readonly ["/api/businesses/featured-top"];
 export declare const getGetFeaturedTopBusinessesQueryOptions: <TData = Awaited<ReturnType<typeof getFeaturedTopBusinesses>>, TError = ErrorType<unknown>>(options?: {
@@ -273,10 +273,10 @@ export declare function useGetFeaturedTopBusinesses<TData = Awaited<ReturnType<t
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getGetBusinessUrl: (id: number) => string;
 /**
  * @summary Get a single business by ID
  */
-export declare const getGetBusinessUrl: (id: number) => string;
 export declare const getBusiness: (id: number, options?: RequestInit) => Promise<Business>;
 export declare const getGetBusinessQueryKey: (id: number) => readonly [`/api/businesses/${number}`];
 export declare const getGetBusinessQueryOptions: <TData = Awaited<ReturnType<typeof getBusiness>>, TError = ErrorType<ErrorResponse>>(id: number, options?: {
@@ -296,10 +296,10 @@ export declare function useGetBusiness<TData = Awaited<ReturnType<typeof getBusi
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getUpdateBusinessUrl: (id: number) => string;
 /**
  * @summary Update a business listing
  */
-export declare const getUpdateBusinessUrl: (id: number) => string;
 export declare const updateBusiness: (id: number, updateBusinessBody: UpdateBusinessBody, options?: RequestInit) => Promise<Business>;
 export declare const getUpdateBusinessMutationOptions: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateBusiness>>, TError, {
@@ -315,8 +315,8 @@ export type UpdateBusinessMutationResult = NonNullable<Awaited<ReturnType<typeof
 export type UpdateBusinessMutationBody = BodyType<UpdateBusinessBody>;
 export type UpdateBusinessMutationError = ErrorType<ErrorResponse>;
 /**
- * @summary Update a business listing
- */
+* @summary Update a business listing
+*/
 export declare const useUpdateBusiness: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateBusiness>>, TError, {
         id: number;
@@ -327,10 +327,10 @@ export declare const useUpdateBusiness: <TError = ErrorType<ErrorResponse>, TCon
     id: number;
     data: BodyType<UpdateBusinessBody>;
 }, TContext>;
+export declare const getDeleteBusinessUrl: (id: number) => string;
 /**
  * @summary Delete a business listing
  */
-export declare const getDeleteBusinessUrl: (id: number) => string;
 export declare const deleteBusiness: (id: number, options?: RequestInit) => Promise<void>;
 export declare const getDeleteBusinessMutationOptions: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteBusiness>>, TError, {
@@ -343,8 +343,8 @@ export declare const getDeleteBusinessMutationOptions: <TError = ErrorType<Error
 export type DeleteBusinessMutationResult = NonNullable<Awaited<ReturnType<typeof deleteBusiness>>>;
 export type DeleteBusinessMutationError = ErrorType<ErrorResponse>;
 /**
- * @summary Delete a business listing
- */
+* @summary Delete a business listing
+*/
 export declare const useDeleteBusiness: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteBusiness>>, TError, {
         id: number;
@@ -353,10 +353,10 @@ export declare const useDeleteBusiness: <TError = ErrorType<ErrorResponse>, TCon
 }) => UseMutationResult<Awaited<ReturnType<typeof deleteBusiness>>, TError, {
     id: number;
 }, TContext>;
+export declare const getVerifyBusinessUrl: (id: number) => string;
 /**
  * @summary Admin - verify/unverify a business
  */
-export declare const getVerifyBusinessUrl: (id: number) => string;
 export declare const verifyBusiness: (id: number, verifyBusinessBody: VerifyBusinessBody, options?: RequestInit) => Promise<Business>;
 export declare const getVerifyBusinessMutationOptions: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof verifyBusiness>>, TError, {
@@ -372,8 +372,8 @@ export type VerifyBusinessMutationResult = NonNullable<Awaited<ReturnType<typeof
 export type VerifyBusinessMutationBody = BodyType<VerifyBusinessBody>;
 export type VerifyBusinessMutationError = ErrorType<ErrorResponse>;
 /**
- * @summary Admin - verify/unverify a business
- */
+* @summary Admin - verify/unverify a business
+*/
 export declare const useVerifyBusiness: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof verifyBusiness>>, TError, {
         id: number;
@@ -384,10 +384,10 @@ export declare const useVerifyBusiness: <TError = ErrorType<ErrorResponse>, TCon
     id: number;
     data: BodyType<VerifyBusinessBody>;
 }, TContext>;
+export declare const getGetCategoriesUrl: () => string;
 /**
  * @summary Get all categories with counts
  */
-export declare const getGetCategoriesUrl: () => string;
 export declare const getCategories: (options?: RequestInit) => Promise<CategoryCount[]>;
 export declare const getGetCategoriesQueryKey: () => readonly ["/api/categories"];
 export declare const getGetCategoriesQueryOptions: <TData = Awaited<ReturnType<typeof getCategories>>, TError = ErrorType<unknown>>(options?: {
@@ -407,10 +407,10 @@ export declare function useGetCategories<TData = Awaited<ReturnType<typeof getCa
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getGetStatsSummaryUrl: () => string;
 /**
  * @summary Get platform summary statistics
  */
-export declare const getGetStatsSummaryUrl: () => string;
 export declare const getStatsSummary: (options?: RequestInit) => Promise<StatsSummary>;
 export declare const getGetStatsSummaryQueryKey: () => readonly ["/api/stats/summary"];
 export declare const getGetStatsSummaryQueryOptions: <TData = Awaited<ReturnType<typeof getStatsSummary>>, TError = ErrorType<unknown>>(options?: {
@@ -430,10 +430,10 @@ export declare function useGetStatsSummary<TData = Awaited<ReturnType<typeof get
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getGetAdminBusinessesUrl: (params?: GetAdminBusinessesParams) => string;
 /**
  * @summary Admin - get all businesses including unverified
  */
-export declare const getGetAdminBusinessesUrl: (params?: GetAdminBusinessesParams) => string;
 export declare const getAdminBusinesses: (params?: GetAdminBusinessesParams, options?: RequestInit) => Promise<Business[]>;
 export declare const getGetAdminBusinessesQueryKey: (params?: GetAdminBusinessesParams) => readonly ["/api/admin/businesses", ...GetAdminBusinessesParams[]];
 export declare const getGetAdminBusinessesQueryOptions: <TData = Awaited<ReturnType<typeof getAdminBusinesses>>, TError = ErrorType<unknown>>(params?: GetAdminBusinessesParams, options?: {
@@ -453,10 +453,10 @@ export declare function useGetAdminBusinesses<TData = Awaited<ReturnType<typeof 
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getGetBusinessReviewsUrl: (id: number) => string;
 /**
  * @summary Get reviews for a business
  */
-export declare const getGetBusinessReviewsUrl: (id: number) => string;
 export declare const getBusinessReviews: (id: number, options?: RequestInit) => Promise<Review[]>;
 export declare const getGetBusinessReviewsQueryKey: (id: number) => readonly [`/api/businesses/${number}/reviews`];
 export declare const getGetBusinessReviewsQueryOptions: <TData = Awaited<ReturnType<typeof getBusinessReviews>>, TError = ErrorType<unknown>>(id: number, options?: {
@@ -476,10 +476,10 @@ export declare function useGetBusinessReviews<TData = Awaited<ReturnType<typeof 
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getCreateReviewUrl: () => string;
 /**
  * @summary Create a review for a business
  */
-export declare const getCreateReviewUrl: () => string;
 export declare const createReview: (createReviewBody: CreateReviewBody, options?: RequestInit) => Promise<Review>;
 export declare const getCreateReviewMutationOptions: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof createReview>>, TError, {
@@ -493,8 +493,8 @@ export type CreateReviewMutationResult = NonNullable<Awaited<ReturnType<typeof c
 export type CreateReviewMutationBody = BodyType<CreateReviewBody>;
 export type CreateReviewMutationError = ErrorType<ErrorResponse>;
 /**
- * @summary Create a review for a business
- */
+* @summary Create a review for a business
+*/
 export declare const useCreateReview: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof createReview>>, TError, {
         data: BodyType<CreateReviewBody>;
@@ -503,10 +503,10 @@ export declare const useCreateReview: <TError = ErrorType<ErrorResponse>, TConte
 }) => UseMutationResult<Awaited<ReturnType<typeof createReview>>, TError, {
     data: BodyType<CreateReviewBody>;
 }, TContext>;
+export declare const getGetConversationsUrl: () => string;
 /**
  * @summary Get all conversations for the current user
  */
-export declare const getGetConversationsUrl: () => string;
 export declare const getConversations: (options?: RequestInit) => Promise<ConversationWithDetails[]>;
 export declare const getGetConversationsQueryKey: () => readonly ["/api/conversations"];
 export declare const getGetConversationsQueryOptions: <TData = Awaited<ReturnType<typeof getConversations>>, TError = ErrorType<unknown>>(options?: {
@@ -526,10 +526,10 @@ export declare function useGetConversations<TData = Awaited<ReturnType<typeof ge
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getCreateOrGetConversationUrl: () => string;
 /**
  * @summary Start or retrieve a conversation with a business
  */
-export declare const getCreateOrGetConversationUrl: () => string;
 export declare const createOrGetConversation: (createConversationBody: CreateConversationBody, options?: RequestInit) => Promise<ConversationWithDetails>;
 export declare const getCreateOrGetConversationMutationOptions: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof createOrGetConversation>>, TError, {
@@ -543,8 +543,8 @@ export type CreateOrGetConversationMutationResult = NonNullable<Awaited<ReturnTy
 export type CreateOrGetConversationMutationBody = BodyType<CreateConversationBody>;
 export type CreateOrGetConversationMutationError = ErrorType<ErrorResponse>;
 /**
- * @summary Start or retrieve a conversation with a business
- */
+* @summary Start or retrieve a conversation with a business
+*/
 export declare const useCreateOrGetConversation: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof createOrGetConversation>>, TError, {
         data: BodyType<CreateConversationBody>;
@@ -553,10 +553,10 @@ export declare const useCreateOrGetConversation: <TError = ErrorType<ErrorRespon
 }) => UseMutationResult<Awaited<ReturnType<typeof createOrGetConversation>>, TError, {
     data: BodyType<CreateConversationBody>;
 }, TContext>;
+export declare const getGetMessagesUrl: (id: number) => string;
 /**
  * @summary Get messages in a conversation
  */
-export declare const getGetMessagesUrl: (id: number) => string;
 export declare const getMessages: (id: number, options?: RequestInit) => Promise<Message[]>;
 export declare const getGetMessagesQueryKey: (id: number) => readonly [`/api/conversations/${number}/messages`];
 export declare const getGetMessagesQueryOptions: <TData = Awaited<ReturnType<typeof getMessages>>, TError = ErrorType<unknown>>(id: number, options?: {
@@ -576,10 +576,10 @@ export declare function useGetMessages<TData = Awaited<ReturnType<typeof getMess
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getSendMessageUrl: (id: number) => string;
 /**
  * @summary Send a message in a conversation
  */
-export declare const getSendMessageUrl: (id: number) => string;
 export declare const sendMessage: (id: number, sendMessageBody: SendMessageBody, options?: RequestInit) => Promise<Message>;
 export declare const getSendMessageMutationOptions: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof sendMessage>>, TError, {
@@ -595,8 +595,8 @@ export type SendMessageMutationResult = NonNullable<Awaited<ReturnType<typeof se
 export type SendMessageMutationBody = BodyType<SendMessageBody>;
 export type SendMessageMutationError = ErrorType<ErrorResponse>;
 /**
- * @summary Send a message in a conversation
- */
+* @summary Send a message in a conversation
+*/
 export declare const useSendMessage: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof sendMessage>>, TError, {
         id: number;
@@ -607,10 +607,10 @@ export declare const useSendMessage: <TError = ErrorType<ErrorResponse>, TContex
     id: number;
     data: BodyType<SendMessageBody>;
 }, TContext>;
+export declare const getCreateOrderUrl: () => string;
 /**
  * @summary Place an order
  */
-export declare const getCreateOrderUrl: () => string;
 export declare const createOrder: (createOrderBody: CreateOrderBody, options?: RequestInit) => Promise<Order>;
 export declare const getCreateOrderMutationOptions: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof createOrder>>, TError, {
@@ -624,8 +624,8 @@ export type CreateOrderMutationResult = NonNullable<Awaited<ReturnType<typeof cr
 export type CreateOrderMutationBody = BodyType<CreateOrderBody>;
 export type CreateOrderMutationError = ErrorType<ErrorResponse>;
 /**
- * @summary Place an order
- */
+* @summary Place an order
+*/
 export declare const useCreateOrder: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof createOrder>>, TError, {
         data: BodyType<CreateOrderBody>;
@@ -634,10 +634,10 @@ export declare const useCreateOrder: <TError = ErrorType<ErrorResponse>, TContex
 }) => UseMutationResult<Awaited<ReturnType<typeof createOrder>>, TError, {
     data: BodyType<CreateOrderBody>;
 }, TContext>;
+export declare const getGetUserOrdersUrl: () => string;
 /**
  * @summary Get orders for the current user
  */
-export declare const getGetUserOrdersUrl: () => string;
 export declare const getUserOrders: (options?: RequestInit) => Promise<OrderWithBusiness[]>;
 export declare const getGetUserOrdersQueryKey: () => readonly ["/api/orders/user"];
 export declare const getGetUserOrdersQueryOptions: <TData = Awaited<ReturnType<typeof getUserOrders>>, TError = ErrorType<unknown>>(options?: {
@@ -657,10 +657,10 @@ export declare function useGetUserOrders<TData = Awaited<ReturnType<typeof getUs
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getGetBusinessOrdersUrl: () => string;
 /**
  * @summary Get orders for the current business owner
  */
-export declare const getGetBusinessOrdersUrl: () => string;
 export declare const getBusinessOrders: (options?: RequestInit) => Promise<OrderWithBusiness[]>;
 export declare const getGetBusinessOrdersQueryKey: () => readonly ["/api/orders/business"];
 export declare const getGetBusinessOrdersQueryOptions: <TData = Awaited<ReturnType<typeof getBusinessOrders>>, TError = ErrorType<unknown>>(options?: {
@@ -680,10 +680,10 @@ export declare function useGetBusinessOrders<TData = Awaited<ReturnType<typeof g
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getUpdateOrderStatusUrl: (id: number) => string;
 /**
  * @summary Update order status
  */
-export declare const getUpdateOrderStatusUrl: (id: number) => string;
 export declare const updateOrderStatus: (id: number, updateOrderStatusBody: UpdateOrderStatusBody, options?: RequestInit) => Promise<Order>;
 export declare const getUpdateOrderStatusMutationOptions: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateOrderStatus>>, TError, {
@@ -699,8 +699,8 @@ export type UpdateOrderStatusMutationResult = NonNullable<Awaited<ReturnType<typ
 export type UpdateOrderStatusMutationBody = BodyType<UpdateOrderStatusBody>;
 export type UpdateOrderStatusMutationError = ErrorType<ErrorResponse>;
 /**
- * @summary Update order status
- */
+* @summary Update order status
+*/
 export declare const useUpdateOrderStatus: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateOrderStatus>>, TError, {
         id: number;
@@ -711,10 +711,10 @@ export declare const useUpdateOrderStatus: <TError = ErrorType<ErrorResponse>, T
     id: number;
     data: BodyType<UpdateOrderStatusBody>;
 }, TContext>;
+export declare const getTrackEventUrl: () => string;
 /**
  * @summary Track an analytics event
  */
-export declare const getTrackEventUrl: () => string;
 export declare const trackEvent: (trackEventBody: TrackEventBody, options?: RequestInit) => Promise<OkResponse>;
 export declare const getTrackEventMutationOptions: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof trackEvent>>, TError, {
@@ -728,8 +728,8 @@ export type TrackEventMutationResult = NonNullable<Awaited<ReturnType<typeof tra
 export type TrackEventMutationBody = BodyType<TrackEventBody>;
 export type TrackEventMutationError = ErrorType<unknown>;
 /**
- * @summary Track an analytics event
- */
+* @summary Track an analytics event
+*/
 export declare const useTrackEvent: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof trackEvent>>, TError, {
         data: BodyType<TrackEventBody>;
@@ -738,10 +738,10 @@ export declare const useTrackEvent: <TError = ErrorType<unknown>, TContext = unk
 }) => UseMutationResult<Awaited<ReturnType<typeof trackEvent>>, TError, {
     data: BodyType<TrackEventBody>;
 }, TContext>;
+export declare const getGetBusinessAnalyticsUrl: (businessId: number) => string;
 /**
  * @summary Get analytics for a business
  */
-export declare const getGetBusinessAnalyticsUrl: (businessId: number) => string;
 export declare const getBusinessAnalytics: (businessId: number, options?: RequestInit) => Promise<BusinessAnalytics>;
 export declare const getGetBusinessAnalyticsQueryKey: (businessId: number) => readonly [`/api/analytics/business/${number}`];
 export declare const getGetBusinessAnalyticsQueryOptions: <TData = Awaited<ReturnType<typeof getBusinessAnalytics>>, TError = ErrorType<unknown>>(businessId: number, options?: {
@@ -761,10 +761,10 @@ export declare function useGetBusinessAnalytics<TData = Awaited<ReturnType<typeo
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getGetDashboardStatsUrl: () => string;
 /**
  * @summary Get seller dashboard statistics
  */
-export declare const getGetDashboardStatsUrl: () => string;
 export declare const getDashboardStats: (options?: RequestInit) => Promise<DashboardStats>;
 export declare const getGetDashboardStatsQueryKey: () => readonly ["/api/dashboard/stats"];
 export declare const getGetDashboardStatsQueryOptions: <TData = Awaited<ReturnType<typeof getDashboardStats>>, TError = ErrorType<unknown>>(options?: {
@@ -784,10 +784,10 @@ export declare function useGetDashboardStats<TData = Awaited<ReturnType<typeof g
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getListProductsUrl: (params?: ListProductsParams) => string;
 /**
  * @summary List products with optional search
  */
-export declare const getListProductsUrl: (params?: ListProductsParams) => string;
 export declare const listProducts: (params?: ListProductsParams, options?: RequestInit) => Promise<Product[]>;
 export declare const getListProductsQueryKey: (params?: ListProductsParams) => readonly ["/api/products", ...ListProductsParams[]];
 export declare const getListProductsQueryOptions: <TData = Awaited<ReturnType<typeof listProducts>>, TError = ErrorType<unknown>>(params?: ListProductsParams, options?: {
@@ -807,10 +807,10 @@ export declare function useListProducts<TData = Awaited<ReturnType<typeof listPr
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getGetProductUrl: (id: number) => string;
 /**
  * @summary Get product by ID
  */
-export declare const getGetProductUrl: (id: number) => string;
 export declare const getProduct: (id: number, options?: RequestInit) => Promise<Product>;
 export declare const getGetProductQueryKey: (id: number) => readonly [`/api/products/${number}`];
 export declare const getGetProductQueryOptions: <TData = Awaited<ReturnType<typeof getProduct>>, TError = ErrorType<ErrorResponse>>(id: number, options?: {
@@ -830,10 +830,10 @@ export declare function useGetProduct<TData = Awaited<ReturnType<typeof getProdu
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getUpdateProductUrl: (id: number) => string;
 /**
  * @summary Update a product
  */
-export declare const getUpdateProductUrl: (id: number) => string;
 export declare const updateProduct: (id: number, createProductBody: CreateProductBody, options?: RequestInit) => Promise<Product>;
 export declare const getUpdateProductMutationOptions: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateProduct>>, TError, {
@@ -849,8 +849,8 @@ export type UpdateProductMutationResult = NonNullable<Awaited<ReturnType<typeof 
 export type UpdateProductMutationBody = BodyType<CreateProductBody>;
 export type UpdateProductMutationError = ErrorType<unknown>;
 /**
- * @summary Update a product
- */
+* @summary Update a product
+*/
 export declare const useUpdateProduct: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateProduct>>, TError, {
         id: number;
@@ -861,10 +861,10 @@ export declare const useUpdateProduct: <TError = ErrorType<unknown>, TContext = 
     id: number;
     data: BodyType<CreateProductBody>;
 }, TContext>;
+export declare const getDeleteProductUrl: (id: number) => string;
 /**
  * @summary Delete a product
  */
-export declare const getDeleteProductUrl: (id: number) => string;
 export declare const deleteProduct: (id: number, options?: RequestInit) => Promise<OkResponse>;
 export declare const getDeleteProductMutationOptions: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteProduct>>, TError, {
@@ -877,8 +877,8 @@ export declare const getDeleteProductMutationOptions: <TError = ErrorType<unknow
 export type DeleteProductMutationResult = NonNullable<Awaited<ReturnType<typeof deleteProduct>>>;
 export type DeleteProductMutationError = ErrorType<unknown>;
 /**
- * @summary Delete a product
- */
+* @summary Delete a product
+*/
 export declare const useDeleteProduct: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteProduct>>, TError, {
         id: number;
@@ -887,10 +887,10 @@ export declare const useDeleteProduct: <TError = ErrorType<unknown>, TContext = 
 }) => UseMutationResult<Awaited<ReturnType<typeof deleteProduct>>, TError, {
     id: number;
 }, TContext>;
+export declare const getUpdateProductCollectionUrl: (id: number) => string;
 /**
  * @summary Assign or remove a product from a collection
  */
-export declare const getUpdateProductCollectionUrl: (id: number) => string;
 export declare const updateProductCollection: (id: number, updateProductCollectionBody: UpdateProductCollectionBody, options?: RequestInit) => Promise<Product>;
 export declare const getUpdateProductCollectionMutationOptions: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateProductCollection>>, TError, {
@@ -906,8 +906,8 @@ export type UpdateProductCollectionMutationResult = NonNullable<Awaited<ReturnTy
 export type UpdateProductCollectionMutationBody = BodyType<UpdateProductCollectionBody>;
 export type UpdateProductCollectionMutationError = ErrorType<ErrorResponse>;
 /**
- * @summary Assign or remove a product from a collection
- */
+* @summary Assign or remove a product from a collection
+*/
 export declare const useUpdateProductCollection: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateProductCollection>>, TError, {
         id: number;
@@ -918,10 +918,10 @@ export declare const useUpdateProductCollection: <TError = ErrorType<ErrorRespon
     id: number;
     data: BodyType<UpdateProductCollectionBody>;
 }, TContext>;
+export declare const getUpdateProductStockUrl: (id: number) => string;
 /**
  * @summary Update stock level for a product
  */
-export declare const getUpdateProductStockUrl: (id: number) => string;
 export declare const updateProductStock: (id: number, updateStockBody: UpdateStockBody, options?: RequestInit) => Promise<Product>;
 export declare const getUpdateProductStockMutationOptions: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateProductStock>>, TError, {
@@ -937,8 +937,8 @@ export type UpdateProductStockMutationResult = NonNullable<Awaited<ReturnType<ty
 export type UpdateProductStockMutationBody = BodyType<UpdateStockBody>;
 export type UpdateProductStockMutationError = ErrorType<ErrorResponse>;
 /**
- * @summary Update stock level for a product
- */
+* @summary Update stock level for a product
+*/
 export declare const useUpdateProductStock: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateProductStock>>, TError, {
         id: number;
@@ -949,10 +949,10 @@ export declare const useUpdateProductStock: <TError = ErrorType<ErrorResponse>, 
     id: number;
     data: BodyType<UpdateStockBody>;
 }, TContext>;
+export declare const getGetBusinessProductsUrl: (businessId: number) => string;
 /**
  * @summary Get products for a business
  */
-export declare const getGetBusinessProductsUrl: (businessId: number) => string;
 export declare const getBusinessProducts: (businessId: number, options?: RequestInit) => Promise<Product[]>;
 export declare const getGetBusinessProductsQueryKey: (businessId: number) => readonly [`/api/businesses/${number}/products`];
 export declare const getGetBusinessProductsQueryOptions: <TData = Awaited<ReturnType<typeof getBusinessProducts>>, TError = ErrorType<unknown>>(businessId: number, options?: {
@@ -972,10 +972,10 @@ export declare function useGetBusinessProducts<TData = Awaited<ReturnType<typeof
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getCreateProductUrl: (businessId: number) => string;
 /**
  * @summary Create a product for a business
  */
-export declare const getCreateProductUrl: (businessId: number) => string;
 export declare const createProduct: (businessId: number, createProductBody: CreateProductBody, options?: RequestInit) => Promise<Product>;
 export declare const getCreateProductMutationOptions: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof createProduct>>, TError, {
@@ -991,8 +991,8 @@ export type CreateProductMutationResult = NonNullable<Awaited<ReturnType<typeof 
 export type CreateProductMutationBody = BodyType<CreateProductBody>;
 export type CreateProductMutationError = ErrorType<unknown>;
 /**
- * @summary Create a product for a business
- */
+* @summary Create a product for a business
+*/
 export declare const useCreateProduct: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof createProduct>>, TError, {
         businessId: number;
@@ -1003,10 +1003,10 @@ export declare const useCreateProduct: <TError = ErrorType<unknown>, TContext = 
     businessId: number;
     data: BodyType<CreateProductBody>;
 }, TContext>;
+export declare const getGetFavoritesUrl: () => string;
 /**
  * @summary Get current user's favorites
  */
-export declare const getGetFavoritesUrl: () => string;
 export declare const getFavorites: (options?: RequestInit) => Promise<FavoritesResponse>;
 export declare const getGetFavoritesQueryKey: () => readonly ["/api/favorites"];
 export declare const getGetFavoritesQueryOptions: <TData = Awaited<ReturnType<typeof getFavorites>>, TError = ErrorType<unknown>>(options?: {
@@ -1026,10 +1026,10 @@ export declare function useGetFavorites<TData = Awaited<ReturnType<typeof getFav
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getToggleFavoriteUrl: () => string;
 /**
  * @summary Toggle a favorite (add or remove)
  */
-export declare const getToggleFavoriteUrl: () => string;
 export declare const toggleFavorite: (favoriteToggleBody: FavoriteToggleBody, options?: RequestInit) => Promise<ToggleFavorite200>;
 export declare const getToggleFavoriteMutationOptions: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof toggleFavorite>>, TError, {
@@ -1043,8 +1043,8 @@ export type ToggleFavoriteMutationResult = NonNullable<Awaited<ReturnType<typeof
 export type ToggleFavoriteMutationBody = BodyType<FavoriteToggleBody>;
 export type ToggleFavoriteMutationError = ErrorType<unknown>;
 /**
- * @summary Toggle a favorite (add or remove)
- */
+* @summary Toggle a favorite (add or remove)
+*/
 export declare const useToggleFavorite: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof toggleFavorite>>, TError, {
         data: BodyType<FavoriteToggleBody>;
@@ -1053,10 +1053,10 @@ export declare const useToggleFavorite: <TError = ErrorType<unknown>, TContext =
 }) => UseMutationResult<Awaited<ReturnType<typeof toggleFavorite>>, TError, {
     data: BodyType<FavoriteToggleBody>;
 }, TContext>;
+export declare const getGetNotificationsUrl: () => string;
 /**
  * @summary Get current user's notifications
  */
-export declare const getGetNotificationsUrl: () => string;
 export declare const getNotifications: (options?: RequestInit) => Promise<Notification[]>;
 export declare const getGetNotificationsQueryKey: () => readonly ["/api/notifications"];
 export declare const getGetNotificationsQueryOptions: <TData = Awaited<ReturnType<typeof getNotifications>>, TError = ErrorType<unknown>>(options?: {
@@ -1076,10 +1076,10 @@ export declare function useGetNotifications<TData = Awaited<ReturnType<typeof ge
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getGetNotificationUnreadCountUrl: () => string;
 /**
  * @summary Get unread notification count
  */
-export declare const getGetNotificationUnreadCountUrl: () => string;
 export declare const getNotificationUnreadCount: (options?: RequestInit) => Promise<UnreadCountResponse>;
 export declare const getGetNotificationUnreadCountQueryKey: () => readonly ["/api/notifications/unread-count"];
 export declare const getGetNotificationUnreadCountQueryOptions: <TData = Awaited<ReturnType<typeof getNotificationUnreadCount>>, TError = ErrorType<unknown>>(options?: {
@@ -1099,10 +1099,10 @@ export declare function useGetNotificationUnreadCount<TData = Awaited<ReturnType
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getMarkNotificationReadUrl: (id: number) => string;
 /**
  * @summary Mark a notification as read
  */
-export declare const getMarkNotificationReadUrl: (id: number) => string;
 export declare const markNotificationRead: (id: number, options?: RequestInit) => Promise<OkResponse>;
 export declare const getMarkNotificationReadMutationOptions: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof markNotificationRead>>, TError, {
@@ -1115,8 +1115,8 @@ export declare const getMarkNotificationReadMutationOptions: <TError = ErrorType
 export type MarkNotificationReadMutationResult = NonNullable<Awaited<ReturnType<typeof markNotificationRead>>>;
 export type MarkNotificationReadMutationError = ErrorType<unknown>;
 /**
- * @summary Mark a notification as read
- */
+* @summary Mark a notification as read
+*/
 export declare const useMarkNotificationRead: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof markNotificationRead>>, TError, {
         id: number;
@@ -1125,10 +1125,10 @@ export declare const useMarkNotificationRead: <TError = ErrorType<unknown>, TCon
 }) => UseMutationResult<Awaited<ReturnType<typeof markNotificationRead>>, TError, {
     id: number;
 }, TContext>;
+export declare const getMarkAllNotificationsReadUrl: () => string;
 /**
  * @summary Mark all notifications as read
  */
-export declare const getMarkAllNotificationsReadUrl: () => string;
 export declare const markAllNotificationsRead: (options?: RequestInit) => Promise<OkResponse>;
 export declare const getMarkAllNotificationsReadMutationOptions: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof markAllNotificationsRead>>, TError, void, TContext>;
@@ -1137,16 +1137,16 @@ export declare const getMarkAllNotificationsReadMutationOptions: <TError = Error
 export type MarkAllNotificationsReadMutationResult = NonNullable<Awaited<ReturnType<typeof markAllNotificationsRead>>>;
 export type MarkAllNotificationsReadMutationError = ErrorType<unknown>;
 /**
- * @summary Mark all notifications as read
- */
+* @summary Mark all notifications as read
+*/
 export declare const useMarkAllNotificationsRead: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof markAllNotificationsRead>>, TError, void, TContext>;
     request?: SecondParameter<typeof customFetch>;
 }) => UseMutationResult<Awaited<ReturnType<typeof markAllNotificationsRead>>, TError, void, TContext>;
+export declare const getGetCollectionsUrl: (params: GetCollectionsParams) => string;
 /**
  * @summary List collections for a business (with products)
  */
-export declare const getGetCollectionsUrl: (params: GetCollectionsParams) => string;
 export declare const getCollections: (params: GetCollectionsParams, options?: RequestInit) => Promise<CollectionWithProducts[]>;
 export declare const getGetCollectionsQueryKey: (params?: GetCollectionsParams) => readonly ["/api/collections", ...GetCollectionsParams[]];
 export declare const getGetCollectionsQueryOptions: <TData = Awaited<ReturnType<typeof getCollections>>, TError = ErrorType<unknown>>(params: GetCollectionsParams, options?: {
@@ -1166,10 +1166,10 @@ export declare function useGetCollections<TData = Awaited<ReturnType<typeof getC
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getCreateCollectionUrl: () => string;
 /**
  * @summary Create a new collection
  */
-export declare const getCreateCollectionUrl: () => string;
 export declare const createCollection: (createCollectionBody: CreateCollectionBody, options?: RequestInit) => Promise<Collection>;
 export declare const getCreateCollectionMutationOptions: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof createCollection>>, TError, {
@@ -1183,8 +1183,8 @@ export type CreateCollectionMutationResult = NonNullable<Awaited<ReturnType<type
 export type CreateCollectionMutationBody = BodyType<CreateCollectionBody>;
 export type CreateCollectionMutationError = ErrorType<ErrorResponse>;
 /**
- * @summary Create a new collection
- */
+* @summary Create a new collection
+*/
 export declare const useCreateCollection: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof createCollection>>, TError, {
         data: BodyType<CreateCollectionBody>;
@@ -1193,10 +1193,10 @@ export declare const useCreateCollection: <TError = ErrorType<ErrorResponse>, TC
 }) => UseMutationResult<Awaited<ReturnType<typeof createCollection>>, TError, {
     data: BodyType<CreateCollectionBody>;
 }, TContext>;
+export declare const getUpdateCollectionUrl: (id: number) => string;
 /**
  * @summary Update a collection
  */
-export declare const getUpdateCollectionUrl: (id: number) => string;
 export declare const updateCollection: (id: number, updateCollectionBody: UpdateCollectionBody, options?: RequestInit) => Promise<Collection>;
 export declare const getUpdateCollectionMutationOptions: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateCollection>>, TError, {
@@ -1212,8 +1212,8 @@ export type UpdateCollectionMutationResult = NonNullable<Awaited<ReturnType<type
 export type UpdateCollectionMutationBody = BodyType<UpdateCollectionBody>;
 export type UpdateCollectionMutationError = ErrorType<ErrorResponse>;
 /**
- * @summary Update a collection
- */
+* @summary Update a collection
+*/
 export declare const useUpdateCollection: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateCollection>>, TError, {
         id: number;
@@ -1224,10 +1224,10 @@ export declare const useUpdateCollection: <TError = ErrorType<ErrorResponse>, TC
     id: number;
     data: BodyType<UpdateCollectionBody>;
 }, TContext>;
+export declare const getDeleteCollectionUrl: (id: number) => string;
 /**
  * @summary Delete a collection
  */
-export declare const getDeleteCollectionUrl: (id: number) => string;
 export declare const deleteCollection: (id: number, options?: RequestInit) => Promise<OkResponse>;
 export declare const getDeleteCollectionMutationOptions: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteCollection>>, TError, {
@@ -1240,8 +1240,8 @@ export declare const getDeleteCollectionMutationOptions: <TError = ErrorType<Err
 export type DeleteCollectionMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCollection>>>;
 export type DeleteCollectionMutationError = ErrorType<ErrorResponse>;
 /**
- * @summary Delete a collection
- */
+* @summary Delete a collection
+*/
 export declare const useDeleteCollection: <TError = ErrorType<ErrorResponse>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteCollection>>, TError, {
         id: number;
@@ -1250,10 +1250,10 @@ export declare const useDeleteCollection: <TError = ErrorType<ErrorResponse>, TC
 }) => UseMutationResult<Awaited<ReturnType<typeof deleteCollection>>, TError, {
     id: number;
 }, TContext>;
+export declare const getCreateDeliveryUrl: () => string;
 /**
  * @summary Create delivery for an order
  */
-export declare const getCreateDeliveryUrl: () => string;
 export declare const createDelivery: (createDeliveryBody: CreateDeliveryBody, options?: RequestInit) => Promise<DeliveryWithDetails>;
 export declare const getCreateDeliveryMutationOptions: <TError = ErrorType<void>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof createDelivery>>, TError, {
@@ -1267,8 +1267,8 @@ export type CreateDeliveryMutationResult = NonNullable<Awaited<ReturnType<typeof
 export type CreateDeliveryMutationBody = BodyType<CreateDeliveryBody>;
 export type CreateDeliveryMutationError = ErrorType<void>;
 /**
- * @summary Create delivery for an order
- */
+* @summary Create delivery for an order
+*/
 export declare const useCreateDelivery: <TError = ErrorType<void>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof createDelivery>>, TError, {
         data: BodyType<CreateDeliveryBody>;
@@ -1277,10 +1277,10 @@ export declare const useCreateDelivery: <TError = ErrorType<void>, TContext = un
 }) => UseMutationResult<Awaited<ReturnType<typeof createDelivery>>, TError, {
     data: BodyType<CreateDeliveryBody>;
 }, TContext>;
+export declare const getGetDeliveryFeeEstimateUrl: (params?: GetDeliveryFeeEstimateParams) => string;
 /**
  * @summary Get delivery fee estimate for a zone
  */
-export declare const getGetDeliveryFeeEstimateUrl: (params?: GetDeliveryFeeEstimateParams) => string;
 export declare const getDeliveryFeeEstimate: (params?: GetDeliveryFeeEstimateParams, options?: RequestInit) => Promise<FeeEstimate>;
 export declare const getGetDeliveryFeeEstimateQueryKey: (params?: GetDeliveryFeeEstimateParams) => readonly ["/api/deliveries/fee-estimate", ...GetDeliveryFeeEstimateParams[]];
 export declare const getGetDeliveryFeeEstimateQueryOptions: <TData = Awaited<ReturnType<typeof getDeliveryFeeEstimate>>, TError = ErrorType<unknown>>(params?: GetDeliveryFeeEstimateParams, options?: {
@@ -1300,10 +1300,10 @@ export declare function useGetDeliveryFeeEstimate<TData = Awaited<ReturnType<typ
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getTrackDeliveryUrl: (code: string) => string;
 /**
  * @summary Public delivery tracking by tracking code
  */
-export declare const getTrackDeliveryUrl: (code: string) => string;
 export declare const trackDelivery: (code: string, options?: RequestInit) => Promise<DeliveryWithDetails>;
 export declare const getTrackDeliveryQueryKey: (code: string) => readonly [`/api/deliveries/track/${string}`];
 export declare const getTrackDeliveryQueryOptions: <TData = Awaited<ReturnType<typeof trackDelivery>>, TError = ErrorType<void>>(code: string, options?: {
@@ -1323,10 +1323,10 @@ export declare function useTrackDelivery<TData = Awaited<ReturnType<typeof track
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getGetDeliveryByOrderUrl: (orderId: number) => string;
 /**
  * @summary Get delivery by order ID
  */
-export declare const getGetDeliveryByOrderUrl: (orderId: number) => string;
 export declare const getDeliveryByOrder: (orderId: number, options?: RequestInit) => Promise<DeliveryWithDetails>;
 export declare const getGetDeliveryByOrderQueryKey: (orderId: number) => readonly [`/api/deliveries/order/${number}`];
 export declare const getGetDeliveryByOrderQueryOptions: <TData = Awaited<ReturnType<typeof getDeliveryByOrder>>, TError = ErrorType<void>>(orderId: number, options?: {
@@ -1346,10 +1346,10 @@ export declare function useGetDeliveryByOrder<TData = Awaited<ReturnType<typeof 
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getGetDeliveryUrl: (id: number) => string;
 /**
  * @summary Get single delivery
  */
-export declare const getGetDeliveryUrl: (id: number) => string;
 export declare const getDelivery: (id: number, options?: RequestInit) => Promise<DeliveryWithDetails>;
 export declare const getGetDeliveryQueryKey: (id: number) => readonly [`/api/deliveries/${number}`];
 export declare const getGetDeliveryQueryOptions: <TData = Awaited<ReturnType<typeof getDelivery>>, TError = ErrorType<void>>(id: number, options?: {
@@ -1369,10 +1369,10 @@ export declare function useGetDelivery<TData = Awaited<ReturnType<typeof getDeli
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getUpdateDeliveryStatusUrl: (id: number) => string;
 /**
  * @summary Update delivery status (admin)
  */
-export declare const getUpdateDeliveryStatusUrl: (id: number) => string;
 export declare const updateDeliveryStatus: (id: number, updateDeliveryStatusBody: UpdateDeliveryStatusBody, options?: RequestInit) => Promise<DeliveryWithDetails>;
 export declare const getUpdateDeliveryStatusMutationOptions: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateDeliveryStatus>>, TError, {
@@ -1388,8 +1388,8 @@ export type UpdateDeliveryStatusMutationResult = NonNullable<Awaited<ReturnType<
 export type UpdateDeliveryStatusMutationBody = BodyType<UpdateDeliveryStatusBody>;
 export type UpdateDeliveryStatusMutationError = ErrorType<unknown>;
 /**
- * @summary Update delivery status (admin)
- */
+* @summary Update delivery status (admin)
+*/
 export declare const useUpdateDeliveryStatus: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateDeliveryStatus>>, TError, {
         id: number;
@@ -1400,10 +1400,10 @@ export declare const useUpdateDeliveryStatus: <TError = ErrorType<unknown>, TCon
     id: number;
     data: BodyType<UpdateDeliveryStatusBody>;
 }, TContext>;
+export declare const getAssignRiderToDeliveryUrl: (id: number) => string;
 /**
  * @summary Assign a rider to a delivery (admin)
  */
-export declare const getAssignRiderToDeliveryUrl: (id: number) => string;
 export declare const assignRiderToDelivery: (id: number, assignRiderBody: AssignRiderBody, options?: RequestInit) => Promise<DeliveryWithDetails>;
 export declare const getAssignRiderToDeliveryMutationOptions: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof assignRiderToDelivery>>, TError, {
@@ -1419,8 +1419,8 @@ export type AssignRiderToDeliveryMutationResult = NonNullable<Awaited<ReturnType
 export type AssignRiderToDeliveryMutationBody = BodyType<AssignRiderBody>;
 export type AssignRiderToDeliveryMutationError = ErrorType<unknown>;
 /**
- * @summary Assign a rider to a delivery (admin)
- */
+* @summary Assign a rider to a delivery (admin)
+*/
 export declare const useAssignRiderToDelivery: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof assignRiderToDelivery>>, TError, {
         id: number;
@@ -1431,10 +1431,10 @@ export declare const useAssignRiderToDelivery: <TError = ErrorType<unknown>, TCo
     id: number;
     data: BodyType<AssignRiderBody>;
 }, TContext>;
+export declare const getGetAdminDeliveriesUrl: () => string;
 /**
  * @summary List all deliveries (admin)
  */
-export declare const getGetAdminDeliveriesUrl: () => string;
 export declare const getAdminDeliveries: (options?: RequestInit) => Promise<DeliveryWithDetails[]>;
 export declare const getGetAdminDeliveriesQueryKey: () => readonly ["/api/admin/deliveries"];
 export declare const getGetAdminDeliveriesQueryOptions: <TData = Awaited<ReturnType<typeof getAdminDeliveries>>, TError = ErrorType<unknown>>(options?: {
@@ -1454,10 +1454,10 @@ export declare function useGetAdminDeliveries<TData = Awaited<ReturnType<typeof 
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getGetRidersUrl: () => string;
 /**
  * @summary List all riders (admin)
  */
-export declare const getGetRidersUrl: () => string;
 export declare const getRiders: (options?: RequestInit) => Promise<Rider[]>;
 export declare const getGetRidersQueryKey: () => readonly ["/api/riders"];
 export declare const getGetRidersQueryOptions: <TData = Awaited<ReturnType<typeof getRiders>>, TError = ErrorType<unknown>>(options?: {
@@ -1477,10 +1477,10 @@ export declare function useGetRiders<TData = Awaited<ReturnType<typeof getRiders
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getCreateRiderUrl: () => string;
 /**
  * @summary Create a new rider (admin)
  */
-export declare const getCreateRiderUrl: () => string;
 export declare const createRider: (createRiderBody: CreateRiderBody, options?: RequestInit) => Promise<Rider>;
 export declare const getCreateRiderMutationOptions: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof createRider>>, TError, {
@@ -1494,8 +1494,8 @@ export type CreateRiderMutationResult = NonNullable<Awaited<ReturnType<typeof cr
 export type CreateRiderMutationBody = BodyType<CreateRiderBody>;
 export type CreateRiderMutationError = ErrorType<unknown>;
 /**
- * @summary Create a new rider (admin)
- */
+* @summary Create a new rider (admin)
+*/
 export declare const useCreateRider: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof createRider>>, TError, {
         data: BodyType<CreateRiderBody>;
@@ -1504,10 +1504,10 @@ export declare const useCreateRider: <TError = ErrorType<unknown>, TContext = un
 }) => UseMutationResult<Awaited<ReturnType<typeof createRider>>, TError, {
     data: BodyType<CreateRiderBody>;
 }, TContext>;
+export declare const getGetAvailableRidersUrl: () => string;
 /**
  * @summary List available riders (admin)
  */
-export declare const getGetAvailableRidersUrl: () => string;
 export declare const getAvailableRiders: (options?: RequestInit) => Promise<Rider[]>;
 export declare const getGetAvailableRidersQueryKey: () => readonly ["/api/riders/available"];
 export declare const getGetAvailableRidersQueryOptions: <TData = Awaited<ReturnType<typeof getAvailableRiders>>, TError = ErrorType<unknown>>(options?: {
@@ -1527,10 +1527,10 @@ export declare function useGetAvailableRiders<TData = Awaited<ReturnType<typeof 
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getUpdateRiderUrl: (id: number) => string;
 /**
  * @summary Update rider (admin)
  */
-export declare const getUpdateRiderUrl: (id: number) => string;
 export declare const updateRider: (id: number, updateRiderBody: UpdateRiderBody, options?: RequestInit) => Promise<Rider>;
 export declare const getUpdateRiderMutationOptions: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateRider>>, TError, {
@@ -1546,8 +1546,8 @@ export type UpdateRiderMutationResult = NonNullable<Awaited<ReturnType<typeof up
 export type UpdateRiderMutationBody = BodyType<UpdateRiderBody>;
 export type UpdateRiderMutationError = ErrorType<unknown>;
 /**
- * @summary Update rider (admin)
- */
+* @summary Update rider (admin)
+*/
 export declare const useUpdateRider: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateRider>>, TError, {
         id: number;
@@ -1558,10 +1558,10 @@ export declare const useUpdateRider: <TError = ErrorType<unknown>, TContext = un
     id: number;
     data: BodyType<UpdateRiderBody>;
 }, TContext>;
+export declare const getToggleRiderAvailabilityUrl: (id: number) => string;
 /**
  * @summary Toggle rider availability (admin)
  */
-export declare const getToggleRiderAvailabilityUrl: (id: number) => string;
 export declare const toggleRiderAvailability: (id: number, options?: RequestInit) => Promise<Rider>;
 export declare const getToggleRiderAvailabilityMutationOptions: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof toggleRiderAvailability>>, TError, {
@@ -1574,8 +1574,8 @@ export declare const getToggleRiderAvailabilityMutationOptions: <TError = ErrorT
 export type ToggleRiderAvailabilityMutationResult = NonNullable<Awaited<ReturnType<typeof toggleRiderAvailability>>>;
 export type ToggleRiderAvailabilityMutationError = ErrorType<unknown>;
 /**
- * @summary Toggle rider availability (admin)
- */
+* @summary Toggle rider availability (admin)
+*/
 export declare const useToggleRiderAvailability: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof toggleRiderAvailability>>, TError, {
         id: number;
@@ -1584,10 +1584,10 @@ export declare const useToggleRiderAvailability: <TError = ErrorType<unknown>, T
 }) => UseMutationResult<Awaited<ReturnType<typeof toggleRiderAvailability>>, TError, {
     id: number;
 }, TContext>;
+export declare const getInitializePaystackPaymentUrl: () => string;
 /**
  * @summary Initialize Paystack payment for an order
  */
-export declare const getInitializePaystackPaymentUrl: () => string;
 export declare const initializePaystackPayment: (initiatePaymentBody: InitiatePaymentBody, options?: RequestInit) => Promise<PaystackInitResponse>;
 export declare const getInitializePaystackPaymentMutationOptions: <TError = ErrorType<void>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof initializePaystackPayment>>, TError, {
@@ -1601,8 +1601,8 @@ export type InitializePaystackPaymentMutationResult = NonNullable<Awaited<Return
 export type InitializePaystackPaymentMutationBody = BodyType<InitiatePaymentBody>;
 export type InitializePaystackPaymentMutationError = ErrorType<void>;
 /**
- * @summary Initialize Paystack payment for an order
- */
+* @summary Initialize Paystack payment for an order
+*/
 export declare const useInitializePaystackPayment: <TError = ErrorType<void>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof initializePaystackPayment>>, TError, {
         data: BodyType<InitiatePaymentBody>;
@@ -1611,10 +1611,10 @@ export declare const useInitializePaystackPayment: <TError = ErrorType<void>, TC
 }) => UseMutationResult<Awaited<ReturnType<typeof initializePaystackPayment>>, TError, {
     data: BodyType<InitiatePaymentBody>;
 }, TContext>;
+export declare const getVerifyPaystackPaymentUrl: () => string;
 /**
  * @summary Verify Paystack payment and lock escrow
  */
-export declare const getVerifyPaystackPaymentUrl: () => string;
 export declare const verifyPaystackPayment: (verifyPaymentBody: VerifyPaymentBody, options?: RequestInit) => Promise<PaystackVerifyResponse>;
 export declare const getVerifyPaystackPaymentMutationOptions: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof verifyPaystackPayment>>, TError, {
@@ -1628,8 +1628,8 @@ export type VerifyPaystackPaymentMutationResult = NonNullable<Awaited<ReturnType
 export type VerifyPaystackPaymentMutationBody = BodyType<VerifyPaymentBody>;
 export type VerifyPaystackPaymentMutationError = ErrorType<unknown>;
 /**
- * @summary Verify Paystack payment and lock escrow
- */
+* @summary Verify Paystack payment and lock escrow
+*/
 export declare const useVerifyPaystackPayment: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof verifyPaystackPayment>>, TError, {
         data: BodyType<VerifyPaymentBody>;
@@ -1638,10 +1638,10 @@ export declare const useVerifyPaystackPayment: <TError = ErrorType<unknown>, TCo
 }) => UseMutationResult<Awaited<ReturnType<typeof verifyPaystackPayment>>, TError, {
     data: BodyType<VerifyPaymentBody>;
 }, TContext>;
+export declare const getPaystackWebhookUrl: () => string;
 /**
  * @summary Paystack webhook endpoint
  */
-export declare const getPaystackWebhookUrl: () => string;
 export declare const paystackWebhook: (options?: RequestInit) => Promise<void>;
 export declare const getPaystackWebhookMutationOptions: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof paystackWebhook>>, TError, void, TContext>;
@@ -1650,16 +1650,16 @@ export declare const getPaystackWebhookMutationOptions: <TError = ErrorType<unkn
 export type PaystackWebhookMutationResult = NonNullable<Awaited<ReturnType<typeof paystackWebhook>>>;
 export type PaystackWebhookMutationError = ErrorType<unknown>;
 /**
- * @summary Paystack webhook endpoint
- */
+* @summary Paystack webhook endpoint
+*/
 export declare const usePaystackWebhook: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof paystackWebhook>>, TError, void, TContext>;
     request?: SecondParameter<typeof customFetch>;
 }) => UseMutationResult<Awaited<ReturnType<typeof paystackWebhook>>, TError, void, TContext>;
+export declare const getGetTransactionsUrl: () => string;
 /**
  * @summary Get user transaction history
  */
-export declare const getGetTransactionsUrl: () => string;
 export declare const getTransactions: (options?: RequestInit) => Promise<Transaction[]>;
 export declare const getGetTransactionsQueryKey: () => readonly ["/api/transactions"];
 export declare const getGetTransactionsQueryOptions: <TData = Awaited<ReturnType<typeof getTransactions>>, TError = ErrorType<unknown>>(options?: {
@@ -1679,10 +1679,10 @@ export declare function useGetTransactions<TData = Awaited<ReturnType<typeof get
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getGetAdminTransactionsUrl: () => string;
 /**
  * @summary All transactions (admin)
  */
-export declare const getGetAdminTransactionsUrl: () => string;
 export declare const getAdminTransactions: (options?: RequestInit) => Promise<Transaction[]>;
 export declare const getGetAdminTransactionsQueryKey: () => readonly ["/api/admin/transactions"];
 export declare const getGetAdminTransactionsQueryOptions: <TData = Awaited<ReturnType<typeof getAdminTransactions>>, TError = ErrorType<unknown>>(options?: {
@@ -1702,10 +1702,10 @@ export declare function useGetAdminTransactions<TData = Awaited<ReturnType<typeo
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getReleasePayoutUrl: (orderId: number) => string;
 /**
  * @summary Release escrow payout to seller (admin)
  */
-export declare const getReleasePayoutUrl: (orderId: number) => string;
 export declare const releasePayout: (orderId: number, options?: RequestInit) => Promise<void>;
 export declare const getReleasePayoutMutationOptions: <TError = ErrorType<void>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof releasePayout>>, TError, {
@@ -1718,8 +1718,8 @@ export declare const getReleasePayoutMutationOptions: <TError = ErrorType<void>,
 export type ReleasePayoutMutationResult = NonNullable<Awaited<ReturnType<typeof releasePayout>>>;
 export type ReleasePayoutMutationError = ErrorType<void>;
 /**
- * @summary Release escrow payout to seller (admin)
- */
+* @summary Release escrow payout to seller (admin)
+*/
 export declare const useReleasePayout: <TError = ErrorType<void>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof releasePayout>>, TError, {
         orderId: number;
@@ -1728,41 +1728,41 @@ export declare const useReleasePayout: <TError = ErrorType<void>, TContext = unk
 }) => UseMutationResult<Awaited<ReturnType<typeof releasePayout>>, TError, {
     orderId: number;
 }, TContext>;
+export declare const getProcessRefundUrl: (orderId: number) => string;
 /**
  * @summary Process refund for an order (admin)
  */
-export declare const getProcessRefundUrl: (orderId: number) => string;
 export declare const processRefund: (orderId: number, processRefundBody?: ProcessRefundBody, options?: RequestInit) => Promise<void>;
 export declare const getProcessRefundMutationOptions: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof processRefund>>, TError, {
         orderId: number;
-        data: BodyType<ProcessRefundBody>;
+        data?: BodyType<ProcessRefundBody>;
     }, TContext>;
     request?: SecondParameter<typeof customFetch>;
 }) => UseMutationOptions<Awaited<ReturnType<typeof processRefund>>, TError, {
     orderId: number;
-    data: BodyType<ProcessRefundBody>;
+    data?: BodyType<ProcessRefundBody>;
 }, TContext>;
 export type ProcessRefundMutationResult = NonNullable<Awaited<ReturnType<typeof processRefund>>>;
-export type ProcessRefundMutationBody = BodyType<ProcessRefundBody>;
+export type ProcessRefundMutationBody = BodyType<ProcessRefundBody> | undefined;
 export type ProcessRefundMutationError = ErrorType<unknown>;
 /**
- * @summary Process refund for an order (admin)
- */
+* @summary Process refund for an order (admin)
+*/
 export declare const useProcessRefund: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof processRefund>>, TError, {
         orderId: number;
-        data: BodyType<ProcessRefundBody>;
+        data?: BodyType<ProcessRefundBody>;
     }, TContext>;
     request?: SecondParameter<typeof customFetch>;
 }) => UseMutationResult<Awaited<ReturnType<typeof processRefund>>, TError, {
     orderId: number;
-    data: BodyType<ProcessRefundBody>;
+    data?: BodyType<ProcessRefundBody>;
 }, TContext>;
+export declare const getGetDisputesUrl: () => string;
 /**
  * @summary Get user's disputes
  */
-export declare const getGetDisputesUrl: () => string;
 export declare const getDisputes: (options?: RequestInit) => Promise<Dispute[]>;
 export declare const getGetDisputesQueryKey: () => readonly ["/api/disputes"];
 export declare const getGetDisputesQueryOptions: <TData = Awaited<ReturnType<typeof getDisputes>>, TError = ErrorType<unknown>>(options?: {
@@ -1782,10 +1782,10 @@ export declare function useGetDisputes<TData = Awaited<ReturnType<typeof getDisp
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getCreateDisputeUrl: () => string;
 /**
  * @summary Raise a dispute for an order
  */
-export declare const getCreateDisputeUrl: () => string;
 export declare const createDispute: (createDisputeBody: CreateDisputeBody, options?: RequestInit) => Promise<Dispute>;
 export declare const getCreateDisputeMutationOptions: <TError = ErrorType<void>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof createDispute>>, TError, {
@@ -1799,8 +1799,8 @@ export type CreateDisputeMutationResult = NonNullable<Awaited<ReturnType<typeof 
 export type CreateDisputeMutationBody = BodyType<CreateDisputeBody>;
 export type CreateDisputeMutationError = ErrorType<void>;
 /**
- * @summary Raise a dispute for an order
- */
+* @summary Raise a dispute for an order
+*/
 export declare const useCreateDispute: <TError = ErrorType<void>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof createDispute>>, TError, {
         data: BodyType<CreateDisputeBody>;
@@ -1809,10 +1809,10 @@ export declare const useCreateDispute: <TError = ErrorType<void>, TContext = unk
 }) => UseMutationResult<Awaited<ReturnType<typeof createDispute>>, TError, {
     data: BodyType<CreateDisputeBody>;
 }, TContext>;
+export declare const getGetDisputeUrl: (id: number) => string;
 /**
  * @summary Get single dispute
  */
-export declare const getGetDisputeUrl: (id: number) => string;
 export declare const getDispute: (id: number, options?: RequestInit) => Promise<Dispute>;
 export declare const getGetDisputeQueryKey: (id: number) => readonly [`/api/disputes/${number}`];
 export declare const getGetDisputeQueryOptions: <TData = Awaited<ReturnType<typeof getDispute>>, TError = ErrorType<void>>(id: number, options?: {
@@ -1832,10 +1832,10 @@ export declare function useGetDispute<TData = Awaited<ReturnType<typeof getDispu
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getGetAdminDisputesUrl: () => string;
 /**
  * @summary List all disputes (admin)
  */
-export declare const getGetAdminDisputesUrl: () => string;
 export declare const getAdminDisputes: (options?: RequestInit) => Promise<Dispute[]>;
 export declare const getGetAdminDisputesQueryKey: () => readonly ["/api/admin/disputes"];
 export declare const getGetAdminDisputesQueryOptions: <TData = Awaited<ReturnType<typeof getAdminDisputes>>, TError = ErrorType<unknown>>(options?: {
@@ -1855,10 +1855,10 @@ export declare function useGetAdminDisputes<TData = Awaited<ReturnType<typeof ge
 }): UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
 };
+export declare const getMarkDisputeUnderReviewUrl: (id: number) => string;
 /**
  * @summary Mark dispute as under review (admin)
  */
-export declare const getMarkDisputeUnderReviewUrl: (id: number) => string;
 export declare const markDisputeUnderReview: (id: number, options?: RequestInit) => Promise<Dispute>;
 export declare const getMarkDisputeUnderReviewMutationOptions: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof markDisputeUnderReview>>, TError, {
@@ -1871,8 +1871,8 @@ export declare const getMarkDisputeUnderReviewMutationOptions: <TError = ErrorTy
 export type MarkDisputeUnderReviewMutationResult = NonNullable<Awaited<ReturnType<typeof markDisputeUnderReview>>>;
 export type MarkDisputeUnderReviewMutationError = ErrorType<unknown>;
 /**
- * @summary Mark dispute as under review (admin)
- */
+* @summary Mark dispute as under review (admin)
+*/
 export declare const useMarkDisputeUnderReview: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof markDisputeUnderReview>>, TError, {
         id: number;
@@ -1881,10 +1881,10 @@ export declare const useMarkDisputeUnderReview: <TError = ErrorType<unknown>, TC
 }) => UseMutationResult<Awaited<ReturnType<typeof markDisputeUnderReview>>, TError, {
     id: number;
 }, TContext>;
+export declare const getResolveDisputeUrl: (id: number) => string;
 /**
  * @summary Resolve a dispute (admin)
  */
-export declare const getResolveDisputeUrl: (id: number) => string;
 export declare const resolveDispute: (id: number, resolveDisputeBody: ResolveDisputeBody, options?: RequestInit) => Promise<Dispute>;
 export declare const getResolveDisputeMutationOptions: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof resolveDispute>>, TError, {
@@ -1900,8 +1900,8 @@ export type ResolveDisputeMutationResult = NonNullable<Awaited<ReturnType<typeof
 export type ResolveDisputeMutationBody = BodyType<ResolveDisputeBody>;
 export type ResolveDisputeMutationError = ErrorType<unknown>;
 /**
- * @summary Resolve a dispute (admin)
- */
+* @summary Resolve a dispute (admin)
+*/
 export declare const useResolveDispute: <TError = ErrorType<unknown>, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof resolveDispute>>, TError, {
         id: number;

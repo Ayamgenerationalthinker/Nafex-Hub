@@ -4,6 +4,7 @@ import {
   usersTable,
   businessesTable,
   productsTable,
+  productVariantsTable,
   transactionsTable,
   reviewsTable,
   conversationsTable,
@@ -248,4 +249,24 @@ export async function getFeaturedAnalytics() {
     );
 
   return { featuredBizRows, events };
+}
+
+export async function getAdminSkus() {
+  return db
+    .select({
+      id: productVariantsTable.id,
+      sku: productVariantsTable.sku,
+      attributes: productVariantsTable.attributes,
+      stock: productVariantsTable.stock,
+      price: productVariantsTable.price,
+      productId: productsTable.id,
+      productName: productsTable.name,
+      productPrice: productsTable.price,
+      category: productsTable.category,
+      brand: productsTable.brand,
+      model: productsTable.model,
+    })
+    .from(productVariantsTable)
+    .innerJoin(productsTable, eq(productVariantsTable.productId, productsTable.id))
+    .orderBy(desc(productVariantsTable.createdAt));
 }

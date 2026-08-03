@@ -101,7 +101,14 @@ export function NotificationBell() {
                       } else {
                         setLocation("/inbox");
                       }
-                    } else if (n.type === "order_update") setLocation("/orders");
+                    } else if (n.type === "order_update") {
+                      const isSellerNotif = n.title.toLowerCase().includes("received");
+                      if (user?.role === "business_owner" && isSellerNotif) {
+                        setLocation("/dashboard");
+                      } else {
+                        setLocation("/orders");
+                      }
+                    }
                     setOpen(false);
                   }}
                   className={`w-full text-left flex items-start gap-3 px-4 py-3 hover:bg-muted/50 transition-colors border-b border-border/50 last:border-0 ${

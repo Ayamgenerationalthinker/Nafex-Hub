@@ -31,6 +31,10 @@ router.get("/transactions", requireAuth, (req, res, next) => {
   paymentsController.getUserTransactions(req as any, res).catch(next);
 });
 
+router.get("/business/transactions", requireAuth, (req, res, next) => {
+  paymentsController.getBusinessTransactions(req as any, res).catch(next);
+});
+
 router.get("/admin/transactions", requireAuth, (req, res, next) => {
   paymentsController.getAllTransactions(req as any, res).catch(next);
 });

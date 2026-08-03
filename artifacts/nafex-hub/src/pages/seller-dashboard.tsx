@@ -143,7 +143,13 @@ export default function SellerDashboard() {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [newProductName, setNewProductName] = useState("");
   const [newProductDesc, setNewProductDesc] = useState("");
+  const [newProductCategory, setNewProductCategory] = useState("General");
+  const [newProductBrand, setNewProductBrand] = useState("");
+  const [newProductModel, setNewProductModel] = useState("");
+  const [newProductColor, setNewProductColor] = useState("");
+  const [newProductSize, setNewProductSize] = useState("");
   const [newProductPrice, setNewProductPrice] = useState("");
+  const [newProductStock, setNewProductStock] = useState("");
   const [newProductImages, setNewProductImages] = useState<string[]>([]);
 
   const { mutate: createProduct, isPending: creatingProduct } = useCreateProduct({
@@ -153,7 +159,13 @@ export default function SellerDashboard() {
         setShowAddProduct(false);
         setNewProductName("");
         setNewProductDesc("");
+        setNewProductCategory("General");
+        setNewProductBrand("");
+        setNewProductModel("");
+        setNewProductColor("");
+        setNewProductSize("");
         setNewProductPrice("");
+        setNewProductStock("");
         setNewProductImages([]);
         refetchProducts();
       },
@@ -941,18 +953,91 @@ export default function SellerDashboard() {
                         rows={3}
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="prod-price">Price (GHS) *</Label>
-                      <Input
-                        id="prod-price"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="0.00"
-                        value={newProductPrice}
-                        onChange={(e) => setNewProductPrice(e.target.value)}
-                        className="mt-1 h-11"
-                      />
+                    
+                    {/* NEW FIELDS FOR SKU GEN */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="prod-category">Category</Label>
+                        <Input
+                          id="prod-category"
+                          placeholder="e.g. Electronics"
+                          value={newProductCategory}
+                          onChange={(e) => setNewProductCategory(e.target.value)}
+                          className="mt-1 h-11"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="prod-brand">Brand (Optional)</Label>
+                        <Input
+                          id="prod-brand"
+                          placeholder="e.g. Nike"
+                          value={newProductBrand}
+                          onChange={(e) => setNewProductBrand(e.target.value)}
+                          className="mt-1 h-11"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="prod-model">Model (Optional)</Label>
+                        <Input
+                          id="prod-model"
+                          placeholder="e.g. AM26"
+                          value={newProductModel}
+                          onChange={(e) => setNewProductModel(e.target.value)}
+                          className="mt-1 h-11"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="prod-color">Color (Optional)</Label>
+                        <Input
+                          id="prod-color"
+                          placeholder="e.g. Black"
+                          value={newProductColor}
+                          onChange={(e) => setNewProductColor(e.target.value)}
+                          className="mt-1 h-11"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="prod-size">Size (Optional)</Label>
+                        <Input
+                          id="prod-size"
+                          placeholder="e.g. 42"
+                          value={newProductSize}
+                          onChange={(e) => setNewProductSize(e.target.value)}
+                          className="mt-1 h-11"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="prod-price">Price (GHS) *</Label>
+                        <Input
+                          id="prod-price"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={newProductPrice}
+                          onChange={(e) => setNewProductPrice(e.target.value)}
+                          className="mt-1 h-11"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="prod-stock">Stock Quantity *</Label>
+                        <Input
+                          id="prod-stock"
+                          type="number"
+                          min="0"
+                          step="1"
+                          placeholder="0"
+                          value={newProductStock}
+                          onChange={(e) => setNewProductStock(e.target.value)}
+                          className="mt-1 h-11"
+                        />
+                      </div>
                     </div>
                     <ImageUpload
                       value={newProductImages}
@@ -962,18 +1047,36 @@ export default function SellerDashboard() {
                     />
                   </div>
                   <DialogFooter>
-                    <Button variant="outline" onClick={() => setShowAddProduct(false)}>Cancel</Button>
                     <Button
-                      disabled={!newProductName.trim() || !newProductPrice || creatingProduct}
-                      onClick={() => createProduct({
-                        businessId,
-                        data: {
-                          name: newProductName.trim(),
-                          description: newProductDesc.trim(),
-                          price: parseFloat(newProductPrice).toFixed(2),
-                          images: newProductImages,
-                        }
-                      })}
+                      variant="outline"
+                      onClick={() => setShowAddProduct(false)}
+                      disabled={creatingProduct}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      disabled={!newProductName || !newProductPrice || creatingProduct || !newProductStock}
+                      onClick={() => {
+                        const attributes: any = {};
+                        if (newProductColor) attributes.color = newProductColor;
+                        if (newProductSize) attributes.size = newProductSize;
+
+                        createProduct({
+                          businessId,
+                          data: {
+                            name: newProductName,
+                            description: newProductDesc,
+                            category: newProductCategory,
+                            brand: newProductBrand,
+                            model: newProductModel,
+                            price: parseFloat(newProductPrice).toFixed(2),
+                            stock: parseInt(newProductStock, 10) || 0,
+                            images: newProductImages,
+                            variants: Object.keys(attributes).length > 0 ? [{ attributes, stock: parseInt(newProductStock, 10) || 0, price: newProductPrice }] : [],
+                          }
+                        });
+                      }}
+                      className="gap-2"
                     >
                       {creatingProduct ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
                       Add Product

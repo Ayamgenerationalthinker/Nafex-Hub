@@ -66,6 +66,11 @@ export class PaymentsController {
     res.json(txns);
   }
 
+  public async getBusinessTransactions(req: AuthRequest, res: Response): Promise<void> {
+    const txns = await this.service.getBusinessTransactionsByOwner(req.userId!);
+    res.json(txns);
+  }
+
   public async getAllTransactions(req: AuthRequest, res: Response): Promise<void> {
     const txns = await this.service.getAllTransactions(req.userRole);
     res.json(txns);

@@ -39,8 +39,10 @@ export default function Payments({ isEmbedded = false }: { isEmbedded?: boolean 
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!user) return;
     const token = localStorage.getItem("nafex_token") ?? "";
-    fetch("/api/transactions", { headers: { Authorization: `Bearer ${token}` } })
+    const endpoint = user.role === "business_owner" ? "/api/business/transactions" : "/api/transactions";
+    fetch(endpoint, { headers: { Authorization: `Bearer ${token}` } })
       .then(async (r) => {
         if (!r.ok) {
           const txt = await r.text();

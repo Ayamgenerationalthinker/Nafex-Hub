@@ -1,4 +1,4 @@
-import { db, productsTable, businessesTable, favoritesTable, collectionsTable, reviewsTable } from "@workspace/db";
+import { db, productsTable, businessesTable, favoritesTable, collectionsTable, reviewsTable, productVariantsTable } from "@workspace/db";
 import { and, desc, eq, ilike, isNotNull, sql } from "drizzle-orm";
 import { InferInsertModel } from "drizzle-orm";
 
@@ -146,6 +146,26 @@ export class ProductsRepository {
   public async createProduct(data: NewProduct) {
     const [product] = await db.insert(productsTable).values(data).returning();
     return product;
+  }
+
+  public async saveVariants(variants: any[]) {
+    if (variants.length === 0) return [];
+    return await db.insert(productVariantsTable).values(variants).returning();
+  }
+
+  public async getHighestVariantSequence(skuPrefix: string) {
+    const prefix = `${skuPrefix}-%`;
+    const res = await db.execute(sql`
+      SELECT sku FROM ${productVariantsTable} 
+      WHERE sku LIKE ${prefix} 
+      ORDER BY sku DESC 
+      LIMIT 1
+    `);
+    if (res.rows.length === 0) return 0;
+    const lastSku = res.rows[0].sku as string;
+    const parts = lastSku.split('-');
+    const lastPart = parts[parts.length - 1];
+    return parseInt(lastPart, 10) || 0;
   }
 
   public async updateProduct(id: number, data: Partial<NewProduct>) {

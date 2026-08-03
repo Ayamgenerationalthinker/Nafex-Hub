@@ -1,6 +1,7 @@
 import { ProductsRepository } from "./products.repository";
 import { ForbiddenError, NotFoundError } from "../../shared/errors/AppError";
 import { logAdminAction } from "../../lib/log-admin-action";
+import { generateSkuPrefix, generateVariantSku } from "../../lib/sku-generator";
 
 export class ProductsService {
   private repository: ProductsRepository;
@@ -40,16 +41,43 @@ export class ProductsService {
       throw new ForbiddenError("Forbidden");
     }
 
-    return await this.repository.createProduct({
+    const skuPrefix = generateSkuPrefix(data.name, data.category, data.brand, data.model);
+    
+    const product = await this.repository.createProduct({
       businessId,
       name: data.name,
       description: data.description,
+      category: data.category || "General",
+      brand: data.brand || null,
+      model: data.model || null,
+      skuPrefix,
       price: data.price,
       discountPrice: data.discountPrice ?? null,
       images: data.images,
-      stock: data.stock ?? null,
+      stock: data.stock ?? 0, // Fallback to 0
       collectionId: data.collectionId ?? null,
     });
+
+    let seq = await this.repository.getHighestVariantSequence(skuPrefix);
+
+    const inputVariants = Array.isArray(data.variants) && data.variants.length > 0 
+      ? data.variants 
+      : [{ attributes: {}, stock: data.stock ?? 0, price: data.price }];
+
+    const variantsToSave = inputVariants.map((v: any) => {
+      seq += 1;
+      return {
+        productId: product.id,
+        sku: generateVariantSku(skuPrefix, v.attributes || {}, seq),
+        attributes: v.attributes || {},
+        stock: v.stock ?? 0,
+        price: v.price || null,
+      };
+    });
+
+    await this.repository.saveVariants(variantsToSave);
+
+    return { ...product, variants: variantsToSave };
   }
 
   public async updateProduct(userId: number, id: number, data: any) {

@@ -66,6 +66,27 @@ export class PaymentsRepository {
       .orderBy(desc(transactionsTable.createdAt));
   }
 
+  public async getBusinessTransactions(businessId: number) {
+    return await db
+      .select({
+        id: transactionsTable.id,
+        orderId: transactionsTable.orderId,
+        userId: transactionsTable.userId,
+        type: transactionsTable.type,
+        amount: transactionsTable.amount,
+        currency: transactionsTable.currency,
+        provider: transactionsTable.provider,
+        providerRef: transactionsTable.providerRef,
+        channel: transactionsTable.channel,
+        status: transactionsTable.status,
+        createdAt: transactionsTable.createdAt,
+      })
+      .from(transactionsTable)
+      .innerJoin(ordersTable, eq(transactionsTable.orderId, ordersTable.id))
+      .where(eq(ordersTable.businessId, businessId))
+      .orderBy(desc(transactionsTable.createdAt));
+  }
+
   public async getAllTransactions(limit: number = 500) {
     return await db
       .select()

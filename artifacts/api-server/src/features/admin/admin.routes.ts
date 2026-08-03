@@ -29,3 +29,7 @@ router.patch("/admin/product/:id/reject",    requireAuth, ctrl.rejectProduct);
 router.patch("/admin/businesses/:id/kyc",    requireAuth, ctrl.updateKyc);
 
 export default router;
+
+// SKUs
+router.get("/admin/skus", requireAuth, ctrl.getAdminSkus);
+

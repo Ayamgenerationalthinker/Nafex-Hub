@@ -161,3 +161,10 @@ export async function getFeaturedAnalytics(req: AuthRequest, res: Response): Pro
   if (req.user?.role !== "admin") { res.status(403).json({ error: "Forbidden" }); return; }
   res.json(await service.getFeaturedAnalytics());
 }
+
+export async function getAdminSkus(req: AuthRequest, res: Response): Promise<void> {
+  if (!isAdmin(req, res)) return;
+  const skus = await service.getAdminSkus();
+  res.json({ variants: skus });
+}
+

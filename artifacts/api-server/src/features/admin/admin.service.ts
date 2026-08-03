@@ -169,3 +169,8 @@ export async function getFeaturedAnalytics() {
 
   return { summary, businesses };
 }
+
+export async function getAdminSkus() {
+  return repo.getAdminSkus();
+}
+

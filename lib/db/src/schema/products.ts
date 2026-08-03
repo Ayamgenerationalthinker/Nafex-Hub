@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, timestamp, numeric, index, check } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, timestamp, numeric, index, check, jsonb } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { businessesTable } from "./businesses";
@@ -11,6 +11,10 @@ export const productsTable = pgTable("products", {
   collectionId: integer("collection_id").references(() => collectionsTable.id, { onDelete: "set null" }),
   name: text("name").notNull(),
   description: text("description").notNull().default(""),
+  category: text("category").notNull().default("General"),
+  brand: text("brand"),
+  model: text("model"),
+  skuPrefix: text("sku_prefix").notNull().default("NFH-GEN-GEN-GEN"),
   price: numeric("price", { precision: 10, scale: 2 }).notNull(),
   discountPrice: numeric("discount_price", { precision: 10, scale: 2 }),
   images: text("images").array().notNull().default([]),
@@ -36,3 +40,29 @@ export const insertProductSchema = createInsertSchema(productsTable).omit({
 });
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type Product = typeof productsTable.$inferSelect;
+
+export const productVariantsTable = pgTable("product_variants", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").notNull().references(() => productsTable.id, { onDelete: "cascade" }),
+  sku: text("sku").notNull().unique(),
+  attributes: jsonb("attributes").notNull().default({}), // e.g. { size: "42", color: "Black" }
+  stock: integer("stock").notNull().default(0),
+  price: numeric("price", { precision: 10, scale: 2 }), // optional variant-specific price override
+  status: text("status", { enum: ["active", "inactive"] }).notNull().default("active"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+}, (table) => {
+  return {
+    productIdIdx: index("variants_product_id_idx").on(table.productId),
+    skuIdx: index("variants_sku_idx").on(table.sku),
+    stockCheck: check("variant_stock_non_negative", sql`${table.stock} >= 0`),
+  };
+});
+
+export const insertProductVariantSchema = createInsertSchema(productVariantsTable).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type InsertProductVariant = z.infer<typeof insertProductVariantSchema>;
+export type ProductVariant = typeof productVariantsTable.$inferSelect;

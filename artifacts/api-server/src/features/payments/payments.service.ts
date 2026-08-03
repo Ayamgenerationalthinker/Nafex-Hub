@@ -201,6 +201,12 @@ export class PaymentsService {
     return await this.repository.getUserTransactions(userId);
   }
 
+  public async getBusinessTransactionsByOwner(ownerId: number) {
+    const biz = await this.repository.getBusinessByOwnerId(ownerId);
+    if (!biz) return [];
+    return await this.repository.getBusinessTransactions(biz.id);
+  }
+
   public async getAllTransactions(userRole: string | undefined) {
     if (userRole !== "admin") throw new ForbiddenError("Admin access required");
     return await this.repository.getAllTransactions();
