@@ -152,7 +152,7 @@ export class BusinessesController {
     const adminId = req.user?.role === "admin" ? req.user.id : undefined;
     const adminName = req.user?.role === "admin" ? req.user.name : undefined;
 
-    const business = await this.service.adminVerifyBusiness(adminId, adminName, params.data.id, parsed.data.isVerified);
+    const business = await this.service.adminVerifyBusiness(adminId, adminName, params.data.id, parsed.data.isVerified, parsed.data.approvalStatus as any);
     res.json(business);
   }
 }

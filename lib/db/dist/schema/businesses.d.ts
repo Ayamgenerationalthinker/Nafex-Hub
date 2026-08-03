@@ -216,6 +216,23 @@ export declare const businessesTable: import("drizzle-orm/pg-core").PgTableWithC
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        approvalStatus: import("drizzle-orm/pg-core").PgColumn<{
+            name: "approval_status";
+            tableName: "businesses";
+            dataType: "string";
+            columnType: "PgText";
+            data: "pending" | "approved" | "rejected";
+            driverParam: string;
+            notNull: true;
+            hasDefault: true;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: ["pending", "approved", "rejected"];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
         featuredType: import("drizzle-orm/pg-core").PgColumn<{
             name: "featured_type";
             tableName: "businesses";
@@ -416,16 +433,21 @@ export declare const businessesTable: import("drizzle-orm/pg-core").PgTableWithC
     dialect: "pg";
 }>;
 export declare const insertBusinessSchema: z.ZodObject<{
-    name: z.ZodString;
-    phone: z.ZodString;
     ownerId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
+    name: z.ZodString;
     category: z.ZodString;
     description: z.ZodString;
     location: z.ZodString;
+    phone: z.ZodString;
     logo: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     images: z.ZodOptional<z.ZodArray<z.ZodString>>;
     isVerified: z.ZodOptional<z.ZodBoolean>;
     isFeatured: z.ZodOptional<z.ZodBoolean>;
+    approvalStatus: z.ZodOptional<z.ZodEnum<{
+        pending: "pending";
+        approved: "approved";
+        rejected: "rejected";
+    }>>;
     featuredType: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     featuredUntil: z.ZodOptional<z.ZodNullable<z.ZodDate>>;
     verificationTier: z.ZodOptional<z.ZodEnum<{

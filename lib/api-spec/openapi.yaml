@@ -1823,6 +1823,8 @@ components:
           type: string
           format: date-time
           nullable: true
+        approvalStatus:
+          type: string
         createdAt:
           type: string
           format: date-time
@@ -1839,6 +1841,7 @@ components:
         - images
         - isVerified
         - isFeatured
+        - approvalStatus
         - createdAt
         - updatedAt
 
@@ -1858,6 +1861,10 @@ components:
         logo:
           type: ["string", "null"]
         images:
+          type: array
+          items:
+            type: string
+        kycDocuments:
           type: array
           items:
             type: string
@@ -1893,6 +1900,9 @@ components:
       properties:
         isVerified:
           type: boolean
+        approvalStatus:
+          type: string
+          enum: ["pending", "approved", "rejected"]
       required:
         - isVerified
 

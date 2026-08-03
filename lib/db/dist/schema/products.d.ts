@@ -327,6 +327,11 @@ export declare const insertProductSchema: z.ZodObject<{
     category: z.ZodOptional<z.ZodString>;
     description: z.ZodOptional<z.ZodString>;
     images: z.ZodOptional<z.ZodArray<z.ZodString>>;
+    approvalStatus: z.ZodOptional<z.ZodEnum<{
+        pending: "pending";
+        approved: "approved";
+        rejected: "rejected";
+    }>>;
     businessId: z.ZodInt;
     collectionId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
     model: z.ZodOptional<z.ZodNullable<z.ZodString>>;
@@ -334,11 +339,6 @@ export declare const insertProductSchema: z.ZodObject<{
     price: z.ZodString;
     discountPrice: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     stock: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
-    approvalStatus: z.ZodOptional<z.ZodEnum<{
-        pending: "pending";
-        approved: "approved";
-        rejected: "rejected";
-    }>>;
     rejectionReason: z.ZodOptional<z.ZodNullable<z.ZodString>>;
 }, {
     out: {};
@@ -507,15 +507,15 @@ export declare const productVariantsTable: import("drizzle-orm/pg-core").PgTable
     dialect: "pg";
 }>;
 export declare const insertProductVariantSchema: z.ZodObject<{
+    status: z.ZodOptional<z.ZodEnum<{
+        active: "active";
+        inactive: "inactive";
+    }>>;
     price: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     stock: z.ZodOptional<z.ZodInt>;
     productId: z.ZodInt;
     sku: z.ZodString;
     attributes: z.ZodOptional<z.ZodType<import("drizzle-zod").Json, unknown, z.core.$ZodTypeInternals<import("drizzle-zod").Json, unknown>>>;
-    status: z.ZodOptional<z.ZodEnum<{
-        active: "active";
-        inactive: "inactive";
-    }>>;
 }, {
     out: {};
     in: {};

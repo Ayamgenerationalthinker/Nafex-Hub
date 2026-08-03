@@ -245,6 +245,7 @@ export declare const GetBusinessesResponseItem: zod.ZodObject<{
     isFeatured: zod.ZodBoolean;
     featuredType: zod.ZodOptional<zod.ZodNullable<zod.ZodEnum<["homepage_top", "homepage_section", "search_boost"]>>>;
     featuredUntil: zod.ZodOptional<zod.ZodNullable<zod.ZodDate>>;
+    approvalStatus: zod.ZodString;
     createdAt: zod.ZodDate;
     updatedAt: zod.ZodDate;
 }, "strip", zod.ZodTypeAny, {
@@ -258,6 +259,7 @@ export declare const GetBusinessesResponseItem: zod.ZodObject<{
     images: string[];
     isVerified: boolean;
     isFeatured: boolean;
+    approvalStatus: string;
     updatedAt: Date;
     ownerId?: number | null | undefined;
     logo?: string | null | undefined;
@@ -274,6 +276,7 @@ export declare const GetBusinessesResponseItem: zod.ZodObject<{
     images: string[];
     isVerified: boolean;
     isFeatured: boolean;
+    approvalStatus: string;
     updatedAt: Date;
     ownerId?: number | null | undefined;
     logo?: string | null | undefined;
@@ -294,6 +297,7 @@ export declare const GetBusinessesResponse: zod.ZodArray<zod.ZodObject<{
     isFeatured: zod.ZodBoolean;
     featuredType: zod.ZodOptional<zod.ZodNullable<zod.ZodEnum<["homepage_top", "homepage_section", "search_boost"]>>>;
     featuredUntil: zod.ZodOptional<zod.ZodNullable<zod.ZodDate>>;
+    approvalStatus: zod.ZodString;
     createdAt: zod.ZodDate;
     updatedAt: zod.ZodDate;
 }, "strip", zod.ZodTypeAny, {
@@ -307,6 +311,7 @@ export declare const GetBusinessesResponse: zod.ZodArray<zod.ZodObject<{
     images: string[];
     isVerified: boolean;
     isFeatured: boolean;
+    approvalStatus: string;
     updatedAt: Date;
     ownerId?: number | null | undefined;
     logo?: string | null | undefined;
@@ -323,6 +328,7 @@ export declare const GetBusinessesResponse: zod.ZodArray<zod.ZodObject<{
     images: string[];
     isVerified: boolean;
     isFeatured: boolean;
+    approvalStatus: string;
     updatedAt: Date;
     ownerId?: number | null | undefined;
     logo?: string | null | undefined;
@@ -340,6 +346,7 @@ export declare const CreateBusinessBody: zod.ZodObject<{
     phone: zod.ZodString;
     logo: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
     images: zod.ZodOptional<zod.ZodArray<zod.ZodString, "many">>;
+    kycDocuments: zod.ZodOptional<zod.ZodArray<zod.ZodString, "many">>;
 }, "strip", zod.ZodTypeAny, {
     name: string;
     category: string;
@@ -348,6 +355,7 @@ export declare const CreateBusinessBody: zod.ZodObject<{
     phone: string;
     logo?: string | null | undefined;
     images?: string[] | undefined;
+    kycDocuments?: string[] | undefined;
 }, {
     name: string;
     category: string;
@@ -356,6 +364,7 @@ export declare const CreateBusinessBody: zod.ZodObject<{
     phone: string;
     logo?: string | null | undefined;
     images?: string[] | undefined;
+    kycDocuments?: string[] | undefined;
 }>;
 export declare const CreateBusinessResponse: zod.ZodObject<{
     id: zod.ZodNumber;
@@ -371,6 +380,7 @@ export declare const CreateBusinessResponse: zod.ZodObject<{
     isFeatured: zod.ZodBoolean;
     featuredType: zod.ZodOptional<zod.ZodNullable<zod.ZodEnum<["homepage_top", "homepage_section", "search_boost"]>>>;
     featuredUntil: zod.ZodOptional<zod.ZodNullable<zod.ZodDate>>;
+    approvalStatus: zod.ZodString;
     createdAt: zod.ZodDate;
     updatedAt: zod.ZodDate;
 }, "strip", zod.ZodTypeAny, {
@@ -384,6 +394,7 @@ export declare const CreateBusinessResponse: zod.ZodObject<{
     images: string[];
     isVerified: boolean;
     isFeatured: boolean;
+    approvalStatus: string;
     updatedAt: Date;
     ownerId?: number | null | undefined;
     logo?: string | null | undefined;
@@ -400,6 +411,7 @@ export declare const CreateBusinessResponse: zod.ZodObject<{
     images: string[];
     isVerified: boolean;
     isFeatured: boolean;
+    approvalStatus: string;
     updatedAt: Date;
     ownerId?: number | null | undefined;
     logo?: string | null | undefined;
@@ -423,6 +435,7 @@ export declare const GetFeaturedBusinessesResponseItem: zod.ZodObject<{
     isFeatured: zod.ZodBoolean;
     featuredType: zod.ZodOptional<zod.ZodNullable<zod.ZodEnum<["homepage_top", "homepage_section", "search_boost"]>>>;
     featuredUntil: zod.ZodOptional<zod.ZodNullable<zod.ZodDate>>;
+    approvalStatus: zod.ZodString;
     createdAt: zod.ZodDate;
     updatedAt: zod.ZodDate;
 }, "strip", zod.ZodTypeAny, {
@@ -436,6 +449,7 @@ export declare const GetFeaturedBusinessesResponseItem: zod.ZodObject<{
     images: string[];
     isVerified: boolean;
     isFeatured: boolean;
+    approvalStatus: string;
     updatedAt: Date;
     ownerId?: number | null | undefined;
     logo?: string | null | undefined;
@@ -452,6 +466,7 @@ export declare const GetFeaturedBusinessesResponseItem: zod.ZodObject<{
     images: string[];
     isVerified: boolean;
     isFeatured: boolean;
+    approvalStatus: string;
     updatedAt: Date;
     ownerId?: number | null | undefined;
     logo?: string | null | undefined;
@@ -472,6 +487,7 @@ export declare const GetFeaturedBusinessesResponse: zod.ZodArray<zod.ZodObject<{
     isFeatured: zod.ZodBoolean;
     featuredType: zod.ZodOptional<zod.ZodNullable<zod.ZodEnum<["homepage_top", "homepage_section", "search_boost"]>>>;
     featuredUntil: zod.ZodOptional<zod.ZodNullable<zod.ZodDate>>;
+    approvalStatus: zod.ZodString;
     createdAt: zod.ZodDate;
     updatedAt: zod.ZodDate;
 }, "strip", zod.ZodTypeAny, {
@@ -485,6 +501,7 @@ export declare const GetFeaturedBusinessesResponse: zod.ZodArray<zod.ZodObject<{
     images: string[];
     isVerified: boolean;
     isFeatured: boolean;
+    approvalStatus: string;
     updatedAt: Date;
     ownerId?: number | null | undefined;
     logo?: string | null | undefined;
@@ -501,6 +518,7 @@ export declare const GetFeaturedBusinessesResponse: zod.ZodArray<zod.ZodObject<{
     images: string[];
     isVerified: boolean;
     isFeatured: boolean;
+    approvalStatus: string;
     updatedAt: Date;
     ownerId?: number | null | undefined;
     logo?: string | null | undefined;
@@ -524,6 +542,7 @@ export declare const GetFeaturedTopBusinessesResponseItem: zod.ZodObject<{
     isFeatured: zod.ZodBoolean;
     featuredType: zod.ZodOptional<zod.ZodNullable<zod.ZodEnum<["homepage_top", "homepage_section", "search_boost"]>>>;
     featuredUntil: zod.ZodOptional<zod.ZodNullable<zod.ZodDate>>;
+    approvalStatus: zod.ZodString;
     createdAt: zod.ZodDate;
     updatedAt: zod.ZodDate;
 }, "strip", zod.ZodTypeAny, {
@@ -537,6 +556,7 @@ export declare const GetFeaturedTopBusinessesResponseItem: zod.ZodObject<{
     images: string[];
     isVerified: boolean;
     isFeatured: boolean;
+    approvalStatus: string;
     updatedAt: Date;
     ownerId?: number | null | undefined;
     logo?: string | null | undefined;
@@ -553,6 +573,7 @@ export declare const GetFeaturedTopBusinessesResponseItem: zod.ZodObject<{
     images: string[];
     isVerified: boolean;
     isFeatured: boolean;
+    approvalStatus: string;
     updatedAt: Date;
     ownerId?: number | null | undefined;
     logo?: string | null | undefined;
@@ -573,6 +594,7 @@ export declare const GetFeaturedTopBusinessesResponse: zod.ZodArray<zod.ZodObjec
     isFeatured: zod.ZodBoolean;
     featuredType: zod.ZodOptional<zod.ZodNullable<zod.ZodEnum<["homepage_top", "homepage_section", "search_boost"]>>>;
     featuredUntil: zod.ZodOptional<zod.ZodNullable<zod.ZodDate>>;
+    approvalStatus: zod.ZodString;
     createdAt: zod.ZodDate;
     updatedAt: zod.ZodDate;
 }, "strip", zod.ZodTypeAny, {
@@ -586,6 +608,7 @@ export declare const GetFeaturedTopBusinessesResponse: zod.ZodArray<zod.ZodObjec
     images: string[];
     isVerified: boolean;
     isFeatured: boolean;
+    approvalStatus: string;
     updatedAt: Date;
     ownerId?: number | null | undefined;
     logo?: string | null | undefined;
@@ -602,6 +625,7 @@ export declare const GetFeaturedTopBusinessesResponse: zod.ZodArray<zod.ZodObjec
     images: string[];
     isVerified: boolean;
     isFeatured: boolean;
+    approvalStatus: string;
     updatedAt: Date;
     ownerId?: number | null | undefined;
     logo?: string | null | undefined;
@@ -632,6 +656,7 @@ export declare const GetBusinessResponse: zod.ZodObject<{
     isFeatured: zod.ZodBoolean;
     featuredType: zod.ZodOptional<zod.ZodNullable<zod.ZodEnum<["homepage_top", "homepage_section", "search_boost"]>>>;
     featuredUntil: zod.ZodOptional<zod.ZodNullable<zod.ZodDate>>;
+    approvalStatus: zod.ZodString;
     createdAt: zod.ZodDate;
     updatedAt: zod.ZodDate;
 }, "strip", zod.ZodTypeAny, {
@@ -645,6 +670,7 @@ export declare const GetBusinessResponse: zod.ZodObject<{
     images: string[];
     isVerified: boolean;
     isFeatured: boolean;
+    approvalStatus: string;
     updatedAt: Date;
     ownerId?: number | null | undefined;
     logo?: string | null | undefined;
@@ -661,6 +687,7 @@ export declare const GetBusinessResponse: zod.ZodObject<{
     images: string[];
     isVerified: boolean;
     isFeatured: boolean;
+    approvalStatus: string;
     updatedAt: Date;
     ownerId?: number | null | undefined;
     logo?: string | null | undefined;
@@ -716,6 +743,7 @@ export declare const UpdateBusinessResponse: zod.ZodObject<{
     isFeatured: zod.ZodBoolean;
     featuredType: zod.ZodOptional<zod.ZodNullable<zod.ZodEnum<["homepage_top", "homepage_section", "search_boost"]>>>;
     featuredUntil: zod.ZodOptional<zod.ZodNullable<zod.ZodDate>>;
+    approvalStatus: zod.ZodString;
     createdAt: zod.ZodDate;
     updatedAt: zod.ZodDate;
 }, "strip", zod.ZodTypeAny, {
@@ -729,6 +757,7 @@ export declare const UpdateBusinessResponse: zod.ZodObject<{
     images: string[];
     isVerified: boolean;
     isFeatured: boolean;
+    approvalStatus: string;
     updatedAt: Date;
     ownerId?: number | null | undefined;
     logo?: string | null | undefined;
@@ -745,6 +774,7 @@ export declare const UpdateBusinessResponse: zod.ZodObject<{
     images: string[];
     isVerified: boolean;
     isFeatured: boolean;
+    approvalStatus: string;
     updatedAt: Date;
     ownerId?: number | null | undefined;
     logo?: string | null | undefined;
@@ -774,10 +804,13 @@ export declare const VerifyBusinessParams: zod.ZodObject<{
 }>;
 export declare const VerifyBusinessBody: zod.ZodObject<{
     isVerified: zod.ZodBoolean;
+    approvalStatus: zod.ZodOptional<zod.ZodEnum<["pending", "approved", "rejected"]>>;
 }, "strip", zod.ZodTypeAny, {
     isVerified: boolean;
+    approvalStatus?: "pending" | "approved" | "rejected" | undefined;
 }, {
     isVerified: boolean;
+    approvalStatus?: "pending" | "approved" | "rejected" | undefined;
 }>;
 export declare const VerifyBusinessResponse: zod.ZodObject<{
     id: zod.ZodNumber;
@@ -793,6 +826,7 @@ export declare const VerifyBusinessResponse: zod.ZodObject<{
     isFeatured: zod.ZodBoolean;
     featuredType: zod.ZodOptional<zod.ZodNullable<zod.ZodEnum<["homepage_top", "homepage_section", "search_boost"]>>>;
     featuredUntil: zod.ZodOptional<zod.ZodNullable<zod.ZodDate>>;
+    approvalStatus: zod.ZodString;
     createdAt: zod.ZodDate;
     updatedAt: zod.ZodDate;
 }, "strip", zod.ZodTypeAny, {
@@ -806,6 +840,7 @@ export declare const VerifyBusinessResponse: zod.ZodObject<{
     images: string[];
     isVerified: boolean;
     isFeatured: boolean;
+    approvalStatus: string;
     updatedAt: Date;
     ownerId?: number | null | undefined;
     logo?: string | null | undefined;
@@ -822,6 +857,7 @@ export declare const VerifyBusinessResponse: zod.ZodObject<{
     images: string[];
     isVerified: boolean;
     isFeatured: boolean;
+    approvalStatus: string;
     updatedAt: Date;
     ownerId?: number | null | undefined;
     logo?: string | null | undefined;
@@ -900,6 +936,7 @@ export declare const GetAdminBusinessesResponseItem: zod.ZodObject<{
     isFeatured: zod.ZodBoolean;
     featuredType: zod.ZodOptional<zod.ZodNullable<zod.ZodEnum<["homepage_top", "homepage_section", "search_boost"]>>>;
     featuredUntil: zod.ZodOptional<zod.ZodNullable<zod.ZodDate>>;
+    approvalStatus: zod.ZodString;
     createdAt: zod.ZodDate;
     updatedAt: zod.ZodDate;
 }, "strip", zod.ZodTypeAny, {
@@ -913,6 +950,7 @@ export declare const GetAdminBusinessesResponseItem: zod.ZodObject<{
     images: string[];
     isVerified: boolean;
     isFeatured: boolean;
+    approvalStatus: string;
     updatedAt: Date;
     ownerId?: number | null | undefined;
     logo?: string | null | undefined;
@@ -929,6 +967,7 @@ export declare const GetAdminBusinessesResponseItem: zod.ZodObject<{
     images: string[];
     isVerified: boolean;
     isFeatured: boolean;
+    approvalStatus: string;
     updatedAt: Date;
     ownerId?: number | null | undefined;
     logo?: string | null | undefined;
@@ -949,6 +988,7 @@ export declare const GetAdminBusinessesResponse: zod.ZodArray<zod.ZodObject<{
     isFeatured: zod.ZodBoolean;
     featuredType: zod.ZodOptional<zod.ZodNullable<zod.ZodEnum<["homepage_top", "homepage_section", "search_boost"]>>>;
     featuredUntil: zod.ZodOptional<zod.ZodNullable<zod.ZodDate>>;
+    approvalStatus: zod.ZodString;
     createdAt: zod.ZodDate;
     updatedAt: zod.ZodDate;
 }, "strip", zod.ZodTypeAny, {
@@ -962,6 +1002,7 @@ export declare const GetAdminBusinessesResponse: zod.ZodArray<zod.ZodObject<{
     images: string[];
     isVerified: boolean;
     isFeatured: boolean;
+    approvalStatus: string;
     updatedAt: Date;
     ownerId?: number | null | undefined;
     logo?: string | null | undefined;
@@ -978,6 +1019,7 @@ export declare const GetAdminBusinessesResponse: zod.ZodArray<zod.ZodObject<{
     images: string[];
     isVerified: boolean;
     isFeatured: boolean;
+    approvalStatus: string;
     updatedAt: Date;
     ownerId?: number | null | undefined;
     logo?: string | null | undefined;

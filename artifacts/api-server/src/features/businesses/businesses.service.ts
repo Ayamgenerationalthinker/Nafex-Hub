@@ -141,8 +141,11 @@ export class BusinessesService {
     return biz;
   }
 
-  public async adminVerifyBusiness(adminId: number | undefined, adminName: string | undefined, id: number, isVerified: boolean) {
-    const biz = await this.repository.updateBusiness(id, { isVerified });
+  public async adminVerifyBusiness(adminId: number | undefined, adminName: string | undefined, id: number, isVerified: boolean, approvalStatus?: "pending" | "approved" | "rejected") {
+    const updateData: any = { isVerified };
+    if (approvalStatus) updateData.approvalStatus = approvalStatus;
+    
+    const biz = await this.repository.updateBusiness(id, updateData);
     if (!biz) throw new NotFoundError("Business not found");
 
     if (adminId && adminName) {

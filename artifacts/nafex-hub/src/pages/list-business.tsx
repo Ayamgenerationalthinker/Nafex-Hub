@@ -108,6 +108,7 @@ export default function ListBusiness() {
   const createBusiness = useCreateBusiness();
   const [logoImages, setLogoImages] = useState<string[]>([]);
   const [bannerImages, setBannerImages] = useState<string[]>([]);
+  const [kycDocuments, setKycDocuments] = useState<string[]>([]);
 
   const form = useForm<ListBusinessForm>({
     resolver: zodResolver(listBusinessSchema),
@@ -136,6 +137,7 @@ export default function ListBusiness() {
           ...values,
           logo: logoImages[0] ?? null,
           images: bannerImages,
+          kycDocuments,
         }),
       });
 
@@ -178,6 +180,9 @@ export default function ListBusiness() {
 
       <div className="container mx-auto px-4 py-10 max-w-3xl">
         <div className="bg-card rounded-2xl border shadow-sm p-8">
+          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
+            <strong>Note:</strong> Your business listing requires verification to ensure safety on our platform. After submission, it usually takes 24-48 hours for our team to review your National Identification and approve your business to go live.
+          </div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
@@ -281,6 +286,17 @@ export default function ListBusiness() {
                 maxImages={1}
                 label="Banner Image (optional) - shown on your brand page"
               />
+
+              {/* KYC Upload */}
+              <div className="pt-4 border-t">
+                <h3 className="font-semibold text-lg mb-4">Identity Verification</h3>
+                <ImageUpload
+                  value={kycDocuments}
+                  onChange={setKycDocuments}
+                  maxImages={2}
+                  label="Upload National Identification (ID Card, Passport, etc.) *Required*"
+                />
+              </div>
 
               <Button
                 type="submit"

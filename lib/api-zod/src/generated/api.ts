@@ -131,6 +131,7 @@ export const GetBusinessesResponseItem = zod.object({
   "isFeatured": zod.boolean(),
   "featuredType": zod.enum(['homepage_top', 'homepage_section', 'search_boost']).nullish(),
   "featuredUntil": zod.coerce.date().nullish(),
+  "approvalStatus": zod.string(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -147,7 +148,8 @@ export const CreateBusinessBody = zod.object({
   "location": zod.string(),
   "phone": zod.string(),
   "logo": zod.string().nullish(),
-  "images": zod.array(zod.string()).optional()
+  "images": zod.array(zod.string()).optional(),
+  "kycDocuments": zod.array(zod.string()).optional()
 })
 
 export const CreateBusinessResponse = zod.object({
@@ -164,6 +166,7 @@ export const CreateBusinessResponse = zod.object({
   "isFeatured": zod.boolean(),
   "featuredType": zod.enum(['homepage_top', 'homepage_section', 'search_boost']).nullish(),
   "featuredUntil": zod.coerce.date().nullish(),
+  "approvalStatus": zod.string(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -186,6 +189,7 @@ export const GetFeaturedBusinessesResponseItem = zod.object({
   "isFeatured": zod.boolean(),
   "featuredType": zod.enum(['homepage_top', 'homepage_section', 'search_boost']).nullish(),
   "featuredUntil": zod.coerce.date().nullish(),
+  "approvalStatus": zod.string(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -209,6 +213,7 @@ export const GetFeaturedTopBusinessesResponseItem = zod.object({
   "isFeatured": zod.boolean(),
   "featuredType": zod.enum(['homepage_top', 'homepage_section', 'search_boost']).nullish(),
   "featuredUntil": zod.coerce.date().nullish(),
+  "approvalStatus": zod.string(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -236,6 +241,7 @@ export const GetBusinessResponse = zod.object({
   "isFeatured": zod.boolean(),
   "featuredType": zod.enum(['homepage_top', 'homepage_section', 'search_boost']).nullish(),
   "featuredUntil": zod.coerce.date().nullish(),
+  "approvalStatus": zod.string(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -272,6 +278,7 @@ export const UpdateBusinessResponse = zod.object({
   "isFeatured": zod.boolean(),
   "featuredType": zod.enum(['homepage_top', 'homepage_section', 'search_boost']).nullish(),
   "featuredUntil": zod.coerce.date().nullish(),
+  "approvalStatus": zod.string(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -295,7 +302,8 @@ export const VerifyBusinessParams = zod.object({
 })
 
 export const VerifyBusinessBody = zod.object({
-  "isVerified": zod.boolean()
+  "isVerified": zod.boolean(),
+  "approvalStatus": zod.enum(['pending', 'approved', 'rejected']).optional()
 })
 
 export const VerifyBusinessResponse = zod.object({
@@ -312,6 +320,7 @@ export const VerifyBusinessResponse = zod.object({
   "isFeatured": zod.boolean(),
   "featuredType": zod.enum(['homepage_top', 'homepage_section', 'search_boost']).nullish(),
   "featuredUntil": zod.coerce.date().nullish(),
+  "approvalStatus": zod.string(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -361,6 +370,7 @@ export const GetAdminBusinessesResponseItem = zod.object({
   "isFeatured": zod.boolean(),
   "featuredType": zod.enum(['homepage_top', 'homepage_section', 'search_boost']).nullish(),
   "featuredUntil": zod.coerce.date().nullish(),
+  "approvalStatus": zod.string(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })

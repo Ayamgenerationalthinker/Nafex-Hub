@@ -76,6 +76,7 @@ export interface Business {
     isFeatured: boolean;
     featuredType?: BusinessFeaturedType;
     featuredUntil?: string | null;
+    approvalStatus: string;
     createdAt: string;
     updatedAt: string;
 }
@@ -88,6 +89,7 @@ export interface CreateBusinessBody {
     /** @nullable */
     logo?: string | null;
     images?: string[];
+    kycDocuments?: string[];
 }
 export interface UpdateBusinessBody {
     name?: string;
@@ -99,8 +101,15 @@ export interface UpdateBusinessBody {
     logo?: string | null;
     images?: string[];
 }
+export type VerifyBusinessBodyApprovalStatus = typeof VerifyBusinessBodyApprovalStatus[keyof typeof VerifyBusinessBodyApprovalStatus];
+export declare const VerifyBusinessBodyApprovalStatus: {
+    readonly pending: "pending";
+    readonly approved: "approved";
+    readonly rejected: "rejected";
+};
 export interface VerifyBusinessBody {
     isVerified: boolean;
+    approvalStatus?: VerifyBusinessBodyApprovalStatus;
 }
 export interface CategoryCount {
     category: string;
