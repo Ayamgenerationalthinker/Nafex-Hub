@@ -710,9 +710,7 @@ export const UpdateProductBody = zod.object({
   "stock": zod.number().nullish(),
   "collectionId": zod.number().nullish(),
   "variants": zod.array(zod.object({
-  "attributes": zod.looseObject({
-
-}).optional(),
+  "attributes": zod.record(zod.string(), zod.unknown()).optional(),
   "stock": zod.number().optional(),
   "price": zod.string().optional()
 })).optional()
@@ -842,9 +840,7 @@ export const CreateProductBody = zod.object({
   "stock": zod.number().nullish(),
   "collectionId": zod.number().nullish(),
   "variants": zod.array(zod.object({
-  "attributes": zod.looseObject({
-
-}).optional(),
+  "attributes": zod.record(zod.string(), zod.unknown()).optional(),
   "stock": zod.number().optional(),
   "price": zod.string().optional()
 })).optional()
@@ -870,9 +866,7 @@ export const CreateProductResponse = zod.object({
  * @summary Get current user's favorites
  */
 export const GetFavoritesResponse = zod.object({
-  "businesses": zod.array(zod.looseObject({
-
-})),
+  "businesses": zod.array(zod.record(zod.string(), zod.unknown())),
   "products": zod.array(zod.object({
   "id": zod.number(),
   "businessId": zod.number(),
@@ -1521,12 +1515,8 @@ export const VerifyPaystackPaymentBody = zod.object({
 })
 
 export const VerifyPaystackPaymentResponse = zod.object({
-  "order": zod.looseObject({
-
-}),
-  "transaction": zod.looseObject({
-
-})
+  "order": zod.record(zod.string(), zod.unknown()),
+  "transaction": zod.record(zod.string(), zod.unknown())
 })
 
 

@@ -2286,6 +2286,7 @@ components:
             properties:
               attributes:
                 type: object
+                additionalProperties: true
               stock:
                 type: integer
               price:
@@ -2351,6 +2352,7 @@ components:
           type: array
           items:
             type: object
+            additionalProperties: true
         products:
           type: array
           items:
@@ -2723,8 +2725,10 @@ components:
       properties:
         order:
           type: object
+          additionalProperties: true
         transaction:
           type: object
+          additionalProperties: true
       required: [order, transaction]
 
     Dispute:
