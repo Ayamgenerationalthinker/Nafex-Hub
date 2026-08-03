@@ -60,6 +60,7 @@ import {
   Pencil,
   Trash2,
   ChevronDown,
+  ChevronLeft,
   ChevronUp,
   Loader2,
   Users,
@@ -583,6 +584,16 @@ export default function SellerDashboard() {
 
         {/* ── Main Content ── */}
         <div className="flex-1 min-w-0 w-full pb-16">
+        
+        {/* ── Back to More Navigation ── */}
+        {["analytics", "clients", "collections", "feedback", "disputes", "vouchers", "pricing", "boost", "settings"].includes(activeTab) && (
+          <div className="mb-4">
+            <Button variant="ghost" size="sm" onClick={() => setActiveTab("more")} className="text-muted-foreground hover:text-foreground -ml-3">
+              <ChevronLeft className="w-4 h-4 mr-1" />
+              Back to More Features
+            </Button>
+          </div>
+        )}
         {/* ── Overview Tab ── */}
         {activeTab === "overview" && (
           <div className="space-y-6">
