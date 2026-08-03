@@ -43,13 +43,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
     ? [{ href: "/admin/dashboard", label: "Admin Panel", icon: <Shield className="w-4 h-4" />, testId: "mobile-nav-admin" }]
     : isBusinessOwner
     ? [
-        { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
-        { href: "/my-shop", label: "My Shop", icon: <Store className="w-4 h-4" /> },
+        { href: "/dashboard?tab=overview", label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
+        { href: "/dashboard?tab=inventory", label: "My Shop", icon: <Store className="w-4 h-4" /> },
         { href: "/trade/seller-import", label: "Nafex Trade Connect", icon: <Globe2 className="w-4 h-4" /> },
-        { href: "/inbox", label: "Inbox", icon: <MessageCircle className="w-4 h-4" /> },
+        { href: "/dashboard?tab=inbox", label: "Inbox", icon: <MessageCircle className="w-4 h-4" /> },
         { href: "/dashboard?tab=orders", label: "Orders", icon: <ShoppingBag className="w-4 h-4" /> },
         { href: "/dashboard?tab=earnings", label: "Payments", icon: <Wallet className="w-4 h-4" /> },
-        { href: "/seller/settings", label: "Settings", icon: <Settings className="w-4 h-4" /> },
+        { href: "/dashboard?tab=settings", label: "Settings", icon: <Settings className="w-4 h-4" /> },
         { href: "/support", label: "Support", icon: <Headphones className="w-4 h-4" /> },
       ]
     : user
@@ -69,10 +69,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
     ? [{ href: "/admin/dashboard", label: "Admin Panel" }]
     : isBusinessOwner
     ? [
-        { href: "/dashboard", label: "Dashboard" },
-        { href: "/my-shop", label: "My Shop" },
+        { href: "/dashboard?tab=overview", label: "Dashboard" },
+        { href: "/dashboard?tab=inventory", label: "My Shop" },
         { href: "/dashboard?tab=orders", label: "Orders" },
-        { href: "/inbox", label: "Inbox" },
+        { href: "/dashboard?tab=inbox", label: "Inbox" },
         { href: "/dashboard?tab=earnings", label: "Payments" },
       ]
     : user
@@ -90,7 +90,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const sellerMoreLinks = isBusinessOwner
     ? [
         { href: "/trade/seller-import", label: "Trade Connect", icon: <Globe2 className="w-4 h-4 text-muted-foreground" /> },
-        { href: "/seller/settings", label: "Settings", icon: <Settings className="w-4 h-4 text-muted-foreground" /> },
+        { href: "/dashboard?tab=settings", label: "Settings", icon: <Settings className="w-4 h-4 text-muted-foreground" /> },
         { href: "/support", label: "Support", icon: <Headphones className="w-4 h-4 text-muted-foreground" /> },
       ]
     : [];
@@ -283,12 +283,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                       </div>
                       <DropdownMenuItem asChild>
-                        <Link href="/my-shop" className="flex items-center gap-2 cursor-pointer">
+                        <Link href="/dashboard?tab=inventory" className="flex items-center gap-2 cursor-pointer">
                           <Store className="w-4 h-4 text-muted-foreground" /> My Shop
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href="/seller/performance" className="flex items-center gap-2 cursor-pointer">
+                        <Link href="/dashboard?tab=analytics" className="flex items-center gap-2 cursor-pointer">
                           <TrendingUp className="w-4 h-4 text-muted-foreground" /> Performance
                         </Link>
                       </DropdownMenuItem>
@@ -298,7 +298,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href="/seller/settings" className="flex items-center gap-2 cursor-pointer">
+                        <Link href="/dashboard?tab=settings" className="flex items-center gap-2 cursor-pointer">
                           <Settings className="w-4 h-4 text-muted-foreground" /> Settings
                         </Link>
                       </DropdownMenuItem>

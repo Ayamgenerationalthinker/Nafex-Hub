@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import BuyerDashboard from "./buyer-dashboard";
 import Inbox from "./inbox";
@@ -109,10 +109,23 @@ const PAYMENT_BADGE: Record<string, { label: string; color: string }> = {
 
 export default function SellerDashboard() {
   const [, setLocation] = useLocation();
+  const searchString = useSearch();
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState(() => {
+    const params = new URLSearchParams(searchString);
+    return params.get("tab") || "overview";
+  });
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchString);
+    const tabParam = params.get("tab");
+    if (tabParam && tabParam !== activeTab) {
+      setActiveTab(tabParam);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [searchString]);
 
   // ── All hooks must be called before any early return ──
   const { data: stats, isLoading: statsLoading } = useGetDashboardStats();

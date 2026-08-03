@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { useLocation, Link } from "wouter";
+import { useLocation, Link, useSearch } from "wouter";
 import { useGetUserOrders, useGetDisputes, getGetUserOrdersQueryKey, getGetDisputesQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -50,9 +50,10 @@ interface AddressBookItem {
 export default function BuyerDashboard() {
   const { user, logout } = useAuth();
   const [, setLocation] = useLocation();
+  const searchString = useSearch();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState(() => {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(searchString);
     return params.get("tab") || "overview";
   });
 
