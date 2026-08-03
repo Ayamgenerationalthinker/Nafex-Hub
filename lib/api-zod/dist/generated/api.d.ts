@@ -1842,9 +1842,32 @@ export declare const ListProductsResponseItem: zod.ZodObject<{
     collectionId: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
     name: zod.ZodString;
     description: zod.ZodString;
+    category: zod.ZodOptional<zod.ZodString>;
+    brand: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    model: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    skuPrefix: zod.ZodOptional<zod.ZodString>;
     price: zod.ZodString;
     images: zod.ZodArray<zod.ZodString, "many">;
     stock: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
+    variants: zod.ZodOptional<zod.ZodArray<zod.ZodObject<{
+        id: zod.ZodOptional<zod.ZodNumber>;
+        sku: zod.ZodOptional<zod.ZodString>;
+        attributes: zod.ZodOptional<zod.ZodRecord<zod.ZodString, zod.ZodUnknown>>;
+        stock: zod.ZodOptional<zod.ZodNumber>;
+        price: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    }, "strip", zod.ZodTypeAny, {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }, {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }>, "many">>;
     createdAt: zod.ZodDate;
     updatedAt: zod.ZodDate;
     businessName: zod.ZodOptional<zod.ZodString>;
@@ -1858,10 +1881,21 @@ export declare const ListProductsResponseItem: zod.ZodObject<{
     updatedAt: Date;
     businessId: number;
     price: string;
+    category?: string | undefined;
     businessName?: string | undefined;
     businessLogo?: string | undefined;
     collectionId?: number | null | undefined;
+    brand?: string | null | undefined;
+    model?: string | null | undefined;
+    skuPrefix?: string | undefined;
     stock?: number | null | undefined;
+    variants?: {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }[] | undefined;
 }, {
     name: string;
     id: number;
@@ -1871,10 +1905,21 @@ export declare const ListProductsResponseItem: zod.ZodObject<{
     updatedAt: Date;
     businessId: number;
     price: string;
+    category?: string | undefined;
     businessName?: string | undefined;
     businessLogo?: string | undefined;
     collectionId?: number | null | undefined;
+    brand?: string | null | undefined;
+    model?: string | null | undefined;
+    skuPrefix?: string | undefined;
     stock?: number | null | undefined;
+    variants?: {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }[] | undefined;
 }>;
 export declare const ListProductsResponse: zod.ZodArray<zod.ZodObject<{
     id: zod.ZodNumber;
@@ -1882,9 +1927,32 @@ export declare const ListProductsResponse: zod.ZodArray<zod.ZodObject<{
     collectionId: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
     name: zod.ZodString;
     description: zod.ZodString;
+    category: zod.ZodOptional<zod.ZodString>;
+    brand: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    model: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    skuPrefix: zod.ZodOptional<zod.ZodString>;
     price: zod.ZodString;
     images: zod.ZodArray<zod.ZodString, "many">;
     stock: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
+    variants: zod.ZodOptional<zod.ZodArray<zod.ZodObject<{
+        id: zod.ZodOptional<zod.ZodNumber>;
+        sku: zod.ZodOptional<zod.ZodString>;
+        attributes: zod.ZodOptional<zod.ZodRecord<zod.ZodString, zod.ZodUnknown>>;
+        stock: zod.ZodOptional<zod.ZodNumber>;
+        price: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    }, "strip", zod.ZodTypeAny, {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }, {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }>, "many">>;
     createdAt: zod.ZodDate;
     updatedAt: zod.ZodDate;
     businessName: zod.ZodOptional<zod.ZodString>;
@@ -1898,10 +1966,21 @@ export declare const ListProductsResponse: zod.ZodArray<zod.ZodObject<{
     updatedAt: Date;
     businessId: number;
     price: string;
+    category?: string | undefined;
     businessName?: string | undefined;
     businessLogo?: string | undefined;
     collectionId?: number | null | undefined;
+    brand?: string | null | undefined;
+    model?: string | null | undefined;
+    skuPrefix?: string | undefined;
     stock?: number | null | undefined;
+    variants?: {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }[] | undefined;
 }, {
     name: string;
     id: number;
@@ -1911,10 +1990,21 @@ export declare const ListProductsResponse: zod.ZodArray<zod.ZodObject<{
     updatedAt: Date;
     businessId: number;
     price: string;
+    category?: string | undefined;
     businessName?: string | undefined;
     businessLogo?: string | undefined;
     collectionId?: number | null | undefined;
+    brand?: string | null | undefined;
+    model?: string | null | undefined;
+    skuPrefix?: string | undefined;
     stock?: number | null | undefined;
+    variants?: {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }[] | undefined;
 }>, "many">;
 /**
  * @summary Get product by ID
@@ -1932,9 +2022,32 @@ export declare const GetProductResponse: zod.ZodObject<{
     collectionId: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
     name: zod.ZodString;
     description: zod.ZodString;
+    category: zod.ZodOptional<zod.ZodString>;
+    brand: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    model: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    skuPrefix: zod.ZodOptional<zod.ZodString>;
     price: zod.ZodString;
     images: zod.ZodArray<zod.ZodString, "many">;
     stock: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
+    variants: zod.ZodOptional<zod.ZodArray<zod.ZodObject<{
+        id: zod.ZodOptional<zod.ZodNumber>;
+        sku: zod.ZodOptional<zod.ZodString>;
+        attributes: zod.ZodOptional<zod.ZodRecord<zod.ZodString, zod.ZodUnknown>>;
+        stock: zod.ZodOptional<zod.ZodNumber>;
+        price: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    }, "strip", zod.ZodTypeAny, {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }, {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }>, "many">>;
     createdAt: zod.ZodDate;
     updatedAt: zod.ZodDate;
     businessName: zod.ZodOptional<zod.ZodString>;
@@ -1948,10 +2061,21 @@ export declare const GetProductResponse: zod.ZodObject<{
     updatedAt: Date;
     businessId: number;
     price: string;
+    category?: string | undefined;
     businessName?: string | undefined;
     businessLogo?: string | undefined;
     collectionId?: number | null | undefined;
+    brand?: string | null | undefined;
+    model?: string | null | undefined;
+    skuPrefix?: string | undefined;
     stock?: number | null | undefined;
+    variants?: {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }[] | undefined;
 }, {
     name: string;
     id: number;
@@ -1961,10 +2085,21 @@ export declare const GetProductResponse: zod.ZodObject<{
     updatedAt: Date;
     businessId: number;
     price: string;
+    category?: string | undefined;
     businessName?: string | undefined;
     businessLogo?: string | undefined;
     collectionId?: number | null | undefined;
+    brand?: string | null | undefined;
+    model?: string | null | undefined;
+    skuPrefix?: string | undefined;
     stock?: number | null | undefined;
+    variants?: {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }[] | undefined;
 }>;
 /**
  * @summary Update a product
@@ -2006,9 +2141,9 @@ export declare const UpdateProductBody: zod.ZodObject<{
     description?: string | undefined;
     images?: string[] | undefined;
     collectionId?: number | null | undefined;
-    stock?: number | null | undefined;
     brand?: string | undefined;
     model?: string | undefined;
+    stock?: number | null | undefined;
     variants?: {
         price?: string | undefined;
         stock?: number | undefined;
@@ -2021,9 +2156,9 @@ export declare const UpdateProductBody: zod.ZodObject<{
     description?: string | undefined;
     images?: string[] | undefined;
     collectionId?: number | null | undefined;
-    stock?: number | null | undefined;
     brand?: string | undefined;
     model?: string | undefined;
+    stock?: number | null | undefined;
     variants?: {
         price?: string | undefined;
         stock?: number | undefined;
@@ -2036,9 +2171,32 @@ export declare const UpdateProductResponse: zod.ZodObject<{
     collectionId: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
     name: zod.ZodString;
     description: zod.ZodString;
+    category: zod.ZodOptional<zod.ZodString>;
+    brand: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    model: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    skuPrefix: zod.ZodOptional<zod.ZodString>;
     price: zod.ZodString;
     images: zod.ZodArray<zod.ZodString, "many">;
     stock: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
+    variants: zod.ZodOptional<zod.ZodArray<zod.ZodObject<{
+        id: zod.ZodOptional<zod.ZodNumber>;
+        sku: zod.ZodOptional<zod.ZodString>;
+        attributes: zod.ZodOptional<zod.ZodRecord<zod.ZodString, zod.ZodUnknown>>;
+        stock: zod.ZodOptional<zod.ZodNumber>;
+        price: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    }, "strip", zod.ZodTypeAny, {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }, {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }>, "many">>;
     createdAt: zod.ZodDate;
     updatedAt: zod.ZodDate;
     businessName: zod.ZodOptional<zod.ZodString>;
@@ -2052,10 +2210,21 @@ export declare const UpdateProductResponse: zod.ZodObject<{
     updatedAt: Date;
     businessId: number;
     price: string;
+    category?: string | undefined;
     businessName?: string | undefined;
     businessLogo?: string | undefined;
     collectionId?: number | null | undefined;
+    brand?: string | null | undefined;
+    model?: string | null | undefined;
+    skuPrefix?: string | undefined;
     stock?: number | null | undefined;
+    variants?: {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }[] | undefined;
 }, {
     name: string;
     id: number;
@@ -2065,10 +2234,21 @@ export declare const UpdateProductResponse: zod.ZodObject<{
     updatedAt: Date;
     businessId: number;
     price: string;
+    category?: string | undefined;
     businessName?: string | undefined;
     businessLogo?: string | undefined;
     collectionId?: number | null | undefined;
+    brand?: string | null | undefined;
+    model?: string | null | undefined;
+    skuPrefix?: string | undefined;
     stock?: number | null | undefined;
+    variants?: {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }[] | undefined;
 }>;
 /**
  * @summary Delete a product
@@ -2110,9 +2290,32 @@ export declare const UpdateProductCollectionResponse: zod.ZodObject<{
     collectionId: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
     name: zod.ZodString;
     description: zod.ZodString;
+    category: zod.ZodOptional<zod.ZodString>;
+    brand: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    model: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    skuPrefix: zod.ZodOptional<zod.ZodString>;
     price: zod.ZodString;
     images: zod.ZodArray<zod.ZodString, "many">;
     stock: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
+    variants: zod.ZodOptional<zod.ZodArray<zod.ZodObject<{
+        id: zod.ZodOptional<zod.ZodNumber>;
+        sku: zod.ZodOptional<zod.ZodString>;
+        attributes: zod.ZodOptional<zod.ZodRecord<zod.ZodString, zod.ZodUnknown>>;
+        stock: zod.ZodOptional<zod.ZodNumber>;
+        price: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    }, "strip", zod.ZodTypeAny, {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }, {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }>, "many">>;
     createdAt: zod.ZodDate;
     updatedAt: zod.ZodDate;
     businessName: zod.ZodOptional<zod.ZodString>;
@@ -2126,10 +2329,21 @@ export declare const UpdateProductCollectionResponse: zod.ZodObject<{
     updatedAt: Date;
     businessId: number;
     price: string;
+    category?: string | undefined;
     businessName?: string | undefined;
     businessLogo?: string | undefined;
     collectionId?: number | null | undefined;
+    brand?: string | null | undefined;
+    model?: string | null | undefined;
+    skuPrefix?: string | undefined;
     stock?: number | null | undefined;
+    variants?: {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }[] | undefined;
 }, {
     name: string;
     id: number;
@@ -2139,10 +2353,21 @@ export declare const UpdateProductCollectionResponse: zod.ZodObject<{
     updatedAt: Date;
     businessId: number;
     price: string;
+    category?: string | undefined;
     businessName?: string | undefined;
     businessLogo?: string | undefined;
     collectionId?: number | null | undefined;
+    brand?: string | null | undefined;
+    model?: string | null | undefined;
+    skuPrefix?: string | undefined;
     stock?: number | null | undefined;
+    variants?: {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }[] | undefined;
 }>;
 /**
  * @summary Update stock level for a product
@@ -2167,9 +2392,32 @@ export declare const UpdateProductStockResponse: zod.ZodObject<{
     collectionId: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
     name: zod.ZodString;
     description: zod.ZodString;
+    category: zod.ZodOptional<zod.ZodString>;
+    brand: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    model: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    skuPrefix: zod.ZodOptional<zod.ZodString>;
     price: zod.ZodString;
     images: zod.ZodArray<zod.ZodString, "many">;
     stock: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
+    variants: zod.ZodOptional<zod.ZodArray<zod.ZodObject<{
+        id: zod.ZodOptional<zod.ZodNumber>;
+        sku: zod.ZodOptional<zod.ZodString>;
+        attributes: zod.ZodOptional<zod.ZodRecord<zod.ZodString, zod.ZodUnknown>>;
+        stock: zod.ZodOptional<zod.ZodNumber>;
+        price: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    }, "strip", zod.ZodTypeAny, {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }, {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }>, "many">>;
     createdAt: zod.ZodDate;
     updatedAt: zod.ZodDate;
     businessName: zod.ZodOptional<zod.ZodString>;
@@ -2183,10 +2431,21 @@ export declare const UpdateProductStockResponse: zod.ZodObject<{
     updatedAt: Date;
     businessId: number;
     price: string;
+    category?: string | undefined;
     businessName?: string | undefined;
     businessLogo?: string | undefined;
     collectionId?: number | null | undefined;
+    brand?: string | null | undefined;
+    model?: string | null | undefined;
+    skuPrefix?: string | undefined;
     stock?: number | null | undefined;
+    variants?: {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }[] | undefined;
 }, {
     name: string;
     id: number;
@@ -2196,10 +2455,21 @@ export declare const UpdateProductStockResponse: zod.ZodObject<{
     updatedAt: Date;
     businessId: number;
     price: string;
+    category?: string | undefined;
     businessName?: string | undefined;
     businessLogo?: string | undefined;
     collectionId?: number | null | undefined;
+    brand?: string | null | undefined;
+    model?: string | null | undefined;
+    skuPrefix?: string | undefined;
     stock?: number | null | undefined;
+    variants?: {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }[] | undefined;
 }>;
 /**
  * @summary Get products for a business
@@ -2217,9 +2487,32 @@ export declare const GetBusinessProductsResponseItem: zod.ZodObject<{
     collectionId: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
     name: zod.ZodString;
     description: zod.ZodString;
+    category: zod.ZodOptional<zod.ZodString>;
+    brand: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    model: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    skuPrefix: zod.ZodOptional<zod.ZodString>;
     price: zod.ZodString;
     images: zod.ZodArray<zod.ZodString, "many">;
     stock: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
+    variants: zod.ZodOptional<zod.ZodArray<zod.ZodObject<{
+        id: zod.ZodOptional<zod.ZodNumber>;
+        sku: zod.ZodOptional<zod.ZodString>;
+        attributes: zod.ZodOptional<zod.ZodRecord<zod.ZodString, zod.ZodUnknown>>;
+        stock: zod.ZodOptional<zod.ZodNumber>;
+        price: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    }, "strip", zod.ZodTypeAny, {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }, {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }>, "many">>;
     createdAt: zod.ZodDate;
     updatedAt: zod.ZodDate;
     businessName: zod.ZodOptional<zod.ZodString>;
@@ -2233,10 +2526,21 @@ export declare const GetBusinessProductsResponseItem: zod.ZodObject<{
     updatedAt: Date;
     businessId: number;
     price: string;
+    category?: string | undefined;
     businessName?: string | undefined;
     businessLogo?: string | undefined;
     collectionId?: number | null | undefined;
+    brand?: string | null | undefined;
+    model?: string | null | undefined;
+    skuPrefix?: string | undefined;
     stock?: number | null | undefined;
+    variants?: {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }[] | undefined;
 }, {
     name: string;
     id: number;
@@ -2246,10 +2550,21 @@ export declare const GetBusinessProductsResponseItem: zod.ZodObject<{
     updatedAt: Date;
     businessId: number;
     price: string;
+    category?: string | undefined;
     businessName?: string | undefined;
     businessLogo?: string | undefined;
     collectionId?: number | null | undefined;
+    brand?: string | null | undefined;
+    model?: string | null | undefined;
+    skuPrefix?: string | undefined;
     stock?: number | null | undefined;
+    variants?: {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }[] | undefined;
 }>;
 export declare const GetBusinessProductsResponse: zod.ZodArray<zod.ZodObject<{
     id: zod.ZodNumber;
@@ -2257,9 +2572,32 @@ export declare const GetBusinessProductsResponse: zod.ZodArray<zod.ZodObject<{
     collectionId: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
     name: zod.ZodString;
     description: zod.ZodString;
+    category: zod.ZodOptional<zod.ZodString>;
+    brand: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    model: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    skuPrefix: zod.ZodOptional<zod.ZodString>;
     price: zod.ZodString;
     images: zod.ZodArray<zod.ZodString, "many">;
     stock: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
+    variants: zod.ZodOptional<zod.ZodArray<zod.ZodObject<{
+        id: zod.ZodOptional<zod.ZodNumber>;
+        sku: zod.ZodOptional<zod.ZodString>;
+        attributes: zod.ZodOptional<zod.ZodRecord<zod.ZodString, zod.ZodUnknown>>;
+        stock: zod.ZodOptional<zod.ZodNumber>;
+        price: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    }, "strip", zod.ZodTypeAny, {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }, {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }>, "many">>;
     createdAt: zod.ZodDate;
     updatedAt: zod.ZodDate;
     businessName: zod.ZodOptional<zod.ZodString>;
@@ -2273,10 +2611,21 @@ export declare const GetBusinessProductsResponse: zod.ZodArray<zod.ZodObject<{
     updatedAt: Date;
     businessId: number;
     price: string;
+    category?: string | undefined;
     businessName?: string | undefined;
     businessLogo?: string | undefined;
     collectionId?: number | null | undefined;
+    brand?: string | null | undefined;
+    model?: string | null | undefined;
+    skuPrefix?: string | undefined;
     stock?: number | null | undefined;
+    variants?: {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }[] | undefined;
 }, {
     name: string;
     id: number;
@@ -2286,10 +2635,21 @@ export declare const GetBusinessProductsResponse: zod.ZodArray<zod.ZodObject<{
     updatedAt: Date;
     businessId: number;
     price: string;
+    category?: string | undefined;
     businessName?: string | undefined;
     businessLogo?: string | undefined;
     collectionId?: number | null | undefined;
+    brand?: string | null | undefined;
+    model?: string | null | undefined;
+    skuPrefix?: string | undefined;
     stock?: number | null | undefined;
+    variants?: {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }[] | undefined;
 }>, "many">;
 /**
  * @summary Create a product for a business
@@ -2331,9 +2691,9 @@ export declare const CreateProductBody: zod.ZodObject<{
     description?: string | undefined;
     images?: string[] | undefined;
     collectionId?: number | null | undefined;
-    stock?: number | null | undefined;
     brand?: string | undefined;
     model?: string | undefined;
+    stock?: number | null | undefined;
     variants?: {
         price?: string | undefined;
         stock?: number | undefined;
@@ -2346,9 +2706,9 @@ export declare const CreateProductBody: zod.ZodObject<{
     description?: string | undefined;
     images?: string[] | undefined;
     collectionId?: number | null | undefined;
-    stock?: number | null | undefined;
     brand?: string | undefined;
     model?: string | undefined;
+    stock?: number | null | undefined;
     variants?: {
         price?: string | undefined;
         stock?: number | undefined;
@@ -2361,9 +2721,32 @@ export declare const CreateProductResponse: zod.ZodObject<{
     collectionId: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
     name: zod.ZodString;
     description: zod.ZodString;
+    category: zod.ZodOptional<zod.ZodString>;
+    brand: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    model: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    skuPrefix: zod.ZodOptional<zod.ZodString>;
     price: zod.ZodString;
     images: zod.ZodArray<zod.ZodString, "many">;
     stock: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
+    variants: zod.ZodOptional<zod.ZodArray<zod.ZodObject<{
+        id: zod.ZodOptional<zod.ZodNumber>;
+        sku: zod.ZodOptional<zod.ZodString>;
+        attributes: zod.ZodOptional<zod.ZodRecord<zod.ZodString, zod.ZodUnknown>>;
+        stock: zod.ZodOptional<zod.ZodNumber>;
+        price: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+    }, "strip", zod.ZodTypeAny, {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }, {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }>, "many">>;
     createdAt: zod.ZodDate;
     updatedAt: zod.ZodDate;
     businessName: zod.ZodOptional<zod.ZodString>;
@@ -2377,10 +2760,21 @@ export declare const CreateProductResponse: zod.ZodObject<{
     updatedAt: Date;
     businessId: number;
     price: string;
+    category?: string | undefined;
     businessName?: string | undefined;
     businessLogo?: string | undefined;
     collectionId?: number | null | undefined;
+    brand?: string | null | undefined;
+    model?: string | null | undefined;
+    skuPrefix?: string | undefined;
     stock?: number | null | undefined;
+    variants?: {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }[] | undefined;
 }, {
     name: string;
     id: number;
@@ -2390,10 +2784,21 @@ export declare const CreateProductResponse: zod.ZodObject<{
     updatedAt: Date;
     businessId: number;
     price: string;
+    category?: string | undefined;
     businessName?: string | undefined;
     businessLogo?: string | undefined;
     collectionId?: number | null | undefined;
+    brand?: string | null | undefined;
+    model?: string | null | undefined;
+    skuPrefix?: string | undefined;
     stock?: number | null | undefined;
+    variants?: {
+        id?: number | undefined;
+        price?: string | null | undefined;
+        stock?: number | undefined;
+        sku?: string | undefined;
+        attributes?: Record<string, unknown> | undefined;
+    }[] | undefined;
 }>;
 /**
  * @summary Get current user's favorites
@@ -2406,9 +2811,32 @@ export declare const GetFavoritesResponse: zod.ZodObject<{
         collectionId: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
         name: zod.ZodString;
         description: zod.ZodString;
+        category: zod.ZodOptional<zod.ZodString>;
+        brand: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+        model: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+        skuPrefix: zod.ZodOptional<zod.ZodString>;
         price: zod.ZodString;
         images: zod.ZodArray<zod.ZodString, "many">;
         stock: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
+        variants: zod.ZodOptional<zod.ZodArray<zod.ZodObject<{
+            id: zod.ZodOptional<zod.ZodNumber>;
+            sku: zod.ZodOptional<zod.ZodString>;
+            attributes: zod.ZodOptional<zod.ZodRecord<zod.ZodString, zod.ZodUnknown>>;
+            stock: zod.ZodOptional<zod.ZodNumber>;
+            price: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+        }, "strip", zod.ZodTypeAny, {
+            id?: number | undefined;
+            price?: string | null | undefined;
+            stock?: number | undefined;
+            sku?: string | undefined;
+            attributes?: Record<string, unknown> | undefined;
+        }, {
+            id?: number | undefined;
+            price?: string | null | undefined;
+            stock?: number | undefined;
+            sku?: string | undefined;
+            attributes?: Record<string, unknown> | undefined;
+        }>, "many">>;
         createdAt: zod.ZodDate;
         updatedAt: zod.ZodDate;
         businessName: zod.ZodOptional<zod.ZodString>;
@@ -2422,10 +2850,21 @@ export declare const GetFavoritesResponse: zod.ZodObject<{
         updatedAt: Date;
         businessId: number;
         price: string;
+        category?: string | undefined;
         businessName?: string | undefined;
         businessLogo?: string | undefined;
         collectionId?: number | null | undefined;
+        brand?: string | null | undefined;
+        model?: string | null | undefined;
+        skuPrefix?: string | undefined;
         stock?: number | null | undefined;
+        variants?: {
+            id?: number | undefined;
+            price?: string | null | undefined;
+            stock?: number | undefined;
+            sku?: string | undefined;
+            attributes?: Record<string, unknown> | undefined;
+        }[] | undefined;
     }, {
         name: string;
         id: number;
@@ -2435,10 +2874,21 @@ export declare const GetFavoritesResponse: zod.ZodObject<{
         updatedAt: Date;
         businessId: number;
         price: string;
+        category?: string | undefined;
         businessName?: string | undefined;
         businessLogo?: string | undefined;
         collectionId?: number | null | undefined;
+        brand?: string | null | undefined;
+        model?: string | null | undefined;
+        skuPrefix?: string | undefined;
         stock?: number | null | undefined;
+        variants?: {
+            id?: number | undefined;
+            price?: string | null | undefined;
+            stock?: number | undefined;
+            sku?: string | undefined;
+            attributes?: Record<string, unknown> | undefined;
+        }[] | undefined;
     }>, "many">;
 }, "strip", zod.ZodTypeAny, {
     businesses: Record<string, unknown>[];
@@ -2451,10 +2901,21 @@ export declare const GetFavoritesResponse: zod.ZodObject<{
         updatedAt: Date;
         businessId: number;
         price: string;
+        category?: string | undefined;
         businessName?: string | undefined;
         businessLogo?: string | undefined;
         collectionId?: number | null | undefined;
+        brand?: string | null | undefined;
+        model?: string | null | undefined;
+        skuPrefix?: string | undefined;
         stock?: number | null | undefined;
+        variants?: {
+            id?: number | undefined;
+            price?: string | null | undefined;
+            stock?: number | undefined;
+            sku?: string | undefined;
+            attributes?: Record<string, unknown> | undefined;
+        }[] | undefined;
     }[];
 }, {
     businesses: Record<string, unknown>[];
@@ -2467,10 +2928,21 @@ export declare const GetFavoritesResponse: zod.ZodObject<{
         updatedAt: Date;
         businessId: number;
         price: string;
+        category?: string | undefined;
         businessName?: string | undefined;
         businessLogo?: string | undefined;
         collectionId?: number | null | undefined;
+        brand?: string | null | undefined;
+        model?: string | null | undefined;
+        skuPrefix?: string | undefined;
         stock?: number | null | undefined;
+        variants?: {
+            id?: number | undefined;
+            price?: string | null | undefined;
+            stock?: number | undefined;
+            sku?: string | undefined;
+            attributes?: Record<string, unknown> | undefined;
+        }[] | undefined;
     }[];
 }>;
 /**
@@ -2630,9 +3102,32 @@ export declare const GetCollectionsResponseItem: zod.ZodIntersection<zod.ZodObje
         collectionId: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
         name: zod.ZodString;
         description: zod.ZodString;
+        category: zod.ZodOptional<zod.ZodString>;
+        brand: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+        model: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+        skuPrefix: zod.ZodOptional<zod.ZodString>;
         price: zod.ZodString;
         images: zod.ZodArray<zod.ZodString, "many">;
         stock: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
+        variants: zod.ZodOptional<zod.ZodArray<zod.ZodObject<{
+            id: zod.ZodOptional<zod.ZodNumber>;
+            sku: zod.ZodOptional<zod.ZodString>;
+            attributes: zod.ZodOptional<zod.ZodRecord<zod.ZodString, zod.ZodUnknown>>;
+            stock: zod.ZodOptional<zod.ZodNumber>;
+            price: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+        }, "strip", zod.ZodTypeAny, {
+            id?: number | undefined;
+            price?: string | null | undefined;
+            stock?: number | undefined;
+            sku?: string | undefined;
+            attributes?: Record<string, unknown> | undefined;
+        }, {
+            id?: number | undefined;
+            price?: string | null | undefined;
+            stock?: number | undefined;
+            sku?: string | undefined;
+            attributes?: Record<string, unknown> | undefined;
+        }>, "many">>;
         createdAt: zod.ZodDate;
         updatedAt: zod.ZodDate;
         businessName: zod.ZodOptional<zod.ZodString>;
@@ -2646,10 +3141,21 @@ export declare const GetCollectionsResponseItem: zod.ZodIntersection<zod.ZodObje
         updatedAt: Date;
         businessId: number;
         price: string;
+        category?: string | undefined;
         businessName?: string | undefined;
         businessLogo?: string | undefined;
         collectionId?: number | null | undefined;
+        brand?: string | null | undefined;
+        model?: string | null | undefined;
+        skuPrefix?: string | undefined;
         stock?: number | null | undefined;
+        variants?: {
+            id?: number | undefined;
+            price?: string | null | undefined;
+            stock?: number | undefined;
+            sku?: string | undefined;
+            attributes?: Record<string, unknown> | undefined;
+        }[] | undefined;
     }, {
         name: string;
         id: number;
@@ -2659,10 +3165,21 @@ export declare const GetCollectionsResponseItem: zod.ZodIntersection<zod.ZodObje
         updatedAt: Date;
         businessId: number;
         price: string;
+        category?: string | undefined;
         businessName?: string | undefined;
         businessLogo?: string | undefined;
         collectionId?: number | null | undefined;
+        brand?: string | null | undefined;
+        model?: string | null | undefined;
+        skuPrefix?: string | undefined;
         stock?: number | null | undefined;
+        variants?: {
+            id?: number | undefined;
+            price?: string | null | undefined;
+            stock?: number | undefined;
+            sku?: string | undefined;
+            attributes?: Record<string, unknown> | undefined;
+        }[] | undefined;
     }>, "many">;
 }, "strip", zod.ZodTypeAny, {
     products: {
@@ -2674,10 +3191,21 @@ export declare const GetCollectionsResponseItem: zod.ZodIntersection<zod.ZodObje
         updatedAt: Date;
         businessId: number;
         price: string;
+        category?: string | undefined;
         businessName?: string | undefined;
         businessLogo?: string | undefined;
         collectionId?: number | null | undefined;
+        brand?: string | null | undefined;
+        model?: string | null | undefined;
+        skuPrefix?: string | undefined;
         stock?: number | null | undefined;
+        variants?: {
+            id?: number | undefined;
+            price?: string | null | undefined;
+            stock?: number | undefined;
+            sku?: string | undefined;
+            attributes?: Record<string, unknown> | undefined;
+        }[] | undefined;
     }[];
 }, {
     products: {
@@ -2689,10 +3217,21 @@ export declare const GetCollectionsResponseItem: zod.ZodIntersection<zod.ZodObje
         updatedAt: Date;
         businessId: number;
         price: string;
+        category?: string | undefined;
         businessName?: string | undefined;
         businessLogo?: string | undefined;
         collectionId?: number | null | undefined;
+        brand?: string | null | undefined;
+        model?: string | null | undefined;
+        skuPrefix?: string | undefined;
         stock?: number | null | undefined;
+        variants?: {
+            id?: number | undefined;
+            price?: string | null | undefined;
+            stock?: number | undefined;
+            sku?: string | undefined;
+            attributes?: Record<string, unknown> | undefined;
+        }[] | undefined;
     }[];
 }>>;
 export declare const GetCollectionsResponse: zod.ZodArray<zod.ZodIntersection<zod.ZodObject<{
@@ -2723,9 +3262,32 @@ export declare const GetCollectionsResponse: zod.ZodArray<zod.ZodIntersection<zo
         collectionId: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
         name: zod.ZodString;
         description: zod.ZodString;
+        category: zod.ZodOptional<zod.ZodString>;
+        brand: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+        model: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+        skuPrefix: zod.ZodOptional<zod.ZodString>;
         price: zod.ZodString;
         images: zod.ZodArray<zod.ZodString, "many">;
         stock: zod.ZodOptional<zod.ZodNullable<zod.ZodNumber>>;
+        variants: zod.ZodOptional<zod.ZodArray<zod.ZodObject<{
+            id: zod.ZodOptional<zod.ZodNumber>;
+            sku: zod.ZodOptional<zod.ZodString>;
+            attributes: zod.ZodOptional<zod.ZodRecord<zod.ZodString, zod.ZodUnknown>>;
+            stock: zod.ZodOptional<zod.ZodNumber>;
+            price: zod.ZodOptional<zod.ZodNullable<zod.ZodString>>;
+        }, "strip", zod.ZodTypeAny, {
+            id?: number | undefined;
+            price?: string | null | undefined;
+            stock?: number | undefined;
+            sku?: string | undefined;
+            attributes?: Record<string, unknown> | undefined;
+        }, {
+            id?: number | undefined;
+            price?: string | null | undefined;
+            stock?: number | undefined;
+            sku?: string | undefined;
+            attributes?: Record<string, unknown> | undefined;
+        }>, "many">>;
         createdAt: zod.ZodDate;
         updatedAt: zod.ZodDate;
         businessName: zod.ZodOptional<zod.ZodString>;
@@ -2739,10 +3301,21 @@ export declare const GetCollectionsResponse: zod.ZodArray<zod.ZodIntersection<zo
         updatedAt: Date;
         businessId: number;
         price: string;
+        category?: string | undefined;
         businessName?: string | undefined;
         businessLogo?: string | undefined;
         collectionId?: number | null | undefined;
+        brand?: string | null | undefined;
+        model?: string | null | undefined;
+        skuPrefix?: string | undefined;
         stock?: number | null | undefined;
+        variants?: {
+            id?: number | undefined;
+            price?: string | null | undefined;
+            stock?: number | undefined;
+            sku?: string | undefined;
+            attributes?: Record<string, unknown> | undefined;
+        }[] | undefined;
     }, {
         name: string;
         id: number;
@@ -2752,10 +3325,21 @@ export declare const GetCollectionsResponse: zod.ZodArray<zod.ZodIntersection<zo
         updatedAt: Date;
         businessId: number;
         price: string;
+        category?: string | undefined;
         businessName?: string | undefined;
         businessLogo?: string | undefined;
         collectionId?: number | null | undefined;
+        brand?: string | null | undefined;
+        model?: string | null | undefined;
+        skuPrefix?: string | undefined;
         stock?: number | null | undefined;
+        variants?: {
+            id?: number | undefined;
+            price?: string | null | undefined;
+            stock?: number | undefined;
+            sku?: string | undefined;
+            attributes?: Record<string, unknown> | undefined;
+        }[] | undefined;
     }>, "many">;
 }, "strip", zod.ZodTypeAny, {
     products: {
@@ -2767,10 +3351,21 @@ export declare const GetCollectionsResponse: zod.ZodArray<zod.ZodIntersection<zo
         updatedAt: Date;
         businessId: number;
         price: string;
+        category?: string | undefined;
         businessName?: string | undefined;
         businessLogo?: string | undefined;
         collectionId?: number | null | undefined;
+        brand?: string | null | undefined;
+        model?: string | null | undefined;
+        skuPrefix?: string | undefined;
         stock?: number | null | undefined;
+        variants?: {
+            id?: number | undefined;
+            price?: string | null | undefined;
+            stock?: number | undefined;
+            sku?: string | undefined;
+            attributes?: Record<string, unknown> | undefined;
+        }[] | undefined;
     }[];
 }, {
     products: {
@@ -2782,10 +3377,21 @@ export declare const GetCollectionsResponse: zod.ZodArray<zod.ZodIntersection<zo
         updatedAt: Date;
         businessId: number;
         price: string;
+        category?: string | undefined;
         businessName?: string | undefined;
         businessLogo?: string | undefined;
         collectionId?: number | null | undefined;
+        brand?: string | null | undefined;
+        model?: string | null | undefined;
+        skuPrefix?: string | undefined;
         stock?: number | null | undefined;
+        variants?: {
+            id?: number | undefined;
+            price?: string | null | undefined;
+            stock?: number | undefined;
+            sku?: string | undefined;
+            attributes?: Record<string, unknown> | undefined;
+        }[] | undefined;
     }[];
 }>>, "many">;
 /**

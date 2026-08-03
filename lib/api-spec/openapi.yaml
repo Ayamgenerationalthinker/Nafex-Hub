@@ -2225,6 +2225,16 @@ components:
           type: string
         description:
           type: string
+        category:
+          type: string
+        brand:
+          type: string
+          nullable: true
+        model:
+          type: string
+          nullable: true
+        skuPrefix:
+          type: string
         price:
           type: string
         images:
@@ -2234,6 +2244,23 @@ components:
         stock:
           type: integer
           nullable: true
+        variants:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              sku:
+                type: string
+              attributes:
+                type: object
+                additionalProperties: true
+              stock:
+                type: integer
+              price:
+                type: string
+                nullable: true
         createdAt:
           type: string
           format: date-time

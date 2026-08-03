@@ -245,15 +245,30 @@ export interface DashboardStats {
     averageRating: number;
     profileViews: number;
 }
+export type ProductVariantsItemAttributes = {
+    [key: string]: unknown;
+};
+export type ProductVariantsItem = {
+    id?: number;
+    sku?: string;
+    attributes?: ProductVariantsItemAttributes;
+    stock?: number;
+    price?: string | null;
+};
 export interface Product {
     id: number;
     businessId: number;
     collectionId?: number | null;
     name: string;
     description: string;
+    category?: string;
+    brand?: string | null;
+    model?: string | null;
+    skuPrefix?: string;
     price: string;
     images: string[];
     stock?: number | null;
+    variants?: ProductVariantsItem[];
     createdAt: string;
     updatedAt: string;
     businessName?: string;
