@@ -1180,6 +1180,11 @@ export default function SellerDashboard() {
                             <p className="text-sm font-medium text-foreground truncate">{product.name}</p>
                             <div className="flex items-center gap-2 mt-0.5">
                               <p className="text-xs text-muted-foreground">GHS {Number(product.price).toFixed(2)}</p>
+                              {product.skuPrefix && (
+                                <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded border">
+                                  SKU: {product.skuPrefix}
+                                </span>
+                              )}
                               <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold border ${
                                 product.id % 4 === 0
                                   ? "bg-red-50 text-red-600 border-red-200"

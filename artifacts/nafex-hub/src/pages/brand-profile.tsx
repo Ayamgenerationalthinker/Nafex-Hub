@@ -279,7 +279,7 @@ export default function BrandProfile() {
                 <div className="flex items-center gap-2">
                   <h1 className="text-xl md:text-2xl font-bold text-foreground">{business.name}</h1>
                   {business.isVerified && (
-                    <img src="/nafex-verified-badge.png" alt="Official Store" className="h-5 object-contain" title="Official Store" />
+                    <img src="/nafex-verify.png" alt="Verified Store" className="h-5 object-contain" title="Verified Store" />
                   )}
                 </div>
                 <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">

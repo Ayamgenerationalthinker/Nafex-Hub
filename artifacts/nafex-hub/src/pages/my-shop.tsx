@@ -7,6 +7,8 @@ import {
   useCreateProduct,
   useUpdateProduct,
   useDeleteProduct,
+  useGetBusiness,
+  getGetBusinessQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus, Pencil, Trash2, Package, Store, ExternalLink, ImageOff, Sparkles } from "lucide-react";
@@ -53,6 +55,10 @@ export default function MyShop() {
     businessId ?? 0,
     { query: { enabled: !!businessId, queryKey: getGetBusinessProductsQueryKey(businessId ?? 0) } },
   );
+
+  const { data: business } = useGetBusiness(businessId ?? 0, {
+    query: { enabled: !!businessId, queryKey: getGetBusinessQueryKey(businessId ?? 0) },
+  });
 
   const invalidate = () => {
     if (businessId) {
@@ -218,6 +224,9 @@ export default function MyShop() {
           <h1 className="font-serif text-3xl md:text-4xl font-bold text-foreground flex items-center gap-2">
             <Store className="w-7 h-7 text-primary" />
             My Shop
+            {business?.isVerified && (
+              <img src="/nafex-verify.png" alt="Verified Store" className="h-6 object-contain" title="Verified Store" />
+            )}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Add, edit and manage the products buyers see on your brand page.
@@ -322,7 +331,12 @@ export default function MyShop() {
                 </div>
                 <div className="p-4 space-y-1.5">
                   <h3 className="font-semibold text-foreground truncate">{p.name}</h3>
-                  <p className="text-primary font-bold">GHS {Number(p.price).toFixed(2)}</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-primary font-bold">GHS {Number(p.price).toFixed(2)}</p>
+                    <p className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded border">
+                      SKU: {p.skuPrefix}
+                    </p>
+                  </div>
                   <p
                     className={`text-xs font-medium ${
                       isOut ? "text-red-600" : isLow ? "text-amber-700" : "text-muted-foreground"
