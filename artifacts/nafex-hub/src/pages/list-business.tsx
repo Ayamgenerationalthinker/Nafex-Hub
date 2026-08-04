@@ -143,7 +143,15 @@ export default function ListBusiness() {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Failed to list business");
+        let errorMsg = "Failed to list business";
+        if (typeof data.error === "string") {
+          errorMsg = data.error;
+        } else if (data.error && data.error.message) {
+          errorMsg = data.error.message;
+        } else if (data.error) {
+          errorMsg = JSON.stringify(data.error);
+        }
+        throw new Error(errorMsg);
       }
 
       queryClient.invalidateQueries({ queryKey: getGetBusinessesQueryKey() });
