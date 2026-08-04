@@ -11,3 +11,4 @@ build
 .replit-artifact
 git_backup
 .pnpm-store
+*.tsbuildinfo
