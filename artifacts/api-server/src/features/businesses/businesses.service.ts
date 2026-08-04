@@ -44,6 +44,8 @@ export class BusinessesService {
       ...data,
       ownerId: userId,
       images: data.images ?? [],
+      kycDocuments: data.kycDocuments ?? [],
+      approvalStatus: "approved",
     });
 
     sendAdminEmail(
