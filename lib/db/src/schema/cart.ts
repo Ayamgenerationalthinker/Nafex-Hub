@@ -20,5 +20,5 @@ export const insertCartItemSchema = createInsertSchema(cartItemsTable).omit({
   createdAt: true,
   updatedAt: true,
 });
-export type InsertCartItem = z.infer<typeof insertCartItemSchema>;
+export type InsertCartItem = typeof cartItemsTable.$inferInsert;
 export type CartItemRow = typeof cartItemsTable.$inferSelect;
