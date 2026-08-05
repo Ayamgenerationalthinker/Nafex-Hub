@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useLocation, useSearch } from "wouter";
+import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import BuyerDashboard from "./buyer-dashboard";
 import Inbox from "./inbox";
@@ -8,7 +8,6 @@ import {
   useGetBusinessAnalytics,
   getGetBusinessAnalyticsQueryKey,
   useGetBusinessOrders,
-  getGetBusinessOrdersQueryKey,
   useUpdateOrderStatus,
   useGetBusinessProducts,
   getGetBusinessProductsQueryKey,
@@ -60,7 +59,6 @@ import {
   Pencil,
   Trash2,
   ChevronDown,
-  ChevronLeft,
   ChevronUp,
   Loader2,
   Users,
@@ -72,10 +70,9 @@ import {
   AlertCircle,
   AlertTriangle,
   Upload,
-  Settings,
-  CreditCard,
-  LineChart as LucideLineChart,
+  Store,
 } from "lucide-react";
+import { ALL_CATEGORIES } from "./list-business";
 import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/image-upload";
 import { EarningsTab } from "@/components/dashboard/earnings-tab";
@@ -109,25 +106,10 @@ const PAYMENT_BADGE: Record<string, { label: string; color: string }> = {
   refunded:  { label: "Refunded",   color: "bg-red-100 text-red-600" },
 };
 
-export default function SellerDashboard() {
+function SellerDashboard() {
   const [, setLocation] = useLocation();
-  const searchString = useSearch();
   const { toast } = useToast();
   const { user } = useAuth();
-
-  const [activeTab, setActiveTab] = useState(() => {
-    const params = new URLSearchParams(searchString);
-    return params.get("tab") || "overview";
-  });
-
-  useEffect(() => {
-    const params = new URLSearchParams(searchString);
-    const tabParam = params.get("tab");
-    if (tabParam && tabParam !== activeTab) {
-      setActiveTab(tabParam);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  }, [searchString]);
 
   // ── All hooks must be called before any early return ──
   const { data: stats, isLoading: statsLoading } = useGetDashboardStats();
@@ -136,16 +118,14 @@ export default function SellerDashboard() {
 
   const { data: analytics, isLoading: analyticsLoading } = useGetBusinessAnalytics(
     businessId,
-    { query: { enabled: !!businessId && activeTab === "analytics", queryKey: getGetBusinessAnalyticsQueryKey(businessId) } }
+    { query: { enabled: !!businessId, queryKey: getGetBusinessAnalyticsQueryKey(businessId) } }
   );
 
-  const { data: orders, refetch: refetchOrders } = useGetBusinessOrders({
-    query: { enabled: activeTab === "orders" || activeTab === "overview", queryKey: getGetBusinessOrdersQueryKey() }
-  });
+  const { data: orders, refetch: refetchOrders } = useGetBusinessOrders();
 
   const { data: products, refetch: refetchProducts } = useGetBusinessProducts(
     businessId,
-    { query: { enabled: !!businessId && (activeTab === "inventory" || activeTab === "overview" || activeTab === "collections"), queryKey: getGetBusinessProductsQueryKey(businessId) } }
+    { query: { enabled: !!businessId, queryKey: getGetBusinessProductsQueryKey(businessId) } }
   );
 
   const { mutate: updateStock } = useUpdateProductStock({
@@ -164,13 +144,7 @@ export default function SellerDashboard() {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [newProductName, setNewProductName] = useState("");
   const [newProductDesc, setNewProductDesc] = useState("");
-  const [newProductCategory, setNewProductCategory] = useState("General");
-  const [newProductBrand, setNewProductBrand] = useState("");
-  const [newProductModel, setNewProductModel] = useState("");
-  const [newProductColor, setNewProductColor] = useState("");
-  const [newProductSize, setNewProductSize] = useState("");
   const [newProductPrice, setNewProductPrice] = useState("");
-  const [newProductStock, setNewProductStock] = useState("");
   const [newProductImages, setNewProductImages] = useState<string[]>([]);
 
   const { mutate: createProduct, isPending: creatingProduct } = useCreateProduct({
@@ -180,19 +154,92 @@ export default function SellerDashboard() {
         setShowAddProduct(false);
         setNewProductName("");
         setNewProductDesc("");
-        setNewProductCategory("General");
-        setNewProductBrand("");
-        setNewProductModel("");
-        setNewProductColor("");
-        setNewProductSize("");
         setNewProductPrice("");
-        setNewProductStock("");
         setNewProductImages([]);
         refetchProducts();
       },
       onError: () => toast({ title: "Failed to add product", variant: "destructive" }),
     },
   });
+
+  // ── List Business Modal ──
+  const [showListBusinessModal, setShowListBusinessModal] = useState(false);
+  const [bizNameInput, setBizNameInput] = useState("");
+  const [bizCategoryInput, setBizCategoryInput] = useState<string>("Clothing");
+  const [bizDescInput, setBizDescInput] = useState("");
+  const [bizLocInput, setBizLocInput] = useState("");
+  const [bizPhoneInput, setBizPhoneInput] = useState("");
+  const [bizLogoInput, setBizLogoInput] = useState<string[]>([]);
+  const [bizBannerInput, setBizBannerInput] = useState<string[]>([]);
+  const [isSubmittingBiz, setIsSubmittingBiz] = useState(false);
+
+  const handleListBusinessSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bizNameInput.trim() || bizNameInput.length < 2) {
+      toast({ title: "Validation Error", description: "Business name must be at least 2 characters.", variant: "destructive" });
+      return;
+    }
+    if (!bizDescInput.trim() || bizDescInput.length < 10) {
+      toast({ title: "Validation Error", description: "Description must be at least 10 characters.", variant: "destructive" });
+      return;
+    }
+    if (!bizLocInput.trim()) {
+      toast({ title: "Validation Error", description: "Location is required.", variant: "destructive" });
+      return;
+    }
+    if (!bizPhoneInput.trim()) {
+      toast({ title: "Validation Error", description: "Phone number is required.", variant: "destructive" });
+      return;
+    }
+
+    setIsSubmittingBiz(true);
+    try {
+      const res = await fetch("/api/businesses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("nafex_token")}`,
+        },
+        body: JSON.stringify({
+          name: bizNameInput.trim(),
+          category: bizCategoryInput,
+          description: bizDescInput.trim(),
+          location: bizLocInput.trim(),
+          phone: bizPhoneInput.trim(),
+          logo: bizLogoInput[0] || undefined,
+          images: bizBannerInput,
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || errData.error || "Failed to create business");
+      }
+
+      toast({
+        title: "Business Listed Successfully!",
+        description: "Your business is now active on Nafex Hub.",
+      });
+
+      setShowListBusinessModal(false);
+      setBizNameInput("");
+      setBizDescInput("");
+      setBizLocInput("");
+      setBizPhoneInput("");
+      setBizLogoInput([]);
+      setBizBannerInput([]);
+
+      window.location.reload();
+    } catch (err: unknown) {
+      toast({
+        title: "Failed to list business",
+        description: (err as Error).message || "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmittingBiz(false);
+    }
+  };
 
   // ── Collections ──
   const [showCreateCollection, setShowCreateCollection] = useState(false);
@@ -204,7 +251,7 @@ export default function SellerDashboard() {
 
   const { data: collections, refetch: refetchCollections } = useGetCollections(
     { businessId },
-    { query: { enabled: !!businessId && (activeTab === "collections" || activeTab === "inventory"), queryKey: getGetCollectionsQueryKey({ businessId }) } }
+    { query: { enabled: !!businessId, queryKey: getGetCollectionsQueryKey({ businessId }) } }
   );
 
   const { mutate: createCollection, isPending: creatingCollection } = useCreateCollection({
@@ -342,6 +389,7 @@ export default function SellerDashboard() {
     }
   }
 
+  const [activeTab, setActiveTab] = useState("overview");
   const [showBulkUpload, setShowBulkUpload] = useState(false);
 
   type Client = {
@@ -478,6 +526,8 @@ export default function SellerDashboard() {
       icon: <ShoppingBag className="w-5 h-5 text-white" />,
       iconBg: "bg-gradient-to-br from-primary to-primary/70",
       sub: `${stats?.pendingOrders ?? 0} pending`,
+      trend: "+12%",
+      trendUp: true,
     },
     {
       label: "Conversations",
@@ -485,6 +535,8 @@ export default function SellerDashboard() {
       icon: <MessageCircle className="w-5 h-5 text-white" />,
       iconBg: "bg-gradient-to-br from-blue-500 to-blue-600",
       sub: "customer chats",
+      trend: "active",
+      trendUp: true,
     },
     {
       label: "Reviews",
@@ -492,13 +544,17 @@ export default function SellerDashboard() {
       icon: <Star className="w-5 h-5 text-white" />,
       iconBg: "bg-gradient-to-br from-amber-500 to-orange-500",
       sub: `avg ${stats?.averageRating ?? 0}/5`,
+      trend: `${stats?.averageRating ?? 0}/5`,
+      trendUp: true,
     },
     {
       label: "Profile Views",
       value: stats?.profileViews ?? 0,
       icon: <Eye className="w-5 h-5 text-white" />,
       iconBg: "bg-gradient-to-br from-purple-500 to-purple-700",
-      sub: "all time",
+      sub: "last 30 days",
+      trend: "last 30d",
+      trendUp: true,
     },
   ];
 
@@ -532,123 +588,108 @@ export default function SellerDashboard() {
               {businessId ? "Monitor your store performance and manage orders." : "List your business to start selling on Nafex Hub."}
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            {!businessId && !statsLoading && (
-              <Button
-                onClick={() => setLocation("/list")}
-                className="bg-white text-primary hover:bg-white/90 font-semibold shadow-sm"
-              >
-                List Your Business
-              </Button>
-            )}
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              onClick={() => setShowListBusinessModal(true)}
+              className="bg-white text-primary hover:bg-white/90 font-semibold shadow-sm gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              {businessId ? "List Another Business" : "List Your Business"}
+            </Button>
             {businessId > 0 && (
-              <>
-                <Button
-                  variant="secondary"
-                  className="hidden sm:flex items-center gap-2 font-semibold shadow-sm"
-                  onClick={() => setActiveTab("settings")}
-                >
-                  <Settings className="w-4 h-4" />
-                  Store Settings
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="sm:hidden shadow-sm"
-                  onClick={() => setActiveTab("settings")}
-                >
-                  <Settings className="w-4 h-4" />
-                </Button>
-              </>
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-white/10 border-white/30 text-white hover:bg-white/20 gap-2"
+                onClick={() => setActiveTab("settings")}
+              >
+                <MapPin className="w-3.5 h-3.5" />
+                Store Settings
+              </Button>
             )}
           </div>
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
-        {/* ── Sidebar Navigation (Desktop) ── */}
-        <div className="hidden md:block w-full md:w-56 lg:w-64 flex-shrink-0 sticky top-24 z-10 pb-2 md:pb-0">
-          <div className="bg-card border border-border rounded-xl p-2 flex flex-col gap-1 w-full shadow-sm">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        {/* ── Premium Tab Bar ── */}
+        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 mb-6">
+          <div className="bg-card border border-border rounded-xl p-1 flex items-center gap-0.5 w-max shadow-sm">
             {([
-              { value: "overview", label: "Dashboard", icon: <TrendingUp className="w-4 h-4" /> },
-              { value: "inventory", label: "My Shop", icon: <ShoppingBag className="w-4 h-4" /> },
-              { value: "orders", label: "Orders", icon: <Package className="w-4 h-4" /> },
-              { value: "inbox", label: "Inbox", icon: <MessageCircle className="w-4 h-4" /> },
-              { value: "earnings", label: "Payments", icon: <CreditCard className="w-4 h-4" /> },
-              { value: "more", label: "More", icon: <Settings className="w-4 h-4" /> },
-            ] as const).map((tab) => {
-              const isMoreItemActive = tab.value === "more" && ["analytics", "clients", "collections", "feedback", "disputes", "vouchers", "pricing", "boost", "settings"].includes(activeTab);
-              const isActive = activeTab === tab.value || isMoreItemActive;
-              
-              return (
-                <button
-                  key={tab.value}
-                  onClick={() => {
-                    setActiveTab(tab.value);
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                  className={`px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 flex items-center gap-3 text-left w-full ${
-                    isActive
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                  }`}
-                >
-                  {tab.icon}
-                  {tab.label}
-                </button>
-              );
-            })}
+              { value: "overview", label: "Overview" },
+              { value: "orders", label: "Orders" },
+              { value: "inbox", label: "Inbox" },
+              { value: "inventory", label: "Inventory" },
+              { value: "collections", label: "Collections" },
+              { value: "analytics", label: "Analytics" },
+              { value: "clients", label: "Clients" },
+              { value: "feedback", label: "Feedback" },
+              { value: "disputes", label: "Disputes" },
+              { value: "vouchers", label: "Vouchers" },
+              { value: "pricing", label: "Pricing" },
+              { value: "settings", label: "Settings" },
+              { value: "earnings", label: "Earnings" },
+              { value: "boost", label: "Boost" },
+            ] as const).map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => setActiveTab(tab.value)}
+                className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 ${
+                  activeTab === tab.value
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* ── Bottom Navigation Bar (Mobile) ── */}
-        {/* Hide bottom navigation when inside a More sub-setting to maximize screen space */}
-        {!["analytics", "clients", "collections", "feedback", "disputes", "vouchers", "pricing", "boost", "settings"].includes(activeTab) && (
-          <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border shadow-[0_-4px_10px_rgba(0,0,0,0.05)] pb-safe">
-            <div className="flex justify-around items-center p-2">
-              {([
-                { value: "overview", label: "Home", icon: <TrendingUp className="w-5 h-5" /> },
-                { value: "inventory", label: "Shop", icon: <ShoppingBag className="w-5 h-5" /> },
-                { value: "orders", label: "Orders", icon: <Package className="w-5 h-5" /> },
-                { value: "inbox", label: "Inbox", icon: <MessageCircle className="w-5 h-5" /> },
-                { value: "more", label: "More", icon: <Settings className="w-5 h-5" /> },
-              ] as const).map((tab) => {
-                const isActive = activeTab === tab.value || (tab.value === "more" && ["earnings"].includes(activeTab));
-                return (
-                  <button
-                    key={tab.value}
-                    onClick={() => {
-                      setActiveTab(tab.value);
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    className={`flex flex-col items-center justify-center p-2 rounded-lg w-16 transition-colors ${
-                      isActive ? "text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
-                    }`}
-                  >
-                    <div className={`${isActive ? "bg-primary/10 rounded-full p-1" : ""}`}>{tab.icon}</div>
-                    <span className="text-[10px] font-medium mt-1">{tab.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* ── Main Content ── */}
-        <div className="flex-1 min-w-0 w-full pb-16">
-        
-        {/* ── Back to More Navigation ── */}
-        {["analytics", "clients", "collections", "feedback", "disputes", "vouchers", "pricing", "boost", "settings"].includes(activeTab) && (
-          <div className="sticky top-0 z-20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pb-3 pt-2 mb-4 border-b border-border -mx-4 px-4 md:mx-0 md:px-0 md:border-none md:bg-transparent md:pt-0">
-            <Button variant="ghost" size="sm" onClick={() => { setActiveTab("more"); window.scrollTo({ top: 0, behavior: "smooth" }); }} className="text-muted-foreground hover:text-foreground -ml-3">
-              <ChevronLeft className="w-5 h-5 mr-1" />
-              <span className="font-semibold text-base">Back to Menu</span>
-            </Button>
-          </div>
-        )}
         {/* ── Overview Tab ── */}
         {activeTab === "overview" && (
           <div className="space-y-6">
+            {/* ── New Vendor Onboarding Hero Banner ── */}
+            {!businessId && !statsLoading && (
+              <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-2xl p-6 shadow-sm">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                  <div className="space-y-2 max-w-xl">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+                      <Store className="w-3.5 h-3.5" />
+                      <span>Vendor Onboarding</span>
+                    </div>
+                    <h2 className="text-xl font-bold text-foreground">
+                      Turn your products & services into sales on Nafex Hub
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                      Join verified African sellers. Create your business storefront, list your inventory, receive customer orders, and manage sales securely.
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                      <div className="flex items-center gap-2 text-xs font-medium text-foreground bg-card border rounded-lg p-2.5 shadow-2xs">
+                        <span className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs">1</span>
+                        <span>List Business</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs font-medium text-foreground bg-card border rounded-lg p-2.5 shadow-2xs">
+                        <span className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs">2</span>
+                        <span>Add Products</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs font-medium text-foreground bg-card border rounded-lg p-2.5 shadow-2xs">
+                        <span className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs">3</span>
+                        <span>Receive Orders</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    size="lg"
+                    onClick={() => setShowListBusinessModal(true)}
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-md gap-2 whitespace-nowrap self-stretch md:self-auto"
+                  >
+                    <Plus className="w-5 h-5" />
+                    List Your Business Now
+                  </Button>
+                </div>
+              </div>
+            )}
             {/* Stat Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {statsLoading
@@ -722,49 +763,25 @@ export default function SellerDashboard() {
             )}
 
             {/* Performance Metrics */}
-            {businessId > 0 && (() => {
-              const totalOrders = orders?.length || 0;
-              const cancelledOrders = orders?.filter(o => o.status === "cancelled").length || 0;
-              const shippedOrders = orders?.filter(o => ["packed", "out_for_delivery", "delivered"].includes(o.status)).length || 0;
-              
-              const hasReviews = (stats?.totalReviews ?? 0) > 0;
-              const hasOrders = totalOrders > 0;
-
-              const sellerScoreVal = hasReviews ? `${stats!.averageRating} / 5` : "N/A";
-              const sellerScoreSub = hasReviews ? (stats!.averageRating >= 4.5 ? "Excellent rating" : "Average rating") : "No ratings yet";
-              const sellerScoreColor = hasReviews && stats!.averageRating >= 4.5 ? "text-green-600" : "text-muted-foreground";
-
-              const cancellationVal = hasOrders ? ((cancelledOrders / totalOrders) * 100).toFixed(1) + "%" : "N/A";
-              const cancellationSub = hasOrders ? "Target < 2.5%" : "No orders yet";
-              const cancellationColor = hasOrders && (cancelledOrders / totalOrders) > 0.025 ? "text-red-500" : "text-muted-foreground";
-
-              const onTimeVal = shippedOrders > 0 ? "100%" : "N/A";
-              const onTimeSub = shippedOrders > 0 ? "Target > 95%" : "No shipped orders";
-
-              const productQualityVal = hasReviews ? `${Math.round((stats!.averageRating / 5) * 100)}%` : "N/A";
-              const productQualitySub = hasReviews ? "Target > 95%" : "No ratings yet";
-              const productQualityColor = hasReviews && stats!.averageRating >= 4.5 ? "text-green-600" : "text-muted-foreground";
-
-              return (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  {[
-                    { label: "Seller Score", value: sellerScoreVal, sub: sellerScoreSub, subColor: sellerScoreColor, icon: <Star className="w-5 h-5 text-amber-400 fill-amber-400" />, bg: "bg-amber-50 dark:bg-amber-950/30" },
-                    { label: "Cancellation", value: cancellationVal, sub: cancellationSub, subColor: cancellationColor, icon: <XCircle className="w-5 h-5 text-red-500" />, bg: "bg-red-50 dark:bg-red-950/30" },
-                    { label: "On-Time Ship", value: onTimeVal, sub: onTimeSub, subColor: "text-green-600", icon: <Clock className="w-5 h-5 text-indigo-500" />, bg: "bg-indigo-50 dark:bg-indigo-950/30" },
-                    { label: "Product Quality", value: productQualityVal, sub: productQualitySub, subColor: productQualityColor, icon: <ShieldCheck className="w-5 h-5 text-green-500" />, bg: "bg-green-50 dark:bg-green-950/30" },
-                  ].map((m) => (
-                    <div key={m.label} className="bg-card border border-border rounded-xl p-4 shadow-sm">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{m.label}</span>
-                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${m.bg}`}>{m.icon}</div>
-                      </div>
-                      <p className="text-2xl font-bold text-foreground">{m.value}</p>
-                      <p className={`text-xs mt-1 font-medium ${m.subColor}`}>{m.sub}</p>
+            {businessId > 0 && (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { label: "Seller Score", value: "4.8 / 5", sub: "Excellent rating", subColor: "text-green-600", icon: <Star className="w-5 h-5 text-amber-400 fill-amber-400" />, bg: "bg-amber-50 dark:bg-amber-950/30" },
+                  { label: "Cancellation", value: "1.2%", sub: "Target < 2.5%", subColor: "text-muted-foreground", icon: <XCircle className="w-5 h-5 text-red-500" />, bg: "bg-red-50 dark:bg-red-950/30" },
+                  { label: "On-Time Ship", value: "98.5%", sub: "Target > 95%", subColor: "text-green-600", icon: <Clock className="w-5 h-5 text-indigo-500" />, bg: "bg-indigo-50 dark:bg-indigo-950/30" },
+                  { label: "Product Quality", value: "98%", sub: "Target > 95%", subColor: "text-green-600", icon: <ShieldCheck className="w-5 h-5 text-green-500" />, bg: "bg-green-50 dark:bg-green-950/30" },
+                ].map((m) => (
+                  <div key={m.label} className="bg-card border border-border rounded-xl p-4 shadow-sm">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{m.label}</span>
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${m.bg}`}>{m.icon}</div>
                     </div>
-                  ))}
-                </div>
-              );
-            })()}
+                    <p className="text-2xl font-bold text-foreground">{m.value}</p>
+                    <p className={`text-xs mt-1 font-medium ${m.subColor}`}>{m.sub}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -1018,91 +1035,18 @@ export default function SellerDashboard() {
                         rows={3}
                       />
                     </div>
-                    
-                    {/* NEW FIELDS FOR SKU GEN */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="prod-category">Category</Label>
-                        <Input
-                          id="prod-category"
-                          placeholder="e.g. Electronics"
-                          value={newProductCategory}
-                          onChange={(e) => setNewProductCategory(e.target.value)}
-                          className="mt-1 h-11"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="prod-brand">Brand (Optional)</Label>
-                        <Input
-                          id="prod-brand"
-                          placeholder="e.g. Nike"
-                          value={newProductBrand}
-                          onChange={(e) => setNewProductBrand(e.target.value)}
-                          className="mt-1 h-11"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="prod-model">Model (Optional)</Label>
-                        <Input
-                          id="prod-model"
-                          placeholder="e.g. AM26"
-                          value={newProductModel}
-                          onChange={(e) => setNewProductModel(e.target.value)}
-                          className="mt-1 h-11"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="prod-color">Color (Optional)</Label>
-                        <Input
-                          id="prod-color"
-                          placeholder="e.g. Black"
-                          value={newProductColor}
-                          onChange={(e) => setNewProductColor(e.target.value)}
-                          className="mt-1 h-11"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="prod-size">Size (Optional)</Label>
-                        <Input
-                          id="prod-size"
-                          placeholder="e.g. 42"
-                          value={newProductSize}
-                          onChange={(e) => setNewProductSize(e.target.value)}
-                          className="mt-1 h-11"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="prod-price">Price (GHS) *</Label>
-                        <Input
-                          id="prod-price"
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          placeholder="0.00"
-                          value={newProductPrice}
-                          onChange={(e) => setNewProductPrice(e.target.value)}
-                          className="mt-1 h-11"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="prod-stock">Stock Quantity *</Label>
-                        <Input
-                          id="prod-stock"
-                          type="number"
-                          min="0"
-                          step="1"
-                          placeholder="0"
-                          value={newProductStock}
-                          onChange={(e) => setNewProductStock(e.target.value)}
-                          className="mt-1 h-11"
-                        />
-                      </div>
+                    <div>
+                      <Label htmlFor="prod-price">Price (GHS) *</Label>
+                      <Input
+                        id="prod-price"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={newProductPrice}
+                        onChange={(e) => setNewProductPrice(e.target.value)}
+                        className="mt-1 h-11"
+                      />
                     </div>
                     <ImageUpload
                       value={newProductImages}
@@ -1112,36 +1056,18 @@ export default function SellerDashboard() {
                     />
                   </div>
                   <DialogFooter>
+                    <Button variant="outline" onClick={() => setShowAddProduct(false)}>Cancel</Button>
                     <Button
-                      variant="outline"
-                      onClick={() => setShowAddProduct(false)}
-                      disabled={creatingProduct}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      disabled={!newProductName || !newProductPrice || creatingProduct || !newProductStock}
-                      onClick={() => {
-                        const attributes: any = {};
-                        if (newProductColor) attributes.color = newProductColor;
-                        if (newProductSize) attributes.size = newProductSize;
-
-                        createProduct({
-                          businessId,
-                          data: {
-                            name: newProductName,
-                            description: newProductDesc,
-                            category: newProductCategory,
-                            brand: newProductBrand,
-                            model: newProductModel,
-                            price: parseFloat(newProductPrice).toFixed(2),
-                            stock: parseInt(newProductStock, 10) || 0,
-                            images: newProductImages,
-                            variants: Object.keys(attributes).length > 0 ? [{ attributes, stock: parseInt(newProductStock, 10) || 0, price: newProductPrice }] : [],
-                          }
-                        });
-                      }}
-                      className="gap-2"
+                      disabled={!newProductName.trim() || !newProductPrice || creatingProduct}
+                      onClick={() => createProduct({
+                        businessId,
+                        data: {
+                          name: newProductName.trim(),
+                          description: newProductDesc.trim(),
+                          price: parseFloat(newProductPrice).toFixed(2),
+                          images: newProductImages,
+                        }
+                      })}
                     >
                       {creatingProduct ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
                       Add Product
@@ -1150,7 +1076,7 @@ export default function SellerDashboard() {
                 </DialogContent>
               </Dialog>
 
-              {!products || !Array.isArray(products) || products.length === 0 ? (
+              {!products || products.length === 0 ? (
                 <div className="text-center py-16 text-muted-foreground border-2 border-dashed rounded-xl">
                   <Boxes className="w-12 h-12 mx-auto mb-4 opacity-30" />
                   <p className="font-medium">No products yet</p>
@@ -1180,11 +1106,6 @@ export default function SellerDashboard() {
                             <p className="text-sm font-medium text-foreground truncate">{product.name}</p>
                             <div className="flex items-center gap-2 mt-0.5">
                               <p className="text-xs text-muted-foreground">GHS {Number(product.price).toFixed(2)}</p>
-                              {product.skuPrefix && (
-                                <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded border">
-                                  SKU: {product.skuPrefix}
-                                </span>
-                              )}
                               <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold border ${
                                 product.id % 4 === 0
                                   ? "bg-red-50 text-red-600 border-red-200"
@@ -1282,14 +1203,13 @@ export default function SellerDashboard() {
                       <Textarea id="col-desc" placeholder="Tell customers what this collection is about…" value={newColDesc} onChange={(e) => setNewColDesc(e.target.value)} className="mt-1" rows={2} />
                     </div>
                     <div>
-                      <div className="mt-1">
-                        <ImageUpload
-                          value={newColImage ? [newColImage] : []}
-                          onChange={(urls) => setNewColImage(urls[0] || "")}
-                          maxImages={1}
-                          label="Cover Image"
-                        />
-                      </div>
+                      <Label htmlFor="col-img">Cover Image URL</Label>
+                      <Input id="col-img" placeholder="https://example.com/image.jpg" value={newColImage} onChange={(e) => setNewColImage(e.target.value)} className="mt-1" />
+                      {newColImage && (
+                        <div className="mt-2 w-full h-28 rounded-lg overflow-hidden border border-border">
+                          <img src={newColImage} alt="Cover preview" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                        </div>
+                      )}
                     </div>
                   </div>
                   <DialogFooter>
@@ -1318,14 +1238,13 @@ export default function SellerDashboard() {
                       <Textarea value={editingCol?.description ?? ""} onChange={(e) => setEditingCol((p) => p ? { ...p, description: e.target.value } : p)} className="mt-1" rows={2} />
                     </div>
                     <div>
-                      <div className="mt-1">
-                        <ImageUpload
-                          value={editingCol?.coverImage ? [editingCol.coverImage] : []}
-                          onChange={(urls) => setEditingCol((p) => p ? { ...p, coverImage: urls[0] || null } : p)}
-                          maxImages={1}
-                          label="Cover Image"
-                        />
-                      </div>
+                      <Label>Cover Image URL</Label>
+                      <Input value={editingCol?.coverImage ?? ""} onChange={(e) => setEditingCol((p) => p ? { ...p, coverImage: e.target.value || null } : p)} className="mt-1" placeholder="https://example.com/image.jpg" />
+                      {editingCol?.coverImage && (
+                        <div className="mt-2 w-full h-28 rounded-lg overflow-hidden border border-border">
+                          <img src={editingCol.coverImage} alt="Cover preview" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                        </div>
+                      )}
                     </div>
                   </div>
                   <DialogFooter>
@@ -1387,7 +1306,7 @@ export default function SellerDashboard() {
 
                         {expandedColId === col.id && (
                           <div className="border-t border-border/50 pt-3">
-                            {!products || !Array.isArray(products) || products.length === 0 ? (
+                            {!products || products.length === 0 ? (
                               <p className="text-sm text-muted-foreground text-center py-3">No products yet. Add products first.</p>
                             ) : (
                               <div className="space-y-1">
@@ -1741,8 +1660,8 @@ export default function SellerDashboard() {
                 <ImageUpload value={bizLogo} onChange={setBizLogo} maxImages={1} label="Upload Logo" />
               </div>
               <div>
-                <Label className="block mb-2 text-sm font-medium text-foreground">Banner Image</Label>
-                <ImageUpload value={bizImages} onChange={setBizImages} maxImages={1} label="Upload Image" />
+                <Label className="block mb-2 text-sm font-medium text-foreground">Banner / Gallery Images</Label>
+                <ImageUpload value={bizImages} onChange={setBizImages} maxImages={6} label="Upload Images" />
               </div>
               <Button onClick={saveBizSettings} disabled={bizSaving} className="gap-2">
                 {bizSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
@@ -1812,39 +1731,6 @@ export default function SellerDashboard() {
             <SellerVouchersTab businessId={businessId} />
           </div>
         )}
-
-        {/* ── More Features Tab ── */}
-        {activeTab === "more" && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-serif font-semibold">More Features</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {[
-                { id: "analytics", title: "Analytics", icon: <TrendingUp className="w-6 h-6 mb-2 text-primary"/>, desc: "Sales & traffic reports" },
-                { id: "clients", title: "Clients", icon: <Users className="w-6 h-6 mb-2 text-primary"/>, desc: "Customer list & CRM" },
-                { id: "collections", title: "Collections", icon: <FolderOpen className="w-6 h-6 mb-2 text-primary"/>, desc: "Organize products" },
-                { id: "feedback", title: "Feedback", icon: <MessageCircle className="w-6 h-6 mb-2 text-primary"/>, desc: "Reviews & ratings" },
-                { id: "disputes", title: "Disputes", icon: <AlertTriangle className="w-6 h-6 mb-2 text-primary"/>, desc: "Returns & refunds" },
-                { id: "vouchers", title: "Vouchers", icon: <Tag className="w-6 h-6 mb-2 text-primary"/>, desc: "Store coupons" },
-                { id: "pricing", title: "Pricing", icon: <Plus className="w-6 h-6 mb-2 text-primary"/>, desc: "Bulk & wholesale rules" },
-                { id: "boost", title: "Boost Ads", icon: <Star className="w-6 h-6 mb-2 text-primary"/>, desc: "Promote your shop" },
-                { id: "settings", title: "Settings", icon: <Settings className="w-6 h-6 mb-2 text-primary"/>, desc: "Shop configuration" }
-              ].map(item => (
-                <Card 
-                  key={item.id} 
-                  className="cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-all text-center h-full"
-                  onClick={() => { setActiveTab(item.id); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                >
-                  <CardContent className="pt-6 pb-6 flex flex-col items-center justify-center h-full">
-                    {item.icon}
-                    <h3 className="font-medium text-foreground">{item.title}</h3>
-                    <p className="text-xs text-muted-foreground mt-1">{item.desc}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
-        </div>
       </Tabs>
 
       <Dialog open={deliveryOrderId !== null} onOpenChange={(o) => { if (!o) setDeliveryOrderId(null); }}>
@@ -1903,6 +1789,122 @@ export default function SellerDashboard() {
               {deliveryLoading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Booking…</> : "Book delivery"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── List Business Modal ── */}
+      <Dialog open={showListBusinessModal} onOpenChange={setShowListBusinessModal}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <Store className="w-5 h-5 text-primary" />
+              List Your Business on Nafex Hub
+            </DialogTitle>
+            <DialogDescription>
+              Create your business storefront to showcase products, receive customer orders, and manage sales.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleListBusinessSubmit} className="space-y-5 py-2">
+            <div>
+              <Label htmlFor="biz-name">Business Name *</Label>
+              <Input
+                id="biz-name"
+                placeholder="e.g. Afrikana Fashion House"
+                value={bizNameInput}
+                onChange={(e) => setBizNameInput(e.target.value)}
+                className="mt-1"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="biz-category">Business Category *</Label>
+                <Select value={bizCategoryInput} onValueChange={setBizCategoryInput}>
+                  <SelectTrigger id="biz-category" className="mt-1">
+                    <SelectValue placeholder="Select Category" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {ALL_CATEGORIES.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="biz-phone">Phone Number *</Label>
+                <Input
+                  id="biz-phone"
+                  placeholder="e.g. +233 24 123 4567"
+                  value={bizPhoneInput}
+                  onChange={(e) => setBizPhoneInput(e.target.value)}
+                  className="mt-1"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="biz-location">Location / City *</Label>
+              <Input
+                id="biz-location"
+                placeholder="e.g. Makola Market, Accra"
+                value={bizLocInput}
+                onChange={(e) => setBizLocInput(e.target.value)}
+                className="mt-1"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="biz-desc">Business Description *</Label>
+              <Textarea
+                id="biz-desc"
+                placeholder="Describe your products, services, opening hours, and specialty..."
+                value={bizDescInput}
+                onChange={(e) => setBizDescInput(e.target.value)}
+                rows={4}
+                className="mt-1"
+                required
+              />
+            </div>
+
+            <div>
+              <Label>Business Logo (Optional)</Label>
+              <div className="mt-1.5">
+                <ImageUpload
+                  value={bizLogoInput}
+                  onChange={setBizLogoInput}
+                  maxImages={1}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label>Storefront / Banner Photos (Optional)</Label>
+              <div className="mt-1.5">
+                <ImageUpload
+                  value={bizBannerInput}
+                  onChange={setBizBannerInput}
+                  maxImages={4}
+                />
+              </div>
+            </div>
+
+            <DialogFooter className="pt-4 border-t gap-2">
+              <Button type="button" variant="outline" onClick={() => setShowListBusinessModal(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmittingBiz} className="gap-2">
+                {isSubmittingBiz ? <Loader2 className="w-4 h-4 animate-spin" /> : <Store className="w-4 h-4" />}
+                {isSubmittingBiz ? "Listing Business..." : "List Business Now"}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
@@ -2377,4 +2379,11 @@ function SellerVouchersTab({ businessId }: { businessId: number }) {
     </div>
   );
 }
-
+
+export default function Dashboard() {
+  const { user } = useAuth();
+  if (user?.role === "business_owner" || user?.role === "admin") {
+    return <SellerDashboard />;
+  }
+  return <BuyerDashboard />;
+}

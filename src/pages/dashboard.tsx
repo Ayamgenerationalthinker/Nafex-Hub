@@ -70,7 +70,9 @@ import {
   AlertCircle,
   AlertTriangle,
   Upload,
+  Store,
 } from "lucide-react";
+import { ALL_CATEGORIES } from "./list-business";
 import { useToast } from "@/hooks/use-toast";
 import { ImageUpload } from "@/components/image-upload";
 import { EarningsTab } from "@/components/dashboard/earnings-tab";
@@ -159,6 +161,85 @@ function SellerDashboard() {
       onError: () => toast({ title: "Failed to add product", variant: "destructive" }),
     },
   });
+
+  // ── List Business Modal ──
+  const [showListBusinessModal, setShowListBusinessModal] = useState(false);
+  const [bizNameInput, setBizNameInput] = useState("");
+  const [bizCategoryInput, setBizCategoryInput] = useState<string>("Clothing");
+  const [bizDescInput, setBizDescInput] = useState("");
+  const [bizLocInput, setBizLocInput] = useState("");
+  const [bizPhoneInput, setBizPhoneInput] = useState("");
+  const [bizLogoInput, setBizLogoInput] = useState<string[]>([]);
+  const [bizBannerInput, setBizBannerInput] = useState<string[]>([]);
+  const [isSubmittingBiz, setIsSubmittingBiz] = useState(false);
+
+  const handleListBusinessSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bizNameInput.trim() || bizNameInput.length < 2) {
+      toast({ title: "Validation Error", description: "Business name must be at least 2 characters.", variant: "destructive" });
+      return;
+    }
+    if (!bizDescInput.trim() || bizDescInput.length < 10) {
+      toast({ title: "Validation Error", description: "Description must be at least 10 characters.", variant: "destructive" });
+      return;
+    }
+    if (!bizLocInput.trim()) {
+      toast({ title: "Validation Error", description: "Location is required.", variant: "destructive" });
+      return;
+    }
+    if (!bizPhoneInput.trim()) {
+      toast({ title: "Validation Error", description: "Phone number is required.", variant: "destructive" });
+      return;
+    }
+
+    setIsSubmittingBiz(true);
+    try {
+      const res = await fetch("/api/businesses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("nafex_token")}`,
+        },
+        body: JSON.stringify({
+          name: bizNameInput.trim(),
+          category: bizCategoryInput,
+          description: bizDescInput.trim(),
+          location: bizLocInput.trim(),
+          phone: bizPhoneInput.trim(),
+          logo: bizLogoInput[0] || undefined,
+          images: bizBannerInput,
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || errData.error || "Failed to create business");
+      }
+
+      toast({
+        title: "Business Listed Successfully!",
+        description: "Your business is now active on Nafex Hub.",
+      });
+
+      setShowListBusinessModal(false);
+      setBizNameInput("");
+      setBizDescInput("");
+      setBizLocInput("");
+      setBizPhoneInput("");
+      setBizLogoInput([]);
+      setBizBannerInput([]);
+
+      window.location.reload();
+    } catch (err: unknown) {
+      toast({
+        title: "Failed to list business",
+        description: (err as Error).message || "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmittingBiz(false);
+    }
+  };
 
   // ── Collections ──
   const [showCreateCollection, setShowCreateCollection] = useState(false);
@@ -507,15 +588,14 @@ function SellerDashboard() {
               {businessId ? "Monitor your store performance and manage orders." : "List your business to start selling on Nafex Hub."}
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            {!businessId && !statsLoading && (
-              <Button
-                onClick={() => setLocation("/list")}
-                className="bg-white text-primary hover:bg-white/90 font-semibold shadow-sm"
-              >
-                List Your Business
-              </Button>
-            )}
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              onClick={() => setShowListBusinessModal(true)}
+              className="bg-white text-primary hover:bg-white/90 font-semibold shadow-sm gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              {businessId ? "List Another Business" : "List Your Business"}
+            </Button>
             {businessId > 0 && (
               <Button
                 variant="outline"
@@ -569,6 +649,47 @@ function SellerDashboard() {
         {/* ── Overview Tab ── */}
         {activeTab === "overview" && (
           <div className="space-y-6">
+            {/* ── New Vendor Onboarding Hero Banner ── */}
+            {!businessId && !statsLoading && (
+              <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-2xl p-6 shadow-sm">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                  <div className="space-y-2 max-w-xl">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+                      <Store className="w-3.5 h-3.5" />
+                      <span>Vendor Onboarding</span>
+                    </div>
+                    <h2 className="text-xl font-bold text-foreground">
+                      Turn your products & services into sales on Nafex Hub
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                      Join verified African sellers. Create your business storefront, list your inventory, receive customer orders, and manage sales securely.
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                      <div className="flex items-center gap-2 text-xs font-medium text-foreground bg-card border rounded-lg p-2.5 shadow-2xs">
+                        <span className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs">1</span>
+                        <span>List Business</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs font-medium text-foreground bg-card border rounded-lg p-2.5 shadow-2xs">
+                        <span className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs">2</span>
+                        <span>Add Products</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs font-medium text-foreground bg-card border rounded-lg p-2.5 shadow-2xs">
+                        <span className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs">3</span>
+                        <span>Receive Orders</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    size="lg"
+                    onClick={() => setShowListBusinessModal(true)}
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-md gap-2 whitespace-nowrap self-stretch md:self-auto"
+                  >
+                    <Plus className="w-5 h-5" />
+                    List Your Business Now
+                  </Button>
+                </div>
+              </div>
+            )}
             {/* Stat Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {statsLoading
@@ -1668,6 +1789,122 @@ function SellerDashboard() {
               {deliveryLoading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Booking…</> : "Book delivery"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── List Business Modal ── */}
+      <Dialog open={showListBusinessModal} onOpenChange={setShowListBusinessModal}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <Store className="w-5 h-5 text-primary" />
+              List Your Business on Nafex Hub
+            </DialogTitle>
+            <DialogDescription>
+              Create your business storefront to showcase products, receive customer orders, and manage sales.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleListBusinessSubmit} className="space-y-5 py-2">
+            <div>
+              <Label htmlFor="biz-name">Business Name *</Label>
+              <Input
+                id="biz-name"
+                placeholder="e.g. Afrikana Fashion House"
+                value={bizNameInput}
+                onChange={(e) => setBizNameInput(e.target.value)}
+                className="mt-1"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="biz-category">Business Category *</Label>
+                <Select value={bizCategoryInput} onValueChange={setBizCategoryInput}>
+                  <SelectTrigger id="biz-category" className="mt-1">
+                    <SelectValue placeholder="Select Category" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {ALL_CATEGORIES.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="biz-phone">Phone Number *</Label>
+                <Input
+                  id="biz-phone"
+                  placeholder="e.g. +233 24 123 4567"
+                  value={bizPhoneInput}
+                  onChange={(e) => setBizPhoneInput(e.target.value)}
+                  className="mt-1"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="biz-location">Location / City *</Label>
+              <Input
+                id="biz-location"
+                placeholder="e.g. Makola Market, Accra"
+                value={bizLocInput}
+                onChange={(e) => setBizLocInput(e.target.value)}
+                className="mt-1"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="biz-desc">Business Description *</Label>
+              <Textarea
+                id="biz-desc"
+                placeholder="Describe your products, services, opening hours, and specialty..."
+                value={bizDescInput}
+                onChange={(e) => setBizDescInput(e.target.value)}
+                rows={4}
+                className="mt-1"
+                required
+              />
+            </div>
+
+            <div>
+              <Label>Business Logo (Optional)</Label>
+              <div className="mt-1.5">
+                <ImageUpload
+                  value={bizLogoInput}
+                  onChange={setBizLogoInput}
+                  maxImages={1}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label>Storefront / Banner Photos (Optional)</Label>
+              <div className="mt-1.5">
+                <ImageUpload
+                  value={bizBannerInput}
+                  onChange={setBizBannerInput}
+                  maxImages={4}
+                />
+              </div>
+            </div>
+
+            <DialogFooter className="pt-4 border-t gap-2">
+              <Button type="button" variant="outline" onClick={() => setShowListBusinessModal(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmittingBiz} className="gap-2">
+                {isSubmittingBiz ? <Loader2 className="w-4 h-4 animate-spin" /> : <Store className="w-4 h-4" />}
+                {isSubmittingBiz ? "Listing Business..." : "List Business Now"}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
