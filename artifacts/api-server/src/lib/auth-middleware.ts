@@ -42,7 +42,7 @@ export async function requireAuth(
     .where(eq(usersTable.id, parsed.userId));
 
   if (!user) {
-    res.status(401).json({ error: "User not found" });
+    res.status(401).json({ error: "User not found. Please log out and log in again.", message: "User not found. Please log out and log in again." });
     return;
   }
 

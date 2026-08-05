@@ -109,7 +109,7 @@ export const uploadMiddleware = multer({
 }).single("image");
 
 export async function uploadImage(req: Request, res: Response): Promise<void> {
-  if (!req.file) { res.status(400).json({ error: "No image file provided" }); return; }
+  if (!req.file) { res.status(400).json({ error: "No image file provided", message: "No image file provided" }); return; }
 
   try {
     const processedBuffer = await sharp(req.file.buffer)
@@ -146,6 +146,6 @@ export async function uploadImage(req: Request, res: Response): Promise<void> {
     }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Upload failed";
-    res.status(500).json({ error: message });
+    res.status(500).json({ error: message, message });
   }
 }

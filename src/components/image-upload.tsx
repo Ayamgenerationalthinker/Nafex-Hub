@@ -17,20 +17,34 @@ export function ImageUpload({ value, onChange, maxImages = 5, label = "Images" }
 
   const uploadImage = async (file: File): Promise<string | null> => {
     const token = localStorage.getItem("nafex_token");
-    if (!token) return null;
+    if (!token) {
+      throw new Error("You must be logged in to upload images. Please refresh the page and try again.");
+    }
 
     const formData = new FormData();
     formData.append("image", file);
 
-    const res = await fetch("/api/upload", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
-    });
+    let res: Response;
+    try {
+      res = await fetch("/api/upload", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+    } catch {
+      throw new Error("Network error — could not reach the server. Check your connection and try again.");
+    }
 
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error ?? "Upload failed");
+      let errMsg = "Upload failed";
+      try {
+        const err = await res.json();
+        // Handle both { error: "string" } and { error: { message } } and { message }
+        if (typeof err.error === "string") errMsg = err.error;
+        else if (err.error?.message) errMsg = err.error.message;
+        else if (typeof err.message === "string") errMsg = err.message;
+      } catch {}
+      throw new Error(errMsg);
     }
 
     const data = await res.json();
