@@ -23,7 +23,13 @@ httpServer.listen(port, "0.0.0.0", async () => {
   // Run outstanding Drizzle migrations on every deployment
   try {
     const { runMigrations } = await import("@workspace/db/migrate");
-    const migrationsFolder = new URL("../../../../lib/db/migrations", import.meta.url).pathname;
+    const { fileURLToPath } = await import("url");
+    const path = await import("path");
+    
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const migrationsFolder = path.resolve(__dirname, "../../../../lib/db/migrations");
+    
     await runMigrations(migrationsFolder);
     logger.info("Database migrations applied successfully");
   } catch (e) {
