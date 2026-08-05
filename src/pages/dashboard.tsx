@@ -213,7 +213,8 @@ function SellerDashboard() {
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.message || errData.error || "Failed to create business");
+        const errMsg = errData.message || errData.error?.message || (typeof errData.error === "string" ? errData.error : null) || "Failed to create business";
+        throw new Error(errMsg);
       }
 
       toast({

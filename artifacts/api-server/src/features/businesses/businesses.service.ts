@@ -51,7 +51,7 @@ export class BusinessesService {
     sendAdminEmail(
       "New Business Onboarded",
       `A new business has been added to Nafex Hub and may need verification.\n\nBusiness: ${biz.name}\nCategory: ${biz.category}\nLocation: ${biz.location}\nDate: ${new Date().toUTCString()}`
-    );
+    ).catch(() => {});
 
     return biz;
   }

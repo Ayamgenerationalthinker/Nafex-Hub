@@ -72,7 +72,12 @@ export class BusinessesController {
 
   public async createBusiness(req: AuthRequest, res: Response): Promise<void> {
     const parsed = CreateBusinessBody.safeParse(req.body);
-    if (!parsed.success) throw new ValidationError(parsed.error.message);
+    if (!parsed.success) {
+      const first = parsed.error.issues[0];
+      const field = first?.path.length ? first.path.join(".") : "input";
+      const message = first ? `${field}: ${first.message}` : "Invalid input data";
+      throw new ValidationError(message);
+    }
 
     const business = await this.service.createBusiness(req.userId!, parsed.data);
     res.status(201).json(business);

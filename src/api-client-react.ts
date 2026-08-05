@@ -103,7 +103,36 @@ export function useMarkAllNotificationsRead(options?: { mutation?: { onSuccess?:
 export function getGetBusinessesQueryKey() { return ["businesses"]; }
 export function getGetFeaturedBusinessesQueryKey() { return ["featuredBusinesses"]; }
 export function getGetFeaturedTopBusinessesQueryKey() { return ["featuredTopBusinesses"]; }
-export function useCreateBusiness(_: any) { return { mutate: () => {} }; }
+export function useCreateBusiness(options?: { mutation?: { onSuccess?: (data: any) => void; onError?: (err: any) => void } }) {
+  const mutate = useCallback(async (params: { data: any }, callbacks?: { onSuccess?: (data: any) => void; onError?: (err: any) => void }) => {
+    const token = localStorage.getItem("nafex_token");
+    try {
+      const res = await fetch("/api/businesses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+        body: JSON.stringify(params.data),
+      });
+
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const errorMsg = json.message || json.error?.message || (typeof json.error === "string" ? json.error : "Failed to list business");
+        const errObj = { data: { error: errorMsg }, message: errorMsg };
+        callbacks?.onError?.(errObj) ?? options?.mutation?.onError?.(errObj);
+        return;
+      }
+
+      callbacks?.onSuccess?.(json) ?? options?.mutation?.onSuccess?.(json);
+    } catch (err: any) {
+      const errObj = { data: { error: err.message || "Failed to list business" }, message: err.message };
+      callbacks?.onError?.(errObj) ?? options?.mutation?.onError?.(errObj);
+    }
+  }, [options]);
+
+  return { mutate };
+}
 
 // Additional stub implementations for various API client hooks used throughout the app
 export function useGetBusinesses(_: any) { return { data: [] as any[], refetch: () => {} }; }

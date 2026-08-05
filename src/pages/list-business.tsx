@@ -140,9 +140,10 @@ export default function ListBusiness() {
           setLocation(`/brand/${business.id}`);
         },
         onError: (err: any) => {
+          const errMsg = err?.data?.error ?? err?.message ?? "Something went wrong";
           toast({
             title: "Failed to list business",
-            description: err?.data?.error ?? "Something went wrong",
+            description: typeof errMsg === "string" ? errMsg : JSON.stringify(errMsg),
             variant: "destructive",
           });
         },
