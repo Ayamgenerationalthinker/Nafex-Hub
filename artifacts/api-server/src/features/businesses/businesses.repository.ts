@@ -37,23 +37,50 @@ export function featuredActiveCondition() {
 export class BusinessesRepository {
   public async getBusinesses(search?: string, category?: string, verified?: boolean) {
     const conditions: SQL[] = [];
-    conditions.push(eq(businessesTable.approvalStatus, "approved"));
+    conditions.push(
+      or(
+        eq(businessesTable.approvalStatus, "approved"),
+        eq(businessesTable.approvalStatus, "pending"),
+        isNull(businessesTable.approvalStatus)
+      )!
+    );
     
-    if (search) conditions.push(sql`${businessesTable.name} ILIKE ${'%' + search + '%'} OR ${businessesTable.name} % ${search}`);
+    if (search) {
+      conditions.push(
+        or(
+          ilike(businessesTable.name, `%${search}%`),
+          ilike(businessesTable.description, `%${search}%`),
+          ilike(businessesTable.category, `%${search}%`)
+        )!
+      );
+    }
     if (category && category !== "All") conditions.push(eq(businessesTable.category, category));
     if (verified === true) conditions.push(eq(businessesTable.isVerified, true));
 
     const searchBoostSort = sql`case when ${businessesTable.isFeatured} = true and ${businessesTable.featuredType} = 'search_boost' and (${businessesTable.featuredUntil} is null or ${businessesTable.featuredUntil} > now()) then 0 else 1 end`;
-    const similaritySort = search ? sql`${businessesTable.name} <-> ${search}` : desc(businessesTable.createdAt);
 
-    return await db.select().from(businessesTable).where(and(...conditions)).orderBy(searchBoostSort, similaritySort);
+    return await db
+      .select()
+      .from(businessesTable)
+      .where(and(...conditions))
+      .orderBy(searchBoostSort, desc(businessesTable.createdAt));
   }
 
   public async getFeatured(type: string, limit: number) {
     return await db
       .select()
       .from(businessesTable)
-      .where(and(featuredActiveCondition(), eq(businessesTable.featuredType, type as any), eq(businessesTable.approvalStatus, "approved")))
+      .where(
+        and(
+          featuredActiveCondition(),
+          eq(businessesTable.featuredType, type as any),
+          or(
+            eq(businessesTable.approvalStatus, "approved"),
+            eq(businessesTable.approvalStatus, "pending"),
+            isNull(businessesTable.approvalStatus)
+          )
+        )
+      )
       .limit(limit);
   }
 
