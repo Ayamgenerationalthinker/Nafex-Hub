@@ -25,7 +25,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -71,6 +70,19 @@ import {
   AlertTriangle,
   Upload,
   Store,
+  LayoutDashboard,
+  ShoppingCart,
+  Archive,
+  Folder,
+  BarChart2,
+  Ticket,
+  DollarSign,
+  Settings,
+  Wallet,
+  Zap,
+  Menu,
+  CreditCard,
+  X,
 } from "lucide-react";
 import { ALL_CATEGORIES } from "./list-business";
 import { useToast } from "@/hooks/use-toast";
@@ -171,6 +183,11 @@ function SellerDashboard() {
   const [bizPhoneInput, setBizPhoneInput] = useState("");
   const [bizLogoInput, setBizLogoInput] = useState<string[]>([]);
   const [bizBannerInput, setBizBannerInput] = useState<string[]>([]);
+  const [bizIdType, setBizIdType] = useState("ghana_card");
+  const [bizIdNumber, setBizIdNumber] = useState("");
+  const [bizIdFrontImages, setBizIdFrontImages] = useState<string[]>([]);
+  const [bizIdBackImages, setBizIdBackImages] = useState<string[]>([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isSubmittingBiz, setIsSubmittingBiz] = useState(false);
 
   const handleListBusinessSubmit = async (e: React.FormEvent) => {
@@ -208,6 +225,8 @@ function SellerDashboard() {
           phone: bizPhoneInput.trim(),
           logo: bizLogoInput[0] || undefined,
           images: bizBannerInput,
+          kycDocuments: [...bizIdFrontImages, ...bizIdBackImages].filter(Boolean),
+          kycNotes: bizIdNumber.trim() ? JSON.stringify({ idType: bizIdType, idNumber: bizIdNumber.trim() }) : undefined,
         }),
       });
 
@@ -229,6 +248,10 @@ function SellerDashboard() {
       setBizPhoneInput("");
       setBizLogoInput([]);
       setBizBannerInput([]);
+      setBizIdType("ghana_card");
+      setBizIdNumber("");
+      setBizIdFrontImages([]);
+      setBizIdBackImages([]);
 
       window.location.reload();
     } catch (err: unknown) {
@@ -567,27 +590,75 @@ function SellerDashboard() {
   }, [user, setLocation]);
   if (!user) return null;
 
+  // ── Sidebar Nav Items ──
+  const SIDEBAR_GROUPS = [
+    {
+      label: "Store",
+      items: [
+        { value: "overview",    label: "Overview",     icon: <LayoutDashboard className="w-4 h-4" /> },
+        { value: "orders",      label: "Orders",       icon: <ShoppingCart className="w-4 h-4" /> },
+        { value: "inbox",       label: "Inbox",        icon: <MessageCircle className="w-4 h-4" /> },
+        { value: "inventory",   label: "Inventory",    icon: <Archive className="w-4 h-4" /> },
+        { value: "collections", label: "Collections",  icon: <Folder className="w-4 h-4" /> },
+      ],
+    },
+    {
+      label: "Insights",
+      items: [
+        { value: "analytics",   label: "Analytics",   icon: <BarChart2 className="w-4 h-4" /> },
+        { value: "clients",     label: "Clients",     icon: <Users className="w-4 h-4" /> },
+        { value: "feedback",    label: "Feedback",    icon: <Star className="w-4 h-4" /> },
+        { value: "disputes",    label: "Disputes",    icon: <AlertTriangle className="w-4 h-4" /> },
+        { value: "earnings",    label: "Earnings",    icon: <Wallet className="w-4 h-4" /> },
+      ],
+    },
+    {
+      label: "Marketing",
+      items: [
+        { value: "vouchers",    label: "Vouchers",    icon: <Ticket className="w-4 h-4" /> },
+        { value: "pricing",     label: "Pricing",     icon: <DollarSign className="w-4 h-4" /> },
+        { value: "boost",       label: "Boost",       icon: <Zap className="w-4 h-4" /> },
+      ],
+    },
+    {
+      label: "Account",
+      items: [
+        { value: "settings",    label: "Settings",    icon: <Settings className="w-4 h-4" /> },
+      ],
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-muted/20">
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="container mx-auto px-4 py-6 max-w-7xl">
 
       {/* ── Premium Header ── */}
-      <div className="relative rounded-2xl overflow-hidden mb-8 bg-gradient-to-br from-primary via-primary/90 to-primary/70 shadow-lg">
+      <div className="relative rounded-2xl overflow-hidden mb-6 bg-gradient-to-br from-primary via-primary/90 to-primary/70 shadow-lg">
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }} />
         <div className="relative px-6 py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
-                <ShoppingBag className="w-4 h-4 text-white" />
+          <div className="flex items-center gap-3">
+            {/* Mobile sidebar toggle */}
+            <button
+              className="md:hidden w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center text-white"
+              onClick={() => setSidebarOpen((v) => !v)}
+              aria-label="Toggle navigation"
+            >
+              {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                  <ShoppingBag className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-white/70 text-sm font-medium">Seller Dashboard</span>
               </div>
-              <span className="text-white/70 text-sm font-medium">Seller Dashboard</span>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                {businessId ? `Welcome back, ${user?.name?.split(" ")[0] ?? "Seller"}` : "Start Selling"}
+              </h1>
+              <p className="text-white/70 text-sm mt-1">
+                {businessId ? "Monitor your store performance and manage orders." : "List your business to start selling on Nafex Hub."}
+              </p>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-              {businessId ? `Welcome back, ${user?.name?.split(" ")[0] ?? "Seller"}` : "Start Selling"}
-            </h1>
-            <p className="text-white/70 text-sm mt-1">
-              {businessId ? "Monitor your store performance and manage orders." : "List your business to start selling on Nafex Hub."}
-            </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -612,40 +683,72 @@ function SellerDashboard() {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        {/* ── Premium Tab Bar ── */}
-        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 mb-6">
-          <div className="bg-card border border-border rounded-xl p-1 flex items-center gap-0.5 w-max shadow-sm">
-            {([
-              { value: "overview", label: "Overview" },
-              { value: "orders", label: "Orders" },
-              { value: "inbox", label: "Inbox" },
-              { value: "inventory", label: "Inventory" },
-              { value: "collections", label: "Collections" },
-              { value: "analytics", label: "Analytics" },
-              { value: "clients", label: "Clients" },
-              { value: "feedback", label: "Feedback" },
-              { value: "disputes", label: "Disputes" },
-              { value: "vouchers", label: "Vouchers" },
-              { value: "pricing", label: "Pricing" },
-              { value: "settings", label: "Settings" },
-              { value: "earnings", label: "Earnings" },
-              { value: "boost", label: "Boost" },
-            ] as const).map((tab) => (
-              <button
-                key={tab.value}
-                onClick={() => setActiveTab(tab.value)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 ${
-                  activeTab === tab.value
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                }`}
-              >
-                {tab.label}
-              </button>
+      {/* ── Sidebar + Content Layout ── */}
+      <div className="flex gap-6 items-start">
+
+        {/* ── Desktop Sidebar ── */}
+        <aside className="hidden md:flex flex-col w-56 shrink-0">
+          <nav className="bg-card border border-border rounded-xl shadow-sm p-2 sticky top-6 space-y-0.5">
+            {SIDEBAR_GROUPS.map((group, gi) => (
+              <div key={group.label}>
+                {gi > 0 && <div className="border-t border-border/60 my-2" />}
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-3 py-1">{group.label}</p>
+                {group.items.map((item) => (
+                  <button
+                    key={item.value}
+                    onClick={() => setActiveTab(item.value)}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
+                      activeTab === item.value
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                    }`}
+                  >
+                    {item.icon}
+                    {item.label}
+                  </button>
+                ))}
+              </div>
             ))}
+          </nav>
+        </aside>
+
+        {/* ── Mobile Sidebar Overlay ── */}
+        {sidebarOpen && (
+          <div className="md:hidden fixed inset-0 z-40 flex">
+            <div className="absolute inset-0 bg-black/40" onClick={() => setSidebarOpen(false)} />
+            <nav className="relative z-50 bg-card border-r border-border w-64 h-full overflow-y-auto p-3 space-y-0.5 shadow-xl">
+              <div className="flex items-center justify-between mb-3 px-2">
+                <p className="font-semibold text-foreground">Navigation</p>
+                <button onClick={() => setSidebarOpen(false)} className="text-muted-foreground hover:text-foreground">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              {SIDEBAR_GROUPS.map((group, gi) => (
+                <div key={group.label}>
+                  {gi > 0 && <div className="border-t border-border/60 my-2" />}
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-3 py-1">{group.label}</p>
+                  {group.items.map((item) => (
+                    <button
+                      key={item.value}
+                      onClick={() => { setActiveTab(item.value); setSidebarOpen(false); }}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
+                        activeTab === item.value
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                      }`}
+                    >
+                      {item.icon}
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </nav>
           </div>
-        </div>
+        )}
+
+        {/* ── Main Content ── */}
+        <div className="flex-1 min-w-0">
 
         {/* ── Overview Tab ── */}
         {activeTab === "overview" && (
@@ -1732,7 +1835,8 @@ function SellerDashboard() {
             <SellerVouchersTab businessId={businessId} />
           </div>
         )}
-      </Tabs>
+        </div>
+      </div>
 
       <Dialog open={deliveryOrderId !== null} onOpenChange={(o) => { if (!o) setDeliveryOrderId(null); }}>
         <DialogContent className="max-w-md">
@@ -1893,6 +1997,66 @@ function SellerDashboard() {
                   onChange={setBizBannerInput}
                   maxImages={4}
                 />
+              </div>
+            </div>
+
+            {/* ── National ID Verification ── */}
+            <div className="rounded-xl border border-border/80 bg-muted/30 p-4 space-y-4">
+              <div className="flex items-center gap-2">
+                <CreditCard className="w-4 h-4 text-primary" />
+                <p className="font-semibold text-sm text-foreground">National ID Verification <span className="text-muted-foreground font-normal">(Optional)</span></p>
+              </div>
+              <p className="text-xs text-muted-foreground -mt-1">Verified sellers earn a trust badge and higher visibility. You can complete this later.</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="biz-id-type">ID Type</Label>
+                  <Select value={bizIdType} onValueChange={setBizIdType}>
+                    <SelectTrigger id="biz-id-type" className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ghana_card">Ghana Card (NIA)</SelectItem>
+                      <SelectItem value="voters_id">Voter's ID</SelectItem>
+                      <SelectItem value="passport">International Passport</SelectItem>
+                      <SelectItem value="drivers_license">Driver's License</SelectItem>
+                      <SelectItem value="ssnit">SSNIT Card</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="biz-id-number">ID Number</Label>
+                  <Input
+                    id="biz-id-number"
+                    placeholder="e.g. GHA-123456789-0"
+                    value={bizIdNumber}
+                    onChange={(e) => setBizIdNumber(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="flex items-center gap-1">
+                    ID Front Photo
+                    <span className="text-muted-foreground text-xs font-normal ml-1">(optional)</span>
+                  </Label>
+                  <div className="mt-1.5">
+                    <ImageUpload value={bizIdFrontImages} onChange={setBizIdFrontImages} maxImages={1} />
+                  </div>
+                </div>
+                {bizIdType !== "passport" && (
+                  <div>
+                    <Label className="flex items-center gap-1">
+                      ID Back Photo
+                      <span className="text-muted-foreground text-xs font-normal ml-1">(optional)</span>
+                    </Label>
+                    <div className="mt-1.5">
+                      <ImageUpload value={bizIdBackImages} onChange={setBizIdBackImages} maxImages={1} />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
