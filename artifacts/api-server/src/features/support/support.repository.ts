@@ -1,4 +1,4 @@
-import { db, supportConversationsTable, supportMessagesTable, usersTable, conversationsTable, messagesTable } from "@workspace/db";
+import { db, supportConversationsTable, supportMessagesTable, usersTable, conversationsTable, messagesTable, notificationsTable } from "@workspace/db";
 import { eq, desc, asc, and, InferInsertModel } from "drizzle-orm";
 
 type NewSupportConversation = InferInsertModel<typeof supportConversationsTable>;
@@ -168,5 +168,17 @@ export class SupportRepository {
       .where(eq(conversationsTable.id, id))
       .returning();
     return updated;
+  }
+
+  public async createNotification(userId: number, type: "message" | "order_update" | "review", title: string, body: string, relatedId: number) {
+    const [notif] = await db.insert(notificationsTable).values({
+      userId,
+      type,
+      title,
+      body,
+      relatedId,
+      isRead: false,
+    }).returning();
+    return notif;
   }
 }

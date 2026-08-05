@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useGetAdminBusinesses, useVerifyBusiness, getGetAdminBusinessesQueryKey, getGetBusinessesQueryKey, getGetFeaturedBusinessesQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -172,15 +172,22 @@ export default function Admin() {
   }, [activeTab]);
 
   // ── Support Chat Effects ──
+  const fetchSupportConvos = useCallback(() => {
+    const token = localStorage.getItem("nafex_token") ?? "";
+    if (!token) return;
+    fetch("/api/support/conversations", { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setSupportConvos);
+  }, []);
+
   useEffect(() => {
-    if (activeTab !== "support") return;
     const token = localStorage.getItem("nafex_token") ?? "";
     setSupportLoading(true);
     fetch("/api/support/conversations", { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => (r.ok ? r.json() : []))
       .then(setSupportConvos)
       .finally(() => setSupportLoading(false));
-  }, [activeTab]);
+  }, []);
 
   useEffect(() => {
     if (!selectedConvoId) return;
@@ -202,13 +209,20 @@ export default function Admin() {
     };
   }, [selectedConvoId, socket]);
 
-  // Join admin_support room globally when Support tab is active
+  // Join admin_support room globally whenever socket is connected
   useEffect(() => {
-    if (activeTab !== "support" || !socket) return;
+    if (!socket) return;
     
     socket.emit("join_room", "admin_support");
     
-    const onSupportMsg = (msg: SupportMsg) => {
+    const onSupportMsg = (msg: SupportMsg & { senderName?: string }) => {
+      if (msg.senderRole !== "admin") {
+        toast({
+          title: `Support Chat from ${msg.senderName || "Customer"}`,
+          description: msg.text,
+        });
+      }
+
       // 1. If currently viewing this convo, append the message
       if (selectedConvoId && msg.conversationId === selectedConvoId) {
         setSupportMessages((prev) => {
@@ -217,22 +231,8 @@ export default function Admin() {
         });
       }
       
-      // 2. Update sidebar conversations list
-      setSupportConvos((prev) => {
-        const exists = prev.some((c) => c.id === msg.conversationId);
-        if (!exists) {
-          const token = localStorage.getItem("nafex_token") ?? "";
-          fetch("/api/support/conversations", { headers: { Authorization: `Bearer ${token}` } })
-            .then((r) => (r.ok ? r.json() : []))
-            .then(setSupportConvos);
-          return prev;
-        }
-        return prev.map((c) =>
-          c.id === msg.conversationId
-            ? { ...c, updatedAt: msg.createdAt, status: msg.senderRole === "admin" ? c.status : "open" }
-            : c
-        ).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-      });
+      // 2. Refresh sidebar conversations list
+      fetchSupportConvos();
     };
     
     socket.on("support_message", onSupportMsg);
@@ -241,7 +241,7 @@ export default function Admin() {
       socket.off("support_message", onSupportMsg);
       socket.emit("leave_room", "admin_support");
     };
-  }, [activeTab, socket, selectedConvoId]);
+  }, [socket, selectedConvoId, fetchSupportConvos]);
 
   useEffect(() => {
     supportBottomRef.current?.scrollIntoView({ behavior: "smooth" });

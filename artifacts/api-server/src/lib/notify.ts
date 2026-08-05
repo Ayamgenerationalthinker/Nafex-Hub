@@ -1,5 +1,6 @@
 import { db, usersTable, notificationsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { getIO } from "./socket";
 
 /**
  * Insert a notification for every admin user.
@@ -22,7 +23,7 @@ export async function notifyAllAdmins(payload: {
       .from(usersTable)
       .where(eq(usersTable.role, "admin"));
     if (admins.length === 0) return;
-    await db.insert(notificationsTable).values(
+    const inserted = await db.insert(notificationsTable).values(
       admins.map((a) => ({
         userId: a.id,
         type: payload.type,
@@ -31,7 +32,15 @@ export async function notifyAllAdmins(payload: {
         relatedId: payload.relatedId ?? null,
         isRead: false,
       }))
-    );
+    ).returning();
+
+    const io = getIO();
+    if (io) {
+      inserted.forEach((notif) => {
+        io.to(`user_${notif.userId}`).emit("new_notification", notif);
+      });
+      io.to("admin_support").emit("new_notification", inserted[0]);
+    }
   } catch {
     // best-effort
   }

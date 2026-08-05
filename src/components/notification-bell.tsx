@@ -3,6 +3,8 @@ import { useGetNotifications, getGetNotificationsQueryKey, useGetNotificationUnr
 import { Bell, MessageCircle, ShoppingBag, Star } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { useSocket } from "@/hooks/use-socket";
+import { useToast } from "@/hooks/use-toast";
 
 const TYPE_ICON: Record<string, React.ReactNode> = {
   message: <MessageCircle className="w-4 h-4 text-blue-500" />,
@@ -23,6 +25,8 @@ function timeAgo(dateStr: string) {
 export function NotificationBell() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
+  const socket = useSocket();
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -41,6 +45,24 @@ export function NotificationBell() {
   const { mutate: markAll } = useMarkAllNotificationsRead({
     mutation: { onSuccess: () => { refetchCount(); refetchList(); } },
   });
+
+  // Listen for real-time notification socket events
+  useEffect(() => {
+    if (!socket) return;
+    const onNewNotif = (notif: any) => {
+      refetchCount();
+      if (open) refetchList();
+      toast({
+        title: notif.title || "New Notification",
+        description: notif.body || "",
+      });
+    };
+
+    socket.on("new_notification", onNewNotif);
+    return () => {
+      socket.off("new_notification", onNewNotif);
+    };
+  }, [socket, open, refetchCount, refetchList, toast]);
 
   // Close on outside click
   useEffect(() => {

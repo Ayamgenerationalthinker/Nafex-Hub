@@ -146,32 +146,43 @@ export class MessagesService {
 
     this.emitToRoom(conversationId, message);
 
-    if (conv.type === "support") {
-      try {
-        const sender = await this.repository.getUserRole(userId);
+    try {
+      const sender = await this.repository.getUserRole(userId);
+      const senderName = sender?.name || "User";
+
+      if (conv.type === "support") {
         getIO()?.to("admin_support").emit("support_message", {
           ...message,
-          senderRole: sender?.role ?? "user"
+          senderRole: sender?.role ?? "user",
+          senderName,
         });
-      } catch {}
-    }
 
-    try {
-      let notifyUserId: number | null = null;
-      if (conv.userId === userId) {
-        notifyUserId = biz?.ownerId ?? null;
-      } else if (biz?.ownerId === userId) {
-        notifyUserId = conv.userId;
-      }
+        await notifyAllAdmins({
+          type: "message",
+          title: `New Support Chat from ${senderName}`,
+          body: data.text.slice(0, 100),
+          relatedId: conversationId,
+        });
+      } else {
+        let notifyUserId: number | null = null;
+        if (conv.userId === userId) {
+          notifyUserId = biz?.ownerId ?? null;
+        } else if (biz?.ownerId === userId) {
+          notifyUserId = conv.userId;
+        }
 
-      if (notifyUserId) {
-        await this.repository.createNotification(
-          notifyUserId,
-          "message",
-          "New message",
-          data.text.slice(0, 100),
-          conversationId
-        );
+        if (notifyUserId) {
+          const notif = await this.repository.createNotification(
+            notifyUserId,
+            "message",
+            `New message from ${senderName}`,
+            data.text.slice(0, 100),
+            conversationId
+          );
+          if (notif) {
+            getIO()?.to(`user_${notifyUserId}`).emit("new_notification", notif);
+          }
+        }
       }
 
       if (isFlagged && !conv.flagged) {

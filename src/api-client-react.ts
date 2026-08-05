@@ -1,31 +1,103 @@
-// src/api-client-react.ts
-// Minimal stub for @workspace/api-client-react used in the project.
-// In production this would be replaced by the actual workspace package.
+import { useState, useEffect, useCallback } from "react";
 
 export function setAuthTokenGetter(getter: () => string | null): void {
-  // Simple no‑op implementation; the getter can be stored globally if needed.
-  // For now we just expose it on window for debugging.
   (window as any).__authTokenGetter = getter;
 }
 
-// Stub notification API hooks for development/testing
-export function useGetNotifications(_: { query: any }) {
-  return { data: [] as any[], refetch: () => {} };
+// Notification API hooks with live backend API integration
+export function useGetNotifications(options?: { query?: { enabled?: boolean } }) {
+  const [data, setData] = useState<any[]>([]);
+  const enabled = options?.query?.enabled ?? true;
+
+  const fetchNotifications = useCallback(async () => {
+    const token = localStorage.getItem("nafex_token");
+    if (!token || !enabled) return;
+    try {
+      const res = await fetch("/api/notifications", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setData(json);
+      }
+    } catch {}
+  }, [enabled]);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
+
+  return { data, refetch: fetchNotifications };
 }
+
 export function getGetNotificationsQueryKey() {
   return ["notifications"];
 }
-export function useGetNotificationUnreadCount(_: { query: any }) {
-  return { data: { count: 0 }, refetch: () => {} };
+
+export function useGetNotificationUnreadCount(options?: { query?: { enabled?: boolean; refetchInterval?: number } }) {
+  const [data, setData] = useState<{ count: number }>({ count: 0 });
+  const enabled = options?.query?.enabled ?? true;
+  const refetchInterval = options?.query?.refetchInterval;
+
+  const fetchUnreadCount = useCallback(async () => {
+    const token = localStorage.getItem("nafex_token");
+    if (!token || !enabled) return;
+    try {
+      const res = await fetch("/api/notifications/unread-count", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setData(json);
+      }
+    } catch {}
+  }, [enabled]);
+
+  useEffect(() => {
+    fetchUnreadCount();
+    if (refetchInterval && enabled) {
+      const interval = setInterval(fetchUnreadCount, refetchInterval);
+      return () => clearInterval(interval);
+    }
+  }, [fetchUnreadCount, refetchInterval, enabled]);
+
+  return { data, refetch: fetchUnreadCount };
 }
+
 export function getGetNotificationUnreadCountQueryKey() {
   return ["notificationUnreadCount"];
 }
-export function useMarkNotificationRead(_: { mutation: any }) {
-  return { mutate: () => {} };
+
+export function useMarkNotificationRead(options?: { mutation?: { onSuccess?: () => void } }) {
+  const mutate = useCallback(async (params: { id: number }) => {
+    const token = localStorage.getItem("nafex_token");
+    if (!token) return;
+    try {
+      await fetch(`/api/notifications/${params.id}/read`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      options?.mutation?.onSuccess?.();
+    } catch {}
+  }, [options]);
+
+  return { mutate };
 }
-export function useMarkAllNotificationsRead(_: { mutation: any }) {
-  return { mutate: () => {} };
+
+export function useMarkAllNotificationsRead(options?: { mutation?: { onSuccess?: () => void } }) {
+  const mutate = useCallback(async () => {
+    const token = localStorage.getItem("nafex_token");
+    if (!token) return;
+    try {
+      await fetch("/api/notifications/read-all", {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      options?.mutation?.onSuccess?.();
+    } catch {}
+  }, [options]);
+
+  return { mutate };
 }
 // Additional missing stub exports
 export function getGetBusinessesQueryKey() { return ["businesses"]; }

@@ -183,19 +183,20 @@ export class MessagesRepository {
   }
 
   public async getUserRole(userId: number) {
-    const [user] = await db.select({ role: usersTable.role }).from(usersTable).where(eq(usersTable.id, userId));
+    const [user] = await db.select({ role: usersTable.role, name: usersTable.name }).from(usersTable).where(eq(usersTable.id, userId));
     return user;
   }
 
   public async createNotification(userId: number, type: "message" | "order_update" | "review", title: string, body: string, relatedId: number) {
-    await db.insert(notificationsTable).values({
+    const [notif] = await db.insert(notificationsTable).values({
       userId,
       type,
       title,
       body,
       relatedId,
       isRead: false,
-    });
+    }).returning();
+    return notif;
   }
 
   public async getAdmins() {

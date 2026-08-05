@@ -3,6 +3,8 @@ import { useGetNotifications, getGetNotificationsQueryKey, useGetNotificationUnr
 import { Bell, MessageCircle, ShoppingBag, Star } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { useSocket } from "@/hooks/use-socket";
+import { useToast } from "@/hooks/use-toast";
 
 const TYPE_ICON: Record<string, React.ReactNode> = {
   message: <MessageCircle className="w-4 h-4 text-blue-500" />,
@@ -23,6 +25,8 @@ function timeAgo(dateStr: string) {
 export function NotificationBell() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
+  const socket = useSocket();
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -42,6 +46,24 @@ export function NotificationBell() {
     mutation: { onSuccess: () => { refetchCount(); refetchList(); } },
   });
 
+  // Listen for real-time notification socket events
+  useEffect(() => {
+    if (!socket) return;
+    const onNewNotif = (notif: any) => {
+      refetchCount();
+      if (open) refetchList();
+      toast({
+        title: notif.title || "New Notification",
+        description: notif.body || "",
+      });
+    };
+
+    socket.on("new_notification", onNewNotif);
+    return () => {
+      socket.off("new_notification", onNewNotif);
+    };
+  }, [socket, open, refetchCount, refetchList, toast]);
+
   // Close on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -59,7 +81,7 @@ export function NotificationBell() {
     <div ref={ref} className="relative">
       <button
         onClick={() => { setOpen((o) => !o); if (!open) refetchList(); }}
-        className="relative flex items-center justify-center w-9 h-9 rounded-full hover:bg-muted transition-colors text-foreground/80 hover:text-primary"
+        className="relative flex items-center justify-center w-9 h-9 rounded-full hover:bg-white/10 transition-colors text-secondary-foreground/80 hover:text-primary"
         aria-label="Notifications"
       >
         <Bell className="w-5 h-5" />
@@ -101,14 +123,7 @@ export function NotificationBell() {
                       } else {
                         setLocation("/inbox");
                       }
-                    } else if (n.type === "order_update") {
-                      const isSellerNotif = n.title.toLowerCase().includes("received");
-                      if (user?.role === "business_owner" && isSellerNotif) {
-                        setLocation("/dashboard");
-                      } else {
-                        setLocation("/orders");
-                      }
-                    }
+                    } else if (n.type === "order_update") setLocation("/orders");
                     setOpen(false);
                   }}
                   className={`w-full text-left flex items-start gap-3 px-4 py-3 hover:bg-muted/50 transition-colors border-b border-border/50 last:border-0 ${

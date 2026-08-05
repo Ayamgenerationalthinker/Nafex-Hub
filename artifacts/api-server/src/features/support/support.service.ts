@@ -170,6 +170,17 @@ export class SupportService {
         ...message,
         senderRole: userRole ?? "admin"
       });
+
+      const notif = await this.repository.createNotification(
+        conv.userId,
+        "message",
+        "Support Agent Replied",
+        data.text.slice(0, 100),
+        conversationId
+      );
+      if (notif) {
+        getIO()?.to(`user_${conv.userId}`).emit("new_notification", notif);
+      }
     } catch {}
 
     return message;
