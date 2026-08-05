@@ -38,6 +38,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   const isBusinessOwner = user?.role === "business_owner";
   const isAdmin = user?.role === "admin";
+  const isDedicatedSellerDashboard = location === "/dashboard" && isBusinessOwner;
 
   type MobileNavItem = { href: string; label: string; icon: React.ReactNode; testId?: string };
 
@@ -90,8 +91,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <div className="min-h-[100dvh] flex flex-col w-full bg-background text-foreground font-sans">
       <VerifyEmailBanner />
       {/* ── Header (clean white top navbar with purple brand highlights matching Img 1 style guide) ── */}
-      <header className="sticky top-0 z-50 w-full bg-white text-[#222222] shadow-sm border-b border-purple-100/80">
-        <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6 gap-4">
+      {!isDedicatedSellerDashboard && (
+        <header className="sticky top-0 z-50 w-full bg-white text-[#222222] shadow-sm border-b border-purple-100/80">
+          <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6 gap-4">
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 shrink-0" data-testid="link-home" onClick={closeMenu}>
@@ -440,14 +442,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
 
         </div>
-      </header>
+        </header>
+      )}
 
       <main className="flex-1 flex flex-col w-full">
         {children}
       </main>
 
       {/* ── Footer (Deep Primary Purple #6A1B9A matching Img 1 reference style guide) ── */}
-      <footer className="bg-[#6A1B9A] text-white border-t border-purple-900">
+      {!isDedicatedSellerDashboard && (
+        <footer className="bg-[#6A1B9A] text-white border-t border-purple-900">
         <div className="container mx-auto px-4 md:px-8 py-12">
           {/* Main Footer Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-purple-400/20">
@@ -574,7 +578,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </p>
           </div>
         </div>
-      </footer>
+        </footer>
+      )}
       <NafexCoinsModal open={coinsModalOpen} onOpenChange={setCoinsModalOpen} />
     </div>
   );

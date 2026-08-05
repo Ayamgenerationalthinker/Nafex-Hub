@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Menu, X, Store, Shield, LogOut, LogIn, UserPlus, LayoutDashboard, MessageCircle, ShoppingBag, Heart, Phone, Globe, Mail, Tag, Headphones, Settings, ChevronDown, HelpCircle, User2, ClipboardList, Star, Truck, TrendingUp, Globe2, Wallet, Clock, Search, Sun, Moon, Coins } from "lucide-react";
 import { VisaLogo, MastercardLogo, PaystackLogo, MobileMoneyLogo, BankTransferLogo } from "@/components/payment-icons";
+import useDarkMode from "@/hooks/use-dark-mode";
 import { NotificationBell } from "@/components/notification-bell";
 import { VerifyEmailBanner } from "@/components/verify-email-banner";
 import { CartIcon } from "@/components/cart-icon";
@@ -19,6 +20,7 @@ const FALLBACK_LOGO = "/nafex-logo.svg";
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
   const { user, logout } = useAuth();
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
   const { toast } = useToast();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [coinsModalOpen, setCoinsModalOpen] = useState(false);
@@ -36,6 +38,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   const isBusinessOwner = user?.role === "business_owner";
   const isAdmin = user?.role === "admin";
+  const isDedicatedSellerDashboard = location === "/dashboard" && isBusinessOwner;
 
   type MobileNavItem = { href: string; label: string; icon: React.ReactNode; testId?: string };
 
@@ -43,13 +46,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
     ? [{ href: "/admin/dashboard", label: "Admin Panel", icon: <Shield className="w-4 h-4" />, testId: "mobile-nav-admin" }]
     : isBusinessOwner
     ? [
-        { href: "/dashboard?tab=overview", label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
-        { href: "/dashboard?tab=inventory", label: "My Shop", icon: <Store className="w-4 h-4" /> },
+        { href: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
+        { href: "/my-shop", label: "My Shop", icon: <Store className="w-4 h-4" /> },
         { href: "/trade/seller-import", label: "Nafex Trade Connect", icon: <Globe2 className="w-4 h-4" /> },
-        { href: "/dashboard?tab=inbox", label: "Inbox", icon: <MessageCircle className="w-4 h-4" /> },
-        { href: "/dashboard?tab=orders", label: "Orders", icon: <ShoppingBag className="w-4 h-4" /> },
-        { href: "/dashboard?tab=earnings", label: "Payments", icon: <Wallet className="w-4 h-4" /> },
-        { href: "/dashboard?tab=settings", label: "Settings", icon: <Settings className="w-4 h-4" /> },
+        { href: "/inbox", label: "Inbox", icon: <MessageCircle className="w-4 h-4" /> },
+        { href: "/orders", label: "Orders", icon: <ShoppingBag className="w-4 h-4" /> },
+        { href: "/payments", label: "Payments", icon: <Wallet className="w-4 h-4" /> },
+        { href: "/seller/settings", label: "Settings", icon: <Settings className="w-4 h-4" /> },
         { href: "/support", label: "Support", icon: <Headphones className="w-4 h-4" /> },
       ]
     : user
@@ -69,38 +72,28 @@ export function Layout({ children }: { children: React.ReactNode }) {
     ? [{ href: "/admin/dashboard", label: "Admin Panel" }]
     : isBusinessOwner
     ? [
-        { href: "/dashboard?tab=overview", label: "Dashboard" },
-        { href: "/dashboard?tab=inventory", label: "My Shop" },
-        { href: "/dashboard?tab=orders", label: "Orders" },
-        { href: "/dashboard?tab=inbox", label: "Inbox" },
-        { href: "/dashboard?tab=earnings", label: "Payments" },
+        { href: "/my-shop", label: "My Shop" },
+        { href: "/orders", label: "Orders" },
+        { href: "/inbox", label: "Inbox" },
       ]
     : user
     ? [
         { href: "/explore", label: "Explore Brands" },
         { href: "/discounts", label: "Deals" },
         { href: "/trade", label: "Trade" },
-        { href: "/support", label: "Support" },
       ]
     : [
         { href: "/explore", label: "Explore Brands" },
         { href: "/discounts", label: "Deals" },
       ];
 
-  const sellerMoreLinks = isBusinessOwner
-    ? [
-        { href: "/trade/seller-import", label: "Trade Connect", icon: <Globe2 className="w-4 h-4 text-muted-foreground" /> },
-        { href: "/dashboard?tab=settings", label: "Settings", icon: <Settings className="w-4 h-4 text-muted-foreground" /> },
-        { href: "/support", label: "Support", icon: <Headphones className="w-4 h-4 text-muted-foreground" /> },
-      ]
-    : [];
-
   return (
     <div className="min-h-[100dvh] flex flex-col w-full bg-background text-foreground font-sans">
       <VerifyEmailBanner />
       {/* ── Header (clean white top navbar with purple brand highlights matching Img 1 style guide) ── */}
-      <header className="sticky top-0 z-50 w-full bg-background text-[#222222] shadow-sm border-b border-purple-100/80">
-        <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6 gap-4">
+      {!isDedicatedSellerDashboard && (
+        <header className="sticky top-0 z-50 w-full bg-white text-[#222222] shadow-sm border-b border-purple-100/80">
+          <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6 gap-4">
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 shrink-0" data-testid="link-home" onClick={closeMenu}>
@@ -115,7 +108,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <input
                   type="search"
                   placeholder="Search products..."
-                  className="w-full h-9 pl-4 pr-10 rounded-full bg-[#F6F2FF] border border-purple-200 text-sm text-[#222222] placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#6A1B9A] focus:bg-background transition-all"
+                  className="w-full h-9 pl-4 pr-10 rounded-full bg-[#F6F2FF] border border-purple-200 text-sm text-[#222222] placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#6A1B9A] focus:bg-white transition-all"
                   value={headerSearch}
                   onChange={(e) => setHeaderSearch(e.target.value)}
                   onKeyDown={(e) => {
@@ -155,31 +148,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </Link>
             ))}
 
-            {/* Seller "More" dropdown for overflow nav items */}
-            {sellerMoreLinks.length > 0 && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="gap-1 text-[#222222]/80 hover:text-[#6A1B9A] px-2 text-sm font-poppins font-medium">
-                    More <ChevronDown className="w-3 h-3" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48">
-                  {sellerMoreLinks.map((link) => (
-                    <DropdownMenuItem key={link.href} asChild>
-                      <Link href={link.href} className="flex items-center gap-2 cursor-pointer">
-                        {link.icon} {link.label}
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-
             {user ? (
               <div className="flex items-center gap-1.5 ml-2">
                 {!isBusinessOwner && !isAdmin && (
                   <CartIcon className="text-[#222222] hover:text-[#6A1B9A]" />
                 )}
+                <Button variant="ghost" size="sm" onClick={toggleDarkMode} className="text-[#222222] hover:text-[#6A1B9A]" data-testid="btn-dark-mode">
+                  {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                </Button>
                 <NotificationBell />
 
                 {/* Buyer: Help dropdown + user account dropdown */}
@@ -187,7 +163,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   <>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="gap-1 text-[#222222]/80 hover:text-[#6A1B9A] hover:bg-[#F6F2FF] px-2">
+                        <Button variant="ghost" size="sm" className="gap-1 text-secondary-foreground/80 hover:text-primary hover:bg-white/10 px-2">
                           <HelpCircle className="w-4 h-4" />
                           <span className="text-sm">Help</span>
                           <ChevronDown className="w-3 h-3" />
@@ -220,7 +196,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="gap-1.5 text-[#222222]/80 hover:text-[#6A1B9A] hover:bg-[#F6F2FF] px-2" data-testid="btn-user-menu">
+                        <Button variant="ghost" size="sm" className="gap-1.5 text-secondary-foreground/80 hover:text-primary hover:bg-white/10 px-2" data-testid="btn-user-menu">
                           <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
                             <span className="text-xs font-bold text-primary">{user.name.charAt(0).toUpperCase()}</span>
                           </div>
@@ -269,7 +245,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 {isBusinessOwner && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="gap-1.5 text-[#222222]/80 hover:text-[#6A1B9A] hover:bg-[#F6F2FF] px-2" data-testid="btn-user-menu">
+                      <Button variant="ghost" size="sm" className="gap-1.5 text-secondary-foreground/80 hover:text-primary hover:bg-white/10 px-2" data-testid="btn-user-menu">
                         <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
                           <span className="text-xs font-bold text-primary">{user.name.charAt(0).toUpperCase()}</span>
                         </div>
@@ -283,12 +259,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                       </div>
                       <DropdownMenuItem asChild>
-                        <Link href="/dashboard?tab=inventory" className="flex items-center gap-2 cursor-pointer">
+                        <Link href="/my-shop" className="flex items-center gap-2 cursor-pointer">
                           <Store className="w-4 h-4 text-muted-foreground" /> My Shop
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href="/dashboard?tab=analytics" className="flex items-center gap-2 cursor-pointer">
+                        <Link href="/seller/performance" className="flex items-center gap-2 cursor-pointer">
                           <TrendingUp className="w-4 h-4 text-muted-foreground" /> Performance
                         </Link>
                       </DropdownMenuItem>
@@ -298,7 +274,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href="/dashboard?tab=settings" className="flex items-center gap-2 cursor-pointer">
+                        <Link href="/seller/settings" className="flex items-center gap-2 cursor-pointer">
                           <Settings className="w-4 h-4 text-muted-foreground" /> Settings
                         </Link>
                       </DropdownMenuItem>
@@ -319,7 +295,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   <Button
                     variant="ghost"
                     onClick={logout}
-                    className="text-[#222222]/80 hover:text-[#6A1B9A] hover:bg-[#F6F2FF]"
+                    className="text-secondary-foreground/80 hover:text-primary hover:bg-white/10"
                     data-testid="btn-logout"
                   >
                     <LogOut className="w-4 h-4 mr-1.5" />
@@ -368,7 +344,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-secondary-foreground hover:bg-background/10 hover:text-primary"
+                  className="text-secondary-foreground hover:bg-white/10 hover:text-primary"
                   aria-label="Open menu"
                   data-testid="btn-menu"
                 >
@@ -385,7 +361,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     variant="ghost"
                     size="icon"
                     onClick={closeMenu}
-                    className="text-secondary-foreground/60 hover:text-primary hover:bg-background/10"
+                    className="text-secondary-foreground/60 hover:text-primary hover:bg-white/10"
                   >
                     <X className="w-5 h-5" />
                   </Button>
@@ -401,7 +377,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                         location === item.href
                           ? "bg-primary/20 text-primary"
-                          : "text-secondary-foreground/80 hover:bg-background/8 hover:text-primary"
+                          : "text-secondary-foreground/80 hover:bg-white/8 hover:text-primary"
                       }`}
                       data-testid={item.testId}
                     >
@@ -415,7 +391,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   {user ? (
                     <button
                       onClick={() => { logout(); closeMenu(); }}
-                      className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-secondary-foreground/80 hover:bg-background/8 hover:text-primary transition-colors text-left w-full"
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-secondary-foreground/80 hover:bg-white/8 hover:text-primary transition-colors text-left w-full"
                       data-testid="mobile-btn-logout"
                     >
                       <LogOut className="w-4 h-4" />
@@ -426,7 +402,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       <Link
                         href="/login"
                         onClick={closeMenu}
-                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-secondary-foreground/80 hover:bg-background/8 hover:text-primary transition-colors"
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-secondary-foreground/80 hover:bg-white/8 hover:text-primary transition-colors"
                         data-testid="mobile-nav-login"
                       >
                         <LogIn className="w-4 h-4" />
@@ -466,49 +442,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
 
         </div>
-
-        {/* Mobile Search Bar - Displayed below the header only on mobile and only for buyers/guests */}
-        {!isBusinessOwner && !isAdmin && (
-          <div className="md:hidden px-4 pb-3 w-full bg-background border-t border-purple-50">
-            <div className="relative w-full pt-3">
-              <input
-                type="search"
-                placeholder="Search products, brands, categories..."
-                className="w-full h-10 pl-4 pr-11 rounded-full bg-[#F6F2FF] border border-purple-200 text-sm text-[#222222] placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#6A1B9A] focus:bg-background transition-all shadow-sm"
-                value={headerSearch}
-                onChange={(e) => setHeaderSearch(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    const value = headerSearch.trim();
-                    const base = "/explore";
-                    const next = value ? `${base}?search=${encodeURIComponent(value)}` : base;
-                    setLocation(next);
-                  }
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  const value = headerSearch.trim();
-                  const base = "/explore";
-                  const next = value ? `${base}?search=${encodeURIComponent(value)}` : base;
-                  setLocation(next);
-                }}
-                className="absolute right-1 top-[18px] w-8 h-8 rounded-full bg-[#6A1B9A] hover:bg-[#5B1687] text-white flex items-center justify-center transition-colors shadow-sm"
-              >
-                <Search className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        )}
-      </header>
+        </header>
+      )}
 
       <main className="flex-1 flex flex-col w-full">
         {children}
       </main>
 
       {/* ── Footer (Deep Primary Purple #6A1B9A matching Img 1 reference style guide) ── */}
-      <footer className="bg-[#6A1B9A] text-white border-t border-purple-900">
+      {!isDedicatedSellerDashboard && (
+        <footer className="bg-[#6A1B9A] text-white border-t border-purple-900">
         <div className="container mx-auto px-4 md:px-8 py-12">
           {/* Main Footer Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-purple-400/20">
@@ -526,7 +469,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     href={`https://wa.me/${siteSettings.whatsappNumber.replace(/\D/g, "")}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-background/10 hover:bg-[#D4A017] hover:text-white flex items-center justify-center text-purple-100 transition-all"
+                    className="w-8 h-8 rounded-full bg-white/10 hover:bg-[#D4A017] hover:text-white flex items-center justify-center text-purple-100 transition-all"
                     title="WhatsApp"
                   >
                     <Phone className="w-4 h-4" />
@@ -537,7 +480,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     href={siteSettings.instagramLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-background/10 hover:bg-[#D4A017] hover:text-white flex items-center justify-center text-purple-100 transition-all"
+                    className="w-8 h-8 rounded-full bg-white/10 hover:bg-[#D4A017] hover:text-white flex items-center justify-center text-purple-100 transition-all"
                     title="Instagram"
                   >
                     <Globe className="w-4 h-4" />
@@ -548,7 +491,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     href={siteSettings.facebookLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-8 h-8 rounded-full bg-background/10 hover:bg-[#D4A017] hover:text-white flex items-center justify-center text-purple-100 transition-all"
+                    className="w-8 h-8 rounded-full bg-white/10 hover:bg-[#D4A017] hover:text-white flex items-center justify-center text-purple-100 transition-all"
                     title="Facebook"
                   >
                     <Globe className="w-4 h-4" />
@@ -615,7 +558,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   value={newsletterEmail}
                   onChange={(e) => setNewsletterEmail(e.target.value)}
                   required
-                  className="w-full h-10 px-3.5 rounded-lg bg-background text-[#222222] placeholder:text-[#6B7280] text-sm focus:outline-none focus:ring-2 focus:ring-[#D4A017]"
+                  className="w-full h-10 px-3.5 rounded-lg bg-white text-[#222222] placeholder:text-[#6B7280] text-sm focus:outline-none focus:ring-2 focus:ring-[#D4A017]"
                 />
                 <button
                   type="submit"
@@ -635,7 +578,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </p>
           </div>
         </div>
-      </footer>
+        </footer>
+      )}
       <NafexCoinsModal open={coinsModalOpen} onOpenChange={setCoinsModalOpen} />
     </div>
   );

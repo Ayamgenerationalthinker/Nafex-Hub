@@ -83,6 +83,7 @@ import {
   Menu,
   CreditCard,
   X,
+  LogOut,
 } from "lucide-react";
 import { ALL_CATEGORIES } from "./list-business";
 import { useToast } from "@/hooks/use-toast";
@@ -687,9 +688,19 @@ function SellerDashboard() {
       <div className="flex gap-6 items-start">
 
         {/* ── Desktop Sidebar ── */}
-        <aside className="hidden md:flex flex-col w-56 shrink-0">
-          <nav className="bg-card border border-border rounded-xl shadow-sm p-2 sticky top-6 space-y-0.5">
-            {SIDEBAR_GROUPS.map((group, gi) => (
+        <aside className="hidden md:flex flex-col w-56 shrink-0 h-[calc(100vh-140px)] sticky top-6">
+          <nav className="bg-card border border-border rounded-xl shadow-sm p-3 flex flex-col h-full">
+            <div className="mb-4 px-2">
+              <div className="text-xl font-bold tracking-tight text-primary flex items-center gap-2 cursor-pointer" onClick={() => setLocation("/")}>
+                <div className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center font-serif text-lg">
+                  N
+                </div>
+                Nafex Hub
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto space-y-0.5 pr-1 pb-4">
+              {SIDEBAR_GROUPS.map((group, gi) => (
               <div key={group.label}>
                 {gi > 0 && <div className="border-t border-border/60 my-2" />}
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-3 py-1">{group.label}</p>
@@ -709,6 +720,28 @@ function SellerDashboard() {
                 ))}
               </div>
             ))}
+            </div>
+            
+            {/* Bottom Actions */}
+            <div className="mt-auto pt-4 border-t border-border/60 px-1 space-y-1">
+              <button
+                onClick={() => setLocation("/")}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all"
+              >
+                <Store className="w-4 h-4" />
+                View Marketplace
+              </button>
+              <button
+                onClick={() => {
+                  const { logout } = useAuth.getState();
+                  logout();
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 hover:text-red-600 transition-all"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
+            </div>
           </nav>
         </aside>
 
@@ -743,6 +776,28 @@ function SellerDashboard() {
                   ))}
                 </div>
               ))}
+              
+              {/* Bottom Actions Mobile */}
+              <div className="mt-8 pt-4 border-t border-border/60 space-y-1 pb-4">
+                <button
+                  onClick={() => { setLocation("/"); setSidebarOpen(false); }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all"
+                >
+                  <Store className="w-4 h-4" />
+                  View Marketplace
+                </button>
+                <button
+                  onClick={() => {
+                    const { logout } = useAuth.getState();
+                    logout();
+                    setSidebarOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 hover:text-red-600 transition-all"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              </div>
             </nav>
           </div>
         )}
