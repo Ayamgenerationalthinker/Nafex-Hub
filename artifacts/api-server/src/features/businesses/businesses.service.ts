@@ -41,10 +41,15 @@ export class BusinessesService {
 
   public async createBusiness(userId: number, data: any) {
     const biz = await this.repository.createBusiness({
-      ...data,
       ownerId: userId,
-      images: data.images ?? [],
-      kycDocuments: data.kycDocuments ?? [],
+      name: String(data.name || "").trim(),
+      category: String(data.category || "Clothing").trim(),
+      description: String(data.description || "").trim(),
+      location: String(data.location || "").trim(),
+      phone: String(data.phone || "").trim(),
+      logo: data.logo ? String(data.logo) : null,
+      images: Array.isArray(data.images) ? data.images.map(String) : [],
+      kycDocuments: Array.isArray(data.kycDocuments) ? data.kycDocuments.map(String) : [],
       approvalStatus: "approved",
     });
 

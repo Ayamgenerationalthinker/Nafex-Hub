@@ -19,6 +19,17 @@ initSocketIO(httpServer);
 // Bind to 0.0.0.0 so Cloud Run / Docker health checks can reach the server
 httpServer.listen(port, "0.0.0.0", async () => {
   logger.info({ port }, "Server listening");
+
+  // Run outstanding Drizzle migrations on every deployment
+  try {
+    const { runMigrations } = await import("@workspace/db/migrate");
+    const migrationsFolder = new URL("../../../../lib/db/migrations", import.meta.url).pathname;
+    await runMigrations(migrationsFolder);
+    logger.info("Database migrations applied successfully");
+  } catch (e) {
+    logger.error({ err: e }, "Failed to apply database migrations");
+  }
+
   await connectRedis();
   initWorker();
   try {

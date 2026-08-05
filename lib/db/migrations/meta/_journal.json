@@ -29,6 +29,13 @@
       "when": 1785744942380,
       "tag": "0003_aromatic_masked_marvel",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1785920542000,
+      "tag": "0004_fix_businesses_approval_status",
+      "breakpoints": true
     }
   ]
 }
