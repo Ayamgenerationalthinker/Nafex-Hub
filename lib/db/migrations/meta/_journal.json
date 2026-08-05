@@ -36,6 +36,13 @@
       "when": 1785920542000,
       "tag": "0004_fix_businesses_approval_status",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1785921600000,
+      "tag": "0005_catchup_missing_columns",
+      "breakpoints": true
     }
   ]
 }
