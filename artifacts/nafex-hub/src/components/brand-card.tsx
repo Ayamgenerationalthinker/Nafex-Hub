@@ -127,18 +127,6 @@ export function BrandCard({ business, isTopSeller, isTrending, isFeaturedTop }: 
         >
           View Profile
         </Link>
-        {business.phone && (
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full inline-flex items-center justify-center gap-2 rounded-xl text-sm font-semibold h-10 px-4 py-2 bg-[#2E7D32] hover:bg-[#1B5E20] text-white transition-colors"
-            data-testid={`link-whatsapp-${business.id}`}
-          >
-            <MessageCircle className="w-4 h-4" />
-            Chat on WhatsApp
-          </a>
-        )}
       </CardFooter>
     </Card>
   );

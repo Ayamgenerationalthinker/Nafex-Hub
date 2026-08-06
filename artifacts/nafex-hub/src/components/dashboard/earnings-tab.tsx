@@ -78,7 +78,7 @@ export function EarningsTab({ businessId }: { businessId: number }) {
 
   const summaryCards = [
     {
-      label: "Total Earned",
+      label: "Successful Sales (Released)",
       value: data?.totalReleased ?? 0,
       icon: <DollarSign className="w-5 h-5 text-green-600" />,
       bg: "bg-green-50",
@@ -92,7 +92,7 @@ export function EarningsTab({ businessId }: { businessId: number }) {
       sub: "Awaiting delivery confirm",
     },
     {
-      label: "Pending Orders",
+      label: "Pending Sales",
       value: data?.pendingRevenue ?? 0,
       icon: <Clock4 className="w-5 h-5 text-indigo-600" />,
       bg: "bg-indigo-50",
@@ -127,7 +127,7 @@ export function EarningsTab({ businessId }: { businessId: number }) {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-primary" /> Revenue (Last 6 Months)
+            <TrendingUp className="w-4 h-4 text-primary" /> Sales Revenue (Last 6 Months)
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -159,7 +159,7 @@ export function EarningsTab({ businessId }: { businessId: number }) {
       {data && (data.totalReleased + data.inEscrow + data.pendingRevenue + data.totalRefunded) > 0 && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Revenue Breakdown</CardTitle>
+            <CardTitle className="text-base">Sales Breakdown</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={180}>
@@ -213,7 +213,7 @@ export function EarningsTab({ businessId }: { businessId: number }) {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-6">No transactions yet.</p>
+            <p className="text-sm text-muted-foreground text-center py-6">No successful sales yet.</p>
           )}
         </CardContent>
       </Card>

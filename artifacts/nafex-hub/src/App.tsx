@@ -1,65 +1,69 @@
+import React, { Suspense, lazy } from "react";
 import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/layout";
-import { setAuthTokenGetter } from "./api-client-react";
+import { setAuthTokenGetter } from "@workspace/api-client-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
-
-
-import NotFound from "@/pages/not-found";
-import Home from "@/pages/home";
-import Explore from "@/pages/explore";
-import BrandProfile from "@/pages/brand-profile";
-import ListBusiness from "@/pages/list-business";
-import Admin from "@/pages/admin";
-import Login from "@/pages/login";
-import Register from "@/pages/register";
-import ProductCatalog from "@/components/ProductCatalog";
-import Checkout from "@/pages/Checkout";
-import VerifyEmail from "@/pages/verify-email";
 import { VerifyEmailBanner } from "@/components/verify-email-banner";
-import Cart from "@/pages/cart";
-import Dashboard from "@/pages/dashboard";
-import Inbox from "@/pages/inbox";
-import Orders from "@/pages/orders";
-import ProductDetail from "@/pages/product-detail";
-import Favorites from "@/pages/favorites";
-import AdminDashboard from "@/pages/admin-dashboard";
-import AdminUsersPage from "@/pages/admin-users";
-import AdminBusinessesPage from "@/pages/admin-businesses-page";
-import AdminAnalytics from "@/pages/admin-analytics";
-import AdminSettingsPage from "@/pages/admin-settings-page";
-import AdminProductsPage from "@/pages/admin-products-page";
-import AdminServicesPage from "@/pages/admin-services-page";
-import ServicesPage from "@/pages/services-page";
-import Discounts from "@/pages/discounts";
-import SupportChat from "@/pages/support-chat";
-import SellerSettings from "@/pages/seller-settings";
-import MyShop from "@/pages/my-shop";
-import BuyerSettings from "@/pages/buyer-settings";
-import Help from "@/pages/help";
-import SellerPerformance from "@/pages/seller-performance";
-import Track from "@/pages/track";
-import PaymentCallback from "@/pages/payment-callback";
-import Disputes from "@/pages/disputes";
-import AdminDeliveries from "@/pages/admin-deliveries";
-import AdminDisputesPage from "@/pages/admin-disputes-page";
 import { SupportChatWidget } from "@/components/support-chat";
-import TradeConnect from "@/pages/trade-connect";
-import TradeMyRequests from "@/pages/trade-my-requests";
-import TradeBoard from "@/pages/trade-board";
-import TradeOrderDetail from "@/pages/trade-order-detail";
-import SellerBulkImport from "@/pages/seller-bulk-import";
-import AdminTrade from "@/pages/admin-trade";
-import AdminPayments from "@/pages/admin-payments";
-import Payments from "@/pages/payments";
-import AdminFlashSales from "@/pages/admin-flash-sales";
-import AdminModeration from "@/pages/admin-moderation";
-import AdminSupport from "@/pages/admin-support";
-import Privacy from "@/pages/privacy";
-import Terms from "@/pages/terms";
-import About from "@/pages/about";
+import { GlobalErrorBoundary } from "@/components/global-error-boundary";
+import { RouteLoader } from "@/components/route-loader";
+
+const NotFound = lazy(() => import("@/pages/not-found"));
+const Home = lazy(() => import("@/pages/home"));
+const Explore = lazy(() => import("@/pages/explore"));
+const BrandProfile = lazy(() => import("@/pages/brand-profile"));
+const ListBusiness = lazy(() => import("@/pages/list-business"));
+const Admin = lazy(() => import("@/pages/admin"));
+const Login = lazy(() => import("@/pages/login"));
+const Register = lazy(() => import("@/pages/register"));
+const ProductCatalog = lazy(() => import("@/components/ProductCatalog"));
+const Checkout = lazy(() => import("@/pages/Checkout"));
+const VerifyEmail = lazy(() => import("@/pages/verify-email"));
+const Cart = lazy(() => import("@/pages/cart"));
+const Dashboard = lazy(() => import("@/pages/dashboard"));
+const Inbox = lazy(() => import("@/pages/inbox"));
+const Orders = lazy(() => import("@/pages/orders"));
+const ProductDetail = lazy(() => import("@/pages/product-detail"));
+const Favorites = lazy(() => import("@/pages/favorites"));
+const AdminDashboard = lazy(() => import("@/pages/admin-dashboard"));
+const AdminUsersPage = lazy(() => import("@/pages/admin-users"));
+const AdminBusinessesPage = lazy(() => import("@/pages/admin-businesses-page"));
+const AdminAnalytics = lazy(() => import("@/pages/admin-analytics"));
+const AdminSettingsPage = lazy(() => import("@/pages/admin-settings-page"));
+const AdminProductsPage = lazy(() => import("@/pages/admin-products-page"));
+const AdminServicesPage = lazy(() => import("@/pages/admin-services-page"));
+const ServicesPage = lazy(() => import("@/pages/services-page"));
+const Discounts = lazy(() => import("@/pages/discounts"));
+const SupportChat = lazy(() => import("@/pages/support-chat"));
+const SellerSettings = lazy(() => import("@/pages/seller-settings"));
+const MyShop = lazy(() => import("@/pages/my-shop"));
+const BuyerSettings = lazy(() => import("@/pages/buyer-settings"));
+const Help = lazy(() => import("@/pages/help"));
+const SellerPerformance = lazy(() => import("@/pages/seller-performance"));
+const Track = lazy(() => import("@/pages/track"));
+const PaymentCallback = lazy(() => import("@/pages/payment-callback"));
+const Disputes = lazy(() => import("@/pages/disputes"));
+const AdminDeliveries = lazy(() => import("@/pages/admin-deliveries"));
+const AdminDisputesPage = lazy(() => import("@/pages/admin-disputes-page"));
+const TradeConnect = lazy(() => import("@/pages/trade-connect"));
+const TradeMyRequests = lazy(() => import("@/pages/trade-my-requests"));
+const TradeBoard = lazy(() => import("@/pages/trade-board"));
+const TradeOrderDetail = lazy(() => import("@/pages/trade-order-detail"));
+const SellerBulkImport = lazy(() => import("@/pages/seller-bulk-import"));
+const AdminTrade = lazy(() => import("@/pages/admin-trade"));
+const AdminPayments = lazy(() => import("@/pages/admin-payments"));
+const Payments = lazy(() => import("@/pages/payments"));
+const AdminFlashSales = lazy(() => import("@/pages/admin-flash-sales"));
+const AdminModeration = lazy(() => import("@/pages/admin-moderation"));
+const AdminSupport = lazy(() => import("@/pages/admin-support"));
+const AdminSourcing = lazy(() => import("@/pages/admin-sourcing"));
+const AdminSkus = lazy(() => import("@/pages/admin-skus"));
+const Privacy = lazy(() => import("@/pages/privacy"));
+const Terms = lazy(() => import("@/pages/terms"));
+const About = lazy(() => import("@/pages/about"));
 
 const queryClient = new QueryClient();
 
@@ -69,67 +73,73 @@ setAuthTokenGetter(() => localStorage.getItem("nafex_token"));
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/admin/dashboard">{() => <ProtectedRoute component={AdminDashboard} roles={["admin"]} to="/" />}</Route>
-      <Route path="/admin/users">{() => <ProtectedRoute component={AdminUsersPage} roles={["admin"]} to="/" />}</Route>
-      <Route path="/admin/businesses">{() => <ProtectedRoute component={AdminBusinessesPage} roles={["admin"]} to="/" />}</Route>
-      <Route path="/admin/analytics">{() => <ProtectedRoute component={AdminAnalytics} roles={["admin"]} to="/" />}</Route>
-      <Route path="/admin/settings">{() => <ProtectedRoute component={AdminSettingsPage} roles={["admin"]} to="/" />}</Route>
-      <Route path="/admin/products">{() => <ProtectedRoute component={AdminProductsPage} roles={["admin"]} to="/" />}</Route>
-      <Route path="/admin/services">{() => <ProtectedRoute component={AdminServicesPage} roles={["admin"]} to="/" />}</Route>
-      <Route path="/admin/payments">{() => <ProtectedRoute component={AdminPayments} roles={["admin"]} to="/" />}</Route>
-      <Route path="/admin/flash-sales">{() => <ProtectedRoute component={AdminFlashSales} roles={["admin"]} to="/" />}</Route>
-      <Route path="/admin/moderation">{() => <ProtectedRoute component={AdminModeration} roles={["admin"]} to="/" />}</Route>
-      <Route path="/admin/support">{() => <ProtectedRoute component={AdminSupport} roles={["admin"]} to="/" />}</Route>
-      <Route>
-        <Layout>
-          <Switch>
-            <Route path="/" component={Home} />
-            <Route path="/explore" component={Explore} />
-            <Route path="/brand/:id" component={BrandProfile} />
-            <Route path="/login" component={Login} />
-            <Route path="/register" component={Register} />
-            <Route path="/verify-email" component={VerifyEmail} />
-            <Route path="/cart" component={Cart} />
-            <Route path="/discounts" component={Discounts} />
-            <Route path="/catalog" component={ProductCatalog} />
-            <Route path="/checkout">{() => <ProtectedRoute component={Checkout} to="/login" />}</Route>
-            <Route path="/services" component={ServicesPage} />
-            <Route path="/product/:id" component={ProductDetail} />
-            <Route path="/dashboard">{() => <ProtectedRoute component={Dashboard} to="/login" />}</Route>
-            <Route path="/list">{() => <ProtectedRoute component={ListBusiness} roles={["business_owner", "admin"]} to="/explore" />}</Route>
-            <Route path="/admin">{() => <ProtectedRoute component={Admin} roles={["admin"]} to="/" />}</Route>
-            <Route path="/cart">{() => <ProtectedRoute component={Cart} roles={["user", "admin"]} to="/dashboard" />}</Route>
-            <Route path="/inbox">{() => <ProtectedRoute component={Inbox} />}</Route>
-            <Route path="/orders">{() => <ProtectedRoute component={Orders} />}</Route>
-            <Route path="/payments">{() => <ProtectedRoute component={Payments} />}</Route>
-            <Route path="/favorites">{() => <ProtectedRoute component={Favorites} roles={["user", "admin"]} to="/dashboard" />}</Route>
-            <Route path="/support">{() => <ProtectedRoute component={SupportChat} />}</Route>
-            <Route path="/seller/settings">{() => <ProtectedRoute component={SellerSettings} roles={["business_owner"]} to="/explore" />}</Route>
-            <Route path="/my-shop">{() => <ProtectedRoute component={MyShop} roles={["business_owner"]} to="/explore" />}</Route>
-            <Route path="/account/settings">{() => <ProtectedRoute component={BuyerSettings} roles={["user"]} to="/explore" />}</Route>
-            <Route path="/help" component={Help} />
-            <Route path="/seller/performance">{() => <ProtectedRoute component={SellerPerformance} roles={["business_owner"]} to="/explore" />}</Route>
-            <Route path="/payment/callback" component={PaymentCallback} />
-            <Route path="/track" component={Track} />
-            <Route path="/track/:code" component={Track} />
-            <Route path="/disputes">{() => <ProtectedRoute component={Disputes} />}</Route>
-            <Route path="/privacy" component={Privacy} />
-            <Route path="/terms" component={Terms} />
-            <Route path="/about" component={About} />
-            <Route path="/admin/deliveries">{() => <ProtectedRoute component={AdminDeliveries} roles={["admin"]} to="/" />}</Route>
-            <Route path="/admin/disputes">{() => <ProtectedRoute component={AdminDisputesPage} roles={["admin"]} to="/" />}</Route>
-            <Route path="/trade">{() => <ProtectedRoute component={TradeConnect} />}</Route>
-            <Route path="/trade/my-requests">{() => <ProtectedRoute component={TradeMyRequests} />}</Route>
-            <Route path="/trade/board">{() => <ProtectedRoute component={TradeBoard} />}</Route>
-            <Route path="/trade/order/:id">{() => <ProtectedRoute component={TradeOrderDetail} />}</Route>
-            <Route path="/trade/seller-import">{() => <ProtectedRoute component={SellerBulkImport} roles={["business_owner", "admin"]} to="/login" />}</Route>
-            <Route path="/admin/trade">{() => <ProtectedRoute component={AdminTrade} roles={["admin"]} to="/" />}</Route>
-            <Route component={NotFound} />
-          </Switch>
-        </Layout>
-      </Route>
-    </Switch>
+    <GlobalErrorBoundary>
+      <Suspense fallback={<RouteLoader />}>
+        <Switch>
+        <Route path="/admin/dashboard">{() => <ProtectedRoute component={AdminDashboard} roles={["admin"]} to="/" />}</Route>
+        <Route path="/admin/users">{() => <ProtectedRoute component={AdminUsersPage} roles={["admin"]} to="/" />}</Route>
+        <Route path="/admin/businesses">{() => <ProtectedRoute component={AdminBusinessesPage} roles={["admin"]} to="/" />}</Route>
+        <Route path="/admin/analytics">{() => <ProtectedRoute component={AdminAnalytics} roles={["admin"]} to="/" />}</Route>
+        <Route path="/admin/settings">{() => <ProtectedRoute component={AdminSettingsPage} roles={["admin"]} to="/" />}</Route>
+        <Route path="/admin/products">{() => <ProtectedRoute component={AdminProductsPage} roles={["admin"]} to="/" />}</Route>
+        <Route path="/admin/services">{() => <ProtectedRoute component={AdminServicesPage} roles={["admin"]} to="/" />}</Route>
+        <Route path="/admin/payments">{() => <ProtectedRoute component={AdminPayments} roles={["admin"]} to="/" />}</Route>
+        <Route path="/admin/flash-sales">{() => <ProtectedRoute component={AdminFlashSales} roles={["admin"]} to="/" />}</Route>
+        <Route path="/admin/moderation">{() => <ProtectedRoute component={AdminModeration} roles={["admin"]} to="/" />}</Route>
+        <Route path="/admin/support">{() => <ProtectedRoute component={AdminSupport} roles={["admin"]} to="/" />}</Route>
+        <Route>
+          <Layout>
+            <Switch>
+              <Route path="/" component={Home} />
+              <Route path="/explore" component={Explore} />
+              <Route path="/brand/:id" component={BrandProfile} />
+              <Route path="/login" component={Login} />
+              <Route path="/register" component={Register} />
+              <Route path="/verify-email" component={VerifyEmail} />
+              <Route path="/cart" component={Cart} />
+              <Route path="/discounts" component={Discounts} />
+              <Route path="/catalog" component={ProductCatalog} />
+              <Route path="/checkout">{() => <ProtectedRoute component={Checkout} to="/login" />}</Route>
+              <Route path="/services" component={ServicesPage} />
+              <Route path="/product/:id" component={ProductDetail} />
+              <Route path="/dashboard">{() => <ProtectedRoute component={Dashboard} to="/login" />}</Route>
+              <Route path="/list">{() => <ProtectedRoute component={ListBusiness} roles={["business_owner", "admin"]} to="/explore" />}</Route>
+              <Route path="/admin">{() => <ProtectedRoute component={Admin} roles={["admin"]} to="/" />}</Route>
+              <Route path="/cart">{() => <ProtectedRoute component={Cart} roles={["user", "admin"]} to="/dashboard" />}</Route>
+              <Route path="/inbox">{() => <ProtectedRoute component={Inbox} />}</Route>
+              <Route path="/orders">{() => <ProtectedRoute component={Orders} />}</Route>
+              <Route path="/payments">{() => <ProtectedRoute component={Payments} />}</Route>
+              <Route path="/favorites">{() => <ProtectedRoute component={Favorites} roles={["user", "admin"]} to="/dashboard" />}</Route>
+              <Route path="/support">{() => <ProtectedRoute component={SupportChat} />}</Route>
+              <Route path="/seller/settings">{() => <ProtectedRoute component={SellerSettings} roles={["business_owner"]} to="/explore" />}</Route>
+              <Route path="/my-shop">{() => <ProtectedRoute component={MyShop} roles={["business_owner"]} to="/explore" />}</Route>
+              <Route path="/account/settings">{() => <ProtectedRoute component={BuyerSettings} roles={["user"]} to="/explore" />}</Route>
+              <Route path="/help" component={Help} />
+              <Route path="/seller/performance">{() => <ProtectedRoute component={SellerPerformance} roles={["business_owner"]} to="/explore" />}</Route>
+              <Route path="/payment/callback" component={PaymentCallback} />
+              <Route path="/track" component={Track} />
+              <Route path="/track/:code" component={Track} />
+              <Route path="/disputes">{() => <ProtectedRoute component={Disputes} />}</Route>
+              <Route path="/privacy" component={Privacy} />
+              <Route path="/terms" component={Terms} />
+              <Route path="/about" component={About} />
+              <Route path="/admin/deliveries">{() => <ProtectedRoute component={AdminDeliveries} roles={["admin"]} to="/" />}</Route>
+              <Route path="/admin/disputes">{() => <ProtectedRoute component={AdminDisputesPage} roles={["admin"]} to="/" />}</Route>
+              <Route path="/trade">{() => <ProtectedRoute component={TradeConnect} />}</Route>
+              <Route path="/trade/my-requests">{() => <ProtectedRoute component={TradeMyRequests} />}</Route>
+              <Route path="/trade/board">{() => <ProtectedRoute component={TradeBoard} />}</Route>
+              <Route path="/trade/order/:id">{() => <ProtectedRoute component={TradeOrderDetail} />}</Route>
+              <Route path="/trade/seller-import">{() => <ProtectedRoute component={SellerBulkImport} roles={["business_owner", "admin"]} to="/login" />}</Route>
+              <Route path="/admin/trade">{() => <ProtectedRoute component={AdminTrade} roles={["admin"]} to="/" />}</Route>
+              <Route path="/admin/sourcing">{() => <ProtectedRoute component={AdminSourcing} roles={["admin"]} to="/" />}</Route>
+              <Route path="/admin/skus">{() => <ProtectedRoute component={AdminSkus} roles={["admin"]} to="/" />}</Route>
+              <Route component={NotFound} />
+            </Switch>
+          </Layout>
+        </Route>
+      </Switch>
+    </Suspense>
+  </GlobalErrorBoundary>
   );
 }
 
