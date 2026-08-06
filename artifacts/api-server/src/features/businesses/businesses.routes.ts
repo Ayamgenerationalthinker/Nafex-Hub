@@ -70,6 +70,7 @@ router.get("/admin/run-migrations", async (req, res) => {
   try {
     const fs = await import("fs");
     const path = await import("path");
+    // @ts-ignore
     const pg = await import("pg");
     
     const dbUrl = process.env.DATABASE_URL;
