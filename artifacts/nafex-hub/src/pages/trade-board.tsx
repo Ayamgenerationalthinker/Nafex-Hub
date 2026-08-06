@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ImageUpload } from "@/components/image-upload";
 import {
   Dialog,
   DialogContent,
@@ -68,7 +67,6 @@ export default function TradeBoard() {
     productionTime: "",
     notes: "",
   });
-  const [images, setImages] = useState<string[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -111,7 +109,6 @@ export default function TradeBoard() {
           shippingCost: isNaN(shippingCost) ? 0 : shippingCost,
           productionTime: form.productionTime.trim(),
           notes: form.notes.trim() || undefined,
-          images,
         }),
       });
       if (!res.ok) {
@@ -121,7 +118,6 @@ export default function TradeBoard() {
       toast({ title: "Quote submitted!", description: "The buyer will be notified." });
       setQuotingReq(null);
       setForm({ unitPrice: "", moq: "", shippingCost: "", productionTime: "", notes: "" });
-      setImages([]);
     } catch (e: unknown) {
       toast({ title: "Error", description: (e as Error).message, variant: "destructive" });
     } finally {
@@ -201,17 +197,6 @@ export default function TradeBoard() {
                   <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
                     {req.description}
                   </p>
-
-                  {(req as any).images && (req as any).images.length > 0 && (
-                    <div className="flex gap-2 mt-3 overflow-x-auto pb-1 hide-scrollbar">
-                      {(req as any).images.map((img: string, idx: number) => (
-                        <div key={idx} className="w-12 h-12 rounded bg-muted/30 border border-border flex-shrink-0 overflow-hidden">
-                          <img src={img} alt="Reference" className="w-full h-full object-cover" />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
 
                   <div className="flex flex-wrap gap-2 text-xs">
                     <span className="bg-muted/60 rounded-md px-2 py-1">
@@ -322,12 +307,6 @@ export default function TradeBoard() {
                 rows={3}
               />
             </div>
-            <ImageUpload
-              value={images}
-              onChange={setImages}
-              maxImages={5}
-              label="Reference Images (optional)"
-            />
           </div>
 
           <DialogFooter>

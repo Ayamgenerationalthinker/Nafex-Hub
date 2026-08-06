@@ -89,8 +89,6 @@ type AdminBusiness = {
   phone?: string | null;
   email?: string | null;
   createdAt?: string;
-  approvalStatus?: "pending" | "approved" | "rejected";
-  kycDocuments?: string[];
 };
 
 type BusinessProduct = {
@@ -171,9 +169,9 @@ export default function AdminBusinessesPage() {
     queryClient.invalidateQueries({ queryKey: ["/api/businesses/verified"] });
   };
 
-  const handleVerify = (id: number, isVerified: boolean, approvalStatus?: "pending" | "approved" | "rejected") => {
+  const handleVerify = (id: number, isVerified: boolean) => {
     verify.mutate(
-      { id, data: { isVerified, approvalStatus } },
+      { id, data: { isVerified } },
       {
         onSuccess: () => {
           invalidateAll();
@@ -420,16 +418,6 @@ export default function AdminBusinessesPage() {
       cell: ({ row }) => <span className="text-xs font-medium text-muted-foreground">{row.original.category}</span>
     },
     {
-      accessorKey: "approvalStatus",
-      header: "Status",
-      cell: ({ row }) => {
-        const status = row.original.approvalStatus;
-        if (status === "approved") return <Badge className="bg-green-500/15 text-green-600 border-green-500/30 text-xs">Approved</Badge>;
-        if (status === "rejected") return <Badge className="bg-red-500/15 text-red-600 border-red-500/30 text-xs">Rejected</Badge>;
-        return <Badge className="bg-amber-500/15 text-amber-600 border-amber-500/30 text-xs">Pending</Badge>;
-      }
-    },
-    {
       accessorKey: "isVerified",
       header: "Star Verification",
       cell: ({ row }) => {
@@ -631,40 +619,20 @@ export default function AdminBusinessesPage() {
                     )}
                   </div>
 
-                  <div className="flex gap-2">
-                    {viewDialog.biz.approvalStatus === "pending" && (
-                      <Button
-                        onClick={() => handleVerify(viewDialog.biz!.id, false, "rejected")}
-                        disabled={verify.isPending}
-                        variant="destructive"
-                        className="font-semibold text-xs h-9 px-3"
-                      >
-                        Reject App
-                      </Button>
-                    )}
-                    <Button
-                      onClick={() => handleVerify(viewDialog.biz!.id, !viewDialog.biz!.isVerified, !viewDialog.biz!.isVerified ? "approved" : "pending")}
-                      disabled={verify.isPending}
-                      className={`gap-1.5 font-semibold text-xs h-9 px-3 ${viewDialog.biz.isVerified ? "bg-muted text-foreground hover:bg-muted/80" : "bg-emerald-600 hover:bg-emerald-700 text-white"}`}
-                    >
-                      {viewDialog.biz.isVerified ? (
-                        <>Revoke Approval</>
-                      ) : (
-                        <><CheckCircle2 className="w-4 h-4" /> Approve Business</>
-                      )}
-                    </Button>
-                  </div>
+                  <Button
+                    onClick={() => handleVerify(viewDialog.biz!.id, !viewDialog.biz!.isVerified)}
+                    disabled={verify.isPending}
+                    className={`gap-1.5 font-semibold ${viewDialog.biz.isVerified ? "bg-muted text-foreground hover:bg-muted/80" : "bg-amber-500 hover:bg-amber-600 text-white"}`}
+                  >
+                    <Star className={`w-4 h-4 ${viewDialog.biz.isVerified ? "text-amber-500 fill-amber-500" : "fill-white"}`} />
+                    {viewDialog.biz.isVerified ? "Revoke Verification Star" : "Grant Verified Star ⭐"}
+                  </Button>
                 </div>
 
                 <div className="space-y-4">
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="text-xl font-bold text-foreground">{viewDialog.biz.name}</h3>
-                      {viewDialog.biz.approvalStatus === "approved" && (
-                        <Badge className="bg-green-500/15 text-green-600 border-green-500/30 gap-1 font-bold">
-                          Approved
-                        </Badge>
-                      )}
                       {viewDialog.biz.isVerified && (
                         <Badge className="bg-amber-500/15 text-amber-600 border-amber-500/30 gap-1 font-bold">
                           <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" /> Verified Merchant
@@ -684,26 +652,31 @@ export default function AdminBusinessesPage() {
                   )}
 
                   {/* Uploads & Verification Credentials */}
-                  <div className="space-y-2 pt-4">
+                  <div className="space-y-2">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                      <Upload className="w-3.5 h-3.5 text-primary" /> Uploaded KYC Documents
+                      <Upload className="w-3.5 h-3.5 text-primary" /> Uploaded Documents & Credentials
                     </h4>
-                    {viewDialog.biz.kycDocuments && viewDialog.biz.kycDocuments.length > 0 ? (
-                      <div className="grid grid-cols-2 gap-3">
-                        {viewDialog.biz.kycDocuments.map((doc, idx) => (
-                          <a key={idx} href={doc} target="_blank" rel="noreferrer" className="block relative aspect-video rounded-lg overflow-hidden border bg-muted group">
-                            <img src={doc} alt={`KYC Doc ${idx+1}`} className="w-full h-full object-cover" />
-                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                              <ExternalLink className="w-6 h-6 text-white" />
-                            </div>
-                          </a>
-                        ))}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="p-3 rounded-xl border border-border/60 bg-card space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                            <FileText className="w-3.5 h-3.5 text-blue-500" /> Business Registration (TIN / GRA)
+                          </span>
+                          <Badge variant="outline" className="text-[10px] bg-green-50 text-green-700 border-green-300">Submitted</Badge>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">Verified Tax Identification & Registrar General Document</p>
                       </div>
-                    ) : (
-                      <div className="p-4 rounded-xl border border-dashed bg-card text-center text-sm text-muted-foreground">
-                        No KYC documents uploaded by this business.
+
+                      <div className="p-3 rounded-xl border border-border/60 bg-card space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                            <ShieldCheck className="w-3.5 h-3.5 text-purple-500" /> National ID / Ghana Card
+                          </span>
+                          <Badge variant="outline" className="text-[10px] bg-green-50 text-green-700 border-green-300">Verified</Badge>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">Verified Ghana Card ID match with account owner</p>
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
               </div>

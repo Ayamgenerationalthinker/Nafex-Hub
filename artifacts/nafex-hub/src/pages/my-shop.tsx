@@ -7,8 +7,6 @@ import {
   useCreateProduct,
   useUpdateProduct,
   useDeleteProduct,
-  useGetBusiness,
-  getGetBusinessQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus, Pencil, Trash2, Package, Store, ExternalLink, ImageOff, Sparkles } from "lucide-react";
@@ -31,17 +29,13 @@ import type { Product } from "@workspace/api-client-react";
 
 interface ProductForm {
   name: string;
-  category: string;
-  brand: string;
-  model: string;
   description: string;
   price: string;
   stock: string;
   images: string[];
-  variants: { id: string; attributes: Record<string, string>; price: string; stock: string }[];
 }
 
-const EMPTY_FORM: ProductForm = { name: "", category: "General", brand: "", model: "", description: "", price: "", stock: "", images: [], variants: [] };
+const EMPTY_FORM: ProductForm = { name: "", description: "", price: "", stock: "", images: [] };
 
 export default function MyShop() {
   const [, navigate] = useLocation();
@@ -55,10 +49,6 @@ export default function MyShop() {
     businessId ?? 0,
     { query: { enabled: !!businessId, queryKey: getGetBusinessProductsQueryKey(businessId ?? 0) } },
   );
-
-  const { data: business } = useGetBusiness(businessId ?? 0, {
-    query: { enabled: !!businessId, queryKey: getGetBusinessQueryKey(businessId ?? 0) },
-  });
 
   const invalidate = () => {
     if (businessId) {
@@ -111,19 +101,10 @@ export default function MyShop() {
     setEditing(p);
     setForm({
       name: p.name,
-      category: p.category || "General",
-      brand: p.brand || "",
-      model: p.model || "",
       description: p.description ?? "",
       price: String(p.price ?? ""),
       stock: p.stock != null ? String(p.stock) : "",
       images: p.images ?? [],
-      variants: Array.isArray((p as any).variants) ? (p as any).variants.map((v: any, i: number) => ({
-        id: `edit-${i}`,
-        attributes: v.attributes || {},
-        price: v.price ? String(v.price) : "",
-        stock: v.stock != null ? String(v.stock) : "",
-      })) : [],
     });
     setOpen(true);
   };
@@ -177,18 +158,10 @@ export default function MyShop() {
     const payload = {
       businessId,
       name,
-      category: form.category.trim() || "General",
-      brand: form.brand.trim() || undefined,
-      model: form.model.trim() || undefined,
       description: form.description.trim(),
       price: priceNum.toFixed(2),
       stock: stockNum,
       images: form.images,
-      variants: form.variants.map(v => ({
-        attributes: v.attributes,
-        price: v.price ? Number(v.price).toFixed(2) : undefined,
-        stock: v.stock ? Number(v.stock) : undefined,
-      })),
     };
 
     if (editing) {
@@ -224,9 +197,6 @@ export default function MyShop() {
           <h1 className="font-serif text-3xl md:text-4xl font-bold text-foreground flex items-center gap-2">
             <Store className="w-7 h-7 text-primary" />
             My Shop
-            {business?.isVerified && (
-              <img src="/nafex-verify.png" alt="Verified Store" className="h-6 object-contain" title="Verified Store" />
-            )}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Add, edit and manage the products buyers see on your brand page.
@@ -331,12 +301,7 @@ export default function MyShop() {
                 </div>
                 <div className="p-4 space-y-1.5">
                   <h3 className="font-semibold text-foreground truncate">{p.name}</h3>
-                  <div className="flex items-center justify-between">
-                    <p className="text-primary font-bold">GHS {Number(p.price).toFixed(2)}</p>
-                    <p className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded border">
-                      SKU: {p.skuPrefix}
-                    </p>
-                  </div>
+                  <p className="text-primary font-bold">GHS {Number(p.price).toFixed(2)}</p>
                   <p
                     className={`text-xs font-medium ${
                       isOut ? "text-red-600" : isLow ? "text-amber-700" : "text-muted-foreground"
@@ -382,47 +347,15 @@ export default function MyShop() {
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5 col-span-2">
-                <Label htmlFor="p-name">Name</Label>
-                <Input
-                  id="p-name"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="e.g. Hand-woven Kente Stole"
-                  data-testid="input-product-name"
-                />
-              </div>
-              
-              <div className="space-y-1.5">
-                <Label htmlFor="p-category">Category <span className="text-destructive">*</span></Label>
-                <Input
-                  id="p-category"
-                  value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  placeholder="e.g. Fashion"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="p-brand">Brand (Optional)</Label>
-                <Input
-                  id="p-brand"
-                  value={form.brand}
-                  onChange={(e) => setForm({ ...form, brand: e.target.value })}
-                  placeholder="e.g. Nike"
-                />
-              </div>
-
-              <div className="space-y-1.5 col-span-2">
-                <Label htmlFor="p-model">Model / Manufacturer Code (Optional)</Label>
-                <Input
-                  id="p-model"
-                  value={form.model}
-                  onChange={(e) => setForm({ ...form, model: e.target.value })}
-                  placeholder="e.g. AM26-BLK"
-                />
-              </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="p-name">Name</Label>
+              <Input
+                id="p-name"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="e.g. Hand-woven Kente Stole"
+                data-testid="input-product-name"
+              />
             </div>
 
             <div className="space-y-1.5">
@@ -456,7 +389,7 @@ export default function MyShop() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="p-price">Base Price (GHS)</Label>
+                <Label htmlFor="p-price">Price (GHS)</Label>
                 <Input
                   id="p-price"
                   type="number"
@@ -469,7 +402,7 @@ export default function MyShop() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="p-stock">Base Quantity</Label>
+                <Label htmlFor="p-stock">Quantity in stock</Label>
                 <Input
                   id="p-stock"
                   type="number"
@@ -480,75 +413,6 @@ export default function MyShop() {
                   data-testid="input-product-stock"
                 />
               </div>
-            </div>
-
-            {/* Variants Section */}
-            <div className="space-y-3 pt-2 border-t">
-              <div className="flex items-center justify-between">
-                <Label>Product Variations</Label>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  className="h-7 text-xs gap-1"
-                  onClick={() => setForm({
-                    ...form,
-                    variants: [...form.variants, { id: Math.random().toString(), attributes: { Color: "", Size: "" }, price: "", stock: "" }]
-                  })}
-                >
-                  <Plus className="w-3 h-3" /> Add Variant
-                </Button>
-              </div>
-              {form.variants.length > 0 ? (
-                <div className="space-y-3">
-                  {form.variants.map((variant, index) => (
-                    <div key={variant.id} className="p-3 bg-muted/30 border rounded-lg space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs font-semibold text-muted-foreground uppercase">Variant {index + 1}</span>
-                        <button type="button" onClick={() => setForm({ ...form, variants: form.variants.filter(v => v.id !== variant.id) })} className="text-destructive hover:bg-destructive/10 p-1 rounded">
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <Label className="text-xs">Color (Optional)</Label>
-                          <Input className="h-8 text-sm" value={variant.attributes.Color || ""} onChange={e => {
-                            const newVariants = [...form.variants];
-                            newVariants[index].attributes = { ...newVariants[index].attributes, Color: e.target.value };
-                            setForm({ ...form, variants: newVariants });
-                          }} placeholder="e.g. Red" />
-                        </div>
-                        <div>
-                          <Label className="text-xs">Size (Optional)</Label>
-                          <Input className="h-8 text-sm" value={variant.attributes.Size || ""} onChange={e => {
-                            const newVariants = [...form.variants];
-                            newVariants[index].attributes = { ...newVariants[index].attributes, Size: e.target.value };
-                            setForm({ ...form, variants: newVariants });
-                          }} placeholder="e.g. XL" />
-                        </div>
-                        <div>
-                          <Label className="text-xs">Price Override</Label>
-                          <Input className="h-8 text-sm" type="number" step="0.01" value={variant.price} onChange={e => {
-                            const newVariants = [...form.variants];
-                            newVariants[index].price = e.target.value;
-                            setForm({ ...form, variants: newVariants });
-                          }} placeholder="Same as base" />
-                        </div>
-                        <div>
-                          <Label className="text-xs">Stock</Label>
-                          <Input className="h-8 text-sm" type="number" value={variant.stock} onChange={e => {
-                            const newVariants = [...form.variants];
-                            newVariants[index].stock = e.target.value;
-                            setForm({ ...form, variants: newVariants });
-                          }} placeholder="Same as base" />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-muted-foreground">No variations. A standard generated SKU will be applied.</p>
-              )}
             </div>
 
             <div className="space-y-1.5">

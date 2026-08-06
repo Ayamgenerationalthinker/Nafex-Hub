@@ -1,56 +1,138 @@
-// src/api-client-react.ts
-// Minimal stub for @workspace/api-client-react used in the project.
-// In production this would be replaced by the actual workspace package.
+import { useState, useEffect, useCallback } from "react";
 
 export function setAuthTokenGetter(getter: () => string | null): void {
-  // Simple no‑op implementation; the getter can be stored globally if needed.
-  // For now we just expose it on window for debugging.
   (window as any).__authTokenGetter = getter;
 }
 
-// Stub notification API hooks for development/testing
-export function useGetNotifications(_: { query: any }) {
-  return { data: [] as any[], refetch: () => {} };
+// Notification API hooks with live backend API integration
+export function useGetNotifications(options?: { query?: { enabled?: boolean; queryKey?: string[] } }) {
+  const [data, setData] = useState<any[]>([]);
+  const enabled = options?.query?.enabled ?? true;
+
+  const fetchNotifications = useCallback(async () => {
+    const token = localStorage.getItem("nafex_token");
+    if (!token || !enabled) return;
+    try {
+      const res = await fetch("/api/notifications", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setData(json);
+      }
+    } catch {}
+  }, [enabled]);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
+
+  return { data, refetch: fetchNotifications };
 }
+
 export function getGetNotificationsQueryKey() {
   return ["notifications"];
 }
-export function useGetNotificationUnreadCount(_: { query: any }) {
-  return { data: { count: 0 }, refetch: () => {} };
+
+export function useGetNotificationUnreadCount(options?: { query?: { enabled?: boolean; refetchInterval?: number; queryKey?: string[] } }) {
+  const [data, setData] = useState<{ count: number }>({ count: 0 });
+  const enabled = options?.query?.enabled ?? true;
+  const refetchInterval = options?.query?.refetchInterval;
+
+  const fetchUnreadCount = useCallback(async () => {
+    const token = localStorage.getItem("nafex_token");
+    if (!token || !enabled) return;
+    try {
+      const res = await fetch("/api/notifications/unread-count", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setData(json);
+      }
+    } catch {}
+  }, [enabled]);
+
+  useEffect(() => {
+    fetchUnreadCount();
+    if (refetchInterval && enabled) {
+      const interval = setInterval(fetchUnreadCount, refetchInterval);
+      return () => clearInterval(interval);
+    }
+    return undefined;
+  }, [fetchUnreadCount, refetchInterval, enabled]);
+
+  return { data, refetch: fetchUnreadCount };
 }
+
 export function getGetNotificationUnreadCountQueryKey() {
   return ["notificationUnreadCount"];
 }
-export function useMarkNotificationRead(_: { mutation: any }) {
-  return { mutate: () => {} };
+
+export function useMarkNotificationRead(options?: { mutation?: { onSuccess?: () => void } }) {
+  const mutate = useCallback(async (params: { id: number }) => {
+    const token = localStorage.getItem("nafex_token");
+    if (!token) return;
+    try {
+      await fetch(`/api/notifications/${params.id}/read`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      options?.mutation?.onSuccess?.();
+    } catch {}
+  }, [options]);
+
+  return { mutate };
 }
-export function useMarkAllNotificationsRead(_: { mutation: any }) {
-  return { mutate: () => {} };
+
+export function useMarkAllNotificationsRead(options?: { mutation?: { onSuccess?: () => void } }) {
+  const mutate = useCallback(async () => {
+    const token = localStorage.getItem("nafex_token");
+    if (!token) return;
+    try {
+      await fetch("/api/notifications/read-all", {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      options?.mutation?.onSuccess?.();
+    } catch {}
+  }, [options]);
+
+  return { mutate };
 }
 // Additional missing stub exports
 export function getGetBusinessesQueryKey() { return ["businesses"]; }
 export function getGetFeaturedBusinessesQueryKey() { return ["featuredBusinesses"]; }
 export function getGetFeaturedTopBusinessesQueryKey() { return ["featuredTopBusinesses"]; }
-import { useMutation } from "@tanstack/react-query";
-
-export function useCreateBusiness(options?: any) {
-  return useMutation({
-    mutationFn: async ({ data }: { data: any }) => {
-      const token = localStorage.getItem("nafex_token");
+export function useCreateBusiness(options?: { mutation?: { onSuccess?: (data: any) => void; onError?: (err: any) => void } }) {
+  const mutate = useCallback(async (params: { data: any }, callbacks?: { onSuccess?: (data: any) => void; onError?: (err: any) => void }) => {
+    const token = localStorage.getItem("nafex_token");
+    try {
       const res = await fetch("/api/businesses", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          Authorization: token ? `Bearer ${token}` : "",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(params.data),
       });
-      const json = await res.json();
-      if (!res.ok) throw { data: json };
-      return json;
-    },
-    ...options?.mutation,
-  });
+
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const errorMsg = json.message || json.error?.message || (typeof json.error === "string" ? json.error : "Failed to list business");
+        const errObj = { data: { error: errorMsg }, message: errorMsg };
+        callbacks?.onError?.(errObj) ?? options?.mutation?.onError?.(errObj);
+        return;
+      }
+
+      callbacks?.onSuccess?.(json) ?? options?.mutation?.onSuccess?.(json);
+    } catch (err: any) {
+      const errObj = { data: { error: err.message || "Failed to list business" }, message: err.message };
+      callbacks?.onError?.(errObj) ?? options?.mutation?.onError?.(errObj);
+    }
+  }, [options]);
+
+  return { mutate };
 }
 
 // Additional stub implementations for various API client hooks used throughout the app

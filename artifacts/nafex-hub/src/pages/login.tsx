@@ -32,18 +32,13 @@ export default function Login() {
   });
 
   const onSubmit = (values: LoginForm) => {
-    if (login.isPending) return;
     login.mutate(
       { data: values },
       {
         onSuccess: (data) => {
           setAuth(data.token, data.user as any);
           toast({ title: "Welcome back!", description: `Logged in as ${data.user.name}` });
-          if (data.user.role === "admin") {
-            setLocation("/admin/dashboard");
-          } else {
-            setLocation("/");
-          }
+          setLocation("/");
         },
         onError: (err: any) => {
           toast({

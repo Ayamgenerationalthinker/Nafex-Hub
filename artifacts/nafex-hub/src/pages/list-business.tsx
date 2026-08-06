@@ -108,7 +108,6 @@ export default function ListBusiness() {
   const createBusiness = useCreateBusiness();
   const [logoImages, setLogoImages] = useState<string[]>([]);
   const [bannerImages, setBannerImages] = useState<string[]>([]);
-  const [kycDocuments, setKycDocuments] = useState<string[]>([]);
 
   const form = useForm<ListBusinessForm>({
     resolver: zodResolver(listBusinessSchema),
@@ -121,55 +120,35 @@ export default function ListBusiness() {
     },
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const onSubmit = async (values: ListBusinessForm) => {
-    setIsSubmitting(true);
-    try {
-      const token = localStorage.getItem("nafex_token");
-      const res = await fetch("/api/businesses", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
+  const onSubmit = (values: ListBusinessForm) => {
+    createBusiness.mutate(
+      {
+        data: {
           ...values,
           logo: logoImages[0] ?? null,
           images: bannerImages,
-          kycDocuments,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        let errorMsg = "Failed to list business";
-        if (typeof data.error === "string") {
-          errorMsg = data.error;
-        } else if (data.error && data.error.message) {
-          errorMsg = data.error.message;
-        } else if (data.error) {
-          errorMsg = JSON.stringify(data.error);
-        }
-        throw new Error(errorMsg);
+        },
+      },
+      {
+        onSuccess: (business) => {
+          queryClient.invalidateQueries({ queryKey: getGetBusinessesQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getGetFeaturedBusinessesQueryKey() });
+          toast({
+            title: "Business listed successfully!",
+            description: `${business.name} is now on Nafex Hub.`,
+          });
+          setLocation(`/brand/${business.id}`);
+        },
+        onError: (err: any) => {
+          const errMsg = err?.data?.error ?? err?.message ?? "Something went wrong";
+          toast({
+            title: "Failed to list business",
+            description: typeof errMsg === "string" ? errMsg : JSON.stringify(errMsg),
+            variant: "destructive",
+          });
+        },
       }
-
-      queryClient.invalidateQueries({ queryKey: getGetBusinessesQueryKey() });
-      queryClient.invalidateQueries({ queryKey: getGetFeaturedBusinessesQueryKey() });
-      toast({
-        title: "Business listed successfully!",
-        description: `${data.name} is now on Nafex Hub.`,
-      });
-      setLocation(`/brand/${data.id}`);
-    } catch (err: any) {
-      toast({
-        title: "Failed to list business",
-        description: err.message || "Something went wrong",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    );
   };
 
   return (
@@ -188,9 +167,6 @@ export default function ListBusiness() {
 
       <div className="container mx-auto px-4 py-10 max-w-3xl">
         <div className="bg-card rounded-2xl border shadow-sm p-8">
-          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
-            <strong>Note:</strong> Your business listing requires verification to ensure safety on our platform. After submission, it usually takes 24-48 hours for our team to review your National Identification and approve your business to go live.
-          </div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
@@ -287,31 +263,20 @@ export default function ListBusiness() {
                 label="Business Logo (optional)"
               />
 
-              {/* Banner Image Upload */}
+              {/* Banner/Store Images Upload */}
               <ImageUpload
                 value={bannerImages}
                 onChange={setBannerImages}
-                maxImages={1}
-                label="Banner Image (optional) - shown on your brand page"
+                maxImages={5}
+                label="Store Images (optional) - shown on your brand page"
               />
-
-              {/* KYC Upload */}
-              <div className="pt-4 border-t">
-                <h3 className="font-semibold text-lg mb-4">Identity Verification</h3>
-                <ImageUpload
-                  value={kycDocuments}
-                  onChange={setKycDocuments}
-                  maxImages={2}
-                  label="Upload National Identification (ID Card, Passport, etc.) *Required*"
-                />
-              </div>
 
               <Button
                 type="submit"
                 className="w-full h-12 text-base font-semibold"
-                disabled={isSubmitting}
+                disabled={createBusiness.isPending}
               >
-                {isSubmitting ? (
+                {createBusiness.isPending ? (
                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Submitting...</>
                 ) : (
                   "List My Business"

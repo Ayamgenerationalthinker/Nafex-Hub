@@ -6,8 +6,10 @@ export function VerifyEmailBanner() {
   const { user } = useAuth();
   const [location] = useLocation();
 
-  // Email verification is permanently disabled — banner always hidden
-  return null;
+  if (!user || user.emailVerified) return null;
+  if (location.startsWith("/verify-email") || location.startsWith("/login") || location.startsWith("/register")) {
+    return null;
+  }
 
   return (
     <div className="bg-red-600 text-white">
@@ -15,7 +17,7 @@ export function VerifyEmailBanner() {
         <div className="flex items-center gap-2 min-w-0">
           <Mail className="w-4 h-4 flex-shrink-0" />
           <span className="truncate">
-            <strong>Email not verified.</strong> You can't place orders, message sellers or list a shop until you verify <strong>{user?.email}</strong>.
+            <strong>Email not verified.</strong> You can't place orders, message sellers or list a shop until you verify <strong>{user.email}</strong>.
           </span>
         </div>
         <Link

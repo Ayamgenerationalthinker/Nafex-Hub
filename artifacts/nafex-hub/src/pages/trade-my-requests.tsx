@@ -210,16 +210,6 @@ export default function TradeMyRequests() {
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground line-clamp-2">{req.description}</p>
-                      
-                      {(req as any).images && (req as any).images.length > 0 && (
-                        <div className="flex gap-2 mt-3 overflow-x-auto pb-1 hide-scrollbar">
-                          {(req as any).images.map((img: string, idx: number) => (
-                            <div key={idx} className="w-12 h-12 rounded bg-muted/30 border border-border flex-shrink-0 overflow-hidden">
-                              <img src={img} alt="Reference" className="w-full h-full object-cover" />
-                            </div>
-                          ))}
-                        </div>
-                      )}
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <Button

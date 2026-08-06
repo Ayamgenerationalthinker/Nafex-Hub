@@ -183,7 +183,7 @@ export default function Register() {
     (!isSeller || deliveryChoice !== null);
 
   const handleAccept = () => {
-    if (!pendingValues || !canAccept || register.isPending) return;
+    if (!pendingValues || !canAccept) return;
     register.mutate(
       { data: pendingValues },
       {
@@ -203,11 +203,8 @@ export default function Register() {
   };
 
   const handleContinue = () => {
-    if (successInfo?.role === "business_owner") {
-      setLocation("/list-business");
-    } else {
-      setLocation("/explore");
-    }
+    // Every new account MUST verify email before anything else.
+    setLocation("/verify-email");
   };
 
   // ── Success screen ──────────────────────────────────────────────────────

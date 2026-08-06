@@ -210,54 +210,52 @@ export default function Explore() {
   return (
     <div className="container mx-auto px-4 py-6 md:py-8 min-h-[calc(100vh-4rem)] font-poppins">
 
-      {/* ── HERO BANNER ── */}
-      {/* The full banner PNG is one unified composition (girl + cream bg) used as CSS background.
-          Text is overlaid on the left half with z-10. Exactly matches img 4.jpeg approach. */}
-      <div
-        className="relative overflow-hidden rounded-3xl mb-8 shadow-sm border border-amber-100/60 bg-[#F8F3EA] bg-no-repeat bg-[position:bottom_right_-20%] md:bg-[position:right_bottom] bg-[length:120%_auto] md:bg-[length:auto_90%]"
-        style={{
-          backgroundImage: "url('/home-hero-banner.png')",
-          minHeight: "500px",
-        }}
-      >
-        {/* Left text overlay — sits on the clean left portion of the banner */}
-        <div
-          className="relative z-10 flex flex-col justify-center py-10 md:py-14 space-y-5 px-6 md:px-14 min-h-[500px] w-full md:max-w-[60%] lg:max-w-[50%] bg-gradient-to-r from-[#F8F3EA] via-[#F8F3EA]/90 to-transparent md:bg-none"
-        >
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F6F2FF]/80 border border-purple-100 text-[#6A1B9A] text-xs font-semibold w-fit backdrop-blur-sm">
-            <Sparkles className="w-3.5 h-3.5 text-[#D4A017]" />
-            Ghana's Premier Trusted Marketplace
+      {/* ── HERO BANNER (Exact Style from Img 1, img 2, img 3, img 4) ── */}
+      <div className="relative overflow-hidden rounded-3xl bg-[#FFF8E6] border border-amber-100/60 p-6 md:p-12 mb-8 shadow-sm">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          <div className="lg:col-span-7 space-y-5">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F6F2FF] border border-purple-100 text-[#6A1B9A] text-xs font-semibold">
+              <Sparkles className="w-3.5 h-3.5 text-[#D4A017]" />
+              Ghana's Premier Trusted Marketplace
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#222222] tracking-tight leading-[1.15]">
+              Everything You Need, <br />
+              <span className="text-[#6A1B9A]">Delivered to You.</span>
+            </h1>
+            <p className="text-[#6B7280] text-base md:text-lg max-w-xl leading-relaxed">
+              Shop top quality products across electronics, fashion, home, beauty, and more with fast delivery and secure escrow payments.
+            </p>
+            <div className="flex flex-wrap items-center gap-4 pt-2">
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={() => {
+                  const el = document.getElementById("catalog-section");
+                  el?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="bg-[#6A1B9A] text-white hover:bg-[#5B1687] rounded-xl px-8 shadow-md"
+              >
+                Shop Now
+              </Button>
+              <Button
+                variant="secondary"
+                size="lg"
+                onClick={() => {
+                  const el = document.getElementById("categories-section");
+                  el?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="bg-[#D4A017] text-white hover:bg-[#B88A12] rounded-xl px-8 shadow-md"
+              >
+                Explore Categories
+              </Button>
+            </div>
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.4rem] font-extrabold text-[#222222] tracking-tight leading-[1.12]">
-            Everything You Need, <br />
-            <span className="text-[#6A1B9A]">Delivered to You.</span>
-          </h1>
-          <p className="text-[#5a5a5a] text-base md:text-lg max-w-xs leading-relaxed">
-            Shop top quality products across electronics, fashion, home, beauty, and more with fast delivery and secure escrow payments.
-          </p>
-          <div className="flex flex-wrap items-center gap-3 md:gap-4 pt-2">
-            <Button
-              variant="primary"
-              size="lg"
-              onClick={() => {
-                const el = document.getElementById("catalog-section");
-                el?.scrollIntoView({ behavior: "smooth" });
-              }}
-              className="bg-[#6A1B9A] text-white hover:bg-[#5B1687] rounded-xl px-6 md:px-8 shadow-md"
-            >
-              Shop Now
-            </Button>
-            <Button
-              variant="secondary"
-              size="lg"
-              onClick={() => {
-                const el = document.getElementById("categories-section");
-                el?.scrollIntoView({ behavior: "smooth" });
-              }}
-              className="bg-[#D4A017] text-white hover:bg-[#B88A12] rounded-xl px-6 md:px-8 shadow-md"
-            >
-              Explore Categories
-            </Button>
+          <div className="lg:col-span-5 flex justify-center items-end">
+            <img
+              src="/hero-model.jpg"
+              alt="Nafex Hub Shopping"
+              className="w-full h-auto object-contain max-h-[500px]"
+            />
           </div>
         </div>
       </div>

@@ -17,7 +17,7 @@ export default function ProductDetail() {
   const isAdmin = user?.role === "admin";
   const isBuyer = !isBusinessOwner && !isAdmin;
   const { toast } = useToast();
-  const { addItem: addToCart } = useCart();
+  const addToCart = useCart((s) => s.addItem);
   const [selectedImg, setSelectedImg] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [offerPrice, setOfferPrice] = useState("");
@@ -133,6 +133,7 @@ export default function ProductDetail() {
   async function handleBuyNow() {
     if (!product) return;
     if (!user) { setLocation("/login"); return; }
+    if (!user.emailVerified) { setLocation("/verify-email"); return; }
 
     setBuying(true);
     try {
@@ -147,6 +148,7 @@ export default function ProductDetail() {
       });
       const data = await res.json();
       if (!res.ok) {
+        if (data.code === "EMAIL_NOT_VERIFIED") { setLocation("/verify-email"); return; }
         throw new Error(data.error ?? "Order failed");
       }
       toast({ title: "Order placed!", description: `Order #${data.id} is awaiting payment.` });
