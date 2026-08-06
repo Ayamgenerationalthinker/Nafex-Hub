@@ -66,4 +66,26 @@ router.patch("/businesses/:id/verify", requireAuth, (req, res, next) => {
   businessesController.adminVerifyBusiness(req as any, res).catch(next);
 });
 
+router.get("/admin/debug-db", async (req, res) => {
+  try {
+    const { BusinessesRepository } = await import("./businesses.repository");
+    const repo = new BusinessesRepository();
+    const result = await repo.createBusiness({
+      ownerId: 1, // assumes user 1 exists, but if it throws an FK error, we'll see it
+      name: "Test Debug Business",
+      category: "Test",
+      description: "Testing insertion",
+      location: "Accra",
+      phone: "0000000000",
+      logo: null,
+      images: [],
+      kycDocuments: [],
+      approvalStatus: "approved"
+    });
+    res.json({ success: true, result });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message, stack: err.stack, detail: err.detail, code: err.code, name: err.name });
+  }
+});
+
 export default router;
