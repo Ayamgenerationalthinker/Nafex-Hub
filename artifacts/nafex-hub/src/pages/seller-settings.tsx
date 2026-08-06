@@ -77,15 +77,9 @@ export default function SellerSettings() {
     mutation: {
       onSuccess: () => {
         toast({ title: "Business deleted", description: "Your business has been permanently removed." });
-        const stored = localStorage.getItem("nafex_user");
-        if (stored) {
-          try {
-            const parsed = JSON.parse(stored);
-            // Revert back to buyer role
-            localStorage.setItem("nafex_user", JSON.stringify({ ...parsed, role: "buyer" }));
-            window.location.href = "/list";
-          } catch {}
-        }
+        // Since they deleted their business but remain a business_owner, 
+        // redirect them to the dashboard where they will be prompted to list a new one.
+        window.location.href = "/seller-dashboard";
       },
       onError: () => {
         toast({ title: "Error", description: "Failed to delete business", variant: "destructive" });
@@ -333,7 +327,7 @@ export default function SellerSettings() {
           <DialogHeader>
             <DialogTitle className="text-destructive">Delete Business Forever</DialogTitle>
             <DialogDescription>
-              This will permanently delete your business listing, shop page, and all your products. You will revert to a standard buyer account and can list a new business later. This cannot be undone.
+              This will permanently delete your business listing, shop page, and all your products. You can list a new business at any time. This cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
