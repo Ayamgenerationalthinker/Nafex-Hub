@@ -66,47 +66,4 @@ router.patch("/businesses/:id/verify", requireAuth, (req, res, next) => {
   businessesController.adminVerifyBusiness(req as any, res).catch(next);
 });
 
-router.get("/admin/run-migrations", async (req, res) => {
-  try {
-    const fs = await import("fs");
-    const path = await import("path");
-    // @ts-ignore
-    const pg = await import("pg");
-    
-    const dbUrl = process.env.DATABASE_URL;
-    if (!dbUrl) throw new Error("DATABASE_URL is not set");
-
-    const sslmodeMatch = dbUrl.match(/[?&]sslmode=([^&]+)/i);
-    const sslmode = sslmodeMatch?.[1]?.toLowerCase();
-    
-    let useInsecureSsl = false;
-    if (process.env.PG_SSL_INSECURE === "false") {
-      useInsecureSsl = false;
-    } else if (process.env.PG_SSL_INSECURE === "true") {
-      useInsecureSsl = true;
-    } else if (sslmode === "disable") {
-      useInsecureSsl = false;
-    } else if (sslmode) {
-      useInsecureSsl = true;
-    } else {
-      useInsecureSsl = process.env.NODE_ENV === "production";
-    }
-
-    const pool = new pg.default.Pool({ 
-      connectionString: dbUrl,
-      ...(useInsecureSsl ? { ssl: { rejectUnauthorized: false } } : {})
-    });
-    
-    const migrationFile = path.resolve(process.cwd(), "lib/db/migrations/0005_catchup_missing_columns.sql");
-    const sql = fs.readFileSync(migrationFile, "utf-8");
-    
-    await pool.query(sql);
-    await pool.end();
-    
-    res.json({ success: true, message: "Raw migration 0005 applied successfully directly to the database!" });
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message, stack: error.stack });
-  }
-});
-
 export default router;
