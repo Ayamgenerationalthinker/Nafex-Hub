@@ -8,7 +8,27 @@ export async function runMigrations(migrationsFolder: string) {
     throw new Error("DATABASE_URL is not set");
   }
 
-  const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+  const dbUrl = process.env.DATABASE_URL;
+  const sslmodeMatch = dbUrl.match(/[?&]sslmode=([^&]+)/i);
+  const sslmode = sslmodeMatch?.[1]?.toLowerCase();
+  
+  let useInsecureSsl = false;
+  if (process.env.PG_SSL_INSECURE === "false") {
+    useInsecureSsl = false;
+  } else if (process.env.PG_SSL_INSECURE === "true") {
+    useInsecureSsl = true;
+  } else if (sslmode === "disable") {
+    useInsecureSsl = false;
+  } else if (sslmode) {
+    useInsecureSsl = true;
+  } else {
+    useInsecureSsl = process.env.NODE_ENV === "production";
+  }
+
+  const pool = new pg.Pool({ 
+    connectionString: dbUrl,
+    ...(useInsecureSsl ? { ssl: { rejectUnauthorized: false } } : {})
+  });
   const db = drizzle(pool);
 
   await migrate(db, { migrationsFolder });
