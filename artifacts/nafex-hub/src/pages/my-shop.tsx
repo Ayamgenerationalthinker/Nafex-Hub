@@ -208,7 +208,8 @@ export default function MyShop() {
 
   const filteredProducts = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return (products ?? []).filter((p) => {
+    const productList = Array.isArray(products) ? products : [];
+    return productList.filter((p) => {
       if (q && !p.name.toLowerCase().includes(q)) return false;
       if (stockFilter === "out_of_stock") return p.stock === 0;
       if (stockFilter === "low_stock") return typeof p.stock === "number" && p.stock > 0 && p.stock <= 5;

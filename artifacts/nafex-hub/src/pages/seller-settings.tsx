@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { useUpdateProfile, useChangePassword, useDeleteAccount } from "@workspace/api-client-react";
+import { useUpdateProfile, useChangePassword, useDeleteAccount, useGetDashboardStats, useDeleteBusiness } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,11 @@ export default function SellerSettings() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [businessDeleteConfirm, setBusinessDeleteConfirm] = useState("");
+  const [showBusinessDeleteDialog, setShowBusinessDeleteDialog] = useState(false);
+
+  const { data: stats } = useGetDashboardStats();
+  const businessId = (stats as { businessId?: number } | undefined)?.businessId;
 
   const { mutate: updateProfile, isPending: updatingProfile } = useUpdateProfile({
     mutation: {
@@ -68,6 +73,26 @@ export default function SellerSettings() {
     },
   });
 
+  const { mutate: deleteBusiness, isPending: deletingBusiness } = useDeleteBusiness({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Business deleted", description: "Your business has been permanently removed." });
+        const stored = localStorage.getItem("nafex_user");
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            // Revert back to buyer role
+            localStorage.setItem("nafex_user", JSON.stringify({ ...parsed, role: "buyer" }));
+            window.location.href = "/list";
+          } catch {}
+        }
+      },
+      onError: () => {
+        toast({ title: "Error", description: "Failed to delete business", variant: "destructive" });
+      },
+    },
+  });
+
   function handleProfileSave() {
     if (!name.trim()) return;
     updateProfile({ data: { name: name.trim() } });
@@ -88,6 +113,11 @@ export default function SellerSettings() {
   function handleDeleteAccount() {
     if (deleteConfirm !== "DELETE") return;
     deleteAccount();
+  }
+
+  function handleDeleteBusiness() {
+    if (businessDeleteConfirm !== "DELETE" || !businessId) return;
+    deleteBusiness({ id: businessId });
   }
 
   return (
@@ -216,7 +246,31 @@ export default function SellerSettings() {
         </TabsContent>
 
         {/* ── Danger Zone ── */}
-        <TabsContent value="danger">
+        <TabsContent value="danger" className="space-y-6">
+          {businessId && (
+            <Card className="border-destructive/30">
+              <CardHeader>
+                <CardTitle className="text-destructive flex items-center gap-2">
+                  <Trash2 className="w-5 h-5" />
+                  Delete My Business
+                </CardTitle>
+                <CardDescription>
+                  This will permanently delete your business profile, all your products, and inventory. Your user account will remain active as a buyer. This action cannot be undone.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  variant="destructive"
+                  onClick={() => setShowBusinessDeleteDialog(true)}
+                  className="gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete Business
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
           <Card className="border-destructive/30">
             <CardHeader>
               <CardTitle className="text-destructive flex items-center gap-2">
@@ -268,6 +322,38 @@ export default function SellerSettings() {
               disabled={deleteConfirm !== "DELETE" || deletingAccount}
             >
               {deletingAccount ? "Deleting..." : "Delete Forever"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Business Dialog */}
+      <Dialog open={showBusinessDeleteDialog} onOpenChange={setShowBusinessDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-destructive">Delete Business Forever</DialogTitle>
+            <DialogDescription>
+              This will permanently delete your business listing, shop page, and all your products. You will revert to a standard buyer account and can list a new business later. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <p className="text-sm font-medium">Type <strong>DELETE</strong> to confirm:</p>
+            <Input
+              value={businessDeleteConfirm}
+              onChange={(e) => setBusinessDeleteConfirm(e.target.value)}
+              placeholder="Type DELETE here"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setShowBusinessDeleteDialog(false); setBusinessDeleteConfirm(""); }}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteBusiness}
+              disabled={businessDeleteConfirm !== "DELETE" || deletingBusiness}
+            >
+              {deletingBusiness ? "Deleting..." : "Delete Business"}
             </Button>
           </DialogFooter>
         </DialogContent>

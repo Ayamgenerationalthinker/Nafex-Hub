@@ -39,6 +39,7 @@ const ServicesPage = lazy(() => import("@/pages/services-page"));
 const Discounts = lazy(() => import("@/pages/discounts"));
 const SupportChat = lazy(() => import("@/pages/support-chat"));
 const SellerSettings = lazy(() => import("@/pages/seller-settings"));
+const SellerDashboard = lazy(() => import("@/pages/seller-dashboard"));
 const MyShop = lazy(() => import("@/pages/my-shop"));
 const BuyerSettings = lazy(() => import("@/pages/buyer-settings"));
 const Help = lazy(() => import("@/pages/help"));
@@ -111,6 +112,7 @@ function Router() {
               <Route path="/payments">{() => <ProtectedRoute component={Payments} />}</Route>
               <Route path="/favorites">{() => <ProtectedRoute component={Favorites} roles={["user", "admin"]} to="/dashboard" />}</Route>
               <Route path="/support">{() => <ProtectedRoute component={SupportChat} />}</Route>
+              <Route path="/seller-dashboard">{() => <ProtectedRoute component={SellerDashboard} roles={["business_owner", "admin"]} to="/explore" />}</Route>
               <Route path="/seller/settings">{() => <ProtectedRoute component={SellerSettings} roles={["business_owner"]} to="/explore" />}</Route>
               <Route path="/my-shop">{() => <ProtectedRoute component={MyShop} roles={["business_owner"]} to="/explore" />}</Route>
               <Route path="/account/settings">{() => <ProtectedRoute component={BuyerSettings} roles={["user"]} to="/explore" />}</Route>
