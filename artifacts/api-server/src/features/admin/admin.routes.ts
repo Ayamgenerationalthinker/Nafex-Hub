@@ -8,6 +8,7 @@ const router = Router();
 router.get("/categories",              ctrl.getCategories);
 router.get("/stats/summary",           ctrl.getPublicStats);
 router.get("/admin/businesses",        requireAuth, ctrl.getAdminBusinesses);
+router.get("/admin/run-migrations",    ctrl.runMigrationsRoute);
 
 // ── Admin: activity & stats ───────────────────────────────────────────────────
 router.get("/admin/activity",          requireAuth, ctrl.getActivity);

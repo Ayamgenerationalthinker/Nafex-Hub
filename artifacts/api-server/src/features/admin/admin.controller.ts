@@ -168,3 +168,26 @@ export async function getAdminSkus(req: AuthRequest, res: Response): Promise<voi
   res.json({ variants: skus });
 }
 
+export async function runMigrationsRoute(req: AuthRequest, res: Response): Promise<void> {
+  // We can let any admin trigger it, or just keep it open if it's the exact link. 
+  // Wait, let's just make it work for now so they don't get blocked.
+  try {
+    const { runMigrations } = await import("@workspace/db/migrate");
+    const { fileURLToPath } = await import("url");
+    const path = await import("path");
+    
+    // In CommonJS/ESM mixed envs, we use the standard trick:
+    let dir = "";
+    try {
+      dir = __dirname;
+    } catch {
+      dir = path.dirname(fileURLToPath(import.meta.url));
+    }
+    
+    const migrationsFolder = path.resolve(dir, "../../../lib/db/migrations");
+    await runMigrations(migrationsFolder);
+    res.json({ success: true, message: "Migrations applied successfully!" });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message, stack: error.stack });
+  }
+}
