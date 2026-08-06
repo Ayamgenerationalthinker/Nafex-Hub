@@ -28,7 +28,7 @@ httpServer.listen(port, "0.0.0.0", async () => {
     
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
-    const migrationsFolder = path.resolve(__dirname, "../../../../lib/db/migrations");
+    const migrationsFolder = path.resolve(__dirname, "../../../lib/db/migrations");
     
     await runMigrations(migrationsFolder);
     logger.info("Database migrations applied successfully");
