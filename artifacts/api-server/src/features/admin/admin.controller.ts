@@ -169,12 +169,20 @@ export async function getAdminSkus(req: AuthRequest, res: Response): Promise<voi
 }
 
 export async function runMigrationsRoute(req: AuthRequest, res: Response): Promise<void> {
-  // We can let any admin trigger it, or just keep it open if it's the exact link. 
-  // Wait, let's just make it work for now so they don't get blocked.
   try {
     const { runMigrations } = await import("@workspace/db/migrate");
     const { fileURLToPath } = await import("url");
     const path = await import("path");
+    
+    // Quick fix for the conflicting enum type on Railway
+    try {
+      const { db } = await import("@workspace/db");
+      const { sql } = await import("drizzle-orm");
+      await db.execute(sql`DROP TYPE IF EXISTS "public"."support_sender_role" CASCADE;`);
+      console.log("Dropped conflicting enum");
+    } catch (e) {
+      console.log("Failed to drop enum, continuing...", e);
+    }
     
     // In CommonJS/ESM mixed envs, we use the standard trick:
     let dir = "";
