@@ -14,9 +14,10 @@ const router: IRouter = Router();
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
-  keyGenerator: (req) => {
+  keyGenerator: (req): string => {
+    const clientIp = req.ip || req.socket?.remoteAddress || "127.0.0.1";
     const identifier = (req.body?.email || req.body?.username || "").toString().toLowerCase().trim();
-    return identifier ? `${req.ip}:${identifier}` : req.ip;
+    return identifier ? `${clientIp}:${identifier}` : clientIp;
   },
   message: { error: "Too many authentication attempts. Please try again in 15 minutes." },
   standardHeaders: true,
