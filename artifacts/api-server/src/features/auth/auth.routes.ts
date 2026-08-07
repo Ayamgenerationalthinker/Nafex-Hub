@@ -14,7 +14,11 @@ const router: IRouter = Router();
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
-  message: { error: "Too many attempts, please try again later" },
+  keyGenerator: (req) => {
+    const identifier = (req.body?.email || req.body?.username || "").toString().toLowerCase().trim();
+    return identifier ? `${req.ip}:${identifier}` : req.ip;
+  },
+  message: { error: "Too many authentication attempts. Please try again in 15 minutes." },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -51,7 +55,7 @@ router.patch("/auth/profile", requireAuth, (req, res, next) => {
   authController.updateProfile(req, res).catch(next);
 });
 
-router.patch("/auth/password", requireAuth, (req, res, next) => {
+router.patch("/auth/password", authLimiter, requireAuth, (req, res, next) => {
   authController.updatePassword(req, res).catch(next);
 });
 

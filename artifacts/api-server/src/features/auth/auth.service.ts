@@ -12,9 +12,9 @@ const VERIFICATION_TTL_MS = 3 * 60 * 1000;
 
 export const ARGON2_OPTIONS: Parameters<typeof argon2.hash>[1] = {
   type: argon2.argon2id,
-  memoryCost: 65536,
-  timeCost: 3,
-  parallelism: 1,
+  memoryCost: 19456, // 19 MB memory cost per OWASP guidelines for web services under traffic
+  timeCost: 3,       // 3 iterations
+  parallelism: 1,    // 1 thread
 };
 
 export class AuthService {
