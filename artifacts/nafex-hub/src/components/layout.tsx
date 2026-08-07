@@ -158,9 +158,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 {!isBusinessOwner && !isAdmin && (
                   <CartIcon className="text-[#222222] dark:text-zinc-200 hover:text-[#6A1B9A] dark:hover:text-purple-400" />
                 )}
-                <Button variant="ghost" size="sm" onClick={toggleDarkMode} className="text-[#222222] dark:text-zinc-200 hover:text-[#6A1B9A] dark:hover:text-purple-400" data-testid="btn-dark-mode" aria-label="Toggle theme">
-                  {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
-                </Button>
                 <NotificationBell />
 
                 {/* Buyer: Help dropdown + user account dropdown */}
@@ -369,15 +366,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <CartIcon className="text-[#222222] dark:text-zinc-100 hover:text-[#6A1B9A]" />
             )}
             {user && <NotificationBell />}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleDarkMode}
-              className="text-[#222222] dark:text-zinc-100 hover:text-[#6A1B9A] h-8 w-8"
-              aria-label="Toggle theme"
-            >
-              {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
-            </Button>
           </div>
 
         </div>
