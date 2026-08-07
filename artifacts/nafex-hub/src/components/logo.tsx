@@ -19,10 +19,10 @@ export function Logo({
   const logoUrl = siteSettings.logo || "/nafex-logo.svg";
 
   const heightClasses = {
-    sm: "h-9 sm:h-10",
-    md: "h-12 sm:h-14",
-    lg: "h-14 sm:h-18",
-    xl: "h-20 sm:h-24",
+    sm: "h-10 sm:h-12",
+    md: "h-14 sm:h-16",
+    lg: "h-16 sm:h-20",
+    xl: "h-22 sm:h-26",
   }[size];
 
   const logoMarkup = (

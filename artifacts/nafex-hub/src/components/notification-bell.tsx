@@ -49,18 +49,29 @@ export function NotificationBell() {
   // Listen for real-time notification socket events
   useEffect(() => {
     if (!socket) return;
-    const onNewNotif = (notif: any) => {
+    const handleRealtimeEvent = (data: any) => {
       refetchCount();
       if (open) refetchList();
       toast({
-        title: notif.title || "New Notification",
-        description: notif.body || "",
+        title: data?.title || "New Notification",
+        description: data?.body || data?.message || "You have a new update.",
       });
     };
 
-    socket.on("new_notification", onNewNotif);
+    socket.on("new_notification", handleRealtimeEvent);
+    socket.on("new_message", handleRealtimeEvent);
+    socket.on("new_order", handleRealtimeEvent);
+    socket.on("order_status_updated", handleRealtimeEvent);
+    socket.on("dispute_created", handleRealtimeEvent);
+    socket.on("stock_alert", handleRealtimeEvent);
+
     return () => {
-      socket.off("new_notification", onNewNotif);
+      socket.off("new_notification", handleRealtimeEvent);
+      socket.off("new_message", handleRealtimeEvent);
+      socket.off("new_order", handleRealtimeEvent);
+      socket.off("order_status_updated", handleRealtimeEvent);
+      socket.off("dispute_created", handleRealtimeEvent);
+      socket.off("stock_alert", handleRealtimeEvent);
     };
   }, [socket, open, refetchCount, refetchList, toast]);
 

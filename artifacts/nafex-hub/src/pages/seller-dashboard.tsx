@@ -91,6 +91,7 @@ import { ImageUpload } from "@/components/image-upload";
 import { EarningsTab } from "@/components/dashboard/earnings-tab";
 import { BoostTab } from "@/components/dashboard/boost-tab";
 import { BulkUploadModal } from "@/components/dashboard/bulk-upload-modal";
+import { NotificationBell } from "@/components/notification-bell";
 
 const STATUS_COLORS: Record<string, string> = {
   pending:          "bg-yellow-100 text-yellow-800",
@@ -694,13 +695,9 @@ function SellerDashboard() {
                 View My Shop
               </Button>
             )}
-            <Button
-              onClick={() => setShowListBusinessModal(true)}
-              className="bg-white text-primary hover:bg-white/90 font-semibold shadow-sm gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              {businessId ? "List Another Business" : "List Your Business"}
-            </Button>
+            <div className="bg-white/20 p-1 rounded-full text-white flex items-center justify-center">
+              <NotificationBell />
+            </div>
           </div>
         </div>
       </div>
