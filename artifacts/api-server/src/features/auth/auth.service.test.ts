@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { AuthRepository } from './auth.repository';
 import { ValidationError, UnauthorizedError, ForbiddenError } from '../../shared/errors/AppError';
 import argon2 from 'argon2';
+import bcrypt from 'bcryptjs';
 
 // Mock the AuthRepository completely
 vi.mock('./auth.repository', () => {
@@ -12,6 +13,7 @@ vi.mock('./auth.repository', () => {
       findById = vi.fn();
       createUser = vi.fn();
       updateUser = vi.fn();
+      updatePassword = vi.fn();
     }
   };
 });
@@ -48,12 +50,13 @@ describe('AuthService', () => {
   });
 
   describe('Password Hashing', () => {
-    it('should hash and verify passwords using argon2 correctly', async () => {
+    it('should hash and verify passwords using argon2id correctly', async () => {
       const password = 'MySecurePassword123';
       const hash = await authService.hashPassword(password);
       
       expect(hash).toBeDefined();
       expect(hash).not.toBe(password);
+      expect(hash.startsWith('$argon2id$')).toBe(true);
       
       const isValid = await authService.verifyPassword(password, hash);
       expect(isValid).toBe(true);
@@ -150,6 +153,23 @@ describe('AuthService', () => {
       expect(result).toHaveProperty('user');
       expect(result).toHaveProperty('token');
       expect(result.user.email).toBe('test@example.com');
+    });
+
+    it('should transparently upgrade legacy bcrypt hash to argon2id on successful login', async () => {
+      const bcryptHash = await bcrypt.hash('LegacyPass123', 10);
+      mockRepository.findByEmail.mockResolvedValueOnce({
+        id: 42,
+        email: 'legacy@example.com',
+        password: bcryptHash,
+        name: 'Legacy User',
+        role: 'user'
+      } as any);
+
+      const result = await authService.login({ email: 'legacy@example.com', password: 'LegacyPass123' });
+
+      expect(result).toHaveProperty('user');
+      expect(result.user.password.startsWith('$argon2id$')).toBe(true);
+      expect(mockRepository.updatePassword).toHaveBeenCalledWith(42, expect.stringMatching(/^\$argon2id\$/));
     });
   });
 });

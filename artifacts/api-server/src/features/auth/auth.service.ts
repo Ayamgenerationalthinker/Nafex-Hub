@@ -10,6 +10,13 @@ const SALT_ROUNDS = 12;
 const TOKEN_EXPIRY_DAYS = 7;
 const VERIFICATION_TTL_MS = 3 * 60 * 1000;
 
+export const ARGON2_OPTIONS: Parameters<typeof argon2.hash>[1] = {
+  type: argon2.argon2id,
+  memoryCost: 65536,
+  timeCost: 3,
+  parallelism: 1,
+};
+
 export class AuthService {
   private repository: AuthRepository;
 
@@ -22,7 +29,7 @@ export class AuthService {
   }
 
   public async hashPassword(password: string): Promise<string> {
-    return argon2.hash(password);
+    return argon2.hash(password, ARGON2_OPTIONS);
   }
 
   public async verifyPassword(password: string, hash: string): Promise<boolean> {
@@ -95,8 +102,25 @@ export class AuthService {
     let user = await this.repository.findByEmail(normalizedEmail);
     if (!user) throw new UnauthorizedError("Invalid email or password");
 
+    const isLegacyHash = user.password.startsWith("$2a$") || user.password.startsWith("$2b$") || user.password.startsWith("$2y$");
     const passwordValid = await this.verifyPassword(password, user.password);
     if (!passwordValid) throw new UnauthorizedError("Invalid email or password");
+
+    // Transparently upgrade legacy bcrypt hashes or outdated Argon2 parameters to Argon2id upon successful login
+    let needsUpgrade = isLegacyHash;
+    if (!needsUpgrade) {
+      try {
+        needsUpgrade = await argon2.needsRehash(user.password, ARGON2_OPTIONS);
+      } catch {
+        needsUpgrade = true;
+      }
+    }
+
+    if (needsUpgrade) {
+      const upgradedHash = await this.hashPassword(password);
+      await this.repository.updatePassword(user.id, upgradedHash);
+      user.password = upgradedHash;
+    }
 
     // Force admin role check
     if (normalizedEmail === "princefiebor10@gmail.com" && user.role !== "admin") {
