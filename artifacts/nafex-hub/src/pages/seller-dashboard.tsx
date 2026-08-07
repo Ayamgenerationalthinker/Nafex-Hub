@@ -695,9 +695,7 @@ function SellerDashboard() {
                 View My Shop
               </Button>
             )}
-            <div className="bg-white/20 p-1 rounded-full text-white flex items-center justify-center">
-              <NotificationBell />
-            </div>
+            <NotificationBell variant="light" />
           </div>
         </div>
       </div>

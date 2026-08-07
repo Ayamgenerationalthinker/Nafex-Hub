@@ -22,7 +22,7 @@ function timeAgo(dateStr: string) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-export function NotificationBell() {
+export function NotificationBell({ variant = "dark" }: { variant?: "dark" | "light" }) {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const socket = useSocket();
@@ -92,12 +92,17 @@ export function NotificationBell() {
     <div ref={ref} className="relative">
       <button
         onClick={() => { setOpen((o) => !o); if (!open) refetchList(); }}
-        className="relative flex items-center justify-center w-9 h-9 rounded-full hover:bg-white/10 transition-colors text-secondary-foreground/80 hover:text-primary"
+        className={`relative flex items-center justify-center w-10 h-10 rounded-full transition-all duration-150 ${
+          variant === "light"
+            ? "bg-white/25 hover:bg-white/40 text-white"
+            : "bg-[#F6F2FF] hover:bg-[#EDE8FA] text-[#6A1B9A]"
+        }`}
         aria-label="Notifications"
+        data-testid="notification-bell-button"
       >
-        <Bell className="w-5 h-5" />
+        <Bell className="w-5 h-5" strokeWidth={2.2} />
         {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-1">
+          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-1 shadow-sm">
             {unread > 9 ? "9+" : unread}
           </span>
         )}
