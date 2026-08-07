@@ -126,11 +126,11 @@ export function SupportChatWidget() {
 
   return (
     <>
-      {/* Floating button */}
+      {/* Floating button (hidden on mobile to prevent blocking UI; reactive on demand) */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className={`fixed bottom-5 right-5 z-50 w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-200 ${
-          open ? "bg-foreground text-background" : "bg-primary text-primary-foreground"
+        className={`hidden md:flex fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-xl items-center justify-center transition-all duration-200 ${
+          open ? "bg-foreground text-background" : "bg-[#6A1B9A] text-white hover:bg-[#5B1687]"
         } hover:scale-105 active:scale-95`}
         aria-label="Support chat"
       >

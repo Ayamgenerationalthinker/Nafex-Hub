@@ -331,10 +331,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
             )}
           </nav>
 
-          {/* Mobile top action header bar */}
+          {/* Mobile top action header bar (clean & minimal: Search, Cart, Notifications, Theme toggle) */}
           <div className="flex md:hidden items-center gap-1.5">
             {!isBusinessOwner && !isAdmin && (
-              <div className="relative flex items-center max-w-[130px] sm:max-w-[180px]">
+              <div className="relative flex items-center max-w-[140px] sm:max-w-[200px]">
                 <input
                   type="search"
                   placeholder="Search..."
@@ -378,107 +378,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
             >
               {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
             </Button>
-
-            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-              <SheetTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-secondary-foreground hover:bg-white/10 hover:text-primary h-9 w-9"
-                  aria-label="Open menu"
-                  data-testid="btn-menu"
-                >
-                  <Menu className="w-5 h-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-72 bg-secondary text-secondary-foreground border-secondary-foreground/10 p-0">
-                {/* Drawer header */}
-                <div className="flex items-center justify-between px-6 h-16 border-b border-secondary-foreground/10">
-                  <Link href="/" className="flex items-center gap-2" onClick={closeMenu}>
-                    <Logo size="sm" variant="badge" />
-                  </Link>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={closeMenu}
-                    className="text-secondary-foreground/60 hover:text-primary hover:bg-white/10"
-                  >
-                    <X className="w-5 h-5" />
-                  </Button>
-                </div>
-
-                {/* Drawer nav links */}
-                <nav className="flex flex-col px-4 py-4 gap-1">
-                  {mobileNavItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={closeMenu}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                        location === item.href
-                          ? "bg-primary/20 text-primary"
-                          : "text-secondary-foreground/80 hover:bg-white/8 hover:text-primary"
-                      }`}
-                      data-testid={item.testId}
-                    >
-                      {item.icon}
-                      {item.label}
-                    </Link>
-                  ))}
-
-                  <div className="my-3 border-t border-secondary-foreground/10" />
-
-                  {user ? (
-                    <button
-                      onClick={() => { logout(); closeMenu(); }}
-                      className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-secondary-foreground/80 hover:bg-white/8 hover:text-primary transition-colors text-left w-full"
-                      data-testid="mobile-btn-logout"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Logout
-                    </button>
-                  ) : (
-                    <>
-                      <Link
-                        href="/login"
-                        onClick={closeMenu}
-                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-secondary-foreground/80 hover:bg-white/8 hover:text-primary transition-colors"
-                        data-testid="mobile-nav-login"
-                      >
-                        <LogIn className="w-4 h-4" />
-                        Login
-                      </Link>
-                      <Link
-                        href="/register"
-                        onClick={closeMenu}
-                        className="flex items-center justify-center gap-2 mt-2 px-4 py-3 rounded-lg text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                        data-testid="mobile-nav-register"
-                      >
-                        <UserPlus className="w-4 h-4" />
-                        Create Account
-                      </Link>
-                    </>
-                  )}
-                </nav>
-
-                {/* User info at bottom */}
-                {user && (
-                  <div className="absolute bottom-0 left-0 right-0 px-6 py-5 border-t border-secondary-foreground/10">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center">
-                        <span className="font-serif font-bold text-primary text-sm">
-                          {user.name.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-medium text-sm truncate">{user.name}</div>
-                        <div className="text-xs text-secondary-foreground/50 capitalize">{user.role.replace("_", " ")}</div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </SheetContent>
-            </Sheet>
           </div>
 
         </div>
