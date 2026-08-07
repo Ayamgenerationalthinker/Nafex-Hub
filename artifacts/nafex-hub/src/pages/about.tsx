@@ -32,12 +32,7 @@ export default function About() {
     },
   ];
 
-  const team = [
-    { name: "Kwame Asante", role: "CEO & Co-Founder", initials: "KA" },
-    { name: "Abena Mensah", role: "CTO & Co-Founder", initials: "AM" },
-    { name: "Kofi Boateng", role: "Head of Operations", initials: "KB" },
-    { name: "Ama Owusu", role: "Head of Customer Success", initials: "AO" },
-  ];
+
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] font-poppins">
@@ -146,28 +141,7 @@ export default function About() {
         </div>
       </section>
 
-      {/* Team */}
-      <section className="py-16 px-4 bg-[#F6F2FF]">
-        <div className="container mx-auto max-w-5xl">
-          <div className="text-center mb-12 space-y-2">
-            <h2 className="text-3xl font-bold text-[#222222]">Meet the Team</h2>
-            <p className="text-[#6B7280]">Passionate people building the future of commerce in Ghana</p>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {team.map((member) => (
-              <div key={member.name} className="bg-white rounded-2xl p-6 text-center border border-purple-100/60 shadow-sm space-y-3">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#6A1B9A] to-[#D4A017] flex items-center justify-center mx-auto">
-                  <span className="text-xl font-bold text-white">{member.initials}</span>
-                </div>
-                <div>
-                  <div className="font-bold text-[#222222] text-sm">{member.name}</div>
-                  <div className="text-xs text-[#6B7280] mt-0.5">{member.role}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+
 
       {/* CTA */}
       <section className="py-16 px-4 bg-gradient-to-br from-[#6A1B9A] to-[#4A126B] text-white text-center">
