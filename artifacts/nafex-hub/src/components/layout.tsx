@@ -96,7 +96,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <VerifyEmailBanner />
       {/* ── Header (clean white top navbar with purple brand highlights matching Img 1 style guide) ── */}
       {!isDedicatedSellerDashboard && (
-        <header className="sticky top-0 z-50 w-full bg-white text-[#222222] shadow-sm border-b border-purple-100/80">
+        <header className="sticky top-0 z-50 w-full bg-white dark:bg-zinc-950 text-[#222222] dark:text-zinc-100 shadow-sm border-b border-purple-100/80 dark:border-zinc-800/80 transition-colors">
           <div className="container mx-auto flex h-20 items-center justify-between px-4 md:px-6 gap-4">
 
           {/* Logo */}
@@ -112,7 +112,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <input
                   type="search"
                   placeholder="Search products..."
-                  className="w-full h-9 pl-4 pr-10 rounded-full bg-[#F6F2FF] border border-purple-200 text-sm text-[#222222] placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#6A1B9A] focus:bg-white transition-all"
+                  className="w-full h-9 pl-4 pr-10 rounded-full bg-[#F6F2FF] dark:bg-zinc-800/90 border border-purple-200 dark:border-zinc-700 text-sm text-[#222222] dark:text-zinc-100 placeholder:text-[#6B7280] dark:placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#6A1B9A] focus:bg-white dark:focus:bg-zinc-900 transition-all"
                   value={headerSearch}
                   onChange={(e) => setHeaderSearch(e.target.value)}
                   onKeyDown={(e) => {
@@ -133,6 +133,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     setLocation(next);
                   }}
                   className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#6A1B9A] hover:bg-[#5B1687] text-white flex items-center justify-center transition-colors"
+                  aria-label="Search"
                 >
                   <Search className="w-3.5 h-3.5" />
                 </button>
@@ -144,8 +145,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-sm font-poppins font-medium transition-colors hover:text-[#6A1B9A] whitespace-nowrap ${
-                  location === link.href ? "text-[#6A1B9A] font-semibold border-b-2 border-[#6A1B9A] pb-0.5" : "text-[#222222]/80"
+                className={`text-sm font-poppins font-medium transition-colors hover:text-[#6A1B9A] dark:hover:text-purple-400 whitespace-nowrap ${
+                  location === link.href ? "text-[#6A1B9A] dark:text-purple-400 font-semibold border-b-2 border-[#6A1B9A] dark:border-purple-400 pb-0.5" : "text-[#222222]/80 dark:text-zinc-300"
                 }`}
               >
                 {link.label}
@@ -155,10 +156,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
             {user ? (
               <div className="flex items-center gap-1.5 ml-2">
                 {!isBusinessOwner && !isAdmin && (
-                  <CartIcon className="text-[#222222] hover:text-[#6A1B9A]" />
+                  <CartIcon className="text-[#222222] dark:text-zinc-200 hover:text-[#6A1B9A] dark:hover:text-purple-400" />
                 )}
-                <Button variant="ghost" size="sm" onClick={toggleDarkMode} className="text-[#222222] hover:text-[#6A1B9A]" data-testid="btn-dark-mode">
-                  {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                <Button variant="ghost" size="sm" onClick={toggleDarkMode} className="text-[#222222] dark:text-zinc-200 hover:text-[#6A1B9A] dark:hover:text-purple-400" data-testid="btn-dark-mode" aria-label="Toggle theme">
+                  {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
                 </Button>
                 <NotificationBell />
 
@@ -167,10 +168,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   <>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="gap-1 text-secondary-foreground/80 hover:text-primary hover:bg-white/10 px-2">
-                          <HelpCircle className="w-4 h-4" />
-                          <span className="text-sm">Help</span>
-                          <ChevronDown className="w-3 h-3" />
+                        <Button variant="ghost" size="sm" className="gap-1 text-[#222222]/80 dark:text-zinc-200 hover:text-[#6A1B9A] dark:hover:text-purple-400 px-2">
+                          <HelpCircle className="w-4 h-4 text-[#6A1B9A] dark:text-purple-400" />
+                          <span className="text-sm font-medium">Help</span>
+                          <ChevronDown className="w-3 h-3 opacity-70" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-52">
@@ -193,19 +194,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       </DropdownMenuContent>
                     </DropdownMenu>
 
-                    <Button variant="ghost" size="sm" onClick={() => setCoinsModalOpen(true)} className="gap-1.5 text-amber-500 hover:text-amber-600 hover:bg-amber-500/10 px-3 border border-amber-500/20" title="Nafex Coins Rewards Info" data-testid="btn-nafex-coins">
-                      <Coins className="w-4 h-4" />
-                      <span className="text-sm font-semibold">{(user as any).loyaltyPoints || 0}</span>
+                    <Button variant="ghost" size="sm" onClick={() => setCoinsModalOpen(true)} className="gap-1.5 text-amber-600 dark:text-amber-400 hover:text-amber-700 hover:bg-amber-500/10 px-3 border border-amber-500/30 rounded-full" title="Nafex Coins Rewards Info" data-testid="btn-nafex-coins">
+                      <Coins className="w-4 h-4 text-amber-500" />
+                      <span className="text-sm font-bold">{(user as any).loyaltyPoints || 0}</span>
                     </Button>
 
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="gap-1.5 text-secondary-foreground/80 hover:text-primary hover:bg-white/10 px-2" data-testid="btn-user-menu">
-                          <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
-                            <span className="text-xs font-bold text-primary">{user.name.charAt(0).toUpperCase()}</span>
+                        <Button variant="ghost" size="sm" className="gap-1.5 text-[#222222] dark:text-zinc-100 hover:text-[#6A1B9A] dark:hover:text-purple-400 px-2" data-testid="btn-user-menu">
+                          <div className="w-7 h-7 rounded-full bg-[#6A1B9A]/15 text-[#6A1B9A] dark:bg-purple-500/20 dark:text-purple-300 flex items-center justify-center font-bold text-xs">
+                            {user.name.charAt(0).toUpperCase()}
                           </div>
-                          <span className="text-sm">Hi, {user.name.split(" ")[0]}</span>
-                          <ChevronDown className="w-3 h-3" />
+                          <span className="text-sm font-semibold">Hi, {user.name.split(" ")[0]}</span>
+                          <ChevronDown className="w-3 h-3 opacity-70" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
@@ -337,7 +338,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <input
                   type="search"
                   placeholder="Search..."
-                  className="w-full h-8 pl-3 pr-7 rounded-full bg-[#F6F2FF] border border-purple-200 text-xs text-[#222222] placeholder:text-[#6B7280] focus:outline-none focus:ring-1 focus:ring-[#6A1B9A]"
+                  className="w-full h-8 pl-3 pr-7 rounded-full bg-[#F6F2FF] dark:bg-zinc-800 border border-purple-200 dark:border-zinc-700 text-xs text-[#222222] dark:text-zinc-100 placeholder:text-[#6B7280] dark:placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-[#6A1B9A]"
                   value={headerSearch}
                   onChange={(e) => setHeaderSearch(e.target.value)}
                   onKeyDown={(e) => {
@@ -358,23 +359,24 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     setLocation(next);
                   }}
                   className="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[#6A1B9A] text-white flex items-center justify-center"
+                  aria-label="Search"
                 >
                   <Search className="w-3 h-3" />
                 </button>
               </div>
             )}
             {!isBusinessOwner && !isAdmin && (
-              <CartIcon className="text-[#222222] hover:text-[#6A1B9A]" />
+              <CartIcon className="text-[#222222] dark:text-zinc-100 hover:text-[#6A1B9A]" />
             )}
             {user && <NotificationBell />}
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleDarkMode}
-              className="text-[#222222] hover:text-[#6A1B9A] h-8 w-8"
+              className="text-[#222222] dark:text-zinc-100 hover:text-[#6A1B9A] h-8 w-8"
               aria-label="Toggle theme"
             >
-              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
             </Button>
 
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
