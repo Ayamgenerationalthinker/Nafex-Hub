@@ -65,10 +65,10 @@ export function MobileBottomNav() {
     ];
   } else if (isBusinessOwner) {
     navItems = [
-      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/", label: "Home", icon: Home, testId: "mobile-bottom-home" },
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, testId: "mobile-bottom-seller-dashboard" },
       { href: "/my-shop", label: "My Shop", icon: Store },
       { href: "/orders", label: "Orders", icon: ShoppingBag },
-      { href: "/inbox", label: "Inbox", icon: MessageCircle },
       { href: "#more", label: "More", icon: MoreHorizontal, isMore: true },
     ];
   } else {
@@ -182,23 +182,37 @@ export function MobileBottomNav() {
           <div className="p-4 space-y-4 pb-20">
             {/* User Profile Card */}
             {user ? (
-              <div className="flex items-center gap-3 p-3.5 rounded-xl bg-[#F6F2FF] dark:bg-zinc-900 border border-purple-100 dark:border-zinc-800">
-                <div className="w-10 h-10 rounded-full bg-[#6A1B9A] text-white flex items-center justify-center font-bold text-sm">
-                  {user.name.charAt(0).toUpperCase()}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-foreground truncate">{user.name}</p>
-                  <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                  <span className="inline-block text-[10px] font-semibold uppercase px-2 py-0.5 mt-1 rounded bg-[#6A1B9A]/10 text-[#6A1B9A] dark:text-purple-300">
-                    {user.role.replace("_", " ")}
-                  </span>
-                </div>
-                <div className="text-right">
-                  <div className="inline-flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-1 rounded-full border border-amber-500/20">
-                    <Coins className="w-3.5 h-3.5 text-amber-500" />
-                    {(user as any).loyaltyPoints || 0}
+              <div className="space-y-2">
+                <div className="flex items-center gap-3 p-3.5 rounded-xl bg-[#F6F2FF] dark:bg-zinc-900 border border-purple-100 dark:border-zinc-800">
+                  <div className="w-10 h-10 rounded-full bg-[#6A1B9A] text-white flex items-center justify-center font-bold text-sm">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-foreground truncate">{user.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                    <span className="inline-block text-[10px] font-semibold uppercase px-2 py-0.5 mt-1 rounded bg-[#6A1B9A]/10 text-[#6A1B9A] dark:text-purple-300">
+                      {user.role.replace("_", " ")}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <div className="inline-flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-1 rounded-full border border-amber-500/20">
+                      <Coins className="w-3.5 h-3.5 text-amber-500" />
+                      {(user as any).loyaltyPoints || 0}
+                    </div>
                   </div>
                 </div>
+
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMoreOpen(false)}
+                  className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-[#6A1B9A] to-[#5B1687] text-white font-bold text-xs shadow-sm hover:opacity-95 transition-opacity"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <LayoutDashboard className="w-4 h-4 text-white" />
+                    <span>Go to Seller Dashboard</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-white/80" />
+                </Link>
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-2">

@@ -663,23 +663,44 @@ function SellerDashboard() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
+              variant="outline"
+              size="sm"
+              className="bg-white/15 border-white/40 text-white hover:bg-white/30 font-semibold gap-1.5"
+              onClick={() => setLocation("/")}
+              data-testid="btn-seller-go-home"
+            >
+              <Store className="w-4 h-4" />
+              Storefront Home
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-white/15 border-white/40 text-white hover:bg-white/30 font-semibold gap-1.5"
+              onClick={() => setLocation("/explore")}
+              data-testid="btn-seller-go-explore"
+            >
+              <Eye className="w-4 h-4" />
+              Explore Marketplace
+            </Button>
+            {businessId > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-white/15 border-white/40 text-white hover:bg-white/30 font-semibold gap-1.5"
+                onClick={() => setLocation("/my-shop")}
+                data-testid="btn-seller-view-my-shop"
+              >
+                <Store className="w-4 h-4" />
+                View My Shop
+              </Button>
+            )}
+            <Button
               onClick={() => setShowListBusinessModal(true)}
               className="bg-white text-primary hover:bg-white/90 font-semibold shadow-sm gap-2"
             >
               <Plus className="w-4 h-4" />
               {businessId ? "List Another Business" : "List Your Business"}
             </Button>
-            {businessId > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-white/10 border-white/30 text-white hover:bg-white/20 gap-2"
-                onClick={() => setActiveTab("settings")}
-              >
-                <MapPin className="w-3.5 h-3.5" />
-                Store Settings
-              </Button>
-            )}
           </div>
         </div>
       </div>
