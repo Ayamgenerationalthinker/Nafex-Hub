@@ -216,6 +216,29 @@ export default function Cart() {
       <p className="text-xs text-muted-foreground text-center mt-6">
         Each seller's items are checked out as a separate order so you can pay each one individually.
       </p>
+
+      {/* Mobile Sticky Summary Bar */}
+      {items.length > 0 && (
+        <div className="md:hidden fixed bottom-14 left-0 right-0 z-30 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-purple-100 dark:border-zinc-800 p-3 shadow-lg flex items-center justify-between gap-3">
+          <div>
+            <span className="text-[10px] text-muted-foreground block uppercase font-medium">Cart Total</span>
+            <span className="text-base font-bold text-[#6A1B9A] dark:text-purple-400">
+              GHS {totalPrice.toFixed(2)}
+            </span>
+          </div>
+          <Button
+            size="sm"
+            className="h-10 px-5 text-xs bg-[#6A1B9A] text-white hover:bg-[#5B1687] font-semibold"
+            onClick={() => {
+              const firstBizId = Object.keys(grouped)[0];
+              if (firstBizId) checkout(Number(firstBizId));
+            }}
+            disabled={placing}
+          >
+            {placing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Proceed to Checkout"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

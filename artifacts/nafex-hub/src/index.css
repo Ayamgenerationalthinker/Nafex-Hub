@@ -203,4 +203,14 @@
   .border.active-elevate-2:not(.no-active-interaction-elevate)::after {
     inset: -1px;
   }
+
+  /* Mobile Native App Touch Optimization */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  @media (max-width: 768px) {
+    button, a, input, select, textarea {
+      touch-action: manipulation;
+    }
+  }
 }

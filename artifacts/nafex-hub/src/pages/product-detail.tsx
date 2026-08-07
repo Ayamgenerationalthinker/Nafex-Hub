@@ -466,6 +466,39 @@ export default function ProductDetail() {
           </div>
         </div>
       )}
+
+      {/* Mobile Sticky Bottom Bar (fixed above MobileBottomNav) */}
+      {isBuyer && (
+        <div className="md:hidden fixed bottom-14 left-0 right-0 z-30 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-purple-100 dark:border-zinc-800 p-3 shadow-lg flex items-center justify-between gap-2">
+          <div>
+            <span className="text-[10px] text-muted-foreground block uppercase font-medium">Total Price</span>
+            <span className="text-base font-bold text-[#6A1B9A] dark:text-purple-400">
+              GHS {subtotal.toFixed(2)}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-10 px-3 text-xs gap-1 font-semibold"
+              onClick={handleAddToCart}
+              disabled={outOfStock}
+            >
+              <ShoppingCart className="w-3.5 h-3.5" />
+              Add to Cart
+            </Button>
+            <Button
+              size="sm"
+              className="h-10 px-4 text-xs gap-1 bg-[#6A1B9A] text-white hover:bg-[#5B1687] font-semibold"
+              onClick={handleBuyNow}
+              disabled={outOfStock || buying}
+            >
+              {buying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
+              {buying ? "Placing…" : outOfStock ? "Out of stock" : "Buy Now"}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

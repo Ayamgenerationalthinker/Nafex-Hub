@@ -14,6 +14,7 @@ import { useSiteSettings } from "@/hooks/use-site-settings";
 import { NafexCoinsModal } from "@/components/nafex-coins-modal";
 import { Logo } from "@/components/logo";
 import { useToast } from "@/hooks/use-toast";
+import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 
 const FALLBACK_LOGO = "/nafex-logo.svg";
 
@@ -329,29 +330,63 @@ export function Layout({ children }: { children: React.ReactNode }) {
             )}
           </nav>
 
-          {/* Mobile hamburger */}
-          <div className="flex md:hidden items-center gap-2">
+          {/* Mobile top action header bar */}
+          <div className="flex md:hidden items-center gap-1.5">
             {!isBusinessOwner && !isAdmin && (
-              <CartIcon className="text-secondary-foreground/80 hover:text-primary" />
+              <div className="relative flex items-center max-w-[130px] sm:max-w-[180px]">
+                <input
+                  type="search"
+                  placeholder="Search..."
+                  className="w-full h-8 pl-3 pr-7 rounded-full bg-[#F6F2FF] border border-purple-200 text-xs text-[#222222] placeholder:text-[#6B7280] focus:outline-none focus:ring-1 focus:ring-[#6A1B9A]"
+                  value={headerSearch}
+                  onChange={(e) => setHeaderSearch(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const value = headerSearch.trim();
+                      const base = "/explore";
+                      const next = value ? `${base}?search=${encodeURIComponent(value)}` : base;
+                      setLocation(next);
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const value = headerSearch.trim();
+                    const base = "/explore";
+                    const next = value ? `${base}?search=${encodeURIComponent(value)}` : base;
+                    setLocation(next);
+                  }}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[#6A1B9A] text-white flex items-center justify-center"
+                >
+                  <Search className="w-3 h-3" />
+                </button>
+              </div>
+            )}
+            {!isBusinessOwner && !isAdmin && (
+              <CartIcon className="text-[#222222] hover:text-[#6A1B9A]" />
             )}
             {user && <NotificationBell />}
-            {!user && (
-              <Link href="/register">
-                <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-xs h-8 px-3">
-                  Sign Up
-                </Button>
-              </Link>
-            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleDarkMode}
+              className="text-[#222222] hover:text-[#6A1B9A] h-8 w-8"
+              aria-label="Toggle theme"
+            >
+              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </Button>
+
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-secondary-foreground hover:bg-white/10 hover:text-primary"
+                  className="text-secondary-foreground hover:bg-white/10 hover:text-primary h-9 w-9"
                   aria-label="Open menu"
                   data-testid="btn-menu"
                 >
-                  <Menu className="w-6 h-6" />
+                  <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-72 bg-secondary text-secondary-foreground border-secondary-foreground/10 p-0">
@@ -448,9 +483,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </header>
       )}
 
-      <main className="flex-1 flex flex-col w-full">
+      <main className="flex-1 flex flex-col w-full pb-20 md:pb-0">
         {children}
       </main>
+
+      {/* Mobile App Bottom Navigation Bar */}
+      <MobileBottomNav />
 
       {/* ── Footer (Deep Primary Purple #6A1B9A matching Img 1 reference style guide) ── */}
       {!isDedicatedSellerDashboard && (
