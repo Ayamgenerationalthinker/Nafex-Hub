@@ -139,18 +139,29 @@ export function SupportChatWidget() {
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-24 right-5 z-50 w-[calc(100vw-2.5rem)] max-w-sm bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+        <div className="fixed bottom-16 md:bottom-24 right-4 md:right-6 z-50 w-[calc(100vw-2rem)] max-w-sm bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           style={{ height: "420px" }}
         >
-          {/* Header */}
-          <div className="bg-primary text-primary-foreground px-4 py-3 flex items-center gap-3 flex-shrink-0">
-            <div className="w-8 h-8 rounded-full bg-white/20 p-1 flex items-center justify-center overflow-hidden shrink-0">
-              <img src="/nafex-logo.png" alt="Nafex Support" className="w-full h-full object-contain" />
+          {/* Header with close button */}
+          <div className="bg-[#6A1B9A] text-white px-4 py-3 flex items-center justify-between gap-3 flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-white/20 p-1 flex items-center justify-center overflow-hidden shrink-0">
+                <img src="/nafex-logo.png" alt="Nafex Support" className="w-full h-full object-contain" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">Nafex Support</p>
+                <p className="text-xs text-white/80">We typically reply within minutes</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-semibold">Nafex Support</p>
-              <p className="text-xs text-primary-foreground/70">We typically reply within minutes</p>
-            </div>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors shrink-0"
+              aria-label="Close support chat"
+              data-testid="btn-close-support-chat"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
 
           {/* Messages */}
