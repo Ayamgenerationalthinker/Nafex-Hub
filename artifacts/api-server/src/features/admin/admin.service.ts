@@ -1,5 +1,6 @@
 import { logAdminAction } from "../../lib/log-admin-action";
 import * as repo from "./admin.repository";
+import { notifySeller } from "../../lib/notify";
 
 // ── Activity ──────────────────────────────────────────────────────────────────
 
@@ -64,13 +65,33 @@ export async function getPendingProducts() {
 }
 
 export async function approveProduct(adminId: number, adminName: string, productId: number) {
-  await repo.approveProduct(productId);
+  const product = await repo.approveProduct(productId);
   await logAdminAction({ adminId, adminName, action: "product_approved", targetType: "product", targetId: String(productId) });
+  // Notify the seller whose product was approved
+  if (product?.ownerId) {
+    notifySeller(product.ownerId, {
+      type: "product_approved",
+      title: "Your product has been approved",
+      body: `"${product.name}" is now live on Nafex Hub and visible to buyers.`,
+      metadata: { productId },
+      relatedId: productId,
+    });
+  }
 }
 
 export async function rejectProduct(adminId: number, adminName: string, productId: number, reason: string) {
-  await repo.rejectProduct(productId, reason);
+  const product = await repo.rejectProduct(productId, reason);
   await logAdminAction({ adminId, adminName, action: "product_rejected", targetType: "product", targetId: String(productId), details: { reason } });
+  // Notify the seller whose product was rejected
+  if (product?.ownerId) {
+    notifySeller(product.ownerId, {
+      type: "product_rejected",
+      title: "Your product requires changes",
+      body: `"${product.name}" was not approved. Reason: ${reason}`,
+      metadata: { productId, reason },
+      relatedId: productId,
+    });
+  }
 }
 
 // ── KYC ───────────────────────────────────────────────────────────────────────
@@ -88,8 +109,31 @@ export async function updateKyc(
   if (data.isVerified !== undefined) update.isVerified = data.isVerified;
   else if (data.verificationTier === "gold") update.isVerified = true;
 
-  await repo.updateBusinessKyc(businessId, update);
+  const updated = await repo.updateBusinessKyc(businessId, update);
   await logAdminAction({ adminId, adminName, action: "kyc_tier_updated", targetType: "business", targetId: String(businessId), details: { tier: data.verificationTier } });
+
+  // Notify the business owner of KYC outcome
+  if (updated?.ownerId) {
+    const approved = update.isVerified === true;
+    const rejected = update.isVerified === false;
+    if (approved) {
+      notifySeller(updated.ownerId, {
+        type: "kyc_approved",
+        title: "Your account has been verified",
+        body: `Congratulations! Your business has been granted ${data.verificationTier} tier verification on Nafex Hub.`,
+        metadata: { businessId, tier: data.verificationTier },
+        relatedId: businessId,
+      });
+    } else if (rejected) {
+      notifySeller(updated.ownerId, {
+        type: "kyc_rejected",
+        title: "Account verification update",
+        body: data.kycNotes ? `Verification update: ${data.kycNotes}` : "Your verification status has been updated. Please contact support for details.",
+        metadata: { businessId, tier: data.verificationTier, notes: data.kycNotes },
+        relatedId: businessId,
+      });
+    }
+  }
 }
 
 // ── Financial summary ─────────────────────────────────────────────────────────

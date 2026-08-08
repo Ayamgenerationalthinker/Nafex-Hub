@@ -66,6 +66,7 @@ export class OrdersRepository {
     if (result.length === 0) {
       throw new Error(`Insufficient stock for product ${productId}`);
     }
+    return result[0];
   }
 
   public async updateOrder(id: number, data: Partial<NewOrder>) {
@@ -137,7 +138,7 @@ export class OrdersRepository {
       title,
       body,
       relatedId,
-      isRead: false,
+      readAt: null,
     });
   }
 

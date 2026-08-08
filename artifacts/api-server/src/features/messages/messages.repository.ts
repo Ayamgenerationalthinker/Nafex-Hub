@@ -194,7 +194,7 @@ export class MessagesRepository {
       title,
       body,
       relatedId,
-      isRead: false,
+      readAt: null,
     }).returning();
     return notif;
   }

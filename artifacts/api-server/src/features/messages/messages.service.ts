@@ -1,7 +1,7 @@
 import { MessagesRepository } from "./messages.repository";
 import { ForbiddenError, NotFoundError, AppError } from "../../shared/errors/AppError";
 import { getIO } from "../../lib/socket";
-import { notifyAllAdmins } from "../../lib/notify";
+import { notifyAllAdmins, notifySeller } from "../../lib/notify";
 
 export class MessagesService {
   private repository: MessagesRepository;
@@ -172,15 +172,29 @@ export class MessagesService {
         }
 
         if (notifyUserId) {
-          const notif = await this.repository.createNotification(
-            notifyUserId,
-            "message",
-            `New message from ${senderName}`,
-            data.text.slice(0, 100),
-            conversationId
-          );
-          if (notif) {
-            getIO()?.to(`user_${notifyUserId}`).emit("new_notification", notif);
+          // Use canonical notifySeller for seller recipients (new_message type)
+          // For buyer recipients keep legacy createNotification path
+          const isSeller = biz?.ownerId === notifyUserId;
+          if (isSeller) {
+            notifySeller(notifyUserId, {
+              type: "new_message",
+              title: `New message from ${senderName}`,
+              body: data.text.slice(0, 100),
+              actorId: userId,
+              relatedId: conversationId,
+              metadata: { conversationId },
+            });
+          } else {
+            const notif = await this.repository.createNotification(
+              notifyUserId,
+              "message",
+              `New message from ${senderName}`,
+              data.text.slice(0, 100),
+              conversationId
+            );
+            if (notif) {
+              getIO()?.to(`user_${notifyUserId}`).emit("new_notification", notif);
+            }
           }
         }
       }

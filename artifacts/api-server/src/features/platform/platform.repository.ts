@@ -1,5 +1,5 @@
 import { db, favoritesTable, businessesTable, productsTable, notificationsTable, siteSettingsTable } from "@workspace/db";
-import { eq, and, inArray, count } from "drizzle-orm";
+import { eq, and, inArray, count, isNull } from "drizzle-orm";
 
 // ── Favorites ─────────────────────────────────────────────────────────────────
 
@@ -55,16 +55,16 @@ export async function getNotifications(userId: number) {
 
 export async function getUnreadCount(userId: number) {
   const [result] = await db.select({ count: count() }).from(notificationsTable)
-    .where(and(eq(notificationsTable.userId, userId), eq(notificationsTable.isRead, false)));
+    .where(and(eq(notificationsTable.userId, userId), isNull(notificationsTable.readAt)));
   return Number(result?.count ?? 0);
 }
 
 export async function markNotificationRead(id: number, userId: number) {
-  return db.update(notificationsTable).set({ isRead: true }).where(and(eq(notificationsTable.id, id), eq(notificationsTable.userId, userId)));
+  return db.update(notificationsTable).set({ readAt: new Date() }).where(and(eq(notificationsTable.id, id), eq(notificationsTable.userId, userId)));
 }
 
 export async function markAllNotificationsRead(userId: number) {
-  return db.update(notificationsTable).set({ isRead: true }).where(eq(notificationsTable.userId, userId));
+  return db.update(notificationsTable).set({ readAt: new Date() }).where(eq(notificationsTable.userId, userId));
 }
 
 // ── Settings ──────────────────────────────────────────────────────────────────

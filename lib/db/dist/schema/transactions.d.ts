@@ -241,6 +241,7 @@ export declare const insertTransactionSchema: z.ZodObject<{
         failed: "failed";
         reversed: "reversed";
     }>>;
+    metadata: z.ZodOptional<z.ZodNullable<z.ZodType<import("drizzle-zod").Json, unknown, z.core.$ZodTypeInternals<import("drizzle-zod").Json, unknown>>>>;
     orderId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
     amount: z.ZodString;
     currency: z.ZodOptional<z.ZodString>;
@@ -252,7 +253,6 @@ export declare const insertTransactionSchema: z.ZodObject<{
     }>;
     providerRef: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     channel: z.ZodOptional<z.ZodNullable<z.ZodString>>;
-    metadata: z.ZodOptional<z.ZodNullable<z.ZodType<import("drizzle-zod").Json, unknown, z.core.$ZodTypeInternals<import("drizzle-zod").Json, unknown>>>>;
 }, {
     out: {};
     in: {};

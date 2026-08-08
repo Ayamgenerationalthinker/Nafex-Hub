@@ -99,7 +99,7 @@ export class DeliveriesRepository {
       title,
       body,
       relatedId,
-      isRead: false,
+      readAt: null,
     });
   }
 }

@@ -20,6 +20,7 @@ import marketingRouter     from "../features/marketing/marketing.routes";
 import platformRouter      from "../features/platform/platform.routes";
 import tradeRouter         from "../features/trade/trade.routes";
 import cartRouter          from "../features/cart/cart.routes";
+import notificationsRouter from "../features/notifications/notifications.routes";
 
 const router: IRouter = Router();
 
@@ -44,5 +45,6 @@ router.use(marketingRouter);
 router.use(platformRouter);
 router.use(tradeRouter);
 router.use(cartRouter);
+router.use(notificationsRouter);
 
 export default router;

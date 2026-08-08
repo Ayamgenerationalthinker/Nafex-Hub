@@ -8,30 +8,104 @@ export function setAuthTokenGetter(getter: () => string | null): void {
   (window as any).__authTokenGetter = getter;
 }
 
-// Stub notification API hooks for development/testing
-export function useGetNotifications(_: { query: any }) {
-  return { data: [] as any[], refetch: () => {} };
+// ── Notification Hooks (real implementations) ─────────────────────────────────
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
+const NOTIF_BASE = "/api/notifications";
+function authHeaders(): Record<string, string> {
+  const token = localStorage.getItem("nafex_token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
-export function getGetNotificationsQueryKey() {
-  return ["notifications"];
-}
-export function useGetNotificationUnreadCount(_: { query: any }) {
-  return { data: { count: 0 }, refetch: () => {} };
+
+export function getGetNotificationsQueryKey(params?: Record<string, unknown>) {
+  return ["notifications", params];
 }
 export function getGetNotificationUnreadCountQueryKey() {
-  return ["notificationUnreadCount"];
+  return ["notificationsUnreadCount"];
 }
-export function useMarkNotificationRead(_: { mutation: any }) {
-  return { mutate: () => {} };
+
+export function useGetNotifications(options?: {
+  query?: { enabled?: boolean; refetchInterval?: number; queryKey?: unknown[] };
+  params?: { page?: number; limit?: number; unreadOnly?: boolean };
+}) {
+  return useQuery({
+    queryKey: options?.query?.queryKey ?? getGetNotificationsQueryKey(options?.params),
+    queryFn: async () => {
+      const p = new URLSearchParams();
+      if (options?.params?.page) p.set("page", String(options.params.page));
+      if (options?.params?.limit) p.set("limit", String(options.params.limit));
+      if (options?.params?.unreadOnly) p.set("unreadOnly", "true");
+      const res = await fetch(`${NOTIF_BASE}?${p}`, { headers: authHeaders() });
+      if (!res.ok) throw new Error("Failed to fetch notifications");
+      const json = await res.json();
+      const list = (json.notifications ?? json) as any[];
+      return list.map((n) => ({
+        ...n,
+        isRead: n.readAt ? true : false,
+      }));
+    },
+    enabled: options?.query?.enabled ?? true,
+    refetchInterval: options?.query?.refetchInterval,
+  });
 }
-export function useMarkAllNotificationsRead(_: { mutation: any }) {
-  return { mutate: () => {} };
+
+export function useGetNotificationUnreadCount(options?: {
+  query?: { enabled?: boolean; refetchInterval?: number; queryKey?: unknown[] };
+}) {
+  return useQuery({
+    queryKey: options?.query?.queryKey ?? getGetNotificationUnreadCountQueryKey(),
+    queryFn: async () => {
+      const res = await fetch(`${NOTIF_BASE}/unread-count`, { headers: authHeaders() });
+      if (!res.ok) return { count: 0 };
+      return (await res.json()) as { count: number };
+    },
+    enabled: options?.query?.enabled ?? true,
+    refetchInterval: options?.query?.refetchInterval,
+  });
 }
+
+export function useMarkNotificationRead(options?: { mutation?: { onSuccess?: () => void } }) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id }: { id: number }) => {
+      const res = await fetch(`${NOTIF_BASE}/${id}/read`, {
+        method: "PATCH",
+        headers: authHeaders(),
+      });
+      if (!res.ok) throw new Error("Failed to mark notification read");
+      return res.json();
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["notifications"] });
+      qc.invalidateQueries({ queryKey: ["notificationsUnreadCount"] });
+      options?.mutation?.onSuccess?.();
+    },
+  });
+}
+
+export function useMarkAllNotificationsRead(options?: { mutation?: { onSuccess?: () => void } }) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`${NOTIF_BASE}/mark-all-read`, {
+        method: "PATCH",
+        headers: authHeaders(),
+      });
+      if (!res.ok) throw new Error("Failed to mark all notifications read");
+      return res.json();
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["notifications"] });
+      qc.invalidateQueries({ queryKey: ["notificationsUnreadCount"] });
+      options?.mutation?.onSuccess?.();
+    },
+  });
+}
+
 // Additional missing stub exports
 export function getGetBusinessesQueryKey() { return ["businesses"]; }
 export function getGetFeaturedBusinessesQueryKey() { return ["featuredBusinesses"]; }
 export function getGetFeaturedTopBusinessesQueryKey() { return ["featuredTopBusinesses"]; }
-import { useMutation } from "@tanstack/react-query";
 
 export function useCreateBusiness(options?: any) {
   return useMutation({

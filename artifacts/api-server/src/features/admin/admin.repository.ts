@@ -166,17 +166,43 @@ export async function getPendingProducts() {
 }
 
 export async function approveProduct(id: number) {
-  return db.update(productsTable).set({ approvalStatus: "approved", rejectionReason: null }).where(eq(productsTable.id, id));
+  // Return product with ownerId so the service can notify the seller
+  const [product] = await db
+    .update(productsTable)
+    .set({ approvalStatus: "approved", rejectionReason: null })
+    .where(eq(productsTable.id, id))
+    .returning({ id: productsTable.id, name: productsTable.name, businessId: productsTable.businessId });
+  if (!product) return null;
+  const [biz] = await db
+    .select({ ownerId: businessesTable.ownerId })
+    .from(businessesTable)
+    .where(eq(businessesTable.id, product.businessId));
+  return { ...product, ownerId: biz?.ownerId ?? null };
 }
 
 export async function rejectProduct(id: number, reason: string) {
-  return db.update(productsTable).set({ approvalStatus: "rejected", rejectionReason: reason }).where(eq(productsTable.id, id));
+  const [product] = await db
+    .update(productsTable)
+    .set({ approvalStatus: "rejected", rejectionReason: reason })
+    .where(eq(productsTable.id, id))
+    .returning({ id: productsTable.id, name: productsTable.name, businessId: productsTable.businessId });
+  if (!product) return null;
+  const [biz] = await db
+    .select({ ownerId: businessesTable.ownerId })
+    .from(businessesTable)
+    .where(eq(businessesTable.id, product.businessId));
+  return { ...product, ownerId: biz?.ownerId ?? null };
 }
 
 // ── KYC ───────────────────────────────────────────────────────────────────────
 
 export async function updateBusinessKyc(id: number, updates: Record<string, unknown>) {
-  return db.update(businessesTable).set(updates).where(eq(businessesTable.id, id));
+  const [updated] = await db
+    .update(businessesTable)
+    .set(updates)
+    .where(eq(businessesTable.id, id))
+    .returning({ id: businessesTable.id, ownerId: businessesTable.ownerId });
+  return updated ?? null;
 }
 
 // ── Financial summary ─────────────────────────────────────────────────────────

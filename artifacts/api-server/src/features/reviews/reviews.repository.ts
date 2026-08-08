@@ -1,4 +1,4 @@
-import { db, reviewsTable, usersTable } from "@workspace/db";
+import { db, reviewsTable, usersTable, businessesTable } from "@workspace/db";
 import { eq, InferInsertModel } from "drizzle-orm";
 
 type NewReview = InferInsertModel<typeof reviewsTable>;
@@ -24,5 +24,13 @@ export class ReviewsRepository {
   public async createReview(data: NewReview) {
     const [review] = await db.insert(reviewsTable).values(data).returning();
     return review;
+  }
+
+  public async getBusinessById(businessId: number) {
+    const [biz] = await db
+      .select({ id: businessesTable.id, ownerId: businessesTable.ownerId })
+      .from(businessesTable)
+      .where(eq(businessesTable.id, businessId));
+    return biz ?? null;
   }
 }

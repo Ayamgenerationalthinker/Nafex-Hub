@@ -177,7 +177,7 @@ export class SupportRepository {
       title,
       body,
       relatedId,
-      isRead: false,
+      readAt: null,
     }).returning();
     return notif;
   }

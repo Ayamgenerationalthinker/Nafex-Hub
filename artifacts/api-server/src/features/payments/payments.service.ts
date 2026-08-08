@@ -2,8 +2,9 @@ import { PaymentsRepository } from "./payments.repository";
 import { ForbiddenError, NotFoundError, AppError } from "../../shared/errors/AppError";
 import { createHmac, timingSafeEqual } from "crypto";
 import { env } from "../../config/env";
+import { notifySeller } from "../../lib/notify";
 
-const PAYSTACK_SECRET = env.PAYSTACK_SECRET_KEY ?? "";
+const getPaystackSecret = () => env.PAYSTACK_SECRET_KEY ?? "";
 const PAYSTACK_BASE = "https://api.paystack.co";
 
 export class PaymentsService {
@@ -17,7 +18,7 @@ export class PaymentsService {
     const res = await fetch(`${PAYSTACK_BASE}${path}`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${PAYSTACK_SECRET}`,
+        Authorization: `Bearer ${getPaystackSecret()}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
@@ -29,16 +30,16 @@ export class PaymentsService {
 
   public async paystackGet<T>(path: string): Promise<T> {
     const res = await fetch(`${PAYSTACK_BASE}${path}`, {
-      headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` },
+      headers: { Authorization: `Bearer ${getPaystackSecret()}` },
     });
     const data = (await res.json()) as { status: boolean; data: T; message: string };
     if (!res.ok || !data.status) throw new Error(data.message ?? "Paystack error");
     return data.data;
   }
 
-  public verifyWebhookSignature(body: string | Buffer, signature: string): boolean {
-    if (!PAYSTACK_SECRET) return false;
-    const hash = createHmac("sha512", PAYSTACK_SECRET).update(body).digest("hex");
+  public verifyWebhookSignature(bodyToVerify: string | Buffer, signature: string): boolean {
+    if (!getPaystackSecret()) return false;
+    const hash = createHmac("sha512", getPaystackSecret()).update(bodyToVerify).digest("hex");
     if (hash.length !== signature.length) return false;
     return timingSafeEqual(Buffer.from(hash), Buffer.from(signature));
   }
@@ -121,7 +122,7 @@ export class PaymentsService {
   }
 
   public async verifyPayment(userId: number, orderId: number, reference: string) {
-    if (!PAYSTACK_SECRET) throw new AppError("Payment gateway not configured", 503);
+    if (!getPaystackSecret()) throw new AppError("Payment gateway not configured", 503);
 
     const order = await this.repository.getOrderById(orderId);
     if (!order) throw new NotFoundError("Order not found");
@@ -249,13 +250,13 @@ export class PaymentsService {
     try {
       const biz = await this.repository.getBusinessById(order.businessId);
       if (biz?.ownerId) {
-        await this.repository.createNotification(
-          biz.ownerId,
-          "order_update",
-          `Payout released for Order #${order.id}`,
-          `GHS ${(payoutAmount / 100).toFixed(2)} has been released from escrow to your account (minus GHS ${(commissionPesewas / 100).toFixed(2)} platform commission).`,
-          order.id
-        );
+        notifySeller(biz.ownerId, {
+          type: "payment_released",
+          title: `Payout released for Order #${order.id}`,
+          body: `GHS ${(payoutAmount / 100).toFixed(2)} has been released from escrow to your account (minus GHS ${(commissionPesewas / 100).toFixed(2)} platform commission).`,
+          metadata: { orderId: order.id, payoutAmount, commissionPesewas },
+          relatedId: order.id,
+        });
       }
     } catch {}
 
@@ -274,7 +275,7 @@ export class PaymentsService {
 
     const order = updated;
 
-    if (PAYSTACK_SECRET && order.paymentReference) {
+    if (getPaystackSecret() && order.paymentReference) {
       try {
         await this.paystackPost("/refund", {
           transaction: order.paymentReference,
@@ -293,12 +294,13 @@ export class PaymentsService {
       type: "refund",
       amount: (order.totalPrice / 100).toString(),
       currency: "GHS",
-      provider: PAYSTACK_SECRET ? "paystack" : "manual",
+      provider: getPaystackSecret() ? "paystack" : "manual",
       providerRef: `REFUND-${order.id}-${Date.now()}`,
       status: "success",
       metadata: { reason: reason, refundedBy: userId },
     });
 
+    // Notify buyer of refund
     try {
       await this.repository.createNotification(
         order.userId,
@@ -307,6 +309,20 @@ export class PaymentsService {
         `Your refund of GHS ${(order.totalPrice / 100).toFixed(2)} has been processed. It may take 1-5 business days to reflect.`,
         order.id
       );
+    } catch {}
+
+    // Notify seller of refund approved
+    try {
+      const biz = await this.repository.getBusinessById(order.businessId);
+      if (biz?.ownerId) {
+        notifySeller(biz.ownerId, {
+          type: "refund_approved",
+          title: `Refund approved for Order #${order.id}`,
+          body: `A refund of GHS ${(order.totalPrice / 100).toFixed(2)} was approved for Order #${order.id}. ${reason ? `Reason: ${reason}` : ""}`,
+          metadata: { orderId: order.id, totalPrice: order.totalPrice, reason },
+          relatedId: order.id,
+        });
+      }
     } catch {}
 
     return updated;

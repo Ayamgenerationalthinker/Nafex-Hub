@@ -87,7 +87,7 @@ export class DisputesRepository {
       title,
       body,
       relatedId,
-      isRead: false,
+      readAt: null,
     });
   }
 }

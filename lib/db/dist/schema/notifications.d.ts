@@ -1,4 +1,11 @@
 import { z } from "zod/v4";
+/**
+ * Exhaustive seller notification type enum.
+ * Legacy admin types (message, order_update, review) are preserved for
+ * backward compatibility with existing notification rows and code paths.
+ */
+export declare const NOTIFICATION_TYPES: readonly ["new_order", "order_cancelled", "delivery_confirmed", "payment_released", "refund_requested", "refund_approved", "refund_rejected", "new_message", "product_approved", "product_rejected", "low_stock", "payment_received", "withdrawal_completed", "withdrawal_failed", "new_review", "kyc_approved", "kyc_rejected", "announcement", "message", "order_update", "review"];
+export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 export declare const notificationsTable: import("drizzle-orm/pg-core").PgTableWithColumns<{
     name: "notifications";
     schema: undefined;
@@ -37,19 +44,36 @@ export declare const notificationsTable: import("drizzle-orm/pg-core").PgTableWi
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        actorId: import("drizzle-orm/pg-core").PgColumn<{
+            name: "actor_id";
+            tableName: "notifications";
+            dataType: "number";
+            columnType: "PgInteger";
+            data: number;
+            driverParam: string | number;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
         type: import("drizzle-orm/pg-core").PgColumn<{
             name: "type";
             tableName: "notifications";
             dataType: "string";
             columnType: "PgText";
-            data: "message" | "order_update" | "review";
+            data: "message" | "new_order" | "order_cancelled" | "delivery_confirmed" | "payment_released" | "refund_requested" | "refund_approved" | "refund_rejected" | "new_message" | "product_approved" | "product_rejected" | "low_stock" | "payment_received" | "withdrawal_completed" | "withdrawal_failed" | "new_review" | "kyc_approved" | "kyc_rejected" | "announcement" | "order_update" | "review";
             driverParam: string;
             notNull: true;
             hasDefault: false;
             isPrimaryKey: false;
             isAutoincrement: false;
             hasRuntimeDefault: false;
-            enumValues: ["message", "order_update", "review"];
+            enumValues: ["new_order", "order_cancelled", "delivery_confirmed", "payment_released", "refund_requested", "refund_approved", "refund_rejected", "new_message", "product_approved", "product_rejected", "low_stock", "payment_received", "withdrawal_completed", "withdrawal_failed", "new_review", "kyc_approved", "kyc_rejected", "announcement", "message", "order_update", "review"];
             baseColumn: never;
             identity: undefined;
             generated: undefined;
@@ -88,15 +112,32 @@ export declare const notificationsTable: import("drizzle-orm/pg-core").PgTableWi
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
-        isRead: import("drizzle-orm/pg-core").PgColumn<{
-            name: "is_read";
+        metadata: import("drizzle-orm/pg-core").PgColumn<{
+            name: "metadata";
             tableName: "notifications";
-            dataType: "boolean";
-            columnType: "PgBoolean";
-            data: boolean;
-            driverParam: boolean;
-            notNull: true;
-            hasDefault: true;
+            dataType: "json";
+            columnType: "PgJsonb";
+            data: unknown;
+            driverParam: unknown;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        readAt: import("drizzle-orm/pg-core").PgColumn<{
+            name: "read_at";
+            tableName: "notifications";
+            dataType: "date";
+            columnType: "PgTimestamp";
+            data: Date;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
             isPrimaryKey: false;
             isAutoincrement: false;
             hasRuntimeDefault: false;
@@ -146,12 +187,32 @@ export declare const insertNotificationSchema: z.ZodObject<{
     userId: z.ZodInt;
     type: z.ZodEnum<{
         message: "message";
+        new_order: "new_order";
+        order_cancelled: "order_cancelled";
+        delivery_confirmed: "delivery_confirmed";
+        payment_released: "payment_released";
+        refund_requested: "refund_requested";
+        refund_approved: "refund_approved";
+        refund_rejected: "refund_rejected";
+        new_message: "new_message";
+        product_approved: "product_approved";
+        product_rejected: "product_rejected";
+        low_stock: "low_stock";
+        payment_received: "payment_received";
+        withdrawal_completed: "withdrawal_completed";
+        withdrawal_failed: "withdrawal_failed";
+        new_review: "new_review";
+        kyc_approved: "kyc_approved";
+        kyc_rejected: "kyc_rejected";
+        announcement: "announcement";
         order_update: "order_update";
         review: "review";
     }>;
-    isRead: z.ZodOptional<z.ZodBoolean>;
+    actorId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
     title: z.ZodString;
     body: z.ZodString;
+    metadata: z.ZodOptional<z.ZodNullable<z.ZodType<import("drizzle-zod").Json, unknown, z.core.$ZodTypeInternals<import("drizzle-zod").Json, unknown>>>>;
+    readAt: z.ZodOptional<z.ZodNullable<z.ZodDate>>;
     relatedId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
 }, {
     out: {};

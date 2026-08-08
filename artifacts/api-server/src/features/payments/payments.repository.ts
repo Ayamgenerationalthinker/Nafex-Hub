@@ -123,7 +123,7 @@ export class PaymentsRepository {
       title,
       body,
       relatedId,
-      isRead: false,
+      readAt: null,
     });
   }
 }

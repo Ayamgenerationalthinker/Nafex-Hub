@@ -4,6 +4,7 @@ import { sendAdminEmail, sendDeliveryOtpEmail } from "../../lib/mailer";
 import { paymentsService } from "../payments/payments.routes";
 import crypto from "crypto";
 import { notificationQueue } from "../../lib/queue";
+import { notifySeller } from "../../lib/notify";
 
 function generateOtp(): string {
   return crypto.randomInt(100000, 999999).toString();
@@ -77,12 +78,16 @@ export class OrdersService {
         paymentStatus: "unpaid",
       }, tx);
 
+      const lowStockProducts: any[] = [];
       // Deduct inventory atomically to prevent overselling
       if (data.items && Array.isArray(data.items)) {
         for (const item of data.items) {
           if (item.productId && item.quantity) {
             try {
-              await this.repository.deductInventory(item.productId, item.quantity, tx);
+              const updatedProduct = await this.repository.deductInventory(item.productId, item.quantity, tx);
+              if (updatedProduct && updatedProduct.stock !== null && updatedProduct.stock <= 5) {
+                lowStockProducts.push(updatedProduct);
+              }
             } catch (err: any) {
               throw new AppError(err.message || "Insufficient stock", 400);
             }
@@ -90,38 +95,51 @@ export class OrdersService {
         }
       }
 
-      return newOrder;
+      return { order: newOrder, lowStockProducts };
     });
+
+    // Notify seller of low stock levels after transaction succeeds
+    if (business.ownerId && order.lowStockProducts.length > 0) {
+      for (const prod of order.lowStockProducts) {
+        notifySeller(business.ownerId, {
+          type: "low_stock",
+          title: "Low stock alert",
+          body: `Product "${prod.name}" has only ${prod.stock} items remaining in stock.`,
+          metadata: { productId: prod.id, stock: prod.stock },
+          relatedId: prod.id,
+        }).catch(() => {});
+      }
+    }
+
+    const newOrder = order.order;
 
     sendAdminEmail(
       "New Order Placed",
-      `A new order has been placed on Nafex Hub.\n\nOrder ID: ${order.id}\nBusiness ID: ${order.businessId}\nTotal: GHS ${(order.totalPrice / 100).toFixed(2)}\nItems: ${data.items.length}\nDate: ${new Date().toUTCString()}`
+      `A new order has been placed on Nafex Hub.\n\nOrder ID: ${newOrder.id}\nBusiness ID: ${newOrder.businessId}\nTotal: GHS ${(newOrder.totalPrice / 100).toFixed(2)}\nItems: ${data.items.length}\nDate: ${new Date().toUTCString()}`
     );
 
-    try {
-      const totalGhs = `GHS ${(order.totalPrice / 100).toFixed(2)}`;
-      if (business.ownerId) {
-        const notif = await this.repository.createNotification(
-          business.ownerId,
-          "order_update",
-          `New order received — #${order.id}`,
-          `You have a new order for ${totalGhs} (${data.items.length} item${data.items.length === 1 ? "" : "s"}). Awaiting buyer payment.`,
-          order.id
-        );
-        import("../../lib/socket").then(({ getIO }) => {
-          getIO()?.to(`user_${business.ownerId}`).emit("new_notification", notif);
-        });
-      }
+    // Notify seller of new order
+    if (business.ownerId) {
+      notifySeller(business.ownerId, {
+        type: "new_order",
+        title: `New order received — #${newOrder.id}`,
+        body: `You received a new order for GHS ${((data.totalPrice ?? 0) / 100).toFixed(2)} (${(data.items?.length ?? 0)} item${(data.items?.length ?? 0) === 1 ? "" : "s"}). Awaiting buyer payment.`,
+        metadata: { orderId: newOrder.id, totalPrice: data.totalPrice, itemCount: data.items?.length },
+        relatedId: newOrder.id,
+      });
+    }
 
+    try {
+      const totalGhs = `GHS ${(newOrder.totalPrice / 100).toFixed(2)}`;
       await this.notifyAllAdmins(
         "order_update",
-        `New order placed — #${order.id}`,
+        `New order placed — #${newOrder.id}`,
         `${business.name ?? "A business"} received a new order for ${totalGhs}. Track payment & delivery in the admin dashboard.`,
-        order.id
+        newOrder.id
       );
     } catch {}
 
-    return order;
+    return newOrder;
   }
 
   public async processPayment(userId: number, orderId: number, reference: string) {
@@ -136,18 +154,16 @@ export class OrdersService {
       updatedAt: new Date(),
     });
 
+    // Notify seller of confirmed payment into escrow
     try {
       const business = await this.repository.getBusiness(existing.businessId);
       if (business && business.ownerId) {
-        const notif = await this.repository.createNotification(
-          business.ownerId,
-          "order_update",
-          `Payment received for Order #${existing.id}`,
-          `The buyer has submitted a mobile money reference for Order #${existing.id}. Funds are now in escrow.`,
-          existing.id
-        );
-        import("../../lib/socket").then(({ getIO }) => {
-          getIO()?.to(`user_${business.ownerId}`).emit("new_notification", notif);
+        notifySeller(business.ownerId, {
+          type: "payment_received",
+          title: `Payment received for Order #${existing.id}`,
+          body: `The buyer submitted payment for Order #${existing.id}. Funds are now held in escrow.`,
+          metadata: { orderId: existing.id, reference },
+          relatedId: existing.id,
         });
       }
       await this.notifyAllAdmins(
@@ -217,6 +233,7 @@ export class OrdersService {
         body = `Your order is out for delivery! Your delivery OTP is: ${updateFields.deliveryOtp}. Share this code with your delivery person to confirm receipt.`;
       }
 
+      // Notify buyer of status change (existing behavior)
       const notif = await this.repository.createNotification(
         order.userId,
         "order_update",
@@ -227,6 +244,20 @@ export class OrdersService {
       import("../../lib/socket").then(({ getIO }) => {
         getIO()?.to(`user_${order.userId}`).emit("new_notification", notif);
       });
+
+      // Notify seller if order was cancelled by someone else (edge case: admin override)
+      if (status === "cancelled") {
+        const biz = await this.repository.getBusiness(order.businessId);
+        if (biz?.ownerId) {
+          notifySeller(biz.ownerId, {
+            type: "order_cancelled",
+            title: `Order #${order.id} was cancelled`,
+            body: `Order #${order.id} has been cancelled.`,
+            metadata: { orderId: order.id },
+            relatedId: order.id,
+          });
+        }
+      }
 
       await this.notifyAllAdmins(
         "order_update",
@@ -283,6 +314,15 @@ export class OrdersService {
       }
     }
 
+    // Notify seller that delivery has been confirmed and payment released
+    notifySeller(business.ownerId!, {
+      type: "delivery_confirmed",
+      title: `Delivery confirmed for Order #${orderId}`,
+      body: `The buyer has confirmed receipt of Order #${orderId}. Payment will be released to your account shortly.`,
+      metadata: { orderId },
+      relatedId: orderId,
+    });
+
     return order;
   }
 
@@ -323,16 +363,17 @@ export class OrdersService {
       updatedAt: new Date(),
     });
 
+    // Notify seller of milestone payment received
     try {
       const business = await this.repository.getBusiness(existing.businessId);
       if (business && business.ownerId) {
-        await this.repository.createNotification(
-          business.ownerId,
-          "order_update",
-          `Milestone payment received for Order #${existing.id}`,
-          `The buyer has paid milestone: ${milestones[msIndex].description}.`,
-          existing.id
-        );
+        notifySeller(business.ownerId, {
+          type: "payment_received",
+          title: `Milestone payment received for Order #${existing.id}`,
+          body: `The buyer has paid milestone: ${milestones[msIndex].description}.`,
+          metadata: { orderId: existing.id, milestoneId, description: milestones[msIndex].description },
+          relatedId: existing.id,
+        });
       }
     } catch {}
 
