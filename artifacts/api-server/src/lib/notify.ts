@@ -56,6 +56,68 @@ export async function notifyUser(
 export const notifyBuyer = notifyUser;
 export const notifySeller = notifyUser;
 
+// ── In-Memory Event Deduplication Window (5-minute TTL) ─────────────────────
+const recentEvents = new Map<string, number>();
+
+function isDuplicateEvent(key: string, ttlMs = 300000): boolean {
+  const now = Date.now();
+  const timestamp = recentEvents.get(key);
+  if (timestamp && now - timestamp < ttlMs) {
+    return true;
+  }
+  recentEvents.set(key, now);
+  if (recentEvents.size > 2000) {
+    for (const [k, ts] of recentEvents.entries()) {
+      if (now - ts > ttlMs) recentEvents.delete(k);
+    }
+  }
+  return false;
+}
+
+/**
+ * Unified Dispatcher — Single Entrypoint for Business Events.
+ * Automatically routes notifications to Buyers, Sellers, or Admins.
+ */
+export async function dispatchNotification(event: {
+  target: "user" | "buyer" | "seller" | "admin";
+  userId?: number;
+  type: NotificationType;
+  title: string;
+  body: string;
+  metadata?: Record<string, unknown>;
+  actorId?: number;
+  relatedId?: number;
+  idempotencyKey?: string;
+}): Promise<void> {
+  const dedupeKey = event.idempotencyKey ?? `${event.target}_${event.userId ?? "all"}_${event.type}_${event.relatedId ?? "none"}`;
+  if (isDuplicateEvent(dedupeKey)) {
+    logger.info({ dedupeKey, type: event.type }, "Duplicate notification suppressed by Engine");
+    return;
+  }
+
+  if (event.target === "admin") {
+    return notifyAdmins({
+      type: event.type,
+      title: event.title,
+      body: event.body,
+      metadata: event.metadata,
+      actorId: event.actorId,
+      relatedId: event.relatedId,
+    });
+  }
+
+  if (event.userId) {
+    return notifyUser(event.userId, {
+      type: event.type,
+      title: event.title,
+      body: event.body,
+      metadata: event.metadata,
+      actorId: event.actorId,
+      relatedId: event.relatedId,
+    });
+  }
+}
+
 import { inArray } from "drizzle-orm";
 
 // ── Admin Notification Categories & Role Permissions ─────────────────────────
