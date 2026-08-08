@@ -33,4 +33,9 @@ export class ReviewsRepository {
       .where(eq(businessesTable.id, businessId));
     return biz ?? null;
   }
+
+  public async getReviewById(id: number) {
+    const [review] = await db.select().from(reviewsTable).where(eq(reviewsTable.id, id));
+    return review ?? null;
+  }
 }

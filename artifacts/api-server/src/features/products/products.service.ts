@@ -2,6 +2,7 @@ import { ProductsRepository } from "./products.repository";
 import { ForbiddenError, NotFoundError } from "../../shared/errors/AppError";
 import { logAdminAction } from "../../lib/log-admin-action";
 import { generateSkuPrefix, generateVariantSku } from "../../lib/sku-generator";
+import { notifyBuyer } from "../../lib/notify";
 
 export class ProductsService {
   private repository: ProductsRepository;
@@ -86,8 +87,44 @@ export class ProductsService {
       throw new ForbiddenError("Forbidden");
     }
 
+    const previousProduct = await this.repository.getProductById(id);
     const product = await this.repository.updateProduct(id, data);
     if (!product) throw new NotFoundError("Product not found");
+
+    // Check wishlist notifications (back_in_stock & price_drop)
+    try {
+      const favoritedUserIds = await this.repository.getFavoritedUserIds(id);
+      if (favoritedUserIds.length > 0) {
+        const wasOutOfStock = !previousProduct || previousProduct.stock === null || previousProduct.stock <= 0;
+        const isNowInStock = product.stock !== null && product.stock > 0;
+        if (wasOutOfStock && isNowInStock) {
+          favoritedUserIds.forEach((buyerId) => {
+            notifyBuyer(buyerId, {
+              type: "back_in_stock",
+              title: `Back in stock: ${product.name}`,
+              body: `"${product.name}" from your wishlist is now back in stock!`,
+              metadata: { productId: product.id },
+              relatedId: product.id,
+            });
+          });
+        }
+
+        const prevPrice = Number(previousProduct?.discountPrice ?? previousProduct?.price ?? 0);
+        const currentPrice = Number(product.discountPrice ?? product.price ?? 0);
+        if (prevPrice > 0 && currentPrice < prevPrice) {
+          favoritedUserIds.forEach((buyerId) => {
+            notifyBuyer(buyerId, {
+              type: "price_drop",
+              title: `Price drop on ${product.name}!`,
+              body: `An item in your wishlist is now GHS ${(currentPrice / 100).toFixed(2)}.`,
+              metadata: { productId: product.id, newPrice: currentPrice, oldPrice: prevPrice },
+              relatedId: product.id,
+            });
+          });
+        }
+      }
+    } catch {}
+
     return product;
   }
 
@@ -97,8 +134,28 @@ export class ProductsService {
       throw new ForbiddenError("Forbidden");
     }
 
+    const previousProduct = await this.repository.getProductById(id);
     const product = await this.repository.updateProduct(id, { stock });
     if (!product) throw new NotFoundError("Product not found");
+
+    // Check back in stock notification for wishlist users
+    try {
+      const wasOutOfStock = !previousProduct || previousProduct.stock === null || previousProduct.stock <= 0;
+      const isNowInStock = stock !== null && stock > 0;
+      if (wasOutOfStock && isNowInStock) {
+        const favoritedUserIds = await this.repository.getFavoritedUserIds(id);
+        favoritedUserIds.forEach((buyerId) => {
+          notifyBuyer(buyerId, {
+            type: "back_in_stock",
+            title: `Back in stock: ${product.name}`,
+            body: `"${product.name}" from your wishlist is now back in stock!`,
+            metadata: { productId: product.id },
+            relatedId: product.id,
+          });
+        });
+      }
+    } catch {}
+
     return product;
   }
 

@@ -1,5 +1,6 @@
 import { ReviewsRepository } from "./reviews.repository";
-import { notifySeller } from "../../lib/notify";
+import { notifySeller, notifyBuyer } from "../../lib/notify";
+import { ForbiddenError, NotFoundError } from "../../shared/errors/AppError";
 
 export class ReviewsService {
   private repository: ReviewsRepository;
@@ -36,5 +37,26 @@ export class ReviewsService {
     } catch {}
 
     return review;
+  }
+
+  public async respondToReview(sellerId: number, reviewId: number, responseText: string) {
+    const review = await this.repository.getReviewById(reviewId);
+    if (!review) throw new NotFoundError("Review not found");
+
+    const business = await this.repository.getBusinessById(review.businessId);
+    if (!business || business.ownerId !== sellerId) {
+      throw new ForbiddenError("Forbidden");
+    }
+
+    notifyBuyer(review.userId, {
+      type: "review_response",
+      title: `Seller responded to your review`,
+      body: `"${responseText.slice(0, 120)}"`,
+      metadata: { reviewId: review.id, businessId: review.businessId, response: responseText },
+      actorId: sellerId,
+      relatedId: review.businessId,
+    });
+
+    return { ok: true };
   }
 }

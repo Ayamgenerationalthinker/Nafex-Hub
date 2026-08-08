@@ -185,4 +185,12 @@ export class ProductsRepository {
       .where(eq(businessesTable.id, businessId));
     return biz;
   }
+
+  public async getFavoritedUserIds(productId: number): Promise<number[]> {
+    const rows = await db
+      .select({ userId: favoritesTable.userId })
+      .from(favoritesTable)
+      .where(eq(favoritesTable.productId, productId));
+    return Array.from(new Set(rows.map((r) => r.userId)));
+  }
 }

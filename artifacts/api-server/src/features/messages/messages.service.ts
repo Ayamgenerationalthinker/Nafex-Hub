@@ -1,7 +1,7 @@
 import { MessagesRepository } from "./messages.repository";
 import { ForbiddenError, NotFoundError, AppError } from "../../shared/errors/AppError";
 import { getIO } from "../../lib/socket";
-import { notifyAllAdmins, notifySeller } from "../../lib/notify";
+import { notifyAllAdmins, notifySeller, notifyBuyer } from "../../lib/notify";
 
 export class MessagesService {
   private repository: MessagesRepository;
@@ -185,16 +185,14 @@ export class MessagesService {
               metadata: { conversationId },
             });
           } else {
-            const notif = await this.repository.createNotification(
-              notifyUserId,
-              "message",
-              `New message from ${senderName}`,
-              data.text.slice(0, 100),
-              conversationId
-            );
-            if (notif) {
-              getIO()?.to(`user_${notifyUserId}`).emit("new_notification", notif);
-            }
+            notifyBuyer(notifyUserId, {
+              type: "seller_reply",
+              title: `New message from ${senderName}`,
+              body: data.text.slice(0, 100),
+              actorId: userId,
+              relatedId: conversationId,
+              metadata: { conversationId },
+            });
           }
         }
       }

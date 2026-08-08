@@ -4,7 +4,7 @@ import { sendAdminEmail, sendDeliveryOtpEmail } from "../../lib/mailer";
 import { paymentsService } from "../payments/payments.routes";
 import crypto from "crypto";
 import { notificationQueue } from "../../lib/queue";
-import { notifySeller } from "../../lib/notify";
+import { notifySeller, notifyBuyer } from "../../lib/notify";
 
 function generateOtp(): string {
   return crypto.randomInt(100000, 999999).toString();
@@ -233,16 +233,21 @@ export class OrdersService {
         body = `Your order is out for delivery! Your delivery OTP is: ${updateFields.deliveryOtp}. Share this code with your delivery person to confirm receipt.`;
       }
 
-      // Notify buyer of status change (existing behavior)
-      const notif = await this.repository.createNotification(
-        order.userId,
-        "order_update",
-        `Order #${order.id} is ${label}`,
+      // Map order status to buyer notification type
+      const buyerTypeMap: Record<string, "order_accepted" | "order_shipped" | "order_delivered" | "order_cancelled"> = {
+        confirmed: "order_accepted",
+        out_for_delivery: "order_shipped",
+        delivered: "order_delivered",
+        cancelled: "order_cancelled",
+      };
+      const buyerNotifType = buyerTypeMap[status] ?? "order_accepted";
+
+      notifyBuyer(order.userId, {
+        type: buyerNotifType,
+        title: `Order #${order.id} is ${label}`,
         body,
-        order.id
-      );
-      import("../../lib/socket").then(({ getIO }) => {
-        getIO()?.to(`user_${order.userId}`).emit("new_notification", notif);
+        metadata: { orderId: order.id, status, deliveryOtp: updateFields.deliveryOtp },
+        relatedId: order.id,
       });
 
       // Notify seller if order was cancelled by someone else (edge case: admin override)
@@ -319,6 +324,15 @@ export class OrdersService {
       type: "delivery_confirmed",
       title: `Delivery confirmed for Order #${orderId}`,
       body: `The buyer has confirmed receipt of Order #${orderId}. Payment will be released to your account shortly.`,
+      metadata: { orderId },
+      relatedId: orderId,
+    });
+
+    // Notify buyer of delivery confirmation
+    notifyBuyer(existing.userId, {
+      type: "order_delivered",
+      title: `Delivery confirmed for Order #${orderId}`,
+      body: `You confirmed receipt of Order #${orderId}. Thank you for shopping on Nafex Hub!`,
       metadata: { orderId },
       relatedId: orderId,
     });

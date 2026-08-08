@@ -16,7 +16,7 @@ import type { NotificationType } from "@workspace/db";
  *  - Emits notification_count_updated for instant badge sync across devices
  *  - Room: user_<userId> (private per-user room, joined on socket connect)
  */
-export async function notifySeller(
+export async function notifyUser(
   userId: number,
   payload: {
     type: NotificationType;
@@ -40,18 +40,21 @@ export async function notifySeller(
 
     const io = getIO();
     if (io) {
-      // Push the full notification object for the dropdown list
+      // Push full notification object to user's private room
       io.to(`user_${userId}`).emit("new_notification", notif);
 
-      // Push the new unread count for instant badge update on all devices
+      // Push unread count for instant badge sync across all user's active devices
       const unreadCount = await notificationsRepository.getUnreadCount(userId);
       io.to(`user_${userId}`).emit("notification_count_updated", { count: unreadCount });
     }
   } catch (err) {
     // Best-effort — never block the request that triggered the notification
-    logger.warn({ err, userId, type: payload.type }, "notifySeller failed (best-effort)");
+    logger.warn({ err, userId, type: payload.type }, "notifyUser failed (best-effort)");
   }
 }
+
+export const notifyBuyer = notifyUser;
+export const notifySeller = notifyUser;
 
 // ── notifyAllAdmins ───────────────────────────────────────────────────────────
 /**

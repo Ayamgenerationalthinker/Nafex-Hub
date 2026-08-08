@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { env } from "../../config/env";
 import { ValidationError, UnauthorizedError, ForbiddenError, AppError } from "../../shared/errors/AppError";
+import { notifyBuyer } from "../../lib/notify";
 
 const SALT_ROUNDS = 12;
 const TOKEN_EXPIRY_DAYS = 7;
@@ -263,6 +264,12 @@ export class AuthService {
   public async updateProfile(userId: number, name: string): Promise<any> {
     await this.repository.updateVerification(userId, { name });
     const user = await this.repository.findById(userId);
+    notifyBuyer(userId, {
+      type: "account_update",
+      title: "Account profile updated",
+      body: "Your profile details have been updated successfully.",
+      metadata: { userId },
+    }).catch(() => {});
     return user;
   }
 
@@ -277,5 +284,12 @@ export class AuthService {
 
     const hashed = await this.hashPassword(newPass);
     await this.repository.updatePassword(userId, hashed);
+
+    notifyBuyer(userId, {
+      type: "account_update",
+      title: "Password changed successfully",
+      body: "Your account password was updated. If you did not make this change, please contact support immediately.",
+      metadata: { userId },
+    }).catch(() => {});
   }
 }

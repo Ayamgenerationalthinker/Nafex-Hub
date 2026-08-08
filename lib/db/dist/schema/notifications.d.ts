@@ -4,7 +4,7 @@ import { z } from "zod/v4";
  * Legacy admin types (message, order_update, review) are preserved for
  * backward compatibility with existing notification rows and code paths.
  */
-export declare const NOTIFICATION_TYPES: readonly ["new_order", "order_cancelled", "delivery_confirmed", "payment_released", "refund_requested", "refund_approved", "refund_rejected", "new_message", "product_approved", "product_rejected", "low_stock", "payment_received", "withdrawal_completed", "withdrawal_failed", "new_review", "kyc_approved", "kyc_rejected", "announcement", "message", "order_update", "review"];
+export declare const NOTIFICATION_TYPES: readonly ["order_accepted", "order_shipped", "order_delivered", "order_cancelled", "refund_processed", "seller_reply", "payment_successful", "payment_failed", "refund_completed", "back_in_stock", "price_drop", "review_response", "account_update", "new_order", "delivery_confirmed", "payment_released", "refund_requested", "refund_approved", "refund_rejected", "new_message", "product_approved", "product_rejected", "low_stock", "payment_received", "withdrawal_completed", "withdrawal_failed", "new_review", "kyc_approved", "kyc_rejected", "announcement", "message", "order_update", "review"];
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 export declare const notificationsTable: import("drizzle-orm/pg-core").PgTableWithColumns<{
     name: "notifications";
@@ -66,14 +66,14 @@ export declare const notificationsTable: import("drizzle-orm/pg-core").PgTableWi
             tableName: "notifications";
             dataType: "string";
             columnType: "PgText";
-            data: "message" | "new_order" | "order_cancelled" | "delivery_confirmed" | "payment_released" | "refund_requested" | "refund_approved" | "refund_rejected" | "new_message" | "product_approved" | "product_rejected" | "low_stock" | "payment_received" | "withdrawal_completed" | "withdrawal_failed" | "new_review" | "kyc_approved" | "kyc_rejected" | "announcement" | "order_update" | "review";
+            data: "message" | "order_accepted" | "order_shipped" | "order_delivered" | "order_cancelled" | "refund_processed" | "seller_reply" | "payment_successful" | "payment_failed" | "refund_completed" | "back_in_stock" | "price_drop" | "review_response" | "account_update" | "new_order" | "delivery_confirmed" | "payment_released" | "refund_requested" | "refund_approved" | "refund_rejected" | "new_message" | "product_approved" | "product_rejected" | "low_stock" | "payment_received" | "withdrawal_completed" | "withdrawal_failed" | "new_review" | "kyc_approved" | "kyc_rejected" | "announcement" | "order_update" | "review";
             driverParam: string;
             notNull: true;
             hasDefault: false;
             isPrimaryKey: false;
             isAutoincrement: false;
             hasRuntimeDefault: false;
-            enumValues: ["new_order", "order_cancelled", "delivery_confirmed", "payment_released", "refund_requested", "refund_approved", "refund_rejected", "new_message", "product_approved", "product_rejected", "low_stock", "payment_received", "withdrawal_completed", "withdrawal_failed", "new_review", "kyc_approved", "kyc_rejected", "announcement", "message", "order_update", "review"];
+            enumValues: ["order_accepted", "order_shipped", "order_delivered", "order_cancelled", "refund_processed", "seller_reply", "payment_successful", "payment_failed", "refund_completed", "back_in_stock", "price_drop", "review_response", "account_update", "new_order", "delivery_confirmed", "payment_released", "refund_requested", "refund_approved", "refund_rejected", "new_message", "product_approved", "product_rejected", "low_stock", "payment_received", "withdrawal_completed", "withdrawal_failed", "new_review", "kyc_approved", "kyc_rejected", "announcement", "message", "order_update", "review"];
             baseColumn: never;
             identity: undefined;
             generated: undefined;
@@ -187,8 +187,20 @@ export declare const insertNotificationSchema: z.ZodObject<{
     userId: z.ZodInt;
     type: z.ZodEnum<{
         message: "message";
-        new_order: "new_order";
+        order_accepted: "order_accepted";
+        order_shipped: "order_shipped";
+        order_delivered: "order_delivered";
         order_cancelled: "order_cancelled";
+        refund_processed: "refund_processed";
+        seller_reply: "seller_reply";
+        payment_successful: "payment_successful";
+        payment_failed: "payment_failed";
+        refund_completed: "refund_completed";
+        back_in_stock: "back_in_stock";
+        price_drop: "price_drop";
+        review_response: "review_response";
+        account_update: "account_update";
+        new_order: "new_order";
         delivery_confirmed: "delivery_confirmed";
         payment_released: "payment_released";
         refund_requested: "refund_requested";

@@ -20,6 +20,8 @@ import {
   ArrowDownRight,
   ShieldCheck,
   Info,
+  Truck,
+  Heart,
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
@@ -28,31 +30,53 @@ import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
 const TYPE_ICON: Record<string, React.ReactNode> = {
-  // Messages
+  // Buyer Orders
+  order_accepted: <CheckCircle className="w-4 h-4 text-emerald-500" />,
+  order_shipped: <Truck className="w-4 h-4 text-blue-500" />,
+  order_delivered: <CheckCircle className="w-4 h-4 text-green-600" />,
+  order_cancelled: <XCircle className="w-4 h-4 text-red-500" />,
+  refund_processed: <CreditCard className="w-4 h-4 text-amber-500" />,
+
+  // Buyer Messages
+  seller_reply: <MessageCircle className="w-4 h-4 text-purple-500" />,
   message: <MessageCircle className="w-4 h-4 text-blue-500" />,
   new_message: <MessageCircle className="w-4 h-4 text-blue-500" />,
 
-  // Orders
+  // Buyer Payments
+  payment_successful: <CheckCircle className="w-4 h-4 text-emerald-600" />,
+  payment_failed: <XCircle className="w-4 h-4 text-red-500" />,
+  refund_completed: <CreditCard className="w-4 h-4 text-green-500" />,
+
+  // Buyer Wishlist
+  back_in_stock: <Heart className="w-4 h-4 text-pink-500" />,
+  price_drop: <ArrowDownRight className="w-4 h-4 text-emerald-500" />,
+
+  // Buyer Reviews
+  review_response: <Star className="w-4 h-4 text-yellow-500" />,
+
+  // Buyer System / Account
+  account_update: <ShieldCheck className="w-4 h-4 text-blue-500" />,
+
+  // Seller Orders
   order_update: <ShoppingBag className="w-4 h-4 text-green-500" />,
   new_order: <ShoppingBag className="w-4 h-4 text-green-500" />,
-  order_cancelled: <XCircle className="w-4 h-4 text-red-500" />,
   delivery_confirmed: <CheckCircle className="w-4 h-4 text-green-600" />,
   payment_released: <ArrowUpRight className="w-4 h-4 text-emerald-500" />,
   refund_requested: <AlertTriangle className="w-4 h-4 text-orange-500" />,
   refund_approved: <CheckCircle className="w-4 h-4 text-green-500" />,
   refund_rejected: <XCircle className="w-4 h-4 text-red-500" />,
 
-  // Products
+  // Seller Products
   product_approved: <ShieldCheck className="w-4 h-4 text-green-500" />,
   product_rejected: <XCircle className="w-4 h-4 text-red-500" />,
   low_stock: <AlertTriangle className="w-4 h-4 text-yellow-500" />,
 
-  // Payments
+  // Seller Payments
   payment_received: <CreditCard className="w-4 h-4 text-purple-500" />,
   withdrawal_completed: <ArrowDownRight className="w-4 h-4 text-green-500" />,
   withdrawal_failed: <XCircle className="w-4 h-4 text-red-500" />,
 
-  // Reviews
+  // Seller Reviews
   review: <Star className="w-4 h-4 text-yellow-500" />,
   new_review: <Star className="w-4 h-4 text-yellow-500" />,
 
@@ -254,20 +278,27 @@ export function NotificationBell({ variant = "dark" }: { variant?: "dark" | "lig
                   onClick={() => {
                     if (!n.isRead) (markRead as any)({ id: n.id });
                     const type = n.type;
-                    if (type === "message" || type === "new_message") {
+                    if (type === "message" || type === "new_message" || type === "seller_reply") {
                       if (user?.role === "admin" && n.relatedId) {
                         setLocation(`/admin?tab=support&convId=${n.relatedId}`);
                       } else {
-                        setLocation("/inbox");
+                        setLocation(user?.role === "user" ? "/dashboard?tab=inbox" : "/inbox");
                       }
                     } else if (
                       type === "new_order" ||
+                      type === "order_accepted" ||
+                      type === "order_shipped" ||
+                      type === "order_delivered" ||
                       type === "order_cancelled" ||
                       type === "delivery_confirmed" ||
                       type === "payment_released" ||
                       type === "refund_requested" ||
                       type === "refund_approved" ||
                       type === "refund_rejected" ||
+                      type === "refund_processed" ||
+                      type === "refund_completed" ||
+                      type === "payment_successful" ||
+                      type === "payment_failed" ||
                       type === "order_update"
                     ) {
                       setLocation(user?.role === "business_owner" ? "/dashboard" : "/orders");
@@ -277,8 +308,14 @@ export function NotificationBell({ variant = "dark" }: { variant?: "dark" | "lig
                       type === "low_stock"
                     ) {
                       setLocation(user?.role === "business_owner" ? "/dashboard" : "/catalog");
-                    } else if (type === "new_review") {
-                      setLocation("/my-shop");
+                    } else if (type === "back_in_stock" || type === "price_drop") {
+                      if (n.metadata?.productId) {
+                        setLocation(`/product/${n.metadata.productId}`);
+                      } else {
+                        setLocation("/explore");
+                      }
+                    } else if (type === "review_response" || type === "new_review") {
+                      setLocation(user?.role === "user" ? "/explore" : "/my-shop");
                     } else if (
                       type === "payment_received" ||
                       type === "withdrawal_completed" ||
@@ -287,6 +324,8 @@ export function NotificationBell({ variant = "dark" }: { variant?: "dark" | "lig
                       setLocation("/payments");
                     } else if (type === "kyc_approved" || type === "kyc_rejected") {
                       setLocation("/seller/settings");
+                    } else if (type === "account_update") {
+                      setLocation(user?.role === "user" ? "/dashboard?tab=settings" : "/dashboard");
                     } else {
                       setLocation("/dashboard");
                     }

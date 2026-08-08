@@ -2,7 +2,7 @@ import { PaymentsRepository } from "./payments.repository";
 import { ForbiddenError, NotFoundError, AppError } from "../../shared/errors/AppError";
 import { createHmac, timingSafeEqual } from "crypto";
 import { env } from "../../config/env";
-import { notifySeller } from "../../lib/notify";
+import { notifySeller, notifyBuyer } from "../../lib/notify";
 
 const getPaystackSecret = () => env.PAYSTACK_SECRET_KEY ?? "";
 const PAYSTACK_BASE = "https://api.paystack.co";
@@ -166,15 +166,23 @@ export class PaymentsService {
       try {
         const biz = await this.repository.getBusinessById(order.businessId);
         if (biz?.ownerId) {
-          await this.repository.createNotification(
-            biz.ownerId,
-            "order_update",
-            `Payment confirmed for Order #${order.id}`,
-            `GHS ${(order.totalPrice / 100).toFixed(2)} is now held in escrow. Please process the order.`,
-            order.id
-          );
+          notifySeller(biz.ownerId, {
+            type: "payment_received",
+            title: `Payment confirmed for Order #${order.id}`,
+            body: `GHS ${(order.totalPrice / 100).toFixed(2)} is now held in escrow. Please process the order.`,
+            metadata: { orderId: order.id, reference },
+            relatedId: order.id,
+          });
         }
       } catch {}
+
+      notifyBuyer(userId, {
+        type: "payment_successful",
+        title: `Payment successful for Order #${order.id}`,
+        body: `Your payment of GHS ${(order.totalPrice / 100).toFixed(2)} was received and is safely held in escrow.`,
+        metadata: { orderId: order.id, reference },
+        relatedId: order.id,
+      });
 
       return { order: updatedOrder, transaction: txData };
     } catch (err: unknown) {
@@ -301,15 +309,13 @@ export class PaymentsService {
     });
 
     // Notify buyer of refund
-    try {
-      await this.repository.createNotification(
-        order.userId,
-        "order_update",
-        `Refund processed for Order #${order.id}`,
-        `Your refund of GHS ${(order.totalPrice / 100).toFixed(2)} has been processed. It may take 1-5 business days to reflect.`,
-        order.id
-      );
-    } catch {}
+    notifyBuyer(order.userId, {
+      type: "refund_processed",
+      title: `Refund processed for Order #${order.id}`,
+      body: `Your refund of GHS ${(order.totalPrice / 100).toFixed(2)} has been processed. It may take 1-5 business days to reflect.`,
+      metadata: { orderId: order.id, totalPrice: order.totalPrice, reason },
+      relatedId: order.id,
+    });
 
     // Notify seller of refund approved
     try {

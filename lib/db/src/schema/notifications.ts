@@ -8,16 +8,28 @@ import { z } from "zod/v4";
  * backward compatibility with existing notification rows and code paths.
  */
 export const NOTIFICATION_TYPES = [
-  // Orders
-  "new_order", "order_cancelled", "delivery_confirmed", "payment_released",
-  "refund_requested", "refund_approved", "refund_rejected",
-  // Messages
+  // Buyer Orders
+  "order_accepted", "order_shipped", "order_delivered", "order_cancelled", "refund_processed",
+  // Buyer Messages
+  "seller_reply",
+  // Buyer Payments
+  "payment_successful", "payment_failed", "refund_completed",
+  // Buyer Wishlist
+  "back_in_stock", "price_drop",
+  // Buyer Reviews
+  "review_response",
+  // Buyer System / Account
+  "account_update",
+
+  // Seller Orders
+  "new_order", "delivery_confirmed", "payment_released", "refund_requested", "refund_approved", "refund_rejected",
+  // Seller/General Messages
   "new_message",
-  // Products
+  // Seller Products
   "product_approved", "product_rejected", "low_stock",
-  // Payments
+  // Seller Payments
   "payment_received", "withdrawal_completed", "withdrawal_failed",
-  // Reviews
+  // Seller Reviews
   "new_review",
   // System / KYC
   "kyc_approved", "kyc_rejected", "announcement",
