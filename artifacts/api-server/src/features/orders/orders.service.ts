@@ -4,7 +4,7 @@ import { sendAdminEmail, sendDeliveryOtpEmail } from "../../lib/mailer";
 import { paymentsService } from "../payments/payments.routes";
 import crypto from "crypto";
 import { notificationQueue } from "../../lib/queue";
-import { notifySeller, notifyBuyer } from "../../lib/notify";
+import { notifySeller, notifyBuyer, notifyAdmins } from "../../lib/notify";
 
 function generateOtp(): string {
   return crypto.randomInt(100000, 999999).toString();
@@ -94,6 +94,15 @@ export class OrdersService {
           }
         }
       }
+
+      notifyAdmins({
+        type: "admin_new_order",
+        title: `New Order #${newOrder.id}`,
+        body: `Order #${newOrder.id} placed for GHS ${(newOrder.totalPrice / 100).toFixed(2)}.`,
+        metadata: { orderId: newOrder.id, totalPrice: newOrder.totalPrice, businessId: data.businessId },
+        actorId: userId,
+        relatedId: newOrder.id,
+      }).catch(() => {});
 
       return { order: newOrder, lowStockProducts };
     });

@@ -2,7 +2,7 @@ import { PaymentsRepository } from "./payments.repository";
 import { ForbiddenError, NotFoundError, AppError } from "../../shared/errors/AppError";
 import { createHmac, timingSafeEqual } from "crypto";
 import { env } from "../../config/env";
-import { notifySeller, notifyBuyer } from "../../lib/notify";
+import { notifySeller, notifyBuyer, notifyAdmins } from "../../lib/notify";
 
 const getPaystackSecret = () => env.PAYSTACK_SECRET_KEY ?? "";
 const PAYSTACK_BASE = "https://api.paystack.co";
@@ -184,6 +184,15 @@ export class PaymentsService {
         relatedId: order.id,
       });
 
+      notifyAdmins({
+        type: "admin_payment_successful",
+        title: `Payment Successful for Order #${order.id}`,
+        body: `GHS ${(order.totalPrice / 100).toFixed(2)} confirmed and placed in escrow for Order #${order.id}.`,
+        metadata: { orderId: order.id, reference, totalPrice: order.totalPrice },
+        actorId: userId,
+        relatedId: order.id,
+      }).catch(() => {});
+
       return { order: updatedOrder, transaction: txData };
     } catch (err: unknown) {
       if (err instanceof AppError) throw err;
@@ -330,6 +339,15 @@ export class PaymentsService {
         });
       }
     } catch {}
+
+    notifyAdmins({
+      type: "admin_refund_completed",
+      title: `Refund Completed for Order #${order.id}`,
+      body: `Refund of GHS ${(order.totalPrice / 100).toFixed(2)} completed for Order #${order.id}.`,
+      metadata: { orderId: order.id, totalPrice: order.totalPrice, reason },
+      actorId: userId,
+      relatedId: order.id,
+    }).catch(() => {});
 
     return updated;
   }

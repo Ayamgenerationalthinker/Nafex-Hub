@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
+import { NotificationBell } from "@/components/notification-bell";
 
 const NAV_ITEMS = [
   { path: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -170,7 +171,8 @@ export function AdminLayout({
               {title}
             </h1>
           </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground flex-shrink-0">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground flex-shrink-0">
+            <NotificationBell variant="dark" />
             <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-xs">
               {user.name.charAt(0).toUpperCase()}
             </div>

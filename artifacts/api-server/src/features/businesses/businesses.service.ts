@@ -2,6 +2,7 @@ import { BusinessesRepository } from "./businesses.repository";
 import { ForbiddenError, NotFoundError, AppError } from "../../shared/errors/AppError";
 import { sendAdminEmail } from "../../lib/mailer";
 import { logAdminAction } from "../../lib/log-admin-action";
+import { notifyAdmins } from "../../lib/notify";
 
 // Simple wrapper for paystackPost until payments is migrated
 import { paymentsService } from "../payments/payments.routes";
@@ -57,6 +58,15 @@ export class BusinessesService {
       "New Business Onboarded",
       `A new business has been added to Nafex Hub and may need verification.\n\nBusiness: ${biz.name}\nCategory: ${biz.category}\nLocation: ${biz.location}\nDate: ${new Date().toUTCString()}`
     ).catch(() => {});
+
+    notifyAdmins({
+      type: "admin_kyc_submitted",
+      title: `KYC Submitted: ${biz.name}`,
+      body: `Seller submitted KYC verification documents for "${biz.name}".`,
+      metadata: { businessId: biz.id, ownerId: userId },
+      actorId: userId,
+      relatedId: biz.id,
+    }).catch(() => {});
 
     return biz;
   }

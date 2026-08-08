@@ -33,6 +33,17 @@ export const NOTIFICATION_TYPES = [
   "new_review",
   // System / KYC
   "kyc_approved", "kyc_rejected", "announcement",
+  // Admin Marketplace
+  "admin_new_seller", "admin_new_buyer", "admin_new_order", "admin_payment_failed", "admin_payment_successful", "admin_refund_requested", "admin_refund_completed",
+  // Admin Moderation
+  "admin_product_pending", "admin_product_reported", "admin_user_reported", "admin_review_reported", "admin_message_reported",
+  // Admin Verification
+  "admin_kyc_submitted", "admin_verification_pending",
+  // Admin Security
+  "admin_failed_logins", "admin_suspicious_activity", "admin_account_locked", "admin_permission_violation",
+  // Admin System
+  "admin_server_error", "admin_queue_failure", "admin_backup_failure", "admin_deployment_completed", "admin_high_cpu",
+
   // Legacy (admin notifications — backward compat)
   "message", "order_update", "review",
 ] as const;

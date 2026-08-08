@@ -84,6 +84,35 @@ const TYPE_ICON: Record<string, React.ReactNode> = {
   kyc_approved: <ShieldCheck className="w-4 h-4 text-green-500" />,
   kyc_rejected: <XCircle className="w-4 h-4 text-red-500" />,
   announcement: <Info className="w-4 h-4 text-blue-400" />,
+
+  // Admin Marketplace
+  admin_new_seller: <ShoppingBag className="w-4 h-4 text-emerald-500" />,
+  admin_new_buyer: <MessageCircle className="w-4 h-4 text-blue-500" />,
+  admin_new_order: <ShoppingBag className="w-4 h-4 text-green-500" />,
+  admin_payment_failed: <XCircle className="w-4 h-4 text-red-500" />,
+  admin_payment_successful: <CheckCircle className="w-4 h-4 text-emerald-600" />,
+  admin_refund_requested: <AlertTriangle className="w-4 h-4 text-orange-500" />,
+  admin_refund_completed: <CreditCard className="w-4 h-4 text-green-500" />,
+
+  // Admin Moderation & Verification
+  admin_product_pending: <AlertTriangle className="w-4 h-4 text-amber-500" />,
+  admin_product_reported: <AlertTriangle className="w-4 h-4 text-red-500" />,
+  admin_user_reported: <AlertTriangle className="w-4 h-4 text-red-500" />,
+  admin_review_reported: <Star className="w-4 h-4 text-amber-500" />,
+  admin_message_reported: <MessageCircle className="w-4 h-4 text-amber-500" />,
+  admin_kyc_submitted: <ShieldCheck className="w-4 h-4 text-blue-500" />,
+  admin_verification_pending: <ShieldCheck className="w-4 h-4 text-amber-500" />,
+
+  // Admin Security & System
+  admin_failed_logins: <XCircle className="w-4 h-4 text-red-600" />,
+  admin_suspicious_activity: <AlertTriangle className="w-4 h-4 text-red-600" />,
+  admin_account_locked: <XCircle className="w-4 h-4 text-red-700" />,
+  admin_permission_violation: <AlertTriangle className="w-4 h-4 text-rose-600" />,
+  admin_server_error: <XCircle className="w-4 h-4 text-red-500" />,
+  admin_queue_failure: <AlertTriangle className="w-4 h-4 text-orange-600" />,
+  admin_backup_failure: <AlertTriangle className="w-4 h-4 text-amber-600" />,
+  admin_deployment_completed: <CheckCircle className="w-4 h-4 text-green-500" />,
+  admin_high_cpu: <AlertTriangle className="w-4 h-4 text-amber-500" />,
 };
 
 function timeAgo(dateStr: string) {
@@ -324,10 +353,44 @@ export function NotificationBell({ variant = "dark" }: { variant?: "dark" | "lig
                       setLocation("/payments");
                     } else if (type === "kyc_approved" || type === "kyc_rejected") {
                       setLocation("/seller/settings");
+                    } else if (type === "admin_new_seller" || type === "admin_kyc_submitted" || type === "admin_verification_pending") {
+                      setLocation("/admin/businesses");
+                    } else if (type === "admin_new_buyer" || type === "admin_user_reported") {
+                      setLocation("/admin/users");
+                    } else if (type === "admin_new_order") {
+                      setLocation("/admin/dashboard");
+                    } else if (
+                      type === "admin_payment_failed" ||
+                      type === "admin_payment_successful" ||
+                      type === "admin_refund_requested" ||
+                      type === "admin_refund_completed"
+                    ) {
+                      setLocation("/admin/payments");
+                    } else if (
+                      type === "admin_product_pending" ||
+                      type === "admin_product_reported" ||
+                      type === "admin_review_reported"
+                    ) {
+                      setLocation("/admin/products");
+                    } else if (
+                      type === "admin_failed_logins" ||
+                      type === "admin_suspicious_activity" ||
+                      type === "admin_account_locked" ||
+                      type === "admin_permission_violation"
+                    ) {
+                      setLocation("/admin/settings");
+                    } else if (
+                      type === "admin_server_error" ||
+                      type === "admin_queue_failure" ||
+                      type === "admin_backup_failure" ||
+                      type === "admin_deployment_completed" ||
+                      type === "admin_high_cpu"
+                    ) {
+                      setLocation("/admin/analytics");
                     } else if (type === "account_update") {
                       setLocation(user?.role === "user" ? "/dashboard?tab=settings" : "/dashboard");
                     } else {
-                      setLocation("/dashboard");
+                      setLocation(user?.role === "admin" ? "/admin/dashboard" : "/dashboard");
                     }
                     setOpen(false);
                   }}

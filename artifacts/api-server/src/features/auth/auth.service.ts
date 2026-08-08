@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { env } from "../../config/env";
 import { ValidationError, UnauthorizedError, ForbiddenError, AppError } from "../../shared/errors/AppError";
-import { notifyBuyer } from "../../lib/notify";
+import { notifyBuyer, notifyAdmins } from "../../lib/notify";
 
 const SALT_ROUNDS = 12;
 const TOKEN_EXPIRY_DAYS = 7;
@@ -93,6 +93,14 @@ export class AuthService {
       emailVerificationExpiry: verificationExpiry,
     });
 
+    notifyAdmins({
+      type: userRole === "business_owner" ? "admin_new_seller" : "admin_new_buyer",
+      title: `New ${userRole === "business_owner" ? "Seller" : "Buyer"} Registered`,
+      body: `${name} (${normalizedEmail}) registered a new ${userRole === "business_owner" ? "seller" : "buyer"} account.`,
+      metadata: { userId: user.id, email: normalizedEmail, role: userRole },
+      actorId: user.id,
+    }).catch(() => {});
+
     return { user, token: this.generateToken(user.id) };
   }
 
@@ -101,11 +109,28 @@ export class AuthService {
     const normalizedEmail = email.toLowerCase().trim();
 
     let user = await this.repository.findByEmail(normalizedEmail);
-    if (!user) throw new UnauthorizedError("Invalid email or password");
+    if (!user) {
+      notifyAdmins({
+        type: "admin_failed_logins",
+        title: "Failed Login Attempt",
+        body: `Failed login attempt for unknown email "${normalizedEmail}".`,
+        metadata: { email: normalizedEmail },
+      }).catch(() => {});
+      throw new UnauthorizedError("Invalid email or password");
+    }
 
     const isLegacyHash = user.password.startsWith("$2a$") || user.password.startsWith("$2b$") || user.password.startsWith("$2y$");
     const passwordValid = await this.verifyPassword(password, user.password);
-    if (!passwordValid) throw new UnauthorizedError("Invalid email or password");
+    if (!passwordValid) {
+      notifyAdmins({
+        type: "admin_failed_logins",
+        title: "Failed Login Attempt",
+        body: `Failed password attempt for user "${normalizedEmail}".`,
+        metadata: { userId: user.id, email: normalizedEmail },
+        actorId: user.id,
+      }).catch(() => {});
+      throw new UnauthorizedError("Invalid email or password");
+    }
 
     // Transparently upgrade legacy bcrypt hashes or outdated Argon2 parameters to Argon2id upon successful login
     let needsUpgrade = isLegacyHash;

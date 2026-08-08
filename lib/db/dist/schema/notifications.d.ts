@@ -4,7 +4,7 @@ import { z } from "zod/v4";
  * Legacy admin types (message, order_update, review) are preserved for
  * backward compatibility with existing notification rows and code paths.
  */
-export declare const NOTIFICATION_TYPES: readonly ["order_accepted", "order_shipped", "order_delivered", "order_cancelled", "refund_processed", "seller_reply", "payment_successful", "payment_failed", "refund_completed", "back_in_stock", "price_drop", "review_response", "account_update", "new_order", "delivery_confirmed", "payment_released", "refund_requested", "refund_approved", "refund_rejected", "new_message", "product_approved", "product_rejected", "low_stock", "payment_received", "withdrawal_completed", "withdrawal_failed", "new_review", "kyc_approved", "kyc_rejected", "announcement", "message", "order_update", "review"];
+export declare const NOTIFICATION_TYPES: readonly ["order_accepted", "order_shipped", "order_delivered", "order_cancelled", "refund_processed", "seller_reply", "payment_successful", "payment_failed", "refund_completed", "back_in_stock", "price_drop", "review_response", "account_update", "new_order", "delivery_confirmed", "payment_released", "refund_requested", "refund_approved", "refund_rejected", "new_message", "product_approved", "product_rejected", "low_stock", "payment_received", "withdrawal_completed", "withdrawal_failed", "new_review", "kyc_approved", "kyc_rejected", "announcement", "admin_new_seller", "admin_new_buyer", "admin_new_order", "admin_payment_failed", "admin_payment_successful", "admin_refund_requested", "admin_refund_completed", "admin_product_pending", "admin_product_reported", "admin_user_reported", "admin_review_reported", "admin_message_reported", "admin_kyc_submitted", "admin_verification_pending", "admin_failed_logins", "admin_suspicious_activity", "admin_account_locked", "admin_permission_violation", "admin_server_error", "admin_queue_failure", "admin_backup_failure", "admin_deployment_completed", "admin_high_cpu", "message", "order_update", "review"];
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 export declare const notificationsTable: import("drizzle-orm/pg-core").PgTableWithColumns<{
     name: "notifications";
@@ -66,14 +66,14 @@ export declare const notificationsTable: import("drizzle-orm/pg-core").PgTableWi
             tableName: "notifications";
             dataType: "string";
             columnType: "PgText";
-            data: "message" | "order_accepted" | "order_shipped" | "order_delivered" | "order_cancelled" | "refund_processed" | "seller_reply" | "payment_successful" | "payment_failed" | "refund_completed" | "back_in_stock" | "price_drop" | "review_response" | "account_update" | "new_order" | "delivery_confirmed" | "payment_released" | "refund_requested" | "refund_approved" | "refund_rejected" | "new_message" | "product_approved" | "product_rejected" | "low_stock" | "payment_received" | "withdrawal_completed" | "withdrawal_failed" | "new_review" | "kyc_approved" | "kyc_rejected" | "announcement" | "order_update" | "review";
+            data: "message" | "order_accepted" | "order_shipped" | "order_delivered" | "order_cancelled" | "refund_processed" | "seller_reply" | "payment_successful" | "payment_failed" | "refund_completed" | "back_in_stock" | "price_drop" | "review_response" | "account_update" | "new_order" | "delivery_confirmed" | "payment_released" | "refund_requested" | "refund_approved" | "refund_rejected" | "new_message" | "product_approved" | "product_rejected" | "low_stock" | "payment_received" | "withdrawal_completed" | "withdrawal_failed" | "new_review" | "kyc_approved" | "kyc_rejected" | "announcement" | "admin_new_seller" | "admin_new_buyer" | "admin_new_order" | "admin_payment_failed" | "admin_payment_successful" | "admin_refund_requested" | "admin_refund_completed" | "admin_product_pending" | "admin_product_reported" | "admin_user_reported" | "admin_review_reported" | "admin_message_reported" | "admin_kyc_submitted" | "admin_verification_pending" | "admin_failed_logins" | "admin_suspicious_activity" | "admin_account_locked" | "admin_permission_violation" | "admin_server_error" | "admin_queue_failure" | "admin_backup_failure" | "admin_deployment_completed" | "admin_high_cpu" | "order_update" | "review";
             driverParam: string;
             notNull: true;
             hasDefault: false;
             isPrimaryKey: false;
             isAutoincrement: false;
             hasRuntimeDefault: false;
-            enumValues: ["order_accepted", "order_shipped", "order_delivered", "order_cancelled", "refund_processed", "seller_reply", "payment_successful", "payment_failed", "refund_completed", "back_in_stock", "price_drop", "review_response", "account_update", "new_order", "delivery_confirmed", "payment_released", "refund_requested", "refund_approved", "refund_rejected", "new_message", "product_approved", "product_rejected", "low_stock", "payment_received", "withdrawal_completed", "withdrawal_failed", "new_review", "kyc_approved", "kyc_rejected", "announcement", "message", "order_update", "review"];
+            enumValues: ["order_accepted", "order_shipped", "order_delivered", "order_cancelled", "refund_processed", "seller_reply", "payment_successful", "payment_failed", "refund_completed", "back_in_stock", "price_drop", "review_response", "account_update", "new_order", "delivery_confirmed", "payment_released", "refund_requested", "refund_approved", "refund_rejected", "new_message", "product_approved", "product_rejected", "low_stock", "payment_received", "withdrawal_completed", "withdrawal_failed", "new_review", "kyc_approved", "kyc_rejected", "announcement", "admin_new_seller", "admin_new_buyer", "admin_new_order", "admin_payment_failed", "admin_payment_successful", "admin_refund_requested", "admin_refund_completed", "admin_product_pending", "admin_product_reported", "admin_user_reported", "admin_review_reported", "admin_message_reported", "admin_kyc_submitted", "admin_verification_pending", "admin_failed_logins", "admin_suspicious_activity", "admin_account_locked", "admin_permission_violation", "admin_server_error", "admin_queue_failure", "admin_backup_failure", "admin_deployment_completed", "admin_high_cpu", "message", "order_update", "review"];
             baseColumn: never;
             identity: undefined;
             generated: undefined;
@@ -217,6 +217,29 @@ export declare const insertNotificationSchema: z.ZodObject<{
         kyc_approved: "kyc_approved";
         kyc_rejected: "kyc_rejected";
         announcement: "announcement";
+        admin_new_seller: "admin_new_seller";
+        admin_new_buyer: "admin_new_buyer";
+        admin_new_order: "admin_new_order";
+        admin_payment_failed: "admin_payment_failed";
+        admin_payment_successful: "admin_payment_successful";
+        admin_refund_requested: "admin_refund_requested";
+        admin_refund_completed: "admin_refund_completed";
+        admin_product_pending: "admin_product_pending";
+        admin_product_reported: "admin_product_reported";
+        admin_user_reported: "admin_user_reported";
+        admin_review_reported: "admin_review_reported";
+        admin_message_reported: "admin_message_reported";
+        admin_kyc_submitted: "admin_kyc_submitted";
+        admin_verification_pending: "admin_verification_pending";
+        admin_failed_logins: "admin_failed_logins";
+        admin_suspicious_activity: "admin_suspicious_activity";
+        admin_account_locked: "admin_account_locked";
+        admin_permission_violation: "admin_permission_violation";
+        admin_server_error: "admin_server_error";
+        admin_queue_failure: "admin_queue_failure";
+        admin_backup_failure: "admin_backup_failure";
+        admin_deployment_completed: "admin_deployment_completed";
+        admin_high_cpu: "admin_high_cpu";
         order_update: "order_update";
         review: "review";
     }>;

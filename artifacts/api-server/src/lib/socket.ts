@@ -65,6 +65,13 @@ export function initSocketIO(httpServer: HttpServer): Server {
     logger.info({ userId: socket.data.userId }, "Socket connected");
     socket.join(`user_${socket.data.userId}`);
 
+    // If user is an admin role, automatically join global and role-specific admin rooms
+    const role = socket.data.userRole;
+    if (["admin", "super_admin", "moderator", "support"].includes(role)) {
+      socket.join("admin_room");
+      socket.join(`admin_role_${role}`);
+    }
+
     // Join a conversation room (numeric id) or a named admin room (e.g. "admin_support")
     socket.on("join_room", (conversationId: number | string) => {
       const room = conversationId === "admin_support" ? "admin_support" : `conv_${conversationId}`;

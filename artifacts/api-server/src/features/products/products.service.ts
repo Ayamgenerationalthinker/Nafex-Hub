@@ -2,7 +2,7 @@ import { ProductsRepository } from "./products.repository";
 import { ForbiddenError, NotFoundError } from "../../shared/errors/AppError";
 import { logAdminAction } from "../../lib/log-admin-action";
 import { generateSkuPrefix, generateVariantSku } from "../../lib/sku-generator";
-import { notifyBuyer } from "../../lib/notify";
+import { notifyBuyer, notifyAdmins } from "../../lib/notify";
 
 export class ProductsService {
   private repository: ProductsRepository;
@@ -77,6 +77,15 @@ export class ProductsService {
     });
 
     await this.repository.saveVariants(variantsToSave);
+
+    notifyAdmins({
+      type: "admin_product_pending",
+      title: `Product Pending Approval: ${product.name}`,
+      body: `New product "${product.name}" created by seller #${userId} and awaiting moderation.`,
+      metadata: { productId: product.id, businessId },
+      actorId: userId,
+      relatedId: product.id,
+    }).catch(() => {});
 
     return { ...product, variants: variantsToSave };
   }
