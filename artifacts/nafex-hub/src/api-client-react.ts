@@ -103,7 +103,7 @@ export function useMarkAllNotificationsRead(options?: { mutation?: { onSuccess?:
 }
 
 // Additional missing stub exports
-export function getGetBusinessesQueryKey() { return ["businesses"]; }
+export function getGetBusinessesQueryKey(params?: Record<string, unknown>) { return ["businesses", params]; }
 export function getGetFeaturedBusinessesQueryKey() { return ["featuredBusinesses"]; }
 export function getGetFeaturedTopBusinessesQueryKey() { return ["featuredTopBusinesses"]; }
 
@@ -128,15 +128,56 @@ export function useCreateBusiness(options?: any) {
 }
 
 // Additional stub implementations for various API client hooks used throughout the app
-export function useGetBusinesses(_: any) { return { data: [] as any[], refetch: () => {} }; }
+export function useGetBusinesses(params?: { search?: string; category?: string; verified?: string }) {
+  return useQuery({
+    queryKey: getGetBusinessesQueryKey(params),
+    queryFn: async () => {
+      const p = new URLSearchParams();
+      if (params?.search) p.set("search", params.search);
+      if (params?.category) p.set("category", params.category);
+      if (params?.verified) p.set("verified", params.verified);
+      const res = await fetch(`/api/businesses?${p}`, { headers: authHeaders() });
+      if (!res.ok) return [];
+      const json = await res.json();
+      return Array.isArray(json) ? json : json.businesses ?? [];
+    },
+  });
+}
 export function useGetFeaturedBusinesses(_: any) { return { data: [] as any[], refetch: () => {} }; }
 export function useGetFeaturedTopBusinesses(_: any) { return { data: [] as any[], refetch: () => {} }; }
 export function useGetStatsSummary(_: any) { return { data: null, refetch: () => {} }; }
 export function useGetFavorites(_: any) { return { data: [] as any[], refetch: () => {} }; }
 export function getGetFavoritesQueryKey() { return ["favorites"]; }
-export function useGetCategories(_: any) { return { data: [] as any[], refetch: () => {} }; }
-export function useListProducts(_: any) { return { data: [] as any[], refetch: () => {} }; }
-export function getListProductsQueryKey() { return ["listProducts"]; }
+export function useGetCategories() {
+  return useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const res = await fetch("/api/categories", { headers: authHeaders() });
+      if (!res.ok) return [];
+      return await res.json();
+    },
+  });
+}
+export function useListProducts(
+  params?: { search?: string; category?: string; page?: number },
+  options?: { query?: { enabled?: boolean; queryKey?: unknown[] } }
+) {
+  return useQuery({
+    queryKey: options?.query?.queryKey ?? getListProductsQueryKey(params),
+    queryFn: async () => {
+      const p = new URLSearchParams();
+      if (params?.search) p.set("search", params.search);
+      if (params?.category) p.set("category", params.category);
+      if (params?.page) p.set("page", String(params.page));
+      const res = await fetch(`/api/products?${p}`, { headers: authHeaders() });
+      if (!res.ok) return [];
+      const json = await res.json();
+      return Array.isArray(json) ? json : json.products ?? [];
+    },
+    enabled: options?.query?.enabled ?? true,
+  });
+}
+export function getListProductsQueryKey(params?: Record<string, unknown>) { return ["listProducts", params]; }
 export function useGetDashboardStats(_: any) { return { data: null, refetch: () => {} }; }
 export function useGetBusinessAnalytics(_: any) { return { data: null, refetch: () => {} }; }
 export function getGetBusinessAnalyticsQueryKey() { return ["businessAnalytics"]; }

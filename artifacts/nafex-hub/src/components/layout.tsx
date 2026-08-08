@@ -35,6 +35,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
     if (siteSettings.logo) setSiteLogo(siteSettings.logo);
   }, [siteSettings.logo]);
 
+  useEffect(() => {
+    const query = location.split("?")[1];
+    if (query) {
+      const params = new URLSearchParams(query);
+      const s = params.get("search");
+      if (s !== null) setHeaderSearch(s);
+    }
+  }, [location]);
+
   const closeMenu = () => setMobileOpen(false);
 
   const isBusinessOwner = user?.role === "business_owner";
@@ -108,36 +117,31 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <nav className="hidden md:flex items-center gap-3 flex-1 justify-end">
             {/* Search - centered, flexible */}
             {!isBusinessOwner && !isAdmin && (
-              <div className="relative flex items-center flex-1 max-w-xs xl:max-w-sm mx-4">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const value = headerSearch.trim();
+                  const base = "/explore";
+                  const next = value ? `${base}?search=${encodeURIComponent(value)}` : base;
+                  setLocation(next);
+                }}
+                className="relative flex items-center flex-1 max-w-xs xl:max-w-sm mx-4"
+              >
                 <input
                   type="search"
                   placeholder="Search products..."
                   className="w-full h-9 pl-4 pr-10 rounded-full bg-[#F6F2FF] dark:bg-zinc-800/90 border border-purple-200 dark:border-zinc-700 text-sm text-[#222222] dark:text-zinc-100 placeholder:text-[#6B7280] dark:placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#6A1B9A] focus:bg-white dark:focus:bg-zinc-900 transition-all"
                   value={headerSearch}
                   onChange={(e) => setHeaderSearch(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      const value = headerSearch.trim();
-                      const base = "/explore";
-                      const next = value ? `${base}?search=${encodeURIComponent(value)}` : base;
-                      setLocation(next);
-                    }
-                  }}
                 />
                 <button
-                  type="button"
-                  onClick={() => {
-                    const value = headerSearch.trim();
-                    const base = "/explore";
-                    const next = value ? `${base}?search=${encodeURIComponent(value)}` : base;
-                    setLocation(next);
-                  }}
+                  type="submit"
                   className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-[#6A1B9A] hover:bg-[#5B1687] text-white flex items-center justify-center transition-colors"
                   aria-label="Search"
                 >
                   <Search className="w-3.5 h-3.5" />
                 </button>
-              </div>
+              </form>
             )}
 
             {/* Nav text links */}
@@ -331,36 +335,31 @@ export function Layout({ children }: { children: React.ReactNode }) {
           {/* Mobile top action header bar (clean & minimal: Search, Cart, Notifications, Theme toggle) */}
           <div className="flex md:hidden items-center gap-1.5">
             {!isBusinessOwner && !isAdmin && (
-              <div className="relative flex items-center max-w-[140px] sm:max-w-[200px]">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const value = headerSearch.trim();
+                  const base = "/explore";
+                  const next = value ? `${base}?search=${encodeURIComponent(value)}` : base;
+                  setLocation(next);
+                }}
+                className="relative flex items-center max-w-[140px] sm:max-w-[200px]"
+              >
                 <input
                   type="search"
                   placeholder="Search..."
                   className="w-full h-8 pl-3 pr-7 rounded-full bg-[#F6F2FF] dark:bg-zinc-800 border border-purple-200 dark:border-zinc-700 text-xs text-[#222222] dark:text-zinc-100 placeholder:text-[#6B7280] dark:placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-[#6A1B9A]"
                   value={headerSearch}
                   onChange={(e) => setHeaderSearch(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      const value = headerSearch.trim();
-                      const base = "/explore";
-                      const next = value ? `${base}?search=${encodeURIComponent(value)}` : base;
-                      setLocation(next);
-                    }
-                  }}
                 />
                 <button
-                  type="button"
-                  onClick={() => {
-                    const value = headerSearch.trim();
-                    const base = "/explore";
-                    const next = value ? `${base}?search=${encodeURIComponent(value)}` : base;
-                    setLocation(next);
-                  }}
+                  type="submit"
                   className="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[#6A1B9A] text-white flex items-center justify-center"
                   aria-label="Search"
                 >
                   <Search className="w-3 h-3" />
                 </button>
-              </div>
+              </form>
             )}
             {!isBusinessOwner && !isAdmin && (
               <CartIcon className="text-[#222222] dark:text-zinc-100 hover:text-[#6A1B9A]" />

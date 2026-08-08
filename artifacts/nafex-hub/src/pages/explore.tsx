@@ -148,6 +148,14 @@ export default function Explore() {
   const [allCategoriesOpen, setAllCategoriesOpen] = useState(false);
   const [modalCategorySearch, setModalCategorySearch] = useState("");
 
+  // Sync search state from URL query when location changes
+  useEffect(() => {
+    const [_, query = ""] = location.split("?");
+    const params = new URLSearchParams(query);
+    const s = params.get("search") ?? "";
+    setSearch(s);
+  }, [location]);
+
   // Keep URL query string in sync with filters for sharable links without triggering re-render loops
   useEffect(() => {
     if (!location.startsWith("/explore")) return;
