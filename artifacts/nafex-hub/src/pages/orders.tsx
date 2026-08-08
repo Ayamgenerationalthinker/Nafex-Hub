@@ -34,7 +34,12 @@ import {
   CreditCard,
   PartyPopper,
   MessageCircle,
+  Star,
+  FileText,
+  Send,
+  Eye,
 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { getPaystackPublicKey, openPaystackPopup } from "@/lib/paystack";
 
@@ -274,6 +279,364 @@ function ConfirmDeliveryDialog({
   );
 }
 
+function LeaveReviewDialog({
+  order,
+  open,
+  onClose,
+  onSuccess,
+}: {
+  order: OrderWithDetails;
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const { toast } = useToast();
+  const [rating, setRating] = useState(5);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const token = localStorage.getItem("nafex_token");
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          businessId: order.businessId,
+          rating,
+          comment,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error ?? "Failed to submit review");
+      }
+
+      toast({ title: "Review Submitted!", description: "Thank you for sharing your feedback with the seller." });
+      onSuccess();
+      onClose();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v && !submitting) onClose(); }}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+            Rate & Review Order #{order.id}
+          </DialogTitle>
+          <DialogDescription>
+            Share your experience with {order.businessName ?? "the seller"} to help other buyers.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="text-xs font-semibold uppercase text-muted-foreground block mb-2">Overall Rating</label>
+            <div className="flex items-center gap-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  type="button"
+                  key={star}
+                  onClick={() => setRating(star)}
+                  onMouseEnter={() => setHoverRating(star)}
+                  onMouseLeave={() => setHoverRating(0)}
+                  className="p-1 focus:outline-none transition-transform hover:scale-110"
+                >
+                  <Star
+                    className={`w-7 h-7 ${
+                      (hoverRating || rating) >= star
+                        ? "text-yellow-400 fill-yellow-400"
+                        : "text-gray-300"
+                    }`}
+                  />
+                </button>
+              ))}
+              <span className="text-sm font-semibold text-foreground ml-2">
+                {hoverRating || rating} / 5 Stars
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold uppercase text-muted-foreground block mb-1">Your Review</label>
+            <Textarea
+              rows={4}
+              placeholder="How was the quality, packaging, and delivery experience?"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              className="resize-none"
+              required
+            />
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={submitting} className="gap-2">
+              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              Submit Review
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function RaiseDisputeDialog({
+  order,
+  open,
+  onClose,
+  onSuccess,
+}: {
+  order: OrderWithDetails;
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const { toast } = useToast();
+  const [reason, setReason] = useState("Damaged Item");
+  const [description, setDescription] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const token = localStorage.getItem("nafex_token");
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/disputes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          orderId: order.id,
+          reason,
+          description,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error ?? "Failed to open dispute ticket");
+      }
+
+      toast({ title: "Dispute Opened", description: "Your dispute ticket has been submitted to support & admin review." });
+      onSuccess();
+      onClose();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v && !submitting) onClose(); }}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-rose-600">
+            <AlertTriangle className="w-5 h-5 text-rose-600" />
+            Report Issue / Request Refund — Order #{order.id}
+          </DialogTitle>
+          <DialogDescription>
+            Nafex Hub Escrow Protection ensures your dispute is investigated thoroughly.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="text-xs font-semibold uppercase text-muted-foreground block mb-1">Reason for Dispute</label>
+            <select
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm font-medium"
+            >
+              <option value="Damaged Item">Item arrived damaged or broken</option>
+              <option value="Wrong Item Received">Received incorrect item or size</option>
+              <option value="Item Not as Described">Item quality significantly differs from description</option>
+              <option value="Package Never Arrived">Package marked delivered but not received</option>
+              <option value="Other Issue">Other refund or delivery issue</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold uppercase text-muted-foreground block mb-1">Detailed Explanation</label>
+            <Textarea
+              rows={4}
+              placeholder="Describe the exact issue with your order..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="resize-none"
+              required
+            />
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="destructive" disabled={submitting} className="gap-2">
+              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <AlertTriangle className="w-4 h-4" />}
+              Submit Dispute
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function OrderDetailsDialog({
+  order,
+  open,
+  onClose,
+  onPay,
+  onConfirmDelivery,
+  onLeaveReview,
+  onRaiseDispute,
+  onMessageSeller,
+}: {
+  order: OrderWithDetails;
+  open: boolean;
+  onClose: () => void;
+  onPay: () => void;
+  onConfirmDelivery: () => void;
+  onLeaveReview: () => void;
+  onRaiseDispute: () => void;
+  onMessageSeller: () => void;
+}) {
+  const statusCfg = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.pending;
+  const payCfg = PAYMENT_CONFIG[order.paymentStatus ?? "unpaid"] ?? PAYMENT_CONFIG.unpaid;
+  const items = Array.isArray(order.items) ? order.items : [];
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <div className="flex items-center justify-between gap-2 border-b pb-3">
+            <div>
+              <DialogTitle className="text-lg font-bold">Order #{order.id}</DialogTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Placed on {new Date(order.createdAt).toLocaleString()}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`text-xs px-2.5 py-1 rounded-full font-semibold border ${statusCfg.color}`}>
+                {statusCfg.label}
+              </span>
+              <span className={`text-xs px-2.5 py-1 rounded-full font-semibold border ${payCfg.color}`}>
+                {payCfg.label}
+              </span>
+            </div>
+          </div>
+        </DialogHeader>
+
+        <div className="space-y-5 pt-2">
+          {/* Business & Seller Info */}
+          <div className="flex items-center justify-between bg-muted/40 p-3 rounded-lg border border-border/50">
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase">Seller Business</p>
+              <p className="text-sm font-bold text-foreground mt-0.5">{order.businessName ?? `Business #${order.businessId}`}</p>
+            </div>
+            <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8" onClick={onMessageSeller}>
+              <MessageCircle className="w-3.5 h-3.5 text-blue-500" />
+              Contact Seller
+            </Button>
+          </div>
+
+          {/* Delivery OTP Highlight Banner if available */}
+          {order.deliveryOtp && (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <KeyRound className="w-5 h-5 text-emerald-600 shrink-0" />
+                <div>
+                  <p className="text-xs font-bold text-emerald-900">Your Delivery OTP Code</p>
+                  <p className="text-[11px] text-emerald-700">Provide this 6-digit code to the rider upon delivery.</p>
+                </div>
+              </div>
+              <span className="font-mono font-extrabold text-base bg-white border border-emerald-300 text-emerald-800 px-3 py-1 rounded-md tracking-wider shadow-sm">
+                {order.deliveryOtp}
+              </span>
+            </div>
+          )}
+
+          {/* Escrow Guidance Banner */}
+          <div className="bg-amber-50/80 border border-amber-200/80 rounded-lg p-3 flex items-start gap-2.5 text-xs text-amber-800">
+            <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <p>
+              <strong>Nafex Escrow Guarantee:</strong> Payment is held safely in escrow. Funds are released to the seller only after delivery is verified.
+            </p>
+          </div>
+
+          {/* Order Items Breakdown */}
+          <div>
+            <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-2">Itemized Order Summary</h4>
+            <div className="border border-border/60 rounded-lg divide-y divide-border/50 overflow-hidden">
+              {items.length > 0 ? (
+                items.map((item: any, idx: number) => (
+                  <div key={idx} className="p-3 flex items-center justify-between text-sm">
+                    <div>
+                      <p className="font-medium text-foreground">{item.name ?? "Product Item"}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Quantity: {item.quantity ?? 1}</p>
+                    </div>
+                    <span className="font-semibold font-mono">
+                      GHS {(((item.price ?? 0) * (item.quantity ?? 1)) / 100).toFixed(2)}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="p-3 text-xs text-muted-foreground text-center">General Order Items</div>
+              )}
+              <div className="p-3 bg-muted/20 flex items-center justify-between text-sm font-bold border-t border-border">
+                <span>Total Amount Paid / Due</span>
+                <span className="text-base text-primary font-mono">GHS {(order.totalPrice / 100).toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
+            {order.status !== "cancelled" && order.paymentStatus === "unpaid" && (
+              <Button size="sm" className="gap-2 bg-amber-600 hover:bg-amber-700 text-white" onClick={onPay}>
+                <CreditCard className="w-3.5 h-3.5" />
+                Pay Now (Paystack)
+              </Button>
+            )}
+            {order.status !== "cancelled" && (order.status === "out_for_delivery" || order.status === "confirmed" || order.status === "packed") && (
+              <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700 text-white" onClick={onConfirmDelivery}>
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Confirm Delivery
+              </Button>
+            )}
+            {order.status === "delivered" && (
+              <Button size="sm" variant="outline" className="gap-1.5 text-xs text-yellow-600 hover:bg-yellow-50" onClick={onLeaveReview}>
+                <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
+                Leave Review
+              </Button>
+            )}
+            {order.status !== "cancelled" && (
+              <Button size="sm" variant="ghost" className="gap-1.5 text-xs text-rose-600 hover:bg-rose-50" onClick={onRaiseDispute}>
+                <AlertTriangle className="w-3.5 h-3.5" />
+                Raise Dispute / Issue
+              </Button>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function Orders({ isEmbedded = false }: { isEmbedded?: boolean }) {
   const [, setLocation] = useLocation();
   const { user, token } = useAuth();
@@ -282,6 +645,9 @@ export default function Orders({ isEmbedded = false }: { isEmbedded?: boolean })
 
   const [payingOrder, setPayingOrder] = useState<OrderWithDetails | null>(null);
   const [confirmingOrder, setConfirmingOrder] = useState<OrderWithDetails | null>(null);
+  const [selectedOrderForDetail, setSelectedOrderForDetail] = useState<OrderWithDetails | null>(null);
+  const [reviewingOrder, setReviewingOrder] = useState<OrderWithDetails | null>(null);
+  const [disputingOrder, setDisputingOrder] = useState<OrderWithDetails | null>(null);
 
   const { data: orders, isLoading } = useGetUserOrders({
     query: { enabled: !!user, queryKey: getGetUserOrdersQueryKey() },
@@ -519,6 +885,15 @@ export default function Orders({ isEmbedded = false }: { isEmbedded?: boolean })
                   {/* ── Bottom action bar ── */}
                   {order.status !== "cancelled" && (
                     <div className="flex flex-wrap gap-2 pt-1 border-t border-border/50">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="gap-1.5 text-xs h-8"
+                        onClick={() => setSelectedOrderForDetail(order)}
+                      >
+                        <Eye className="w-3.5 h-3.5 text-primary" />
+                        View Full Details
+                      </Button>
                       <Link href="/track">
                         <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8">
                           <Navigation className="w-3.5 h-3.5" />
@@ -534,13 +909,27 @@ export default function Orders({ isEmbedded = false }: { isEmbedded?: boolean })
                         <MessageCircle className="w-3.5 h-3.5" />
                         Message seller
                       </Button>
-                      {(isInEscrow || isReleased) && (
-                        <Link href={`/disputes?orderId=${order.id}`}>
-                          <Button size="sm" variant="ghost" className="gap-1.5 text-xs h-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50">
-                            <AlertTriangle className="w-3.5 h-3.5" />
-                            Raise Dispute
-                          </Button>
-                        </Link>
+                      {order.status === "delivered" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-1.5 text-xs h-8 text-yellow-700 hover:bg-yellow-50"
+                          onClick={() => setReviewingOrder(order)}
+                        >
+                          <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
+                          Leave Review
+                        </Button>
+                      )}
+                      {(isInEscrow || isReleased || order.status === "delivered") && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="gap-1.5 text-xs h-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                          onClick={() => setDisputingOrder(order)}
+                        >
+                          <AlertTriangle className="w-3.5 h-3.5" />
+                          Raise Dispute
+                        </Button>
                       )}
                     </div>
                   )}
@@ -552,6 +941,38 @@ export default function Orders({ isEmbedded = false }: { isEmbedded?: boolean })
       )}
 
       {/* ── Dialogs ── */}
+      {selectedOrderForDetail && (
+        <OrderDetailsDialog
+          order={selectedOrderForDetail}
+          open={!!selectedOrderForDetail}
+          onClose={() => setSelectedOrderForDetail(null)}
+          onPay={() => {
+            const ord = selectedOrderForDetail;
+            setSelectedOrderForDetail(null);
+            setPayingOrder(ord);
+          }}
+          onConfirmDelivery={() => {
+            const ord = selectedOrderForDetail;
+            setSelectedOrderForDetail(null);
+            setConfirmingOrder(ord);
+          }}
+          onLeaveReview={() => {
+            const ord = selectedOrderForDetail;
+            setSelectedOrderForDetail(null);
+            setReviewingOrder(ord);
+          }}
+          onRaiseDispute={() => {
+            const ord = selectedOrderForDetail;
+            setSelectedOrderForDetail(null);
+            setDisputingOrder(ord);
+          }}
+          onMessageSeller={() => {
+            const ord = selectedOrderForDetail;
+            setSelectedOrderForDetail(null);
+            messageSeller(ord);
+          }}
+        />
+      )}
       {payingOrder && (
         <PayWithPaystackDialog
           order={payingOrder}
@@ -570,6 +991,28 @@ export default function Orders({ isEmbedded = false }: { isEmbedded?: boolean })
           onClose={() => setConfirmingOrder(null)}
           onConfirmed={() => {
             setConfirmingOrder(null);
+            queryClient.invalidateQueries({ queryKey: getGetUserOrdersQueryKey() });
+          }}
+        />
+      )}
+      {reviewingOrder && (
+        <LeaveReviewDialog
+          order={reviewingOrder}
+          open={!!reviewingOrder}
+          onClose={() => setReviewingOrder(null)}
+          onSuccess={() => {
+            setReviewingOrder(null);
+            queryClient.invalidateQueries({ queryKey: getGetUserOrdersQueryKey() });
+          }}
+        />
+      )}
+      {disputingOrder && (
+        <RaiseDisputeDialog
+          order={disputingOrder}
+          open={!!disputingOrder}
+          onClose={() => setDisputingOrder(null)}
+          onSuccess={() => {
+            setDisputingOrder(null);
             queryClient.invalidateQueries({ queryKey: getGetUserOrdersQueryKey() });
           }}
         />

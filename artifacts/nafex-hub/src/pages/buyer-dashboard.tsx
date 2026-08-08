@@ -267,6 +267,26 @@ export default function BuyerDashboard() {
             <div className="space-y-4">
               <h1 className="text-xl font-semibold text-gray-800 mb-4">Account Overview</h1>
               
+              {/* Escrow Protection Trust Guarantee Banner */}
+              <div className="bg-gradient-to-r from-emerald-900 to-slate-900 text-white rounded-lg p-5 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-emerald-700/50">
+                <div className="flex items-start gap-3">
+                  <div className="p-2.5 bg-emerald-500/20 rounded-full border border-emerald-400/30 text-emerald-400 shrink-0 mt-0.5">
+                    <ShieldCheck className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-base text-white flex items-center gap-2">
+                      Nafex Escrow Buyer Guarantee
+                    </h3>
+                    <p className="text-xs text-emerald-100/80 mt-1 max-w-xl leading-relaxed">
+                      Your payments are 100% protected. Funds are held safely in escrow and released to the seller only after you confirm delivery with your 6-digit OTP code.
+                    </p>
+                  </div>
+                </div>
+                <Button size="sm" variant="secondary" className="bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-bold text-xs shrink-0" onClick={() => setActiveTab("orders")}>
+                  View Escrow Orders
+                </Button>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Account Details Block */}
                 <div className="bg-white border border-gray-200 rounded-sm">
